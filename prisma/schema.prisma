@@ -12,6 +12,9 @@ model Profile {
   id            String   @id @default(uuid())
   createdAt     DateTime @default(now())
   userId        String   @unique
+  firstName     String   
+  lastName      String   
+  age           Int
   weight        Float
   height        Float
   activityLevel String
