@@ -37,7 +37,7 @@ export default function SignupPage() {
   const handleBack = useCallback(() => {
     setError(null);
     setLoading(false);
-    setStep((prev) => Math.max(0, prev - 1));
+    setStep((prev) => Math.max(0, prev - 1) as 0 | 1 | 2);
   }, []);
 
   const handleSubmit = useCallback(
@@ -148,7 +148,7 @@ export default function SignupPage() {
                     <Label htmlFor="activity_level">Activity Level 🏃</Label>
                     <Select
                       value={activityLevel}
-                      onValueChange={setActivityLevel}
+                      onValueChange={(value) => setActivityLevel(value as 'low' | 'medium' | 'high')}
                     >
                       <SelectTrigger id="activity_level" className="w-full">
                         <SelectValue placeholder="Select level" />
@@ -178,7 +178,7 @@ export default function SignupPage() {
                 )}
                 <div className="ml-auto">
                   {step < 1 ? (
-                    <Button type="submit" disabled={loading} onClick={() => setStep(step + 1)}>
+                    <Button type="submit" disabled={loading} onClick={() => setStep((step + 1) as 0 | 1 | 2)}>
                       Next
                     </Button>
                   ) : (
