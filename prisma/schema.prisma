@@ -1,0 +1,52 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+
+model Profile {
+  id            String   @id @default(uuid())
+  createdAt     DateTime @default(now())
+  userId        String   @unique
+  weight        Float
+  height        Float
+  activityLevel String
+  // relations
+  FitnessGoal   FitnessGoal[]
+  Workout       Workout[]
+  Session       Session[]
+
+  @@map("profiles")
+}
+
+model FitnessGoal {
+  id           String   @id @default(uuid())
+  profile      Profile  @relation(fields: [profileId], references: [id])
+  profileId    String
+  goalType     String
+  targetValue  Float
+  createdAt    DateTime @default(now())
+}
+
+model Workout {
+  id            String   @id @default(uuid())
+  profile       Profile  @relation(fields: [profileId], references: [id])
+  profileId     String
+  bodyPart      String
+  exerciseName  String
+  sets          Int
+  reps          Int
+  createdAt     DateTime @default(now())
+}
+
+model Session {
+  id            String   @id @default(uuid())
+  profile       Profile  @relation(fields: [profileId], references: [id])
+  profileId     String
+  date          DateTime
+  sessionData   Json
+}
