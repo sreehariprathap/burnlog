@@ -35,7 +35,7 @@ export function SessionLogger({ plan, onEnd }: SessionLoggerProps) {
 
   return (
     <div className="flex flex-col h-screen ">
-      <TopBar title={`${plan.bodyPart} Session`} />
+      <TopBar title={`${plan.bodyPart} Session`} showClose onClose={onEnd} />
       <div className="flex-1 overflow-auto py-4 pb-10">
         {renderLogger()}
       </div>
