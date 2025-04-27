@@ -7,18 +7,18 @@ generator client {
   provider = "prisma-client-js"
 }
 
-
+/// user profile
 model Profile {
-  id            String   @id @default(uuid())
-  createdAt     DateTime @default(now())
-  userId        String   @unique
-  firstName     String   
-  lastName      String   
+  id            String      @id @default(uuid())
+  createdAt     DateTime    @default(now())
+  userId        String      @unique
+  firstName     String
+  lastName      String
   age           Int
   weight        Float
   height        Float
   activityLevel String
-  // relations
+
   FitnessGoal   FitnessGoal[]
   Workout       Workout[]
   Session       Session[]
@@ -26,6 +26,7 @@ model Profile {
   @@map("profiles")
 }
 
+/// fitness goals
 model FitnessGoal {
   id           String   @id @default(uuid())
   profile      Profile  @relation(fields: [profileId], references: [id])
@@ -33,23 +34,31 @@ model FitnessGoal {
   goalType     String
   targetValue  Float
   createdAt    DateTime @default(now())
+
+  @@map("fitness_goals")
 }
 
+/// workouts
 model Workout {
-  id            String   @id @default(uuid())
-  profile       Profile  @relation(fields: [profileId], references: [id])
-  profileId     String
-  bodyPart      String
-  exerciseName  String
-  sets          Int
-  reps          Int
-  createdAt     DateTime @default(now())
+  id           String   @id @default(uuid())
+  profile      Profile  @relation(fields: [profileId], references: [id])
+  profileId    String
+  bodyPart     String
+  exerciseName String
+  sets         Int
+  reps         Int
+  createdAt    DateTime @default(now())
+
+  @@map("workouts")
 }
 
+/// gym sessions
 model Session {
-  id            String   @id @default(uuid())
-  profile       Profile  @relation(fields: [profileId], references: [id])
-  profileId     String
-  date          DateTime
-  sessionData   Json
+  id           String   @id @default(uuid())
+  profile      Profile  @relation(fields: [profileId], references: [id])
+  profileId    String
+  date         DateTime
+  sessionData  Json
+
+  @@map("sessions")
 }
