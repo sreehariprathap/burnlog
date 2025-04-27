@@ -27,7 +27,7 @@ export default function SessionsPage() {
       if (user) setUserId(user.id);
     });
   }, [supabase]);
-
+  
   // 2️⃣ Fetch plan for a given weekday & user
   const fetchPlan = useCallback(async () => {
     if (!userId) {
