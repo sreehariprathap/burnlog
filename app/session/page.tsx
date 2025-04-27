@@ -8,16 +8,20 @@ import { SessionLogger } from './_components/SessionLogger';
 import { DayNavigator } from './_components/DayNavigator';
 import { PlanCard, PlanDay } from './_components/PlanCard';
 import { AddWorkoutModal } from './_components/AddWorkoutModal';
+import { WorkoutHistory } from './_components/WorkoutHistory';
 import { BottomNav } from '@/components/BottomNav';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { History, BarChart } from 'lucide-react';
 
 export default function SessionsPage() {
   const supabase = createClientComponentClient();
   const [day, setDay] = useState<number>(new Date().getDay());
   const [plan, setPlan] = useState<PlanDay | null>(null);
   const [logging, setLogging] = useState<boolean>(false);
-  const [showAddModal, setShowAdd] = useState<boolean>(false);
+  const [showAddModal, setShowAddModal] = useState<boolean>(false);
+  const [showHistory, setShowHistory] = useState<boolean>(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [loadingPlan, setLoadingPlan] = useState<boolean>(true);
 
@@ -86,11 +90,28 @@ export default function SessionsPage() {
     return <SessionLogger plan={plan} onEnd={() => setLogging(false)} />;
   }
 
+  // 5️⃣-B Workout history view
+  if (showHistory) {
+    return <WorkoutHistory onClose={() => setShowHistory(false)} />;
+  }
+
   // 6️⃣ Main UI
   return (
     <div className="pb-16">
-      <TopBar title="Sessions" />
-      <DayNavigator value={day} onChange={setDay} />
+      <TopBar title="Sessions"  actions={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowHistory(true)}
+            className="flex items-center gap-1"
+          >
+            <BarChart className="h-4 w-4" />
+            <span className="hidden sm:inline">History</span>
+          </Button>
+        }/>
+      <div className="flex w-full gap-2 items-center px-4 py-2">
+        <DayNavigator value={day} onChange={setDay} />
+      </div>
 
       <div className="p-4 space-y-4">
         {loadingPlan ? (
@@ -106,7 +127,7 @@ export default function SessionsPage() {
           <PlanCard
             plan={plan}
             onStart={() => setLogging(true)}
-            onAdd={() => setShowAdd(true)}
+            onAdd={() => setShowAddModal(true)}
           />
         )}
       </div>
@@ -114,7 +135,7 @@ export default function SessionsPage() {
       <AddWorkoutModal
         open={showAddModal}
         initialDay={day}
-        onOpenChange={setShowAdd}
+        onOpenChange={setShowAddModal}
         onSaved={handleSaved}
       />
       <BottomNav />
