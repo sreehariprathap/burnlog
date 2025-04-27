@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { PlanDay } from './PlanCard';
-import { Dumbbell, Activity, Repeat, PersonStanding, Pickaxe } from 'lucide-react';
+import { Dumbbell, PersonStanding, Pickaxe, Bed, Footprints, Bike } from 'lucide-react';
 
 const daysOfWeek = [
   { index: 0, label: 'Sun' },
@@ -29,9 +29,10 @@ const daysOfWeek = [
 const bodyPartOptions = [
   { value: 'Push', label: 'Push', icon: Dumbbell },
   { value: 'Pull', label: 'Pull', icon: Pickaxe },
-  { value: 'Legs', label: 'Legs', icon: Activity },
+  { value: 'Legs', label: 'Legs', icon: Footprints },
   { value: 'Full Body', label: 'Full Body', icon: PersonStanding },
-  { value: 'Cardio', label: 'Cardio', icon: Repeat }
+  { value: 'Cardio', label: 'Cardio', icon: Bike },
+  { value: 'Rest', label: 'Rest', icon: Bed },
 ];
 
 type AddWorkoutModalProps = {

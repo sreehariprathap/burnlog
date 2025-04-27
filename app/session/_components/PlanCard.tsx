@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 export type PlanDay = {
   dayIndex: number;
   bodyPart: string;
+  repeatWeekly?: boolean;
 };
 
 type PlanCardProps = {
@@ -19,7 +20,9 @@ export function PlanCard({ plan, onStart, onAdd }: PlanCardProps) {
     <Card>
       <CardHeader>
         <CardTitle>
-          {plan ? `${plan.bodyPart} Day` : 'No Workout Scheduled'}
+          {plan
+            ? `${plan.bodyPart} Day${plan.repeatWeekly ? ' 🔁' : ''}`
+            : 'No Workout Scheduled'}
         </CardTitle>
       </CardHeader>
       <CardContent className="flex justify-center">

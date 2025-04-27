@@ -1,104 +1,123 @@
 // app/sessions/page.tsx
 'use client';
-
 import { useState, useEffect, useCallback } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 import { TopBar } from '@/components/TopBar';
-import { PlanCard, PlanDay } from './_components/PlanCard';
 import { SessionLogger } from './_components/SessionLogger';
 import { DayNavigator } from './_components/DayNavigator';
+import { PlanCard, PlanDay } from './_components/PlanCard';
 import { AddWorkoutModal } from './_components/AddWorkoutModal';
 import { BottomNav } from '@/components/BottomNav';
-
+import { Skeleton } from '@/components/ui/skeleton';
+import { Card } from '@/components/ui/card';
 
 export default function SessionsPage() {
   const supabase = createClientComponentClient();
-
-  // which day of week (0=Sun…6=Sat)
   const [day, setDay] = useState<number>(new Date().getDay());
   const [plan, setPlan] = useState<PlanDay | null>(null);
   const [logging, setLogging] = useState<boolean>(false);
+  const [showAddModal, setShowAdd] = useState<boolean>(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [loadingPlan, setLoadingPlan] = useState<boolean>(true);
 
-  // modal state
-  const [showAddModal, setShowAddModal] = useState<boolean>(false);
+  // 1️⃣ Get current user
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (user) setUserId(user.id);
+    });
+  }, [supabase]);
 
-  // fetch the PlanDay for the selected day
+  // 2️⃣ Fetch plan for a given weekday & user
   const fetchPlan = useCallback(async () => {
-    // assume you have a 'workout_plans' table with columns:
-    //   profile_id, day_index, body_part
-    const { data, error } = await supabase
+    if (!userId) {
+      setPlan(null);
+      setLoadingPlan(false);
+      return;
+    }
+
+    setLoadingPlan(true);
+    const { data } = await supabase
       .from('workout_plans')
-      .select('day_index, body_part')
-      .eq('day_index', day)
+      .select('dayOfWeek, bodyPart, repeatWeekly')
+      .eq('profileId', userId)
+      .eq('dayOfWeek', day)
       .single();
 
-    if (error) {
-      console.error('Error loading plan:', error);
-      setPlan(null);
-    } else if (data) {
+    if (data) {
       setPlan({
-        dayIndex: data.day_index,
-        bodyPart: data.body_part
+        dayIndex: data.dayOfWeek,
+        bodyPart: data.bodyPart,
+        repeatWeekly: data.repeatWeekly
       });
     } else {
       setPlan(null);
     }
-  }, [day, supabase]);
+    setTimeout(() => {
+      setLoadingPlan(false);
+    }, 1000); // 2000 milliseconds = 2 seconds
+  }, [day, userId, supabase]);
 
-  // initial & day‐change load
+  // 3️⃣ Reload whenever the user or day changes
   useEffect(() => {
     fetchPlan();
   }, [fetchPlan]);
 
-  // handler when AddWorkoutModal saves a new plan
-  const handleSaved = async (newPlan: PlanDay) => {
-    // upsert into workout_plans
+  // 4️⃣ Upsert a new plan
+  const handleSaved = async (newPlan: PlanDay & { repeatWeekly: boolean }) => {
+    if (!userId) return;
     const { error } = await supabase
       .from('workout_plans')
-      .upsert({
-        day_index: newPlan.dayIndex,
-        body_part: newPlan.bodyPart
-        // plus your profile_id if needed
-      },
-      { onConflict: 'day_index' }
+      .upsert(
+        {
+          profileId: userId,
+          dayOfWeek: newPlan.dayIndex,
+          bodyPart: newPlan.bodyPart,
+          repeatWeekly: newPlan.repeatWeekly
+        },
+        { onConflict: 'profileId,dayOfWeek' }
       );
-    if (error) {
-      console.error('Error saving plan:', error);
-    } else {
-      fetchPlan();
-    }
+    if (error) console.error('Plan save failed:', error);
+    else fetchPlan();
   };
 
-  // when logging, show logger UI
+  // 5️⃣ Session logger
   if (logging && plan) {
     return <SessionLogger plan={plan} onEnd={() => setLogging(false)} />;
   }
 
+  // 6️⃣ Main UI
   return (
     <div className="pb-16">
       <TopBar title="Sessions" />
-
       <DayNavigator value={day} onChange={setDay} />
 
       <div className="p-4 space-y-4">
-        <PlanCard
-          plan={plan}
-          onStart={() => setLogging(true)}
-          onAdd={() => setShowAddModal(true)}
-        />
+        {loadingPlan ? (
+          // Skeleton placeholder while loading
+          <Card className='p-3'>
+            <Skeleton className="h-[25px] w-full rounded-xl" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+            </div>
+          </Card>
+        ) : (
+          <PlanCard
+            plan={plan}
+            onStart={() => setLogging(true)}
+            onAdd={() => setShowAdd(true)}
+          />
+        )}
       </div>
 
       <AddWorkoutModal
         open={showAddModal}
         initialDay={day}
-        onOpenChange={setShowAddModal}
-        onSaved={p => {
-          setShowAddModal(false);
-          handleSaved(p);
-        }}
+        onOpenChange={setShowAdd}
+        onSaved={handleSaved}
       />
-      <BottomNav/>
+      <BottomNav />
     </div>
   );
 }

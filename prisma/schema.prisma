@@ -22,6 +22,7 @@ model Profile {
   FitnessGoal   FitnessGoal[]
   Workout       Workout[]
   Session       Session[]
+  WorkoutPlan   WorkoutPlan[]
 
   @@map("profiles")
 }
@@ -50,6 +51,20 @@ model Workout {
   createdAt    DateTime @default(now())
 
   @@map("workouts")
+}
+
+/// Weekly workout schedule per user
+model WorkoutPlan {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile       Profile  @relation(fields: [profileId], references: [id])
+  profileId     String
+  dayOfWeek     Int      // 0=Sun, 1=Mon … 6=Sat
+  bodyPart      String   // e.g. "Push", "Pull"
+  repeatWeekly  Boolean  @default(false)
+  createdAt     DateTime @default(now())
+
+  @@unique([profileId, dayOfWeek])
+  @@map("workout_plans")
 }
 
 /// gym sessions

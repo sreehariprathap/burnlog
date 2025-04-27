@@ -11,7 +11,7 @@ type DayNavigatorProps = {
 
 export function DayNavigator({ value, onChange }: DayNavigatorProps) {
   return (
-    <div className="flex justify-around bg-white py-2 shadow-sm sticky top-0 z-20">
+    <div className="flex justify-around bg-white py-2 shadow-sm sticky top-0 z-20 gap-3 px-4">
       {days.map((dayLabel, idx) => (
         <button
           key={dayLabel}
