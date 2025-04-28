@@ -53,7 +53,7 @@ export async function POST(request: Request) {
     );
     
     const notificationPayload = JSON.stringify({
-      title: title || 'Gymlog Notification',
+      title: title || 'burnlog Notification',
       message: message || 'You have a new notification',
       url: url || '/'
     });

@@ -116,7 +116,7 @@ export default function DashboardPage() {
             <CardContent className="pt-4 pb-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-semibold">Install Gymlog App</h3>
+                  <h3 className="font-semibold">Install burnlog App</h3>
                   <p className="text-sm text-muted-foreground">Add to your home screen for quick access</p>
                 </div>
                 <button

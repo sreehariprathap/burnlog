@@ -33,7 +33,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ThemeProvider defaultTheme="light" storageKey="gymlog-theme">
+        <ThemeProvider defaultTheme="light" storageKey="burnlog-theme">
           <SessionContextProvider supabaseClient={supabaseClient}>
             {children}
             <Toaster />

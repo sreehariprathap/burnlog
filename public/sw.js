@@ -2,7 +2,7 @@
 // It uses workbox behind the scenes
 
 // Cache name with version
-const CACHE_NAME = 'gymlog-cache-v1';
+const CACHE_NAME = 'burnlog-cache-v1';
 
 // Assets to precache on installation
 const PRECACHE_ASSETS = [
@@ -94,7 +94,7 @@ self.addEventListener('push', (event) => {
     const data = event.data.json();
     
     const options = {
-      body: data.message || 'New notification from Gymlog',
+      body: data.message || 'New notification from burnlog',
       icon: '/B.png',
       badge: '/B.png',
       vibrate: [100, 50, 100],
@@ -104,19 +104,19 @@ self.addEventListener('push', (event) => {
     };
     
     event.waitUntil(
-      self.registration.showNotification(data.title || 'Gymlog Notification', options)
+      self.registration.showNotification(data.title || 'burnlog Notification', options)
     );
   } catch (error) {
     // Fallback for non-JSON push messages
     const options = {
-      body: event.data.text() || 'New notification from Gymlog',
+      body: event.data.text() || 'New notification from burnlog',
       icon: '/B.png',
       badge: '/B.png',
       vibrate: [100, 50, 100]
     };
     
     event.waitUntil(
-      self.registration.showNotification('Gymlog Notification', options)
+      self.registration.showNotification('burnlog Notification', options)
     );
   }
 });

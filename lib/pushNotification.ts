@@ -125,8 +125,8 @@ export async function sendTestNotification() {
   // But for testing, we can trigger it directly
   if ('serviceWorker' in navigator) {
     const registration = await navigator.serviceWorker.ready;
-    registration.showNotification('Gymlog Test', {
-      body: 'This is a test notification from Gymlog!',
+    registration.showNotification('burnlog Test', {
+      body: 'This is a test notification from burnlog!',
       icon: '/B.png',
       badge: '/B.png',
       vibrate: [100, 50, 100],

@@ -3,8 +3,8 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'Gymlog - Fitness Tracker',
-    short_name: 'Gymlog',
+    name: 'burnlog - Fitness Tracker',
+    short_name: 'burnlog',
     description: 'Track your workouts, set fitness goals, and monitor your progress',
     start_url: '/',
     display: 'standalone',
@@ -24,7 +24,7 @@ export default function manifest(): MetadataRoute.Manifest {
         sizes: '1080x1920',
         type: 'image/png',
         form_factor: 'narrow',
-        label: 'Gymlog Dashboard'
+        label: 'burnlog Dashboard'
       }
     ],
     categories: ['fitness', 'health', 'lifestyle']
