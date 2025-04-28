@@ -13,6 +13,7 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import { format, parseISO, differenceInDays, addDays } from 'date-fns';
+import { Card } from '@/components/ui/card';
 
 // Types
 interface WeightEntry {
@@ -449,7 +450,7 @@ export default function InsightsClient({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="md:col-span-2">
           {/* Main Chart */}
-          <div className="ark:bg-primary p-4 rounded-lg shadow-md">
+          <Card className="ark:bg-primary p-4 rounded-lg shadow-md">
             <h2 className="text-xl font-semibold mb-4">{`${selectedMetric.charAt(0).toUpperCase() + selectedMetric.slice(1)} Over Time`}</h2>
             <div style={{ width: '100%', height: 300 }}>
               {chartData.length > 0 ? (
@@ -496,7 +497,7 @@ export default function InsightsClient({
                 </div>
               )}
             </div>
-          </div>
+          </Card>
         </div>
         
         <div>
