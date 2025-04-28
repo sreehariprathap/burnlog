@@ -45,17 +45,55 @@ export default function ProfileSetupPage() {
     }
     
     const userId = session.user.id;
-    const { error: profError } = await supabase
-      .from('profiles')
-      .insert({ id: userId, userId,
-        firstName, lastName,
-        age, weight: parseFloat(weight),
-        height: parseFloat(height),
-        activityLevel
-      });
+    
+    try {
+      // Check if profile already exists
+      const { data: existingProfile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('userId', userId)
+        .single();
+      
+      let profileError;
+      
+      if (existingProfile) {
+        // Update existing profile
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            firstName, lastName,
+            age, weight: parseFloat(weight),
+            height: parseFloat(height),
+            activityLevel
+          })
+          .eq('userId', userId);
+        
+        profileError = error;
+      } else {
+        // Create new profile
+        const { error } = await supabase
+          .from('profiles')
+          .insert({ 
+            userId,
+            firstName, lastName,
+            age, weight: parseFloat(weight),
+            height: parseFloat(height),
+            activityLevel
+          });
+        
+        profileError = error;
+      }
 
-    if (profError) setError(profError.message);
-    else        router.push('/dashboard');
+      if (profileError) {
+        console.error("Profile error:", profileError);
+        setError(profileError.message);
+      } else {
+        router.push('/dashboard');
+      }
+    } catch (err) {
+      console.error("Error saving profile:", err);
+      setError("Failed to save profile");
+    }
 
     setLoading(false);
   };

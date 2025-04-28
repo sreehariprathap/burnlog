@@ -27,18 +27,43 @@ export default function ProfilePage() {
       try {
         setLoading(true);
         const { data: { session }, error: sessErr } = await supabase.auth.getSession();
-        if (sessErr || !session) return router.replace('/login');
+        
+        if (sessErr) {
+          console.error("Session error:", sessErr);
+          router.replace('/login');
+          return;
+        }
+
+        if (!session) {
+          console.log("No active session, redirecting to login");
+          router.replace('/login');
+          return;
+        }
+
         const userId = session.user.id;
         const { data, error: profErr } = await supabase
           .from('profiles')
           .select('firstName,lastName,age,weight,height,activityLevel')
           .eq('userId', userId)
           .single();
-        if (profErr) throw profErr;
+
+        if (profErr) {
+          console.error("Profile error:", profErr);
+          
+          // If data not found error, redirect to profile setup
+          if (profErr.code === 'PGRST116') {
+            console.log("Profile not found, redirecting to profile setup");
+            router.replace('/signup/profile');
+            return;
+          } else {
+            throw profErr;
+          }
+        }
+        
         setProfile({ email: session.user.email, ...data });
       } catch (e: any) {
-        console.error(e);
-        setError(e.message || 'Failed to load');
+        console.error("Error in profile page:", e);
+        setError(e.message || 'Failed to load profile');
       } finally {
         setLoading(false);
       }
@@ -82,6 +107,7 @@ export default function ProfilePage() {
             </CardHeader>
             <CardContent className="space-y-3">
               {[
+
                 ['Email', profile.email],
                 ['Age', `${profile.age} yrs`],
                 ['Height', `${profile.height} cm`],
