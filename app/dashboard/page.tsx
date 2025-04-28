@@ -6,6 +6,7 @@ import { TopBar } from '@/components/TopBar';
 import { BottomNav } from '@/components/BottomNav';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { SetGoalsPrompt } from './_components/SetGoalsPrompt';
+import { PushNotificationPrompt } from './_components/PushNotificationPrompt';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface FitnessGoal {
@@ -19,6 +20,8 @@ export default function DashboardPage() {
   const [goals, setGoals] = useState<FitnessGoal[]>([]);
   const [loading, setLoading] = useState(true);
   const [userProfile, setUserProfile] = useState<any>(null);
+  const [isInstallable, setIsInstallable] = useState(false);
+  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -53,12 +56,80 @@ export default function DashboardPage() {
     }
     
     fetchData();
+
+    // Register Service Worker for PWA functionality
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js')
+          .then((registration) => {
+            console.log('Service Worker registered with scope:', registration.scope);
+          })
+          .catch((error) => {
+            console.error('Service Worker registration failed:', error);
+          });
+      });
+    }
+
+    // Set up "Add to Home Screen" prompt listener
+    window.addEventListener('beforeinstallprompt', (e) => {
+      // Prevent the mini-infobar from appearing on mobile
+      e.preventDefault();
+      // Stash the event so it can be triggered later
+      setDeferredPrompt(e);
+      // Update UI to notify the user they can install the PWA
+      setIsInstallable(true);
+    });
+
+    // Handle installed event
+    window.addEventListener('appinstalled', () => {
+      // Log install to analytics
+      console.log('PWA was installed');
+      setIsInstallable(false);
+    });
   }, [supabase]);
+
+  const installApp = async () => {
+    if (!deferredPrompt) return;
+    
+    // Show the install prompt
+    deferredPrompt.prompt();
+    
+    // Wait for the user to respond to the prompt
+    const { outcome } = await deferredPrompt.userChoice;
+    console.log(`User response to the install prompt: ${outcome}`);
+    
+    // We've used the prompt, and can't use it again, clear it
+    setDeferredPrompt(null);
+    setIsInstallable(false);
+  };
 
   return (
     <div className="pb-16">
       <TopBar title="Dashboard" />
       <main className="p-4 mt-4 space-y-6">
+        {/* Push Notification Prompt */}
+        <PushNotificationPrompt />
+
+        {/* Install App Prompt */}
+        {isInstallable && (
+          <Card className="mb-4 border-blue-200 bg-blue-50">
+            <CardContent className="pt-4 pb-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="font-semibold">Install Gymlog App</h3>
+                  <p className="text-sm text-muted-foreground">Add to your home screen for quick access</p>
+                </div>
+                <button
+                  onClick={installApp}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                >
+                  Install
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Welcome Card */}
         <Card>
           <CardContent className="pt-6">

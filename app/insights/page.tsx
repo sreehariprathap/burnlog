@@ -16,7 +16,7 @@ export default async function InsightsPage() {
 
   if (!session) {
     // Not logged in → send to login
-    return redirect('/auth/login');
+    return redirect('/login');
   }
 
   const userId = session.user.id;
