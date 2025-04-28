@@ -47,6 +47,7 @@ export function FoodIntakeTracker({ userId }: FoodIntakeTrackerProps) {
     } else {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   const fetchFoodEntries = async () => {

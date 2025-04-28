@@ -11,6 +11,10 @@ interface SubscriptionRequest {
 
 // Function to convert the subscription object into base64 strings
 export function encodeSubscription(subscription: PushSubscriptionJSON, userId: string): SubscriptionRequest {
+  if (!subscription.endpoint) {
+    throw new Error('Subscription endpoint is required');
+  }
+  
   return {
     endpoint: subscription.endpoint,
     keys: {
@@ -22,12 +26,16 @@ export function encodeSubscription(subscription: PushSubscriptionJSON, userId: s
 }
 
 // URL-safe Base64 encoding
-function arrayBufferToBase64(buffer: string): string {
+function arrayBufferToBase64(buffer: string | undefined): string {
+  // If it's undefined, return an empty string
+  if (buffer === undefined) {
+    return '';
+  }
   // If it's already a string, we assume it's already encoded
   if (typeof buffer === 'string') {
     return buffer;
   }
-  return btoa(String.fromCharCode.apply(null, new Uint8Array(buffer)));
+  return btoa(String.fromCharCode.apply(null, [...new Uint8Array(buffer)]));
 }
 
 // Function to request notification permission and register service worker
@@ -129,7 +137,6 @@ export async function sendTestNotification() {
       body: 'This is a test notification from burnlog!',
       icon: '/B.png',
       badge: '/B.png',
-      vibrate: [100, 50, 100],
       data: {
         url: '/dashboard'
       }

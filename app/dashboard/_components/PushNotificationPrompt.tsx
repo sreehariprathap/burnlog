@@ -119,7 +119,7 @@ export function PushNotificationPrompt() {
       </CardHeader>
       <CardContent>
         <p className="text-sm text-muted-foreground">
-          Stay on track with your fitness goals by enabling push notifications. We'll send you timely reminders
+          Stay on track with your fitness goals by enabling push notifications. We&apos;ll send you timely reminders
           for your workout sessions and celebrate your achievements.
         </p>
       </CardContent>

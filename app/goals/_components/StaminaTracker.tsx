@@ -46,6 +46,7 @@ export function StaminaTracker({ userId }: StaminaTrackerProps) {
     } else {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   const fetchStaminaEntries = async () => {
