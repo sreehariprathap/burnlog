@@ -7,16 +7,24 @@ export default async function Home() {
   const supabase = createServerComponentClient({ cookies });
   const { data: { session } } = await supabase.auth.getSession();
 
+
+  // If no session, redirect to login
   if (!session) {
-    return redirect('/auth/login');
+    return redirect('/login');
   }
 
-  // check for existing Profile row
+  // Check for existing Profile row
   const { data: profile } = await supabase
     .from('profiles')
-    .select('id')
-    .eq('id', session.user.id)
+    .select('*')
+    .eq('userId', session.user.id)
     .single();
 
-  return redirect(profile ? '/dashboard' : '/auth/profile-setup');
+  // If no profile, redirect to profile setup
+  if (!profile) {
+    return redirect('/signup/profile');
+  }
+
+  // User is authenticated and has a profile, redirect to dashboard
+  return redirect('/dashboard');
 }

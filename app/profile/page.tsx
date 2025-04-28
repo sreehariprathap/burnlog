@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// components/ProfilePage.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -7,168 +9,159 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, Info } from 'lucide-react';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import { TopBar } from '@/components/TopBar';
 import { BottomNav } from '@/components/BottomNav';
 
 export default function ProfilePage() {
   const supabase = createClientComponentClient();
-  const router = useRouter();
+  const router   = useRouter();
 
   const [profile, setProfile] = useState<any>(null);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [loggingOut, setLoggingOut] = useState<boolean>(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError]     = useState<string|null>(null);
+  const [loggingOut, setLoggingOut] = useState(false);
 
-  // fetch user profile and session
   useEffect(() => {
-    async function loadProfile() {
-      setLoading(true);
-      const { data: { session }, error: sessError } = await supabase.auth.getSession();
-      if (sessError || !session) {
-        router.replace('/auth/login');
-        return;
-      }
-      const userId = session.user.id;
-      const { data, error: profError } = await supabase
-        .from('profiles')
-        .select('firstName, lastName, age, weight, height, activityLevel')
-        .eq('id', userId)
-        .single();
-      if (profError) {
-        setError(profError.message);
-      } else {
+    (async () => {
+      try {
+        setLoading(true);
+        const { data: { session }, error: sessErr } = await supabase.auth.getSession();
+        if (sessErr || !session) return router.replace('/login');
+        const userId = session.user.id;
+        const { data, error: profErr } = await supabase
+          .from('profiles')
+          .select('firstName,lastName,age,weight,height,activityLevel')
+          .eq('userId', userId)
+          .single();
+        if (profErr) throw profErr;
         setProfile({ email: session.user.email, ...data });
+      } catch (e: any) {
+        console.error(e);
+        setError(e.message || 'Failed to load');
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    }
-    loadProfile();
+    })();
   }, [supabase, router]);
 
   const handleLogout = async () => {
     setLoggingOut(true);
     await supabase.auth.signOut();
-    router.push('/auth/login');
+    router.push('/login');
   };
 
-  if (loading) {
-    return (
-      <div className="h-screen flex items-center justify-center">
-        <Loader2 className="animate-spin w-8 h-8" />
-      </div>
-    );
-  }
+  if (loading) return (
+    <div className="h-screen flex items-center justify-center">
+      <Loader2 className="animate-spin w-8 h-8" />
+    </div>
+  );
+  if (error) return <p className="text-red-500 text-center mt-4">{error}</p>;
+  if (!profile) return null;
 
-  if (error) {
-    return <p className="text-red-500">{error}</p>;
-  }
-
-  // Calculate metrics
-  const heightM = profile.height / 100;
-  const bmi = +(profile.weight / (heightM * heightM)).toFixed(1);
-  let bmiCategory = '';
-  if (bmi < 18.5) bmiCategory = 'Underweight';
-  else if (bmi < 25) bmiCategory = 'Normal';
-  else if (bmi < 30) bmiCategory = 'Overweight';
-  else bmiCategory = 'Obese';
-
-  // BMR using Mifflin-St Jeor formula (male assumption)
-  const bmr = Math.round(10 * profile.weight + 6.25 * profile.height - 5 * profile.age + 5);
+  // Metrics
+  const heightM = profile.height/100;
+  const bmi     = +(profile.weight/(heightM*heightM)).toFixed(1);
+  const bmiCategory = bmi<18.5 ? 'Underweight' : bmi<25 ? 'Normal' : bmi<30 ? 'Overweight' : 'Obese';
+  const bmr     = Math.round(10*profile.weight +6.25*profile.height -5*profile.age +5);
 
   return (
-    <div className="min-h-screen  flex flex-col gap-5 items-center pb-16">
-    <TopBar title="Profile" />
-      <Card className="w-full max-w-md">
-        <CardContent className="space-y-4">
-          {/* Name */}
-          <div className="flex items-center justify-between">
-            <span className="text-3xl font-">{profile.firstName} {profile.lastName}</span>
-          </div>
-          {/* Age */}
-          <div className="flex items-center justify-between">
-            <span>Age: {profile.age}</span>
-            <Tooltip>
-              <TooltipTrigger>
-                <Info className="w-4 h-4 text-gray-500" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Your age in years.</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-          {/* Email */}
-          <div className="flex items-center justify-between">
-            <span>Email: {profile.email}</span>
-            <Tooltip>
-              <TooltipTrigger>
-                <Info className="w-4 h-4 text-gray-500" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>The email address linked to your account.</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-          {/* Height */}
-          <div className="flex items-center justify-between">
-            <span>Height: {profile.height} cm</span>
-            <Tooltip>
-              <TooltipTrigger>
-                <Info className="w-4 h-4 text-gray-500" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Your height in centimeters; used in BMI & BMR calculations.</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-          {/* Weight */}
-          <div className="flex items-center justify-between">
-            <span>Weight: {profile.weight} kg</span>
-            <Tooltip>
-              <TooltipTrigger>
-                <Info className="w-4 h-4 text-gray-500" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Your weight in kilograms; used in BMI & BMR calculations.</p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-          {/* BMI */}
-          <div className="flex items-center justify-between">
-            <span>BMI: {bmi} ({bmiCategory})</span>
-            <Tooltip>
-              <TooltipTrigger>
-                <Info className="w-4 h-4 text-gray-500" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>
-                  Body Mass Index: weight/height². Categories:
-                  Underweight (&lt;18.5), Normal (18.5–24.9), Overweight (25–29.9), Obese (30+).
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-          {/* BMR */}
-          <div className="flex items-center justify-between">
-            <span>BMR: {bmr} kcal/day</span>
-            <Tooltip>
-              <TooltipTrigger>
-                <Info className="w-4 h-4 text-gray-500" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>
-                  Basal Metabolic Rate: estimated calories needed at rest
-                  (Mifflin-St Jeor, male).
-                </p>
-              </TooltipContent>
-            </Tooltip>
-          </div>
-          {/* Logout */}
-          <div className="flex justify-center mt-4">
-            <Button variant="destructive" onClick={handleLogout} disabled={loggingOut}>
-              {loggingOut ? <Loader2 className="animate-spin w-5 h-5" /> : 'Log Out'}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="min-h-screen flex flex-col">
+      <TopBar title="Profile" />
+      <main className="flex-1 container mx-auto p-4">
+        {/* Large name display */}
+        <div className="mb-6 text-center">
+          <h1 className="text-3xl font-bold tracking-tight">{`${profile.firstName} ${profile.lastName}`}</h1>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* Personal Info */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Personal Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {[
+                ['Email', profile.email],
+                ['Age', `${profile.age} yrs`],
+                ['Height', `${profile.height} cm`],
+                ['Weight', `${profile.weight} kg`],
+                ['Activity Level', profile.activityLevel]
+              ].map(([label,value]) => (
+                <div key={label} className="flex justify-between items-center">
+                  <span className="font-medium">{label}</span>
+                  <span className="flex items-center gap-1">
+                    {value}
+                    <Tooltip>
+                      <TooltipTrigger>
+                        <Info className="w-4 h-4 " />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>{label}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </span>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          {/* Health Metrics */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Health Metrics</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Accordion type="single" collapsible>
+                <AccordionItem value="bmi">
+                  <AccordionTrigger>
+                    BMI: {bmi} ({bmiCategory})
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <p>Your BMI category is <strong>{bmiCategory}</strong>.</p>
+                    <div className="h-2 bg-gray-200 rounded-full mt-2">
+                      <div
+                        className="h-2 bg-blue-500 rounded-full"
+                        style={{ width: `${(bmi/40)*100}%` }}
+                      />
+                    </div>
+                    <p className="text-sm  mt-1">
+                      Underweight &lt;18.5 | Normal 18.5–24.9 | Overweight 25–29.9 | Obese 30+
+                    </p>
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="bmr">
+                  <AccordionTrigger>
+                    BMR: {bmr} kcal/day
+                  </AccordionTrigger>
+                  <AccordionContent>
+                    <p>Your Basal Metabolic Rate: <strong>{bmr}</strong> kcal/day.</p>
+                    <div className="h-2 bg-gray-200 rounded-full mt-2">
+                      <div
+                        className="h-2 bg-green-500 rounded-full"
+                        style={{ width: `${Math.min(bmr/3000,1)*100}%` }}
+                      />
+                    </div>
+                    <p className="text-sm  mt-1">
+                      Avg male 1600–2400 | Avg female 1400–2000 kcal/day
+                    </p>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="mt-6 text-center">
+          <Button
+            variant="destructive"
+            onClick={handleLogout}
+            disabled={loggingOut}
+          >
+            {loggingOut ? <Loader2 className="animate-spin w-5 h-5" /> : 'Log Out'}
+          </Button>
+        </div>
+      </main>
       <BottomNav />
     </div>
   );

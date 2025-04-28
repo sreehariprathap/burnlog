@@ -1,9 +1,11 @@
-'use client';
-import { useState } from 'react';
-import { SessionContextProvider } from '@supabase/auth-helpers-react';
-import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs';
+"use client";
+import { useState } from "react";
+import { SessionContextProvider } from "@supabase/auth-helpers-react";
+import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "@/components/ui/toaster";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -20,18 +22,23 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [supabaseClient] = useState(() =>
-    createBrowserSupabaseClient()
-  );
+  const [supabaseClient] = useState(() => createPagesBrowserClient());
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="theme-color" content="#FF9E4F" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <SessionContextProvider supabaseClient={supabaseClient}>
-          {children}
-        </SessionContextProvider>
+        <ThemeProvider defaultTheme="light" storageKey="burnlog-theme">
+          <SessionContextProvider supabaseClient={supabaseClient}>
+            {children}
+            <Toaster />
+          </SessionContextProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
