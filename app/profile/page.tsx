@@ -25,7 +25,7 @@ export default function ProfilePage() {
       setLoading(true);
       const { data: { session }, error: sessError } = await supabase.auth.getSession();
       if (sessError || !session) {
-        router.replace('/auth/login');
+        router.replace('/login');
         return;
       }
       const userId = session.user.id;
@@ -47,7 +47,7 @@ export default function ProfilePage() {
   const handleLogout = async () => {
     setLoggingOut(true);
     await supabase.auth.signOut();
-    router.push('/auth/login');
+    router.push('/login');
   };
 
   if (loading) {

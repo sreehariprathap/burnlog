@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { SessionContextProvider } from '@supabase/auth-helpers-react';
-import { createBrowserSupabaseClient } from '@supabase/auth-helpers-nextjs';
+import { createPagesBrowserClient } from '@supabase/auth-helpers-nextjs';
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
@@ -22,7 +22,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const [supabaseClient] = useState(() =>
-    createBrowserSupabaseClient()
+    createPagesBrowserClient()
   );
 
   return (

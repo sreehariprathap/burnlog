@@ -19,17 +19,21 @@ model Profile {
   height        Float
   activityLevel String
 
-  FitnessGoal   FitnessGoal[]
-  Workout       Workout[]
-  Session       Session[]
-  WorkoutPlan   WorkoutPlan[]
+  FitnessGoal    FitnessGoal[]
+  Workout        Workout[]
+  Session        Session[]
+  WorkoutPlan    WorkoutPlan[]
+  WeightEntry    WeightEntry[]
+  CalorieBurn    CalorieBurn[]
+  FoodIntake     FoodIntake[]
+  StaminaSession StaminaSession[]
 
   @@map("profiles")
 }
 
 /// fitness goals
 model FitnessGoal {
-  id           String   @id @default(uuid())
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   profile      Profile  @relation(fields: [profileId], references: [id])
   profileId    String
   goalType     String
@@ -76,4 +80,62 @@ model Session {
   sessionData  Json
 
   @@map("sessions")
+}
+
+/// weight tracking entries
+model WeightEntry {
+  id           String   @id @default(uuid())
+  profile      Profile  @relation(fields: [profileId], references: [id])
+  profileId    String
+  date         DateTime @default(now())
+  weight       Float    // in kg or lbs based on user preference
+  notes        String?
+
+  @@map("weight_entries")
+}
+
+/// calories burned during workouts
+model CalorieBurn {
+  id           String   @id @default(uuid())
+  profile      Profile  @relation(fields: [profileId], references: [id])
+  profileId    String
+  date         DateTime @default(now())
+  activityType String   // e.g. "Running", "Weightlifting", etc.
+  duration     Int      // in minutes
+  caloriesBurned Int
+  notes        String?
+
+  @@map("calorie_burns")
+}
+
+/// food intake tracking
+model FoodIntake {
+  id           String   @id @default(uuid())
+  profile      Profile  @relation(fields: [profileId], references: [id])
+  profileId    String
+  date         DateTime @default(now())
+  mealType     String   // e.g. "Breakfast", "Lunch", "Dinner", "Snack"
+  foodName     String
+  calories     Int
+  protein      Float?   // in grams
+  carbs        Float?   // in grams
+  fat          Float?   // in grams
+  notes        String?
+
+  @@map("food_intakes")
+}
+
+/// stamina/endurance tracking
+model StaminaSession {
+  id           String   @id @default(uuid())
+  profile      Profile  @relation(fields: [profileId], references: [id])
+  profileId    String
+  date         DateTime @default(now())
+  activityType String   // e.g. "Running", "Swimming", etc.
+  distance     Float?   // in km or miles
+  duration     Int      // in minutes
+  avgHeartRate Int?     // beats per minute
+  notes        String?
+
+  @@map("stamina_sessions")
 }

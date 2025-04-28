@@ -27,7 +27,7 @@ export default function ProfileSetupPage() {
   // ensure logged in
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } })=> {
-      if (!session) router.replace('/auth/login');
+      if (!session) router.replace('/login');
       else setSession(session);
       setLoading(false);
     });
