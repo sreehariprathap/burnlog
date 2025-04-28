@@ -1,113 +1,76 @@
-import { supabase } from "@/lib/supabase";
-import InsightsClient from "./_components/InsightsClient";
-import { TopBar } from "@/components/TopBar";
-import { BottomNav } from "@/components/BottomNav";
-
-async function getWeightEntries(userId: string) {
-  const { data, error } = await supabase
-    .from('weight_entries')
-    .select('*')
-    .eq('profileId', userId)
-    .order('date', { ascending: true });
-
-  if (error) {
-    console.error('Error fetching weight entries:', error);
-    return [];
-  }
-
-  return data;
-}
-
-async function getWeightGoal(userId: string) {
-  const { data, error } = await supabase
-    .from('fitness_goals')
-    .select('*')
-    .eq('profileId', userId)
-    .eq('goalType', 'weight')
-    .order('createdAt', { ascending: false })
-    .limit(1);
-
-  if (error) {
-    console.error('Error fetching weight goal:', error);
-    return null;
-  }
-
-  return data && data.length > 0 ? data[0] : null;
-}
-
-async function getCalorieBurns(userId: string) {
-  const { data, error } = await supabase
-    .from('calorie_burns')
-    .select('*')
-    .eq('profileId', userId)
-    .order('date', { ascending: true });
-
-  if (error) {
-    console.error('Error fetching calorie burns:', error);
-    return [];
-  }
-
-  return data;
-}
-
-async function getFoodIntakes(userId: string) {
-  const { data, error } = await supabase
-    .from('food_intakes')
-    .select('*')
-    .eq('profileId', userId)
-    .order('date', { ascending: true });
-
-  if (error) {
-    console.error('Error fetching food intakes:', error);
-    return [];
-  }
-
-  return data;
-}
-
-async function getStaminaSessions(userId: string) {
-  const { data, error } = await supabase
-    .from('stamina_sessions')
-    .select('*')
-    .eq('profileId', userId)
-    .order('date', { ascending: true });
-
-  if (error) {
-    console.error('Error fetching stamina sessions:', error);
-    return [];
-  }
-
-  return data;
-}
+// app/insights/page.tsx
+import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
+import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import InsightsClient from './_components/InsightsClient';
+import { TopBar } from '@/components/TopBar';
+import { BottomNav } from '@/components/BottomNav';
 
 export default async function InsightsPage() {
-  // For demonstration purposes - in production, get the userId from the session
-  // This would typically come from auth context/session
-  const userId = "replace-with-real-user-id";
-  
-  // Fetch all data in parallel
-  const [weightEntries, weightGoal, calorieBurns, foodIntakes, staminaSessions] = 
-    await Promise.all([
-      getWeightEntries(userId),
-      getWeightGoal(userId),
-      getCalorieBurns(userId),
-      getFoodIntakes(userId),
-      getStaminaSessions(userId)
-    ]);
+  const supabase = createServerComponentClient({ cookies });
 
+  // 1) Get the current session
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+
+  if (!session) {
+    // Not logged in → send to login
+    return redirect('/auth/login');
+  }
+
+  const userId = session.user.id;
+
+  // 2) Fetch all datasets in parallel
+  const [
+    { data: weightEntries = [] },
+    { data: weightGoal = null },
+    { data: calorieBurns = [] },
+    { data: foodIntakes = [] },
+    { data: staminaSessions = [] },
+  ] = await Promise.all([
+    supabase
+      .from('weight_entries')
+      .select('*')
+      .eq('profileId', userId)
+      .order('date', { ascending: true }),
+    supabase
+      .from('fitness_goals')
+      .select('*')
+      .eq('profileId', userId)
+      .eq('goalType', 'WEIGHT_LOSS')
+      .order('createdAt', { ascending: false })
+      .single(),
+    supabase
+      .from('calorie_burns')
+      .select('*')
+      .eq('profileId', userId)
+      .order('date', { ascending: true }),
+    supabase
+      .from('food_intakes')
+      .select('*')
+      .eq('profileId', userId)
+      .order('date', { ascending: true }),
+    supabase
+      .from('stamina_sessions')
+      .select('*')
+      .eq('profileId', userId)
+      .order('date', { ascending: true }),
+  ]);
+
+  // 3) Render
   return (
-    <div className="">
+    <div className="flex flex-col h-screen">
       <TopBar title="Insights" />
-      <div className="container mx-auto px-4 py-8 pb-20">
-
-      <InsightsClient 
-        weightEntries={weightEntries} 
-        weightGoal={weightGoal} 
-        calorieBurns={calorieBurns} 
-        foodIntakes={foodIntakes} 
-        staminaSessions={staminaSessions} 
-      />
-      </div>
+      <main className="flex-1 overflow-auto px-4 py-6 pb-16">
+        <InsightsClient
+          weightEntries={weightEntries || []}
+          weightGoal={weightGoal }
+          calorieBurns={calorieBurns || []}
+          foodIntakes={foodIntakes || []}
+          staminaSessions={staminaSessions || []}
+        />
+      </main>
       <BottomNav />
     </div>
   );
