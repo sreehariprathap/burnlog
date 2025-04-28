@@ -112,7 +112,7 @@ export default function DashboardPage() {
 
         {/* Install App Prompt */}
         {isInstallable && (
-          <Card className="mb-4 border-blue-200 bg-blue-50">
+          <Card className="mb-4 border-amber-200 bg-amber-50">
             <CardContent className="pt-4 pb-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -121,7 +121,7 @@ export default function DashboardPage() {
                 </div>
                 <button
                   onClick={installApp}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  className="px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700"
                 >
                   Install
                 </button>
@@ -194,13 +194,13 @@ export default function DashboardPage() {
             <div className="grid grid-cols-2 gap-2">
               <a 
                 href="/session" 
-                className="p-4 bg-blue-50 rounded-md text-center hover:bg-blue-100 transition-colors"
+                className="p-4 bg-amber-300 rounded-md text-center hover:bg-amber-500 transition-colors"
               >
                 Start Workout
               </a>
               <a 
                 href="/goals" 
-                className="p-4 bg-green-50 rounded-md text-center hover:bg-green-100 transition-colors"
+                className="p-4 bg-green-10 rounded-md text-center hover:bg-green-300 transition-colors"
               >
                 Track Progress
               </a>

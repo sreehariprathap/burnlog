@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
+import Image from 'next/image';
 
 export default function SignUpPage() {
   const supabase = createClientComponentClient();
@@ -30,9 +31,11 @@ export default function SignUpPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center ">
       <Card className="w-full max-w-md">
-        <CardHeader><CardTitle>Create Account</CardTitle></CardHeader>
+        <CardHeader className='flex flex-col items-center gap-3'>
+          <Image src="/burnlog-icon-splash.png" alt="Logo" width={400} height={400} className="" />
+          <CardTitle>Create Account</CardTitle></CardHeader>
         <CardContent>
           {!sent ? (
             <form onSubmit={handleSubmit} className="space-y-4">
@@ -50,6 +53,7 @@ export default function SignUpPage() {
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? <Loader2 className="animate-spin"/> : 'Sign Up'}
               </Button>
+              <p className="text-sm text-center ">Already have an account? <a href="/login" className="text-amber-500">Log In</a></p>
             </form>
           ) : (
             <div className="text-center space-y-4">

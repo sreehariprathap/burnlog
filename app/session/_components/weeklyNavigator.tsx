@@ -16,8 +16,8 @@ const WeeklyNavigator = () => {
             {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((d, i) => (
                 <button
                     key={d}
-                    className={`flex-1 text-center py-1 ${i === todayIndex ? 'bg-blue-500 text-white rounded' : 'text-gray-600'
-                        } ${currentDayIndex === i ? 'bg-blue-200' : ''}`}
+                    className={`flex-1 text-center py-1 ${i === todayIndex ? 'bg-amber-500 text-white rounded' : 'text-gray-600'
+                        } ${currentDayIndex === i ? 'bg-amber-200' : ''}`}
                     onClick={() => setCurrentDay(i)}
                 >
                     {d}

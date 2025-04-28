@@ -5,6 +5,7 @@ import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
+import { ThemeProvider } from "@/components/ThemeProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,18 +25,20 @@ export default function RootLayout({
   const [supabaseClient] = useState(() => createPagesBrowserClient());
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#3b82f6" />
+        <meta name="theme-color" content="#FF9E4F" />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <SessionContextProvider supabaseClient={supabaseClient}>
-          {children}
-          <Toaster />
-        </SessionContextProvider>
+        <ThemeProvider defaultTheme="light" storageKey="gymlog-theme">
+          <SessionContextProvider supabaseClient={supabaseClient}>
+            {children}
+            <Toaster />
+          </SessionContextProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

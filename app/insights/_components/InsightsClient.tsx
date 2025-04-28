@@ -421,25 +421,25 @@ export default function InsightsClient({
         <div className="flex flex-wrap gap-2">
           <button 
             onClick={() => setSelectedMetric('weight')} 
-            className={`px-4 py-2 rounded-full ${selectedMetric === 'weight' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+            className={`px-4 py-2 rounded-full ${selectedMetric === 'weight' ? 'bg-amber-500 text-white' : 'border-amber-200'}`}
           >
             Weight
           </button>
           <button 
             onClick={() => setSelectedMetric('calories')} 
-            className={`px-4 py-2 rounded-full ${selectedMetric === 'calories' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+            className={`px-4 py-2 rounded-full ${selectedMetric === 'calories' ? 'bg-amber-500 text-white' : 'border-amber-200'}`}
           >
             Calories Burned
           </button>
           <button 
             onClick={() => setSelectedMetric('food')} 
-            className={`px-4 py-2 rounded-full ${selectedMetric === 'food' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+            className={`px-4 py-2 rounded-full ${selectedMetric === 'food' ? 'bg-amber-500 text-white' : 'border-amber-200'}`}
           >
             Food Intake
           </button>
           <button 
             onClick={() => setSelectedMetric('stamina')} 
-            className={`px-4 py-2 rounded-full ${selectedMetric === 'stamina' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+            className={`px-4 py-2 rounded-full ${selectedMetric === 'stamina' ? 'bg-amber-500 text-white' : 'border-amber-200'}`}
           >
             Stamina
           </button>
@@ -449,7 +449,7 @@ export default function InsightsClient({
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
         <div className="md:col-span-2">
           {/* Main Chart */}
-          <div className="bg-white p-4 rounded-lg shadow-md">
+          <div className="ark:bg-primary p-4 rounded-lg shadow-md">
             <h2 className="text-xl font-semibold mb-4">{`${selectedMetric.charAt(0).toUpperCase() + selectedMetric.slice(1)} Over Time`}</h2>
             <div style={{ width: '100%', height: 300 }}>
               {chartData.length > 0 ? (
@@ -472,7 +472,7 @@ export default function InsightsClient({
                     <Line 
                       type="monotone" 
                       dataKey={dataKey} 
-                      stroke="#8884d8" 
+                      stroke="#FF9E4F" 
                       activeDot={{ r: 8 }}
                       strokeWidth={2}
                       name={selectedMetric.charAt(0).toUpperCase() + selectedMetric.slice(1)}
@@ -503,30 +503,30 @@ export default function InsightsClient({
           {/* Insights Cards */}
           <div className="space-y-4">
             {/* Trend Card */}
-            <div className="bg-white p-4 rounded-lg shadow-md">
+            <div className=" p-4 rounded-lg shadow-md dark:bg-primary">
               <h3 className="text-lg font-semibold mb-2">Trend</h3>
-              <p className="text-gray-700">{trend.trend}</p>
+              <p className="">{trend.trend}</p>
               {selectedMetric === 'weight' && weightGoal && (
-                <p className="text-gray-700 mt-2">{forecast}</p>
+                <p className=" mt-2">{forecast}</p>
               )}
             </div>
             
             {/* Fastest Progress Card */}
-            <div className="bg-white p-4 rounded-lg shadow-md">
+            <div className=" p-4 rounded-lg shadow-md dark:bg-primary">
               <h3 className="text-lg font-semibold mb-2">Best Day</h3>
-              <p className="text-gray-700">{fastestProgress}</p>
+              <p className="">{fastestProgress}</p>
             </div>
             
             {/* Longest Streak Card */}
-            <div className="bg-white p-4 rounded-lg shadow-md">
+            <div className=" p-4 rounded-lg shadow-md dark:bg-primary">
               <h3 className="text-lg font-semibold mb-2">Logging Streak</h3>
-              <p className="text-gray-700">{longestStreak}</p>
+              <p className="">{longestStreak}</p>
             </div>
             
             {/* Average Metric Card */}
-            <div className="bg-white p-4 rounded-lg shadow-md">
+            <div className=" p-4 rounded-lg shadow-md dark:bg-primary">
               <h3 className="text-lg font-semibold mb-2">Average</h3>
-              <p className="text-gray-700">{averageMetric}</p>
+              <p className="">{averageMetric}</p>
             </div>
           </div>
         </div>

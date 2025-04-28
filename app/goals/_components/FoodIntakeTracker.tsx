@@ -186,7 +186,7 @@ export function FoodIntakeTracker({ userId }: FoodIntakeTrackerProps) {
       <div className="flex items-center justify-center mt-4 mb-2">
         <div className="relative h-32 w-32 rounded-full overflow-hidden">
           <div 
-            className="absolute bg-blue-500" 
+            className="absolute bg-amber-500" 
             style={{
               top: 0, left: 0, height: '100%', width: '100%', 
               clipPath: `polygon(50% 50%, 50% 0, ${50 + 50 * Math.cos(2 * Math.PI * proteinPercent / 100)}% ${50 - 50 * Math.sin(2 * Math.PI * proteinPercent / 100)}%, 50% 50%)`

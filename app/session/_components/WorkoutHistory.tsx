@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // app/session/_components/WorkoutHistory.tsx
 'use client';
 
@@ -7,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Calendar, BarChart, CheckCircle, FileText } from 'lucide-react';
+import { Calendar, BarChart, CheckCircle, FileText, X } from 'lucide-react';
 
 type WorkoutHistoryProps = {
   onClose: () => void;
@@ -382,8 +383,8 @@ export function WorkoutHistory({ onClose }: WorkoutHistoryProps) {
               )}
               {workout.sessionData.notes && (
                 <div className="text-sm mt-2 italic">
-                  "{workout.sessionData.notes.substring(0, 60)}
-                  {workout.sessionData.notes.length > 60 ? '...' : ''}"
+                  &ldquo;{workout.sessionData.notes.substring(0, 60)}
+                  {workout.sessionData.notes.length > 60 ? '...' : ''}&rdquo;
                 </div>
               )}
             </CardContent>
@@ -442,7 +443,7 @@ export function WorkoutHistory({ onClose }: WorkoutHistoryProps) {
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold">Workout Tracker</h2>
         <Button variant="ghost" size="sm" onClick={onClose}>
-          Close
+          <X/>
         </Button>
       </div>
 

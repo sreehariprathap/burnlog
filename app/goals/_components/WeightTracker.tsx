@@ -158,7 +158,7 @@ export function WeightTracker({ userId }: WeightTrackerProps) {
           return (
             <div 
               key={entry.id} 
-              className="bg-blue-500 w-4 rounded-t"
+              className="bg-amber-500 w-4 rounded-t"
               style={{ height: `${Math.max(10, height)}%` }}
               title={`${new Date(entry.date).toLocaleDateString()}: ${entry.weight}kg`}
             />
