@@ -45,7 +45,7 @@ model FitnessGoal {
 
 /// workouts
 model Workout {
-  id           String   @id @default(uuid())
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   profile      Profile  @relation(fields: [profileId], references: [id])
   profileId    String
   bodyPart     String
@@ -73,7 +73,7 @@ model WorkoutPlan {
 
 /// gym sessions
 model Session {
-  id           String   @id @default(uuid())
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   profile      Profile  @relation(fields: [profileId], references: [id])
   profileId    String
   date         DateTime
@@ -84,7 +84,7 @@ model Session {
 
 /// weight tracking entries
 model WeightEntry {
-  id           String   @id @default(uuid())
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   profile      Profile  @relation(fields: [profileId], references: [id])
   profileId    String
   date         DateTime @default(now())
@@ -96,7 +96,7 @@ model WeightEntry {
 
 /// calories burned during workouts
 model CalorieBurn {
-  id           String   @id @default(uuid())
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   profile      Profile  @relation(fields: [profileId], references: [id])
   profileId    String
   date         DateTime @default(now())
@@ -110,7 +110,7 @@ model CalorieBurn {
 
 /// food intake tracking
 model FoodIntake {
-  id           String   @id @default(uuid())
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   profile      Profile  @relation(fields: [profileId], references: [id])
   profileId    String
   date         DateTime @default(now())
@@ -127,7 +127,7 @@ model FoodIntake {
 
 /// stamina/endurance tracking
 model StaminaSession {
-  id           String   @id @default(uuid())
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   profile      Profile  @relation(fields: [profileId], references: [id])
   profileId    String
   date         DateTime @default(now())
