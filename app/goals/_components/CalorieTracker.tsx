@@ -45,6 +45,7 @@ export function CalorieTracker({ userId }: CalorieTrackerProps) {
     } else {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   const fetchCalorieEntries = async () => {

@@ -32,6 +32,7 @@ export function WeightTracker({ userId }: WeightTrackerProps) {
     } else {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
   const fetchWeightEntries = async () => {

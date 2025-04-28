@@ -1,7 +1,6 @@
-import type { NextConfig } from "next";
 import withPWA from 'next-pwa';
 
-const nextConfig: NextConfig = {
+const nextConfig = {
   /* config options here */
   async headers() {
     return [
@@ -24,6 +23,7 @@ const nextConfig: NextConfig = {
   }
 };
 
+// Export the config with PWA functionality
 // Export the config with PWA functionality
 export default withPWA({
   dest: 'public',
