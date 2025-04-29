@@ -7,7 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export default function ProfileSetupPage() {
@@ -15,22 +15,62 @@ export default function ProfileSetupPage() {
   const supabase = createClientComponentClient();
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState<string|null>(null);
+  const [error, setError] = useState<string|null>(null);
+  const [profileExists, setProfileExists] = useState(false);
 
   const [firstName, setFirstName] = useState('');
-  const [lastName,  setLastName ] = useState('');
-  const [age,       setAge     ] = useState<number>(0);
-  const [weight,    setWeight  ] = useState('');
-  const [height,    setHeight  ] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [age, setAge] = useState<number>(0);
+  const [weight, setWeight] = useState('');
+  const [height, setHeight] = useState('');
   const [activityLevel, setActivityLevel] = useState<'low'|'medium'|'high'>('medium');
 
-  // ensure logged in
+  // Check if user is logged in and if they have a profile
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } })=> {
-      if (!session) router.replace('/login');
-      else setSession(session);
-      setLoading(false);
-    });
+    async function checkSessionAndProfile() {
+      try {
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (sessionError) {
+          console.error("Session error:", sessionError);
+          router.replace('/login');
+          return;
+        }
+        
+        if (!session) {
+          console.log("No active session, redirecting to login");
+          router.replace('/login');
+          return;
+        }
+        
+        setSession(session);
+        
+        // Check if profile already exists
+        const { data: existingProfile, error: profileError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('userId', session.user.id)
+          .single();
+        
+        if (profileError && profileError.code !== 'PGRST116') {
+          console.error("Error checking profile:", profileError);
+          setError("Failed to check profile status");
+        }
+        
+        if (existingProfile) {
+          // Profile already exists, redirect to dashboard
+          setProfileExists(true);
+          router.replace('/dashboard');
+        }
+      } catch (err) {
+        console.error("Error in session check:", err);
+        setError("An error occurred. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+    }
+    
+    checkSessionAndProfile();
   }, [supabase, router]);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -47,43 +87,17 @@ export default function ProfileSetupPage() {
     const userId = session.user.id;
     
     try {
-      // Check if profile already exists
-      const { data: existingProfile } = await supabase
+      // Create new profile
+      const { error: profileError } = await supabase
         .from('profiles')
-        .select('id')
-        .eq('userId', userId)
-        .single();
+        .insert({ 
+          userId,
+          firstName, lastName,
+          age, weight: parseFloat(weight),
+          height: parseFloat(height),
+          activityLevel
+        });
       
-      let profileError;
-      
-      if (existingProfile) {
-        // Update existing profile
-        const { error } = await supabase
-          .from('profiles')
-          .update({
-            firstName, lastName,
-            age, weight: parseFloat(weight),
-            height: parseFloat(height),
-            activityLevel
-          })
-          .eq('userId', userId);
-        
-        profileError = error;
-      } else {
-        // Create new profile
-        const { error } = await supabase
-          .from('profiles')
-          .insert({ 
-            userId,
-            firstName, lastName,
-            age, weight: parseFloat(weight),
-            height: parseFloat(height),
-            activityLevel
-          });
-        
-        profileError = error;
-      }
-
       if (profileError) {
         console.error("Profile error:", profileError);
         setError(profileError.message);
@@ -99,6 +113,9 @@ export default function ProfileSetupPage() {
   };
 
   if (loading) return <div className="h-screen flex items-center justify-center"><Loader2 className="animate-spin"/></div>;
+  
+  // Don't show the form if the profile exists (should redirect)
+  if (profileExists) return <div className="h-screen flex items-center justify-center"><Loader2 className="animate-spin"/></div>;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -194,7 +211,7 @@ export default function ProfileSetupPage() {
             <div className="flex justify-end">
               <Button type="submit" disabled={loading}>
                 {loading ? (
-                  <Loader className="animate-spin" />
+                  <Loader2 className="animate-spin" />
                 ) : (
                   'Save'
                 )}
