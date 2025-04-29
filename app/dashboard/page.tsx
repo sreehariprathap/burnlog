@@ -9,6 +9,10 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { SetGoalsPrompt } from './_components/SetGoalsPrompt';
 import { PushNotificationPrompt } from './_components/PushNotificationPrompt';
 import { Skeleton } from '@/components/ui/skeleton';
+import { BMIWidget } from './_components/BMIWidget';
+import { WorkoutPieChart } from './_components/WorkoutPieChart';
+import { GoalProgressWidget } from './_components/GoalProgressWidget';
+import { ShortcutWidget } from './_components/ShortcutWidget';
 
 interface FitnessGoal {
   id: string;
@@ -104,6 +108,17 @@ export default function DashboardPage() {
     setIsInstallable(false);
   };
 
+  // Get first weight goal for BMI widget (if exists)
+  const weightGoal = goals.find(g => g.goalType === 'weight_loss' || g.goalType === 'weight_gain');
+  
+  // Example workout data for pie chart
+  const workoutData = [
+    { name: 'Push', value: 3, color: '#3B82F6' },
+    { name: 'Pull', value: 2, color: '#10B981' },
+    { name: 'Legs', value: 2, color: '#F59E0B' },
+    { name: 'Rest', value: 1, color: '#A1A1AA' },
+  ];
+
   return (
     <div className="pb-16">
       <TopBar title="Dashboard" />
@@ -152,7 +167,34 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
         
-        {/* Goals Card */}
+        {/* New Insight Widgets in Grid Layout */}
+        <div className="grid grid-cols-4 gap-4">
+          {/* BMI Widget - 4x1 */}
+          <BMIWidget 
+            height={userProfile?.height || 175} 
+            weight={userProfile?.weight || 70} 
+          />
+          
+          {/* Goal Progress Widget - 4x1 */}
+          <GoalProgressWidget 
+            loading={loading}
+            goal={weightGoal ? {
+              id: weightGoal.id,
+              goalType: weightGoal.goalType,
+              targetValue: Number(weightGoal.targetValue),
+              currentValue: userProfile?.weight || 75,
+              unit: 'kg'
+            } : undefined}
+          />
+          
+          {/* Shortcut Widget - 4x1 */}
+          <ShortcutWidget />
+          
+          {/* Workout Pie Chart - 4x2 */}
+          <WorkoutPieChart data={workoutData} />
+        </div>
+        
+        {/* Goals List */}
         {loading ? (
           <Card>
             <CardHeader>
@@ -185,29 +227,6 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         )}
-        
-        {/* Quick Access Card */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Access</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-2">
-              <a 
-                href="/session" 
-                className="p-4 bg-amber-300 rounded-md text-center hover:bg-amber-500 transition-colors"
-              >
-                Start Workout
-              </a>
-              <a 
-                href="/goals" 
-                className="p-4 bg-green-10 rounded-md text-center hover:bg-green-300 transition-colors"
-              >
-                Track Progress
-              </a>
-            </div>
-          </CardContent>
-        </Card>
       </main>
       <BottomNav />
     </div>
