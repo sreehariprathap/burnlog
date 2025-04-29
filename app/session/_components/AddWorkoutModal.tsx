@@ -86,7 +86,7 @@ export function AddWorkoutModal({
                 <button
                   key={d.index}
                   type="button"
-                  className={`p-3 text-center rounded ${
+                  className={`p-3 text-center rounded sm:text-[10px] ${
                     dayIndex === d.index
                       ? 'bg-amber-500 text-white'
                       : 'bg-gray-100 text-gray-700'
