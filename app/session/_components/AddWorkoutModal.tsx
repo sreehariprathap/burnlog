@@ -1,7 +1,7 @@
 // components/AddWorkoutModal.tsx
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTrigger,
@@ -51,6 +51,13 @@ export function AddWorkoutModal({
   const [dayIndex, setDayIndex] = useState<number>(initialDay);
   const [bodyPart, setBodyPart] = useState<string>(bodyPartOptions[0].value);
   const [repeatWeekly, setRepeatWeekly] = useState<boolean>(false);
+
+  // Reset dayIndex when modal opens with a different initialDay
+  useEffect(() => {
+    if (open) {
+      setDayIndex(initialDay);
+    }
+  }, [open, initialDay]);
 
   const handleSave = () => {
     onSaved({ dayIndex, bodyPart, repeatWeekly });
@@ -104,7 +111,7 @@ export function AddWorkoutModal({
                     type="button"
                     className={`flex flex-col items-center p-4 border rounded-lg space-y-1 transition ${
                       bodyPart === opt.value
-                        ? 'border-amber-500 bg-amber-50'
+                        ? 'border-amber-500 '
                         : 'border-gray-200'
                     }`}
                     onClick={() => setBodyPart(opt.value)}

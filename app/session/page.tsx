@@ -9,6 +9,7 @@ import { DayNavigator } from './_components/DayNavigator';
 import { PlanCard, PlanDay } from './_components/PlanCard';
 import { AddWorkoutModal } from './_components/AddWorkoutModal';
 import { WorkoutHistory } from './_components/WorkoutHistory';
+import { WorkoutChecklist } from './_components/WorkoutChecklist';
 import { BottomNav } from '@/components/BottomNav';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
@@ -23,18 +24,35 @@ export default function SessionsPage() {
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [showHistory, setShowHistory] = useState<boolean>(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [profileId, setProfileId] = useState<string | null>(null);
   const [loadingPlan, setLoadingPlan] = useState<boolean>(true);
 
   // 1️⃣ Get current user
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (user) setUserId(user.id);
-    });
+    const fetchUserAndProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+        
+        // Fetch the profile ID associated with this user
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('userId', user.id)
+          .single();
+          
+        if (profileData) {
+          setProfileId(profileData.id);
+        }
+      }
+    };
+    
+    fetchUserAndProfile();
   }, [supabase]);
   
   // 2️⃣ Fetch plan for a given weekday & user
   const fetchPlan = useCallback(async () => {
-    if (!userId) {
+    if (!profileId) {
       setPlan(null);
       setLoadingPlan(false);
       return;
@@ -44,7 +62,7 @@ export default function SessionsPage() {
     const { data } = await supabase
       .from('workout_plans')
       .select('dayOfWeek, bodyPart, repeatWeekly')
-      .eq('profileId', userId)
+      .eq('profileId', profileId)
       .eq('dayOfWeek', day)
       .single();
 
@@ -59,22 +77,22 @@ export default function SessionsPage() {
     }
     setTimeout(() => {
       setLoadingPlan(false);
-    }, 1000); // 2000 milliseconds = 2 seconds
-  }, [day, userId, supabase]);
+    }, 1000);
+  }, [day, profileId, supabase]);
 
-  // 3️⃣ Reload whenever the user or day changes
+  // 3️⃣ Reload whenever the profile or day changes
   useEffect(() => {
     fetchPlan();
   }, [fetchPlan]);
 
   // 4️⃣ Upsert a new plan
   const handleSaved = async (newPlan: PlanDay & { repeatWeekly: boolean }) => {
-    if (!userId) return;
+    if (!profileId) return;
     const { error } = await supabase
       .from('workout_plans')
       .upsert(
         {
-          profileId: userId,
+          profileId: profileId,
           dayOfWeek: newPlan.dayIndex,
           bodyPart: newPlan.bodyPart,
           repeatWeekly: newPlan.repeatWeekly
@@ -124,11 +142,20 @@ export default function SessionsPage() {
             </div>
           </Card>
         ) : (
-          <PlanCard
-            plan={plan}
-            onStart={() => setLogging(true)}
-            onAdd={() => setShowAddModal(true)}
-          />
+          <>
+            <PlanCard
+              plan={plan}
+              onStart={() => setLogging(true)}
+              onAdd={() => setShowAddModal(true)}
+            />
+            
+            {/* Show workout checklist when a plan exists but not yet started */}
+            {plan && (
+              <div className="mt-6">
+                <WorkoutChecklist workoutType={plan.bodyPart} />
+              </div>
+            )}
+          </>
         )}
       </div>
 

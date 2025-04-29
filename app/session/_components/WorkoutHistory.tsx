@@ -209,12 +209,26 @@ export function WorkoutHistory({ onClose }: WorkoutHistoryProps) {
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
+        
+        // Fetch the profile ID associated with this user
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('userId', user.id)
+          .single();
+          
+        if (!profileData) {
+          console.error('Profile not found for user');
+          return;
+        }
+        
+        const profileId = profileData.id;
 
-        // Get sessions data
+        // Get sessions data using the correct profileId
         const { data: sessions } = await supabase
           .from('sessions')
           .select('*')
-          .eq('profileId', user.id)
+          .eq('profileId', profileId)
           .order('date', { ascending: false })
           .limit(10);
 
