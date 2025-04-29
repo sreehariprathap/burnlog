@@ -9,9 +9,9 @@ generator client {
 
 /// user profile
 model Profile {
-  id            String      @id @default(uuid())
+  id            String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   createdAt     DateTime    @default(now())
-  userId        String      @unique
+  userId        String      @unique @db.Uuid
   firstName     String
   lastName      String
   age           Int
@@ -35,7 +35,7 @@ model Profile {
 model FitnessGoal {
   id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   profile      Profile  @relation(fields: [profileId], references: [id])
-  profileId    String
+  profileId    String   @db.Uuid
   goalType     String
   targetValue  Float
   createdAt    DateTime @default(now())
@@ -47,7 +47,7 @@ model FitnessGoal {
 model Workout {
   id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   profile      Profile  @relation(fields: [profileId], references: [id])
-  profileId    String
+  profileId    String   @db.Uuid
   bodyPart     String
   exerciseName String
   sets         Int
@@ -61,7 +61,7 @@ model Workout {
 model WorkoutPlan {
   id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   profile       Profile  @relation(fields: [profileId], references: [id])
-  profileId     String
+  profileId     String   @db.Uuid
   dayOfWeek     Int      // 0=Sun, 1=Mon … 6=Sat
   bodyPart      String   // e.g. "Push", "Pull"
   repeatWeekly  Boolean  @default(false)
@@ -75,7 +75,7 @@ model WorkoutPlan {
 model Session {
   id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   profile      Profile  @relation(fields: [profileId], references: [id])
-  profileId    String
+  profileId    String   @db.Uuid
   date         DateTime
   sessionData  Json
 
@@ -86,7 +86,7 @@ model Session {
 model WeightEntry {
   id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   profile      Profile  @relation(fields: [profileId], references: [id])
-  profileId    String
+  profileId    String   @db.Uuid
   date         DateTime @default(now())
   weight       Float    // in kg or lbs based on user preference
   notes        String?
@@ -96,14 +96,14 @@ model WeightEntry {
 
 /// calories burned during workouts
 model CalorieBurn {
-  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  profile      Profile  @relation(fields: [profileId], references: [id])
-  profileId    String
-  date         DateTime @default(now())
-  activityType String   // e.g. "Running", "Weightlifting", etc.
-  duration     Int      // in minutes
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile        Profile  @relation(fields: [profileId], references: [id])
+  profileId      String   @db.Uuid
+  date           DateTime @default(now())
+  activityType   String   // e.g. "Running", "Weightlifting", etc.
+  duration       Int      // in minutes
   caloriesBurned Int
-  notes        String?
+  notes          String?
 
   @@map("calorie_burns")
 }
@@ -112,7 +112,7 @@ model CalorieBurn {
 model FoodIntake {
   id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   profile      Profile  @relation(fields: [profileId], references: [id])
-  profileId    String
+  profileId    String   @db.Uuid
   date         DateTime @default(now())
   mealType     String   // e.g. "Breakfast", "Lunch", "Dinner", "Snack"
   foodName     String
@@ -127,15 +127,15 @@ model FoodIntake {
 
 /// stamina/endurance tracking
 model StaminaSession {
-  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  profile      Profile  @relation(fields: [profileId], references: [id])
-  profileId    String
-  date         DateTime @default(now())
-  activityType String   // e.g. "Running", "Swimming", etc.
-  distance     Float?   // in km or miles
-  duration     Int      // in minutes
-  avgHeartRate Int?     // beats per minute
-  notes        String?
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile       Profile  @relation(fields: [profileId], references: [id])
+  profileId     String   @db.Uuid
+  date          DateTime @default(now())
+  activityType  String   // e.g. "Running", "Swimming", etc.
+  distance      Float?   // in km or miles
+  duration      Int      // in minutes
+  avgHeartRate  Int?     // beats per minute
+  notes         String?
 
   @@map("stamina_sessions")
 }
