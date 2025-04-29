@@ -42,7 +42,7 @@ export default function ProfilePage() {
           return;
         }
 
-        setEmail(session.user.email);
+        setEmail(session.user.email || null);
         const userId = session.user.id;
         const { data, error: profErr } = await supabase
           .from('profiles')
