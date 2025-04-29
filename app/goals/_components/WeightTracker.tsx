@@ -80,6 +80,8 @@ export function WeightTracker({ userId }: WeightTrackerProps) {
         throw new Error('Please enter a valid weight');
       }
 
+      const weightValue = Number(weight);
+
       // Get profile ID
       const { data: profileData } = await supabase
         .from('profiles')
@@ -97,7 +99,7 @@ export function WeightTracker({ userId }: WeightTrackerProps) {
         .insert([
           {
             profileId: profileData.id,
-            weight: Number(weight),
+            weight: weightValue,
             notes: notes || null,
           },
         ])
@@ -105,6 +107,17 @@ export function WeightTracker({ userId }: WeightTrackerProps) {
 
       if (error) {
         throw error;
+      }
+
+      // Update the profile with the latest weight value
+      const { error: updateError } = await supabase
+        .from('profiles')
+        .update({ weight: weightValue })
+        .eq('id', profileData.id);
+        
+      if (updateError) {
+        console.error('Error updating profile weight:', updateError);
+        // Continue with the function even if profile update fails
       }
 
       if (data) {

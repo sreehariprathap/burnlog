@@ -1,36 +1,115 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BurnLog - Your Personal Fitness Tracking Companion
 
-## Getting Started
+![BurnLog Logo](/public/burnlog-icon-splash.png)
 
-First, run the development server:
+BurnLog is a comprehensive fitness tracking application built with Next.js that helps you monitor your workouts, track your progress, and achieve your fitness goals.
 
+## 🔥 Features
+
+- **User Authentication:** Secure login and signup with Supabase auth
+- **Profile Management:** Set up and manage your fitness profile with personal metrics
+- **Dashboard:** Get a quick overview of your fitness journey with key stats and metrics
+- **Workout Sessions:** Log and track different types of workouts:
+  - Push/Pull/Legs routines
+  - Cardio sessions
+  - Full-body workouts
+  - Rest days
+- **Goal Setting:** Create and monitor progress toward fitness goals
+- **Weight & BMI Tracking:** Monitor your weight changes and BMI over time
+- **Insights:** Visualize your fitness data with charts and progress indicators
+- **Progressive Web App:** Install on your device for offline access and push notifications
+- **Responsive Design:** Optimized for both mobile and desktop devices
+- **Dark Mode:** Toggle between light and dark themes for better visibility
+
+## 🛠️ Technologies Used
+
+- **Frontend:** Next.js 14, React, TypeScript, TailwindCSS
+- **Backend:** Next.js API routes, Supabase
+- **Database:** PostgreSQL (via Supabase)
+- **Authentication:** Supabase Auth
+- **Styling:** Tailwind CSS with Shadcn components
+- **Charts:** Recharts
+- **PWA Support:** Service Workers, Web Push API
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js 18+ installed
+- Supabase account and project
+
+### Installation
+
+1. Clone the repository:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/sreehariprathap/burnlog.git
+cd burnlog
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Install dependencies:
+```bash
+npm install
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Set up environment variables:
+Create a `.env` file in the root directory with the following variables:
+```
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+DATABASE_URL=your_database_url
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Run the development server:
+```bash
+npm run dev
+```
 
-## Learn More
+5. Open [http://localhost:3000](http://localhost:3000) with your browser to see the application.
 
-To learn more about Next.js, take a look at the following resources:
+## 📊 Main Pages
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- **Dashboard**: Overview of fitness metrics, goals, and workout stats
+![Dashboard](/public/docs/dashboard.png)
+- **Sessions**: Log and track workout sessions
+![Sessions](/public/docs/sessions.png)
+- **Goals**: Set and monitor fitness goals
+![Goals](/public/docs/goals.png)
+- **Insights**: Advanced data visualization and trends
+![Insights](/public/docs/insights.png)
+- **Profile**: User profile management
+![Profile](/public/docs/profile.png)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📋 Database Schema
 
-## Deploy on Vercel
+![Database Architecture](/public/docs/db-architecture.png)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+The application uses the following main data models:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- **profiles**: User profile information (height, weight, age, etc.)
+- **sessions**: Workout session logs
+- **fitness_goals**: User fitness goals
+- **weight_entries**: Historical weight measurements
+
+## 🔐 Authentication Flow
+
+1. User signs up/logs in through Supabase Auth
+2. New users are redirected to complete their profile setup
+3. Returning users are directed to the dashboard
+
+
+## 📱 Progressive Web App
+
+BurnLog is designed as a Progressive Web App, allowing users to install it on their devices for offline access and receive push notifications for workout reminders.
+
+To install:
+1. Visit the application on a supported browser
+2. Click the "Install" button in the dashboard
+3. Follow the browser prompts to complete installation
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## 📞 Contact
+
+If you have any questions or feedback, please reach out at sreehariprathap1996@gmail.com

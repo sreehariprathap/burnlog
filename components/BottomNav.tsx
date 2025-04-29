@@ -23,7 +23,7 @@ export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed bottom-0 w-full bg-background text-foreground shadow py-2 flex justify-around">
+    <nav className="fixed bottom-0 w-full bg-background text-foreground shadow py-2 flex justify-around gap-8 md:justify-center ">
       {tabs.map(({ href, label, Icon }) => {
         const isActive =
           pathname === href || pathname.startsWith(href + '/');
