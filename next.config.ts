@@ -24,12 +24,18 @@ const nextConfig = {
 };
 
 // Export the config with PWA functionality
-// Export the config with PWA functionality
 export default withPWA({
   dest: 'public',
   register: true,
   skipWaiting: true,
   disable: process.env.NODE_ENV === 'development',
+  fallbacks: {
+    document: '/offline',
+    image: '/B.png',
+    audio: '/offline',
+    video: '/offline',
+    font: '/offline'
+  },
   runtimeCaching: [
     {
       urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,

@@ -6,7 +6,10 @@
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "pwa:dev": "next dev --turbopack",
+    "pwa:build": "next build && next export",
+    "pwa:start": "next start"
   },
   "prisma": {
     "seed": "ts-node --esm prisma/seed.js"
