@@ -19,9 +19,21 @@ export default async function InsightsPage() {
     return redirect('/login');
   }
 
-  const userId = session.user.id;
+  // 2) Resolve the profile ID for this user (child tables reference
+  // profiles.id, not the auth user id directly)
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('id')
+    .eq('userId', session.user.id)
+    .single();
 
-  // 2) Fetch all datasets in parallel
+  if (!profile) {
+    return redirect('/signup/profile');
+  }
+
+  const profileId = profile.id;
+
+  // 3) Fetch all datasets in parallel
   const [
     { data: weightEntries = [] },
     { data: weightGoal = null },
@@ -32,33 +44,33 @@ export default async function InsightsPage() {
     supabase
       .from('weight_entries')
       .select('*')
-      .eq('profileId', userId)
+      .eq('profileId', profileId)
       .order('date', { ascending: true }),
     supabase
       .from('fitness_goals')
       .select('*')
-      .eq('profileId', userId)
-      .eq('goalType', 'WEIGHT_LOSS')
+      .eq('profileId', profileId)
+      .eq('goalType', 'weight_loss')
       .order('createdAt', { ascending: false })
       .single(),
     supabase
       .from('calorie_burns')
       .select('*')
-      .eq('profileId', userId)
+      .eq('profileId', profileId)
       .order('date', { ascending: true }),
     supabase
       .from('food_intakes')
       .select('*')
-      .eq('profileId', userId)
+      .eq('profileId', profileId)
       .order('date', { ascending: true }),
     supabase
       .from('stamina_sessions')
       .select('*')
-      .eq('profileId', userId)
+      .eq('profileId', profileId)
       .order('date', { ascending: true }),
   ]);
 
-  // 3) Render
+  // 4) Render
   return (
     <div className="flex flex-col h-screen">
       <TopBar title="Insights" />

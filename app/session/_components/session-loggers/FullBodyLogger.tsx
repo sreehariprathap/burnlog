@@ -7,7 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 
-type FullBodyLoggerProps = { onEnd: () => void };
+type FullBodyLoggerProps = { onEnd: (exerciseLog: Record<string, Record<string, boolean>>) => void };
 
 const fullBodyExercises: Record<string,string[]> = {
     Chest: ['Push-Ups', 'Bench Press', 'Chest Fly'],
@@ -70,7 +70,7 @@ export function FullBodyLogger({ onEnd }: FullBodyLoggerProps) {
                     ))}
 
                     <div className="flex justify-end mt-6">
-                        <Button onClick={onEnd} disabled={!sessionSuccess}>
+                        <Button onClick={() => onEnd(checks)} disabled={!sessionSuccess}>
                             Finish Full Body
                         </Button>
                     </div>

@@ -22,10 +22,11 @@ type CompletionData = {
 
 type CompletionTrackerProps = {
   plan: PlanDay & { repeatWeekly?: boolean };
+  exerciseLog?: Record<string, unknown> | null;
   onComplete: () => void;
 };
 
-export function CompletionTracker({ plan, onComplete }: CompletionTrackerProps) {
+export function CompletionTracker({ plan, exerciseLog, onComplete }: CompletionTrackerProps) {
   const supabase = createClientComponentClient();
   const { toast } = useToast();
   const [notes, setNotes] = useState<string>('');
@@ -48,12 +49,29 @@ export function CompletionTracker({ plan, onComplete }: CompletionTrackerProps) 
         });
         return;
       }
-      
+
+      // Resolve the profile ID associated with this user (sessions.profileId
+      // references profiles.id, which is not the same as the auth user id)
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('userId', user.id)
+        .single();
+
+      if (!profileData) {
+        toast({
+          title: "Profile not found",
+          description: "Please complete your profile before logging a workout",
+          variant: "destructive"
+        });
+        return;
+      }
+
       const today = new Date().toISOString().split('T')[0];
-      
+
       // Save the session completion data
       const { error } = await supabase.from('sessions').insert({
-        profileId: user.id,
+        profileId: profileData.id,
         date: today,
         sessionData: {
           bodyPart: plan.bodyPart,
@@ -61,7 +79,8 @@ export function CompletionTracker({ plan, onComplete }: CompletionTrackerProps) 
           completed,
           notes,
           difficulty,
-          duration
+          duration,
+          exerciseLog
         }
       });
       

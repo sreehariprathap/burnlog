@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 
-type RestLoggerProps = { onEnd: () => void };
+type RestLoggerProps = { onEnd: (exerciseLog: { sleep: number; healthy: boolean; hydrated: boolean }) => void };
 
 export function RestLogger({ onEnd }: RestLoggerProps) {
   const [sleep, setSleep] = useState<number>(0);
@@ -48,7 +48,7 @@ export function RestLogger({ onEnd }: RestLoggerProps) {
           </label>
 
           <div className="flex justify-end">
-            <Button onClick={onEnd} disabled={!sessionSuccess}>
+            <Button onClick={() => onEnd({ sleep, healthy, hydrated })} disabled={!sessionSuccess}>
               Finish Rest
             </Button>
           </div>

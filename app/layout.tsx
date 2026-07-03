@@ -42,6 +42,7 @@ export default function RootLayout({
         <link rel="icon" href="/B.png" />
         <link rel="apple-touch-icon" href="/B.png" />
         <link rel="shortcut icon" href="/B.png" />
+        <link rel="manifest" href="/manifest.webmanifest" />
         
         <title>burnlog - Fitness Tracker</title>
         <meta name="description" content="Track your workouts, set fitness goals, and monitor your progress" />

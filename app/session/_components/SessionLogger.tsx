@@ -20,19 +20,25 @@ type SessionLoggerProps = {
 
 export function SessionLogger({ plan, onEnd }: SessionLoggerProps) {
   const [isCompleting, setIsCompleting] = useState(false);
+  const [exerciseLog, setExerciseLog] = useState<Record<string, unknown> | null>(null);
+
+  const handleLoggerEnd = (log: Record<string, unknown>) => {
+    setExerciseLog(log);
+    setIsCompleting(true);
+  };
 
   const renderLogger = () => {
     switch (plan.bodyPart) {
       case 'Push':
       case 'Pull':
       case 'Legs':
-        return <PushPullLegLogger bodyPart={plan.bodyPart} onEnd={onEnd} />;
+        return <PushPullLegLogger bodyPart={plan.bodyPart} onEnd={handleLoggerEnd} />;
       case 'Cardio':
-        return <CardioLogger onEnd={onEnd} />;
+        return <CardioLogger onEnd={handleLoggerEnd} />;
       case 'Rest':
-        return <RestLogger onEnd={onEnd} />;
+        return <RestLogger onEnd={handleLoggerEnd} />;
       case 'Full Body':
-        return <FullBodyLogger onEnd={onEnd} />;
+        return <FullBodyLogger onEnd={handleLoggerEnd} />;
       default:
         return <div>Unknown session type: {plan.bodyPart}</div>;
     }
@@ -43,7 +49,7 @@ export function SessionLogger({ plan, onEnd }: SessionLoggerProps) {
       <div className="flex flex-col h-screen">
         <TopBar title="Complete Workout" onClose={() => setIsCompleting(false)} />
         <div className="flex-1 overflow-auto">
-          <CompletionTracker plan={plan} onComplete={onEnd} />
+          <CompletionTracker plan={plan} exerciseLog={exerciseLog} onComplete={onEnd} />
         </div>
         <BottomNav />
       </div>

@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 
 type PushPullLegLoggerProps = {
     bodyPart: 'Push' | 'Pull' | 'Legs';
-    onEnd: () => void;
+    onEnd: (exerciseLog: Record<string, Record<string, boolean>>) => void;
 };
 
 const exercisesByMuscle: Record<string, Record<string,string[]>> = {
@@ -84,9 +84,9 @@ export function PushPullLegLogger({ bodyPart, onEnd }: PushPullLegLoggerProps) {
                     ))}
 
                     <div className="flex justify-end pt-4 mt-6">
-                        <Button 
-                            onClick={onEnd} 
-                            disabled={!sessionSuccess} 
+                        <Button
+                            onClick={() => onEnd(checks)}
+                            disabled={!sessionSuccess}
                             className="px-6 py-2"
                         >
                             {sessionSuccess ? 'Finish Session 🎉' : 'Complete 3 per muscle'}

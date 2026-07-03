@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/lib/supabase';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -31,6 +31,7 @@ const MEAL_TYPES = [
 ];
 
 export function FoodIntakeTracker({ userId }: FoodIntakeTrackerProps) {
+  const supabase = createClientComponentClient();
   const [entries, setEntries] = useState<FoodIntakeEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [mealType, setMealType] = useState('breakfast');

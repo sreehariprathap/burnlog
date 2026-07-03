@@ -6,14 +6,18 @@ async function main() {
   // ——————————————————————————————————————————
   // 1️⃣ Ensure the Profile exists (so weight entries can point at it)
   // ——————————————————————————————————————————
-  const profileId = '04d24dd8-7de8-4eab-8bf5-45299350712f'
+  // Pass the auth user id of an account you've already signed up with in the
+  // app, e.g.: SEED_USER_ID=<your-auth-uid> npx prisma db seed
+  // Without it, this creates an orphaned demo profile with no matching
+  // auth.users row, so it won't be visible when you log in through the app
+  // (RLS policies key everything off auth.uid()).
+  const userId = process.env.SEED_USER_ID || '00000000-0000-0000-0000-000000000000'
+
   const profile = await prisma.profile.upsert({
-    where: { id: profileId },
+    where: { userId },
     update: {},
     create: {
-      // must supply all non-nullable fields:
-      id: profileId,
-      userId: '00000000-0000-0000-0000-000000000000', // pick or generate a UUID
+      userId,
       firstName: 'Seed',
       lastName: 'User',
       age: 30,

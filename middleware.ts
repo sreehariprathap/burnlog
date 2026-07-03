@@ -51,7 +51,8 @@ export async function middleware(request: NextRequest) {
 // middleware.ts
 export const config = {
   matcher: [
-    // match everything except /api, /_next/static, /_next/image, favicon.ico, or image files
-    '/((?!api|_next/static|_next/image|favicon\\.ico|.*\\.(?:png|jpg|jpeg|svg)).*)',
+    // match everything except /api, /_next/static, /_next/image, favicon.ico, the PWA
+    // manifest/service-worker/workbox assets, or image files
+    '/((?!api|_next/static|_next/image|favicon\\.ico|manifest\\.webmanifest|sw\\.js|workbox-.*\\.js|fallback-.*\\.js|.*\\.(?:png|jpg|jpeg|svg)).*)',
   ],
 };

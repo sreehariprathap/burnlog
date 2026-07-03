@@ -4,10 +4,11 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { registerServiceWorker, subscribeToPushNotifications, sendTestNotification } from '@/lib/pushNotification';
-import { supabase } from '@/lib/supabase';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useToast } from '@/components/ui/use-toast';
 
 export function PushNotificationPrompt() {
+  const supabase = createClientComponentClient();
   const [permissionState, setPermissionState] = useState<NotificationPermission | 'default'>('default');
   const [loading, setLoading] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
@@ -65,7 +66,7 @@ export function PushNotificationPrompt() {
             user_id: userId,
             subscription_data: subscription,
             created_at: new Date().toISOString()
-          });
+          }, { onConflict: 'user_id' });
           
         if (error) {
           console.error("Error saving subscription:", error);

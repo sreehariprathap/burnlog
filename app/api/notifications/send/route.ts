@@ -1,30 +1,37 @@
 import { NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
+import webpush from 'web-push';
 
-// Note: In a production environment, you should use web-push library
-// import webpush from 'web-push';
+const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
+
+if (vapidPublicKey && vapidPrivateKey) {
+  webpush.setVapidDetails('mailto:sreehariprathap1996@gmail.com', vapidPublicKey, vapidPrivateKey);
+}
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { userId, title, message, url } = body;
-    
-    if (!userId) {
-      return NextResponse.json(
-        { error: 'Missing user ID' },
-        { status: 400 }
-      );
-    }
-    
+    const { title, message, url } = body;
+
     // Initialize Supabase client
     const supabase = createRouteHandlerClient({ cookies });
-    
+
+    // Only allow a user to send to their own subscriptions
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json(
+        { error: 'Not authenticated' },
+        { status: 401 }
+      );
+    }
+
     // Get user's push subscriptions
     const { data: subscriptions, error } = await supabase
       .from('push_subscriptions')
       .select('subscription_data')
-      .eq('user_id', userId);
+      .eq('user_id', user.id);
       
     if (error) {
       console.error("Error fetching subscriptions:", error);
@@ -40,41 +47,44 @@ export async function POST(request: Request) {
         { status: 404 }
       );
     }
-    
-    // In a production environment, you would use the web-push library to send push messages
-    // This would require setting up VAPID keys and proper push notification sending
-    
-    /*
-    // Example of how you would use web-push library
-    webpush.setVapidDetails(
-      'mailto:your-email@example.com',
-      process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
-      process.env.VAPID_PRIVATE_KEY
-    );
-    
+
+    if (!vapidPublicKey || !vapidPrivateKey) {
+      console.error('VAPID keys are not configured');
+      return NextResponse.json(
+        { error: 'Push notifications are not configured on the server' },
+        { status: 500 }
+      );
+    }
+
     const notificationPayload = JSON.stringify({
       title: title || 'burnlog Notification',
       message: message || 'You have a new notification',
       url: url || '/'
     });
-    
-    const sendPromises = subscriptions.map(async ({ subscription_data }) => {
-      try {
-        await webpush.sendNotification(subscription_data, notificationPayload);
-        return { success: true };
-      } catch (err) {
-        console.error('Error sending notification:', err);
-        return { success: false, error: err };
-      }
-    });
-    
-    const results = await Promise.all(sendPromises);
-    */
-    
-    // For now, just return success since we can't actually send notifications in this demo
-    return NextResponse.json({ 
-      success: true,
-      message: 'In a production environment, notifications would be sent to the user'
+
+    const results = await Promise.all(
+      subscriptions.map(async ({ subscription_data }) => {
+        try {
+          await webpush.sendNotification(subscription_data, notificationPayload);
+          return { success: true };
+        } catch (err) {
+          const statusCode = (err as { statusCode?: number }).statusCode;
+          // Subscription is no longer valid on the browser's end - remove it
+          if (statusCode === 404 || statusCode === 410) {
+            await supabase
+              .from('push_subscriptions')
+              .delete()
+              .eq('user_id', user.id);
+          }
+          console.error('Error sending notification:', err);
+          return { success: false };
+        }
+      })
+    );
+
+    return NextResponse.json({
+      success: results.some(r => r.success),
+      results
     });
   } catch (error) {
     console.error("Server error:", error);

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 
-type CardioLoggerProps = { onEnd: () => void };
+type CardioLoggerProps = { onEnd: (exerciseLog: { minutes: number; activities: Record<string, boolean> }) => void };
 
 const cardioOptions = ['Running','Cycling','Rowing','Elliptical','Other'];
 
@@ -56,7 +56,7 @@ export function CardioLogger({ onEnd }: CardioLoggerProps) {
           </div>
 
           <div className="flex justify-end">
-            <Button onClick={onEnd} disabled={!sessionSuccess}>
+            <Button onClick={() => onEnd({ minutes, activities: checks })} disabled={!sessionSuccess}>
               Finish Cardio
             </Button>
           </div>
