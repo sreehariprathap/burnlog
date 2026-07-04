@@ -82,7 +82,7 @@ export default function GoalsPage() {
   };
 
   return (
-    <div className="container mx-auto ">
+    <div className="pb-16">
       <TopBar title="Fitness Goals" />
       <div className='px-4 py-2 flex flex-col gap-2'>
 

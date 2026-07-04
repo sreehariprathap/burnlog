@@ -15,47 +15,47 @@ export default function manifest(): MetadataRoute.Manifest {
     prefer_related_applications: false,
     lang: 'en',
     icons: [
-      { 
-        src: '/B.png', 
-        sizes: '192x192', 
-        type: 'image/png', 
-        purpose: 'any' 
+      {
+        src: '/icons/icon-192.png',
+        sizes: '192x192',
+        type: 'image/png',
+        purpose: 'any'
       },
-      { 
-        src: '/B.png', 
-        sizes: '512x512', 
-        type: 'image/png', 
-        purpose: 'any' 
+      {
+        src: '/icons/icon-512.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'any'
       },
-      { 
-        src: '/B.png', 
-        sizes: '512x512', 
-        type: 'image/png', 
-        purpose: 'maskable' 
+      {
+        src: '/icons/icon-512-maskable.png',
+        sizes: '512x512',
+        type: 'image/png',
+        purpose: 'maskable'
       },
-      { 
-        src: '/B.png', 
-        sizes: '144x144', 
-        type: 'image/png', 
-        purpose: 'any' 
+      {
+        src: '/icons/icon-144.png',
+        sizes: '144x144',
+        type: 'image/png',
+        purpose: 'any'
       },
-      { 
-        src: '/B.png', 
-        sizes: '96x96', 
-        type: 'image/png', 
-        purpose: 'any' 
+      {
+        src: '/icons/icon-96.png',
+        sizes: '96x96',
+        type: 'image/png',
+        purpose: 'any'
       },
-      { 
-        src: '/B.png', 
-        sizes: '72x72', 
-        type: 'image/png', 
-        purpose: 'any' 
+      {
+        src: '/icons/icon-72.png',
+        sizes: '72x72',
+        type: 'image/png',
+        purpose: 'any'
       },
-      { 
-        src: '/B.png', 
-        sizes: '48x48', 
-        type: 'image/png', 
-        purpose: 'any' 
+      {
+        src: '/icons/icon-48.png',
+        sizes: '48x48',
+        type: 'image/png',
+        purpose: 'any'
       }
     ],
     screenshots: [
@@ -74,21 +74,21 @@ export default function manifest(): MetadataRoute.Manifest {
         short_name: 'Workout',
         description: 'Start a new workout session',
         url: '/session',
-        icons: [{ src: '/B.png', sizes: '96x96' }]
+        icons: [{ src: '/icons/icon-96.png', sizes: '96x96' }]
       },
       {
         name: 'View Dashboard',
         short_name: 'Dashboard',
         description: 'View your fitness dashboard',
         url: '/dashboard',
-        icons: [{ src: '/B.png', sizes: '96x96' }]
+        icons: [{ src: '/icons/icon-96.png', sizes: '96x96' }]
       },
       {
         name: 'Check Goals',
         short_name: 'Goals',
         description: 'Check your fitness goals',
         url: '/goals',
-        icons: [{ src: '/B.png', sizes: '96x96' }]
+        icons: [{ src: '/icons/icon-96.png', sizes: '96x96' }]
       }
     ]
   }

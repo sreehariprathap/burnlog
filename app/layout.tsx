@@ -39,9 +39,9 @@ export default function RootLayout({
         <meta name="msapplication-TileColor" content="#3b82f6" />
         <meta name="msapplication-tap-highlight" content="no" />
         
-        <link rel="icon" href="/B.png" />
-        <link rel="apple-touch-icon" href="/B.png" />
-        <link rel="shortcut icon" href="/B.png" />
+        <link rel="icon" href="/icons/icon-192.png" sizes="192x192" />
+        <link rel="apple-touch-icon" href="/icons/icon-180.png" sizes="180x180" />
+        <link rel="shortcut icon" href="/icons/icon-192.png" />
         <link rel="manifest" href="/manifest.webmanifest" />
         
         <title>burnlog - Fitness Tracker</title>
