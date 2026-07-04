@@ -49,6 +49,7 @@ export default function RootLayout({
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning
       >
         <ThemeProvider defaultTheme="light" storageKey="burnlog-theme">
           <SessionContextProvider supabaseClient={supabaseClient}>
