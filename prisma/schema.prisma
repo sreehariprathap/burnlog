@@ -18,6 +18,8 @@ model Profile {
   weight        Float
   height        Float
   activityLevel String
+  aiEnabled     Boolean  @default(false)
+  lifestyle     Json?
 
   FitnessGoal    FitnessGoal[]
   Workout        Workout[]
