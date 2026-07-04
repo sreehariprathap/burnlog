@@ -7,7 +7,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Info, AlertTriangle } from 'lucide-react';
+import { Loader2, Info, AlertTriangle, Sparkles } from 'lucide-react';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import { TopBar } from '@/components/TopBar';
@@ -46,7 +46,7 @@ export default function ProfilePage() {
         const userId = session.user.id;
         const { data, error: profErr } = await supabase
           .from('profiles')
-          .select('firstName,lastName,age,weight,height,activityLevel')
+          .select('firstName,lastName,age,weight,height,activityLevel,aiEnabled')
           .eq('userId', userId)
           .single();
 
@@ -213,6 +213,29 @@ export default function ProfilePage() {
                       </AccordionContent>
                     </AccordionItem>
                   </Accordion>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-amber-500" />
+                    AI Insights
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    {profile.aiEnabled
+                      ? 'AI-powered suggestions are enabled for your account.'
+                      : 'Enable AI to get a personalized workout plan based on your lifestyle.'}
+                  </p>
+                  {!profile.aiEnabled && (
+                    <Button onClick={() => router.push('/ai-setup?returnTo=/profile')}>
+                      Enable AI Insights
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
             </div>

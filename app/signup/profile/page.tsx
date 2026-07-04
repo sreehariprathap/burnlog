@@ -102,7 +102,7 @@ export default function ProfileSetupPage() {
         console.error("Profile error:", profileError);
         setError(profileError.message);
       } else {
-        router.push('/dashboard');
+        router.push('/ai-setup');
       }
     } catch (err) {
       console.error("Error saving profile:", err);
