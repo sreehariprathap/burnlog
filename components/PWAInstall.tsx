@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Download, X } from 'lucide-react';
 
@@ -17,19 +17,19 @@ interface BeforeInstallPromptEvent extends Event {
 const SESSION_STORAGE_KEY = 'burnlog-install-prompt-shown';
 
 export default function PWAInstall() {
-  const supabase = createClientComponentClient();
+  const pathname = usePathname();
+  const isLoginPage = pathname === '/login';
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
 
   useEffect(() => {
+    // Only ever show on the login page
+    if (!isLoginPage) return;
     // Already shown once this session, or app is already installed - never show again
     if (sessionStorage.getItem(SESSION_STORAGE_KEY)) return;
     if (window.matchMedia('(display-mode: standalone)').matches) return;
 
-    let cancelled = false;
-
     const handler = (e: Event) => {
-      if (cancelled) return;
       // Prevent the mini-infobar from appearing on mobile
       e.preventDefault();
       // Save the event so it can be triggered later
@@ -38,17 +38,9 @@ export default function PWAInstall() {
       sessionStorage.setItem(SESSION_STORAGE_KEY, 'true');
     };
 
-    // Only show this to logged-in users
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user || cancelled) return;
-      window.addEventListener('beforeinstallprompt', handler);
-    });
-
-    return () => {
-      cancelled = true;
-      window.removeEventListener('beforeinstallprompt', handler);
-    };
-  }, [supabase]);
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
+  }, [isLoginPage]);
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
@@ -74,7 +66,7 @@ export default function PWAInstall() {
     setShowInstallPrompt(false);
   };
 
-  if (!showInstallPrompt) return null;
+  if (!showInstallPrompt || !isLoginPage) return null;
 
   return (
     <div className="fixed bottom-4 left-4 right-4 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-4 flex items-center justify-between">
