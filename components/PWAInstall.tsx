@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from 'react';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Button } from '@/components/ui/button';
 import { Download, X } from 'lucide-react';
 
@@ -13,28 +14,41 @@ interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
 }
 
+const SESSION_STORAGE_KEY = 'burnlog-install-prompt-shown';
+
 export default function PWAInstall() {
+  const supabase = createClientComponentClient();
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
 
   useEffect(() => {
+    // Already shown once this session, or app is already installed - never show again
+    if (sessionStorage.getItem(SESSION_STORAGE_KEY)) return;
+    if (window.matchMedia('(display-mode: standalone)').matches) return;
+
+    let cancelled = false;
+
     const handler = (e: Event) => {
+      if (cancelled) return;
       // Prevent the mini-infobar from appearing on mobile
       e.preventDefault();
       // Save the event so it can be triggered later
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       setShowInstallPrompt(true);
+      sessionStorage.setItem(SESSION_STORAGE_KEY, 'true');
     };
 
-    window.addEventListener('beforeinstallprompt', handler);
+    // Only show this to logged-in users
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user || cancelled) return;
+      window.addEventListener('beforeinstallprompt', handler);
+    });
 
-    // Check if app is already installed
-    if (window.matchMedia('(display-mode: standalone)').matches) {
-      setShowInstallPrompt(false);
-    }
-
-    return () => window.removeEventListener('beforeinstallprompt', handler);
-  }, []);
+    return () => {
+      cancelled = true;
+      window.removeEventListener('beforeinstallprompt', handler);
+    };
+  }, [supabase]);
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
