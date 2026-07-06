@@ -147,30 +147,3 @@ export async function sendRealTestNotification(): Promise<{ success: boolean; er
     };
   }
 }
-
-// Function to send a test notification
-export async function sendTestNotification() {
-  if (!('Notification' in window)) {
-    alert('This browser does not support notifications');
-    return;
-  }
-
-  if (Notification.permission !== 'granted') {
-    alert('Please enable notifications first');
-    return;
-  }
-
-  // This would normally be handled by your server
-  // But for testing, we can trigger it directly
-  if ('serviceWorker' in navigator) {
-    const registration = await navigator.serviceWorker.ready;
-    registration.showNotification('burnlog Test', {
-      body: 'This is a test notification from burnlog!',
-      icon: '/B.png',
-      badge: '/B.png',
-      data: {
-        url: '/dashboard'
-      }
-    });
-  }
-}

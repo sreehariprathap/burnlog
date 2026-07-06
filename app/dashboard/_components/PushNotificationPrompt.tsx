@@ -3,47 +3,64 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { registerServiceWorker, subscribeToPushNotifications, sendTestNotification } from '@/lib/pushNotification';
+import { registerServiceWorker, subscribeToPushNotifications, sendRealTestNotification } from '@/lib/pushNotification';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useToast } from '@/components/ui/use-toast';
+
+type Platform = { isIOS: boolean; isStandalone: boolean };
+
+function detectPlatform(): Platform {
+  const ua = navigator.userAgent;
+  const isIOS = /iPad|iPhone|iPod/.test(ua) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(ua));
+  const isStandalone =
+    (window.navigator as unknown as { standalone?: boolean }).standalone === true ||
+    window.matchMedia('(display-mode: standalone)').matches;
+  return { isIOS, isStandalone };
+}
 
 export function PushNotificationPrompt() {
   const supabase = createClientComponentClient();
   const [permissionState, setPermissionState] = useState<NotificationPermission | 'default'>('default');
   const [loading, setLoading] = useState(false);
+  const [testSending, setTestSending] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [showPrompt, setShowPrompt] = useState(false);
+  const [platform, setPlatform] = useState<Platform | null>(null);
   const { toast } = useToast();
 
-  // Check notification permission on mount
   useEffect(() => {
     const checkPermission = async () => {
-      // Check if notifications are supported
       if (!('Notification' in window)) {
         return;
       }
-      
+
+      setPlatform(detectPlatform());
       setPermissionState(Notification.permission);
-      
-      // Get current user
+
       const { data } = await supabase.auth.getUser();
       if (data?.user) {
         setUserId(data.user.id);
-        
-        // Only show prompt if permission is not granted
+
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('isAdmin')
+          .eq('userId', data.user.id)
+          .single();
+        setIsAdmin(!!profile?.isAdmin);
+
         if (Notification.permission !== 'granted') {
           setShowPrompt(true);
         }
       }
     };
-    
+
     checkPermission();
-    
-    // Also register service worker on load
+
     if ('serviceWorker' in navigator) {
       registerServiceWorker();
     }
-  }, []);
+  }, [supabase]);
 
   const handleEnableNotifications = async () => {
     if (!userId) {
@@ -54,12 +71,11 @@ export function PushNotificationPrompt() {
       });
       return;
     }
-    
+
     setLoading(true);
-    
+
     try {
       const success = await subscribeToPushNotifications(userId, async (subscription) => {
-        // Save subscription to supabase
         const { error } = await supabase
           .from('push_subscriptions')
           .upsert({
@@ -67,25 +83,19 @@ export function PushNotificationPrompt() {
             subscription_data: subscription,
             created_at: new Date().toISOString()
           }, { onConflict: 'user_id' });
-          
+
         if (error) {
           console.error("Error saving subscription:", error);
           throw error;
         }
       });
-      
+
       if (success) {
         setPermissionState('granted');
         toast({
           title: "Notifications enabled!",
           description: "You'll now receive workout reminders and updates",
         });
-        
-        // Show a test notification
-        setTimeout(() => {
-          sendTestNotification();
-        }, 1000);
-        
         setShowPrompt(false);
       } else {
         toast({
@@ -106,8 +116,59 @@ export function PushNotificationPrompt() {
     }
   };
 
-  if (!showPrompt || permissionState === 'granted') {
-    return null;
+  const handleSendTestPush = async () => {
+    setTestSending(true);
+    const result = await sendRealTestNotification();
+    if (result.success) {
+      toast({ title: "Test push sent", description: "Check for a real notification on this device." });
+    } else {
+      toast({ title: "Test push failed", description: result.error || "Unknown error", variant: "destructive" });
+    }
+    setTestSending(false);
+  };
+
+  if (!platform) return null;
+
+  if (permissionState === 'granted') {
+    if (!isAdmin) return null;
+    return (
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Send Test Push</CardTitle>
+          <CardDescription>Admin only - verify real push delivery</CardDescription>
+        </CardHeader>
+        <CardFooter>
+          <Button onClick={handleSendTestPush} disabled={testSending}>
+            {testSending ? 'Sending...' : 'Send Test Push'}
+          </Button>
+        </CardFooter>
+      </Card>
+    );
+  }
+
+  if (!showPrompt) return null;
+
+  if (platform.isIOS && !platform.isStandalone) {
+    return (
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle>Enable Notifications</CardTitle>
+          <CardDescription>Add burnlog to your Home Screen first</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">
+            iOS only supports notifications for apps added to your Home Screen. Tap the Share
+            button in Safari, then &quot;Add to Home Screen&quot;. Once installed, open burnlog
+            from your Home Screen and come back here to enable notifications.
+          </p>
+        </CardContent>
+        <CardFooter className="flex justify-end">
+          <Button variant="outline" onClick={() => setShowPrompt(false)}>
+            Got it
+          </Button>
+        </CardFooter>
+      </Card>
+    );
   }
 
   return (
