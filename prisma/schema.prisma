@@ -20,6 +20,7 @@ model Profile {
   activityLevel String
   aiEnabled     Boolean  @default(false)
   lifestyle     Json?
+  isAdmin       Boolean  @default(false)
 
   FitnessGoal    FitnessGoal[]
   Workout        Workout[]
