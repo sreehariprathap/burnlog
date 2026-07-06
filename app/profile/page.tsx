@@ -7,11 +7,12 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Info, AlertTriangle, Sparkles } from 'lucide-react';
+import { Loader2, Info, AlertTriangle, Sparkles, Bell } from 'lucide-react';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import { TopBar } from '@/components/TopBar';
 import { BottomNav } from '@/components/BottomNav';
+import { sendRealTestNotification } from '@/lib/pushNotification';
 
 export default function ProfilePage() {
   const supabase = createClientComponentClient();
@@ -23,6 +24,7 @@ export default function ProfilePage() {
   const [profileNotFound, setProfileNotFound] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [email, setEmail] = useState<string|null>(null);
+  const [testSending, setTestSending] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -46,7 +48,7 @@ export default function ProfilePage() {
         const userId = session.user.id;
         const { data, error: profErr } = await supabase
           .from('profiles')
-          .select('firstName,lastName,age,weight,height,activityLevel,aiEnabled')
+          .select('firstName,lastName,age,weight,height,activityLevel,aiEnabled,isAdmin')
           .eq('userId', userId)
           .single();
 
@@ -71,6 +73,17 @@ export default function ProfilePage() {
       }
     })();
   }, [supabase, router]);
+
+  const handleSendTestPush = async () => {
+    setTestSending(true);
+    const result = await sendRealTestNotification();
+    if (result.success) {
+      alert('Test push sent - check for a real notification on this device.');
+    } else {
+      alert(`Test push failed: ${result.error || 'Unknown error'}`);
+    }
+    setTestSending(false);
+  };
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -239,6 +252,27 @@ export default function ProfilePage() {
                 </CardContent>
               </Card>
             </div>
+
+            {profile.isAdmin && (
+              <div className="mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Bell className="w-5 h-5 text-amber-500" />
+                      Test Push Notifications
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      Admin tool - send yourself a real push notification to verify delivery.
+                    </p>
+                    <Button onClick={handleSendTestPush} disabled={testSending}>
+                      {testSending ? 'Sending...' : 'Send Test Push'}
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
 
             <div className="mt-6 text-center">
               <Button
