@@ -67,8 +67,14 @@ export async function subscribeToPushNotifications(
       return false;
     }
 
-    const registration = await registerServiceWorker();
-    if (!registration) return false;
+    const registered = await registerServiceWorker();
+    if (!registered) return false;
+
+    // register() resolves as soon as registration exists, not once it's active - subscribing
+    // against it directly races the install/activate lifecycle on a fresh install and throws
+    // "Subscription failed - no active Service Worker". navigator.serviceWorker.ready only
+    // resolves once there's an active worker.
+    const registration = await navigator.serviceWorker.ready;
 
     // Check if we already have a subscription
     let subscription = await registration.pushManager.getSubscription();

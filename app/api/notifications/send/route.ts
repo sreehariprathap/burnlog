@@ -27,10 +27,10 @@ export async function POST(request: Request) {
       );
     }
 
-    // Get user's push subscriptions
+    // Get user's push subscriptions (one row per device)
     const { data: subscriptions, error } = await supabase
       .from('push_subscriptions')
-      .select('subscription_data')
+      .select('endpoint, subscription_data')
       .eq('user_id', user.id);
       
     if (error) {
@@ -63,18 +63,20 @@ export async function POST(request: Request) {
     });
 
     const results = await Promise.all(
-      subscriptions.map(async ({ subscription_data }) => {
+      subscriptions.map(async ({ endpoint, subscription_data }) => {
         try {
           await webpush.sendNotification(subscription_data, notificationPayload);
           return { success: true };
         } catch (err) {
           const statusCode = (err as { statusCode?: number }).statusCode;
-          // Subscription is no longer valid on the browser's end - remove it
+          // This device's subscription is no longer valid on the push service's end -
+          // remove only this row, leaving the user's other devices subscribed
           if (statusCode === 404 || statusCode === 410) {
             await supabase
               .from('push_subscriptions')
               .delete()
-              .eq('user_id', user.id);
+              .eq('user_id', user.id)
+              .eq('endpoint', endpoint);
           }
           console.error('Error sending notification:', err);
           return { success: false };

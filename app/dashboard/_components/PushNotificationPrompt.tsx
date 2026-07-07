@@ -29,29 +29,67 @@ export function PushNotificationPrompt() {
   const [platform, setPlatform] = useState<Platform | null>(null);
   const { toast } = useToast();
 
+  const saveSubscription = async (subscription: Parameters<Parameters<typeof subscribeToPushNotifications>[1]>[0]) => {
+    const { data } = await supabase.auth.getUser();
+    if (!data?.user) return;
+
+    // One row per device: the push endpoint is globally unique per browser subscription,
+    // so conflicting on it lets the same user hold subscriptions on multiple devices.
+    const { error } = await supabase
+      .from('push_subscriptions')
+      .upsert({
+        user_id: data.user.id,
+        endpoint: subscription.endpoint,
+        subscription_data: subscription,
+        created_at: new Date().toISOString()
+      }, { onConflict: 'endpoint' });
+
+    if (error) {
+      console.error('Error saving subscription:', error);
+      throw error;
+    }
+  };
+
   useEffect(() => {
     const checkPermission = async () => {
-      if (!('Notification' in window)) {
+      // Detect platform BEFORE checking for the Notification API: iOS Safari outside a
+      // Home Screen install has no Notification API at all, and that's exactly the case
+      // where we must show the "Add to Home Screen" instructions.
+      const detected = detectPlatform();
+      setPlatform(detected);
+
+      const hasNotificationAPI = 'Notification' in window;
+      if (hasNotificationAPI) {
+        setPermissionState(Notification.permission);
+      }
+
+      const { data } = await supabase.auth.getUser();
+      if (!data?.user) return;
+
+      setUserId(data.user.id);
+
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('isAdmin')
+        .eq('userId', data.user.id)
+        .single();
+      setIsAdmin(!!profile?.isAdmin);
+
+      if (detected.isIOS && !detected.isStandalone) {
+        // Push is impossible until the app is installed - show install instructions
+        setShowPrompt(true);
         return;
       }
 
-      setPlatform(detectPlatform());
-      setPermissionState(Notification.permission);
+      if (!hasNotificationAPI) return;
 
-      const { data } = await supabase.auth.getUser();
-      if (data?.user) {
-        setUserId(data.user.id);
-
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('isAdmin')
-          .eq('userId', data.user.id)
-          .single();
-        setIsAdmin(!!profile?.isAdmin);
-
-        if (Notification.permission !== 'granted') {
-          setShowPrompt(true);
-        }
+      if (Notification.permission !== 'granted') {
+        setShowPrompt(true);
+      } else {
+        // Permission was already granted in a prior session - the subscription row may be
+        // missing (never saved, or deleted server-side after going stale) with no other UI
+        // path to recreate it, so silently re-subscribe to self-heal.
+        subscribeToPushNotifications(data.user.id, saveSubscription);
       }
     };
 
@@ -75,20 +113,7 @@ export function PushNotificationPrompt() {
     setLoading(true);
 
     try {
-      const success = await subscribeToPushNotifications(userId, async (subscription) => {
-        const { error } = await supabase
-          .from('push_subscriptions')
-          .upsert({
-            user_id: userId,
-            subscription_data: subscription,
-            created_at: new Date().toISOString()
-          }, { onConflict: 'user_id' });
-
-        if (error) {
-          console.error("Error saving subscription:", error);
-          throw error;
-        }
-      });
+      const success = await subscribeToPushNotifications(userId, saveSubscription);
 
       if (success) {
         setPermissionState('granted');

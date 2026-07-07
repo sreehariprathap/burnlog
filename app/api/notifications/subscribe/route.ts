@@ -26,14 +26,23 @@ export async function POST(request: Request) {
       );
     }
 
-    // Store subscription in the database
+    if (!subscription.endpoint) {
+      return NextResponse.json(
+        { error: 'Subscription endpoint is required' },
+        { status: 400 }
+      );
+    }
+
+    // Store subscription in the database - one row per device, keyed by the push
+    // endpoint (globally unique per browser subscription)
     const { error } = await supabase
       .from('push_subscriptions')
       .upsert({
         user_id: user.id,
+        endpoint: subscription.endpoint,
         subscription_data: subscription,
         created_at: new Date().toISOString(),
-      }, { onConflict: 'user_id' });
+      }, { onConflict: 'endpoint' });
       
     if (error) {
       console.error("Error saving subscription:", error);

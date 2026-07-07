@@ -59,7 +59,7 @@ registerRoute(
 );
 
 registerRoute(
-  ({ url }) => url.pathname.startsWith('/api/'),
+  ({ url }) => url.origin === self.location.origin && url.pathname.startsWith('/api/'),
   new NetworkFirst({
     cacheName: 'api-cache',
     networkTimeoutSeconds: 10,
@@ -67,9 +67,13 @@ registerRoute(
   })
 );
 
-// Catch-all - must be registered last (Workbox matches routes in registration order)
+// Catch-all - same-origin only. Must be registered last (Workbox matches routes in
+// registration order). Cross-origin requests (e.g. the Supabase API) must NOT be intercepted
+// here: fetching them from within the service worker is subject to /sw.js's own CSP response
+// header (default-src 'self'), which blocks the connection and breaks the request entirely.
+// Leaving them unmatched lets the browser fetch them directly, unaffected by the SW's CSP.
 registerRoute(
-  () => true,
+  ({ url }) => url.origin === self.location.origin,
   new NetworkFirst({
     cacheName: 'others',
     networkTimeoutSeconds: 10,
