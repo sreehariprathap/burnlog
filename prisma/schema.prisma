@@ -21,6 +21,11 @@ model Profile {
   aiEnabled     Boolean  @default(false)
   lifestyle     Json?
   isAdmin       Boolean  @default(false)
+  currentStreak   Int       @default(0)
+  longestStreak   Int       @default(0)
+  xp              Int       @default(0)
+  level           Int       @default(1)
+  lastSessionDate DateTime? @db.Date
 
   FitnessGoal    FitnessGoal[]
   Workout        Workout[]
@@ -134,6 +139,7 @@ model PushSubscription {
   userId           String   @unique @map("user_id") @db.Uuid
   subscriptionData Json     @map("subscription_data")
   createdAt        DateTime @default(now()) @map("created_at")
+  endpoint         String   @unique
 
   @@map("push_subscriptions")
 }
