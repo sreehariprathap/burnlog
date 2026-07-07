@@ -122,3 +122,16 @@
     @apply bg-background text-foreground;
   }
 }
+
+@keyframes workout-visual-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.08);
+  }
+}
+
+.workout-visual-active {
+  animation: workout-visual-pulse 2s ease-in-out infinite;
+}
