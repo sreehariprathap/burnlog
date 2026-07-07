@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Trophy } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { computeLevel, computeStreakUpdate } from '@/lib/leveling';
 
 type CompletionData = {
   id?: string;
@@ -54,7 +55,7 @@ export function CompletionTracker({ plan, exerciseLog, onComplete }: CompletionT
       // references profiles.id, which is not the same as the auth user id)
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('id')
+        .select('id, currentStreak, longestStreak, xp, lastSessionDate')
         .eq('userId', user.id)
         .single();
 
@@ -91,14 +92,39 @@ export function CompletionTracker({ plan, exerciseLog, onComplete }: CompletionT
           description: "There was a problem saving your workout record",
           variant: "destructive"
         });
-      } else {
-        toast({
-          title: "Workout saved!",
-          description: "Your workout has been recorded successfully",
-          variant: "default"
-        });
-        onComplete();
+        return;
       }
+
+      if (completed) {
+        const { newStreak, xpGained } = computeStreakUpdate({
+          lastSessionDate: profileData.lastSessionDate,
+          today,
+          currentStreak: profileData.currentStreak,
+        });
+        const newXp = profileData.xp + xpGained;
+
+        const { error: streakError } = await supabase
+          .from('profiles')
+          .update({
+            currentStreak: newStreak,
+            longestStreak: Math.max(profileData.longestStreak, newStreak),
+            xp: newXp,
+            level: computeLevel(newXp),
+            lastSessionDate: today,
+          })
+          .eq('id', profileData.id);
+
+        if (streakError) {
+          console.error('Error updating streak/xp:', streakError);
+        }
+      }
+
+      toast({
+        title: "Workout saved!",
+        description: "Your workout has been recorded successfully",
+        variant: "default"
+      });
+      onComplete();
     } catch (error) {
       console.error('Unexpected error:', error);
     } finally {
