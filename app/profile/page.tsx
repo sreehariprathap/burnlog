@@ -7,7 +7,8 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Info, AlertTriangle, Sparkles, Bell, Flame } from 'lucide-react';
+import { Loader2, Info, AlertTriangle, Sparkles, Bell, Flame, Settings } from 'lucide-react';
+import { OnboardingPageTogglesModal } from './_components/OnboardingPageTogglesModal';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import { TopBar } from '@/components/TopBar';
@@ -26,6 +27,7 @@ export default function ProfilePage() {
   const [email, setEmail] = useState<string|null>(null);
   const [testSending, setTestSending] = useState(false);
   const [disablingAi, setDisablingAi] = useState(false);
+  const [showPageToggles, setShowPageToggles] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -320,6 +322,29 @@ export default function ProfilePage() {
               </div>
             )}
 
+            {profile.isAdmin && (
+              <div className="mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Settings className="w-5 h-5 text-amber-500" />
+                      Onboarding Pages
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      Admin tool - control which advanced onboarding pages are shown to everyone
+                      in the AI setup flow.
+                    </p>
+                    <Button variant="outline" onClick={() => setShowPageToggles(true)}>
+                      <Settings className="w-4 h-4 mr-2" />
+                      Manage Pages
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
             <div className="mt-6 text-center">
               <Button
                 variant="destructive"
@@ -332,6 +357,7 @@ export default function ProfilePage() {
           </>
         )}
       </main>
+      <OnboardingPageTogglesModal open={showPageToggles} onOpenChange={setShowPageToggles} />
       <BottomNav />
     </div>
   );
