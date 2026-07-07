@@ -16,14 +16,16 @@ import { Switch } from '@/components/ui/switch';
 import { PlanDay } from './PlanCard';
 import { Dumbbell, PersonStanding, Pickaxe, Bed, Footprints, Bike } from 'lucide-react';
 
+// index is the canonical dayOfWeek convention (0=Sun...6=Sat); order here is
+// display order only (Mon first), matching DayNavigator.
 const daysOfWeek = [
-  { index: 0, label: 'Sun' },
   { index: 1, label: 'Mon' },
   { index: 2, label: 'Tue' },
   { index: 3, label: 'Wed' },
   { index: 4, label: 'Thu' },
   { index: 5, label: 'Fri' },
-  { index: 6, label: 'Sat' }
+  { index: 6, label: 'Sat' },
+  { index: 0, label: 'Sun' }
 ];
 
 const bodyPartOptions = [
