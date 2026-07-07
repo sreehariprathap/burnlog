@@ -121,6 +121,11 @@ export async function generateWorkoutPlan(
     response_format: { type: 'json_object' },
   });
 
+  if (!completion.choices || completion.choices.length === 0) {
+    const providerError = (completion as unknown as { error?: { message?: string } }).error;
+    throw new Error(providerError?.message || 'AI provider returned no response choices');
+  }
+
   const content = completion.choices[0]?.message?.content;
   if (!content) {
     throw new Error('AI response had no content');

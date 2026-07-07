@@ -8,8 +8,17 @@ import { Button } from '@/components/ui/button';
 import { ConsentStep } from './ConsentStep';
 import { LifestyleForm } from './LifestyleForm';
 import { GoalsStep, type GoalEntry } from './GoalsStep';
+import { ActivityPreferencesStep } from './ActivityPreferencesStep';
+import { EquipmentStep } from './EquipmentStep';
+import { NutritionStep } from './NutritionStep';
 import { PlanPreview } from './PlanPreview';
-import type { LifestyleAnswers, WorkoutPlanEntry } from '@/lib/ai/types';
+import type {
+  LifestyleAnswers,
+  WorkoutPlanEntry,
+  ActivityPreferences,
+  EquipmentAnswers,
+  NutritionAnswers,
+} from '@/lib/ai/types';
 
 const ORDERED_PAGE_KEYS = ['goals', 'activity_preferences', 'equipment', 'nutrition'] as const;
 type PageKey = (typeof ORDERED_PAGE_KEYS)[number];
@@ -28,6 +37,9 @@ export function AiSetupFlow() {
   const [initialLifestyle, setInitialLifestyle] = useState<LifestyleAnswers | null>(null);
   const [enabledKeys, setEnabledKeys] = useState<PageKey[]>([]);
   const [goals, setGoals] = useState<GoalEntry[]>([]);
+  const [activityPreferences, setActivityPreferences] = useState<ActivityPreferences | undefined>(undefined);
+  const [equipment, setEquipment] = useState<EquipmentAnswers | undefined>(undefined);
+  const [nutrition, setNutrition] = useState<NutritionAnswers | undefined>(undefined);
   const [plan, setPlan] = useState<WorkoutPlanEntry[] | null>(null);
   const [saving, setSaving] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
@@ -123,6 +135,33 @@ export function AiSetupFlow() {
     advanceFrom('goals');
   };
 
+  const handleActivityContinue = (answers: ActivityPreferences) => {
+    setActivityPreferences(answers);
+    advanceFrom('activity_preferences');
+  };
+
+  const handleActivitySkip = () => {
+    advanceFrom('activity_preferences');
+  };
+
+  const handleEquipmentContinue = (answers: EquipmentAnswers) => {
+    setEquipment(answers);
+    advanceFrom('equipment');
+  };
+
+  const handleEquipmentSkip = () => {
+    advanceFrom('equipment');
+  };
+
+  const handleNutritionContinue = (answers: NutritionAnswers) => {
+    setNutrition(answers);
+    advanceFrom('nutrition');
+  };
+
+  const handleNutritionSkip = () => {
+    advanceFrom('nutrition');
+  };
+
   const handleRegenerate = async () => {
     if (!lifestyle) return;
     setRegenerating(true);
@@ -155,9 +194,16 @@ export function AiSetupFlow() {
         .upsert(rows, { onConflict: 'profileId,dayOfWeek' });
       if (planError) throw planError;
 
+      const fullLifestyle: LifestyleAnswers = {
+        ...lifestyle,
+        ...(activityPreferences && { activityPreferences }),
+        ...(equipment && { equipment }),
+        ...(nutrition && { nutrition }),
+      };
+
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ aiEnabled: true, lifestyle })
+        .update({ aiEnabled: true, lifestyle: fullLifestyle })
         .eq('id', profileId);
       if (profileError) throw profileError;
 
@@ -203,6 +249,18 @@ export function AiSetupFlow() {
 
       {step === 'goals' && (
         <GoalsStep onContinue={handleGoalsContinue} onSkip={handleGoalsSkip} />
+      )}
+
+      {step === 'activity_preferences' && (
+        <ActivityPreferencesStep onContinue={handleActivityContinue} onSkip={handleActivitySkip} />
+      )}
+
+      {step === 'equipment' && (
+        <EquipmentStep onContinue={handleEquipmentContinue} onSkip={handleEquipmentSkip} />
+      )}
+
+      {step === 'nutrition' && (
+        <NutritionStep onContinue={handleNutritionContinue} onSkip={handleNutritionSkip} />
       )}
 
       {step === 'generating' && (
