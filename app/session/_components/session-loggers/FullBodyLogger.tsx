@@ -3,11 +3,13 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
+import { Info } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { getExerciseImage } from '@/lib/exerciseImages';
+import { ExerciseInfoModal } from '../ExerciseInfoModal';
 
 type FullBodyLoggerProps = { onEnd: (exerciseLog: Record<string, Record<string, boolean>>) => void };
 
@@ -24,6 +26,7 @@ const fullBodyExercises: Record<string,string[]> = {
 };
 
 export function FullBodyLogger({ onEnd }: FullBodyLoggerProps) {
+    const [infoExercise, setInfoExercise] = useState<string | null>(null);
     const groups = Object.keys(fullBodyExercises);
     const [checks, setChecks] = useState<Record<string,Record<string,boolean>>>(() => {
         const init: any = {};
@@ -72,6 +75,18 @@ export function FullBodyLogger({ onEnd }: FullBodyLoggerProps) {
                                             className="rounded-md flex-shrink-0"
                                         />
                                         <span className={checks[group][ex] ? 'line-through' : ''}>{ex}</span>
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                setInfoExercise(ex);
+                                            }}
+                                            className="ml-auto text-muted-foreground hover:text-foreground"
+                                            aria-label={`How to do ${ex}`}
+                                        >
+                                            <Info className="h-4 w-4" />
+                                        </button>
                                     </label>
                                 ))}
                             </div>
@@ -85,6 +100,7 @@ export function FullBodyLogger({ onEnd }: FullBodyLoggerProps) {
                     </div>
                 </CardContent>
             </Card>
+            <ExerciseInfoModal exerciseName={infoExercise} onClose={() => setInfoExercise(null)} />
         </div>
     );
 }

@@ -3,11 +3,13 @@
 
 import React, { useState } from 'react';
 import Image from 'next/image';
+import { Info } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { getExerciseImage } from '@/lib/exerciseImages';
+import { ExerciseInfoModal } from '../ExerciseInfoModal';
 
 type PushPullLegLoggerProps = {
     bodyPart: 'Push' | 'Pull' | 'Legs';
@@ -33,6 +35,7 @@ const exercisesByMuscle: Record<string, Record<string,string[]>> = {
 };
 
 export function PushPullLegLogger({ bodyPart, onEnd }: PushPullLegLoggerProps) {
+    const [infoExercise, setInfoExercise] = useState<string | null>(null);
     const muscles = Object.keys(exercisesByMuscle[bodyPart]);
     // checks[muscle][exercise] = boolean
     const [checks, setChecks] = useState<Record<string,Record<string,boolean>>>(() => {
@@ -86,6 +89,18 @@ export function PushPullLegLogger({ bodyPart, onEnd }: PushPullLegLoggerProps) {
                                             className="rounded-md flex-shrink-0"
                                         />
                                         <span className={checks[muscle][ex] ? 'line-through opacity-70' : ''}>{ex}</span>
+                                        <button
+                                            type="button"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                setInfoExercise(ex);
+                                            }}
+                                            className="ml-auto text-muted-foreground hover:text-foreground"
+                                            aria-label={`How to do ${ex}`}
+                                        >
+                                            <Info className="h-4 w-4" />
+                                        </button>
                                     </label>
                                 ))}
                             </div>
@@ -103,6 +118,7 @@ export function PushPullLegLogger({ bodyPart, onEnd }: PushPullLegLoggerProps) {
                     </div>
                 </CardContent>
             </Card>
+            <ExerciseInfoModal exerciseName={infoExercise} onClose={() => setInfoExercise(null)} />
         </div>
     );
 }
