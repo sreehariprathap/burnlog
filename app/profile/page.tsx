@@ -25,6 +25,7 @@ export default function ProfilePage() {
   const [loggingOut, setLoggingOut] = useState(false);
   const [email, setEmail] = useState<string|null>(null);
   const [testSending, setTestSending] = useState(false);
+  const [disablingAi, setDisablingAi] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -48,7 +49,7 @@ export default function ProfilePage() {
         const userId = session.user.id;
         const { data, error: profErr } = await supabase
           .from('profiles')
-          .select('firstName,lastName,age,weight,height,activityLevel,aiEnabled,isAdmin,currentStreak,longestStreak,xp,level')
+          .select('id,firstName,lastName,age,weight,height,activityLevel,aiEnabled,isAdmin,currentStreak,longestStreak,xp,level')
           .eq('userId', userId)
           .single();
 
@@ -83,6 +84,18 @@ export default function ProfilePage() {
       alert(`Test push failed: ${result.error || 'Unknown error'}`);
     }
     setTestSending(false);
+  };
+
+  const handleDisableAi = async () => {
+    setDisablingAi(true);
+    const { error } = await supabase
+      .from('profiles')
+      .update({ aiEnabled: false })
+      .eq('id', profile.id);
+    if (!error) {
+      setProfile((prev: any) => ({ ...prev, aiEnabled: false }));
+    }
+    setDisablingAi(false);
   };
 
   const handleLogout = async () => {
@@ -273,7 +286,11 @@ export default function ProfilePage() {
                       ? 'AI-powered suggestions are enabled for your account.'
                       : 'Enable AI to get a personalized workout plan based on your lifestyle.'}
                   </p>
-                  {!profile.aiEnabled && (
+                  {profile.aiEnabled ? (
+                    <Button variant="outline" onClick={handleDisableAi} disabled={disablingAi}>
+                      {disablingAi ? 'Disabling...' : 'Disable AI Insights'}
+                    </Button>
+                  ) : (
                     <Button onClick={() => router.push('/ai-setup?returnTo=/profile')}>
                       Enable AI Insights
                     </Button>
