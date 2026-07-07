@@ -1,10 +1,8 @@
 'use client';
 
 import React from 'react';
-import Image from 'next/image';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { CheckCircle } from 'lucide-react';
-import { getWorkoutVisual } from '@/lib/workoutVisuals';
 
 // Exercise data by workout type - this provides a checklist of activities
 const activitiesByWorkoutType: Record<string, string[]> = {
@@ -66,14 +64,10 @@ type WorkoutChecklistProps = {
 
 export function WorkoutChecklist({ workoutType }: WorkoutChecklistProps) {
   const activities = activitiesByWorkoutType[workoutType] || [];
-  const visual = getWorkoutVisual(workoutType);
 
   return (
     <Card className="shadow-md">
       <CardContent className="pt-6">
-        <div className="flex justify-center mb-4">
-          <Image src={visual.src} alt={visual.alt} width={64} height={64} />
-        </div>
         <CardTitle className="text-xl mb-4">Today&apos;s {workoutType} Checklist</CardTitle>
         <ul className="space-y-3">
           {activities.map((activity, index) => (
