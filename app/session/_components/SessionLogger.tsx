@@ -48,7 +48,7 @@ export function SessionLogger({ plan, onEnd }: SessionLoggerProps) {
     return (
       <div className="flex flex-col h-screen">
         <TopBar title="Complete Workout" onClose={() => setIsCompleting(false)} />
-        <div className="flex-1 overflow-auto">
+        <div className="flex-1 overflow-auto pb-20">
           <CompletionTracker plan={plan} exerciseLog={exerciseLog} onComplete={onEnd} />
         </div>
         <BottomNav />

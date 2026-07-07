@@ -106,7 +106,7 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen flex flex-col">
       <TopBar title="Profile" />
-      <main className="flex-1 container mx-auto p-4">
+      <main className="flex-1 container mx-auto p-4 pb-20">
         {error && (
           <div className="text-center my-12">
             <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
