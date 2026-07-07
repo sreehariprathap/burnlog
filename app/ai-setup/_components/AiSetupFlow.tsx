@@ -21,6 +21,7 @@ export function AiSetupFlow() {
   const [step, setStep] = useState<Step>('loading');
   const [profileId, setProfileId] = useState<string | null>(null);
   const [lifestyle, setLifestyle] = useState<LifestyleAnswers | null>(null);
+  const [initialLifestyle, setInitialLifestyle] = useState<LifestyleAnswers | null>(null);
   const [plan, setPlan] = useState<WorkoutPlanEntry[] | null>(null);
   const [saving, setSaving] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
@@ -35,7 +36,7 @@ export function AiSetupFlow() {
       }
       const { data: profile } = await supabase
         .from('profiles')
-        .select('id')
+        .select('id, lifestyle')
         .eq('userId', user.id)
         .single();
 
@@ -44,6 +45,7 @@ export function AiSetupFlow() {
         return;
       }
       setProfileId(profile.id);
+      setInitialLifestyle(profile.lifestyle ?? null);
       setStep('consent');
     })();
   }, [supabase, router]);
@@ -135,7 +137,11 @@ export function AiSetupFlow() {
       )}
 
       {step === 'questionnaire' && (
-        <LifestyleForm submitting={false} onSubmit={handleQuestionnaireSubmit} />
+        <LifestyleForm
+          submitting={false}
+          initialAnswers={initialLifestyle}
+          onSubmit={handleQuestionnaireSubmit}
+        />
       )}
 
       {step === 'generating' && (

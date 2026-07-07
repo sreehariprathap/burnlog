@@ -10,17 +10,18 @@ import type { LifestyleAnswers } from '@/lib/ai/types';
 
 type LifestyleFormProps = {
   submitting: boolean;
+  initialAnswers?: LifestyleAnswers | null;
   onSubmit: (answers: LifestyleAnswers) => void;
 };
 
-export function LifestyleForm({ submitting, onSubmit }: LifestyleFormProps) {
-  const [jobType, setJobType] = useState<LifestyleAnswers['jobType']>('desk');
-  const [hoursSitting, setHoursSitting] = useState<LifestyleAnswers['hoursSitting']>('4-6');
-  const [commuteActivity, setCommuteActivity] = useState<LifestyleAnswers['commuteActivity']>('sedentary');
-  const [exerciseFrequency, setExerciseFrequency] = useState<LifestyleAnswers['exerciseFrequency']>('1-2');
-  const [goalFocus, setGoalFocus] = useState<LifestyleAnswers['goalFocus']>('general_health');
-  const [injuries, setInjuries] = useState('');
-  const [preferredTrainingDays, setPreferredTrainingDays] = useState(4);
+export function LifestyleForm({ submitting, initialAnswers, onSubmit }: LifestyleFormProps) {
+  const [jobType, setJobType] = useState<LifestyleAnswers['jobType']>(initialAnswers?.jobType ?? 'desk');
+  const [hoursSitting, setHoursSitting] = useState<LifestyleAnswers['hoursSitting']>(initialAnswers?.hoursSitting ?? '4-6');
+  const [commuteActivity, setCommuteActivity] = useState<LifestyleAnswers['commuteActivity']>(initialAnswers?.commuteActivity ?? 'sedentary');
+  const [exerciseFrequency, setExerciseFrequency] = useState<LifestyleAnswers['exerciseFrequency']>(initialAnswers?.exerciseFrequency ?? '1-2');
+  const [goalFocus, setGoalFocus] = useState<LifestyleAnswers['goalFocus']>(initialAnswers?.goalFocus ?? 'general_health');
+  const [injuries, setInjuries] = useState(initialAnswers?.injuries ?? '');
+  const [preferredTrainingDays, setPreferredTrainingDays] = useState(initialAnswers?.preferredTrainingDays ?? 4);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
