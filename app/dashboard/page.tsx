@@ -62,19 +62,6 @@ export default function DashboardPage() {
     
     fetchData();
 
-    // Register Service Worker for PWA functionality
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-          .then((registration) => {
-            console.log('Service Worker registered with scope:', registration.scope);
-          })
-          .catch((error) => {
-            console.error('Service Worker registration failed:', error);
-          });
-      });
-    }
-
     // Set up "Add to Home Screen" prompt listener
     window.addEventListener('beforeinstallprompt', (e) => {
       // Prevent the mini-infobar from appearing on mobile
@@ -128,7 +115,7 @@ export default function DashboardPage() {
 
         {/* Install App Prompt */}
         {isInstallable && (
-          <Card className="mb-4 border-amber-200 bg-amber-50">
+          <Card className="mb-4 border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950">
             <CardContent className="pt-4 pb-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -137,7 +124,7 @@ export default function DashboardPage() {
                 </div>
                 <button
                   onClick={installApp}
-                  className="px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700"
+                  className="px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 dark:bg-amber-700 dark:hover:bg-amber-600"
                 >
                   Install
                 </button>

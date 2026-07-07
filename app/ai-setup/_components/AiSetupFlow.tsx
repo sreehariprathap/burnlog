@@ -234,7 +234,7 @@ export function AiSetupFlow() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50 dark:bg-gray-900">
       {step === 'consent' && (
         <ConsentStep onAccept={() => setStep('questionnaire')} onDecline={handleSkip} />
       )}
