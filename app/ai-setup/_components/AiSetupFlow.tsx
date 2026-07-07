@@ -7,10 +7,14 @@ import { Loader2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ConsentStep } from './ConsentStep';
 import { LifestyleForm } from './LifestyleForm';
+import { GoalsStep, type GoalEntry } from './GoalsStep';
 import { PlanPreview } from './PlanPreview';
 import type { LifestyleAnswers, WorkoutPlanEntry } from '@/lib/ai/types';
 
-type Step = 'loading' | 'consent' | 'questionnaire' | 'generating' | 'preview' | 'error';
+const ORDERED_PAGE_KEYS = ['goals', 'activity_preferences', 'equipment', 'nutrition'] as const;
+type PageKey = (typeof ORDERED_PAGE_KEYS)[number];
+
+type Step = 'loading' | 'consent' | 'questionnaire' | PageKey | 'generating' | 'preview' | 'error';
 
 export function AiSetupFlow() {
   const router = useRouter();
@@ -22,6 +26,8 @@ export function AiSetupFlow() {
   const [profileId, setProfileId] = useState<string | null>(null);
   const [lifestyle, setLifestyle] = useState<LifestyleAnswers | null>(null);
   const [initialLifestyle, setInitialLifestyle] = useState<LifestyleAnswers | null>(null);
+  const [enabledKeys, setEnabledKeys] = useState<PageKey[]>([]);
+  const [goals, setGoals] = useState<GoalEntry[]>([]);
   const [plan, setPlan] = useState<WorkoutPlanEntry[] | null>(null);
   const [saving, setSaving] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
@@ -46,6 +52,15 @@ export function AiSetupFlow() {
       }
       setProfileId(profile.id);
       setInitialLifestyle(profile.lifestyle ?? null);
+
+      const { data: flags } = await supabase
+        .from('onboarding_page_flags')
+        .select('pageKey, isEnabled');
+      const enabledSet = new Set(
+        (flags ?? []).filter((f) => f.isEnabled).map((f) => f.pageKey)
+      );
+      setEnabledKeys(ORDERED_PAGE_KEYS.filter((k) => enabledSet.has(k)));
+
       setStep('consent');
     })();
   }, [supabase, router]);
@@ -70,10 +85,42 @@ export function AiSetupFlow() {
     }
   };
 
+  const stepAfter = (current: Step): Step => {
+    if (current === 'questionnaire') {
+      return enabledKeys[0] ?? 'generating';
+    }
+    const idx = enabledKeys.indexOf(current as PageKey);
+    return enabledKeys[idx + 1] ?? 'generating';
+  };
+
+  const advanceFrom = async (current: PageKey) => {
+    const next = stepAfter(current);
+    if (next === 'generating') {
+      setStep('generating');
+      if (lifestyle) await requestPlan(lifestyle);
+    } else {
+      setStep(next);
+    }
+  };
+
   const handleQuestionnaireSubmit = async (answers: LifestyleAnswers) => {
     setLifestyle(answers);
-    setStep('generating');
-    await requestPlan(answers);
+    const next = stepAfter('questionnaire');
+    if (next === 'generating') {
+      setStep('generating');
+      await requestPlan(answers);
+    } else {
+      setStep(next);
+    }
+  };
+
+  const handleGoalsContinue = (entries: GoalEntry[]) => {
+    setGoals(entries);
+    advanceFrom('goals');
+  };
+
+  const handleGoalsSkip = () => {
+    advanceFrom('goals');
   };
 
   const handleRegenerate = async () => {
@@ -114,6 +161,16 @@ export function AiSetupFlow() {
         .eq('id', profileId);
       if (profileError) throw profileError;
 
+      if (goals.length > 0) {
+        const goalRows = goals.map((g) => ({
+          profileId,
+          goalType: g.goalType,
+          targetValue: g.targetValue,
+        }));
+        const { error: goalsError } = await supabase.from('fitness_goals').insert(goalRows);
+        if (goalsError) throw goalsError;
+      }
+
       router.push(returnTo);
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : 'Failed to save your plan');
@@ -142,6 +199,10 @@ export function AiSetupFlow() {
           initialAnswers={initialLifestyle}
           onSubmit={handleQuestionnaireSubmit}
         />
+      )}
+
+      {step === 'goals' && (
+        <GoalsStep onContinue={handleGoalsContinue} onSkip={handleGoalsSkip} />
       )}
 
       {step === 'generating' && (
