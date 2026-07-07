@@ -7,7 +7,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Info, AlertTriangle, Sparkles, Bell } from 'lucide-react';
+import { Loader2, Info, AlertTriangle, Sparkles, Bell, Flame } from 'lucide-react';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import { TopBar } from '@/components/TopBar';
@@ -48,7 +48,7 @@ export default function ProfilePage() {
         const userId = session.user.id;
         const { data, error: profErr } = await supabase
           .from('profiles')
-          .select('firstName,lastName,age,weight,height,activityLevel,aiEnabled,isAdmin')
+          .select('firstName,lastName,age,weight,height,activityLevel,aiEnabled,isAdmin,currentStreak,longestStreak,xp,level')
           .eq('userId', userId)
           .single();
 
@@ -226,6 +226,35 @@ export default function ProfilePage() {
                       </AccordionContent>
                     </AccordionItem>
                   </Accordion>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Flame className="w-5 h-5 text-orange-500" />
+                    Level {profile.level}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div>
+                    <div className="flex justify-between text-sm mb-1">
+                      <span>{profile.xp} xp</span>
+                      <span>{100 - (profile.xp % 100)} xp to next level</span>
+                    </div>
+                    <div className="h-2 bg-gray-200 rounded-full">
+                      <div
+                        className="h-2 bg-orange-500 rounded-full"
+                        style={{ width: `${(profile.xp % 100)}%` }}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span>Current streak: <strong>{profile.currentStreak}</strong> day{profile.currentStreak === 1 ? '' : 's'}</span>
+                    <span>Longest: <strong>{profile.longestStreak}</strong> day{profile.longestStreak === 1 ? '' : 's'}</span>
+                  </div>
                 </CardContent>
               </Card>
             </div>
