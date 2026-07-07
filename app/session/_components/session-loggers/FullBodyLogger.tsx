@@ -2,10 +2,12 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { getExerciseImage } from '@/lib/exerciseImages';
 
 type FullBodyLoggerProps = { onEnd: (exerciseLog: Record<string, Record<string, boolean>>) => void };
 
@@ -61,6 +63,13 @@ export function FullBodyLogger({ onEnd }: FullBodyLoggerProps) {
                                                     [group]: { ...prev[group], [ex]: !!val }
                                                 }));
                                             }}
+                                        />
+                                        <Image
+                                            src={getExerciseImage(ex)}
+                                            alt={ex}
+                                            width={36}
+                                            height={36}
+                                            className="rounded-md flex-shrink-0"
                                         />
                                         <span className={checks[group][ex] ? 'line-through' : ''}>{ex}</span>
                                     </label>

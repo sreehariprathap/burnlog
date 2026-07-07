@@ -2,10 +2,12 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { getExerciseImage } from '@/lib/exerciseImages';
 
 type PushPullLegLoggerProps = {
     bodyPart: 'Push' | 'Pull' | 'Legs';
@@ -75,6 +77,13 @@ export function PushPullLegLogger({ bodyPart, onEnd }: PushPullLegLoggerProps) {
                                                 }));
                                             }}
                                             className="h-5 w-5"
+                                        />
+                                        <Image
+                                            src={getExerciseImage(ex)}
+                                            alt={ex}
+                                            width={36}
+                                            height={36}
+                                            className="rounded-md flex-shrink-0"
                                         />
                                         <span className={checks[muscle][ex] ? 'line-through opacity-70' : ''}>{ex}</span>
                                     </label>

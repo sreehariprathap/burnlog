@@ -2,11 +2,13 @@
 'use client';
 
 import React, { useState } from 'react';
+import Image from 'next/image';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { getExerciseImage } from '@/lib/exerciseImages';
 
 type CardioLoggerProps = { onEnd: (exerciseLog: { minutes: number; activities: Record<string, boolean> }) => void };
 
@@ -48,6 +50,13 @@ export function CardioLogger({ onEnd }: CardioLoggerProps) {
                     onCheckedChange={val =>
                       setChecks(prev => ({ ...prev, [opt]: !!val }))
                     }
+                  />
+                  <Image
+                    src={getExerciseImage(opt)}
+                    alt={opt}
+                    width={36}
+                    height={36}
+                    className="rounded-md flex-shrink-0"
                   />
                   <span>{opt}</span>
                 </label>
