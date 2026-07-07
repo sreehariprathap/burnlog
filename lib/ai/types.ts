@@ -8,6 +8,36 @@ export type WorkoutPlanEntry = {
   bodyPart: BodyPart;
 };
 
+export const ACTIVITY_TYPES = ['Weights', 'Cardio', 'Sports', 'Yoga', 'HIIT', 'Swimming'] as const;
+
+export const EQUIPMENT_OPTIONS = [
+  'Dumbbells',
+  'Barbell',
+  'Resistance Bands',
+  'Pull-up Bar',
+  'Cardio Machine',
+  'Kettlebell',
+  'None',
+] as const;
+
+export type ActivityPreferences = {
+  enjoyedTypes: string[];
+  dislikedTypes: string[];
+  environment: 'indoor' | 'outdoor' | 'either';
+  social: 'solo' | 'group' | 'either';
+};
+
+export type EquipmentAnswers = {
+  trainingLocation: 'commercial_gym' | 'home_gym' | 'bodyweight_only' | 'mixed';
+  availableEquipment: string[];
+};
+
+export type NutritionAnswers = {
+  dietStyle: 'none' | 'vegetarian' | 'vegan' | 'keto' | 'paleo' | 'other';
+  mealsPerDay: number;
+  restrictions: string;
+};
+
 export type LifestyleAnswers = {
   jobType: 'desk' | 'physical' | 'mixed' | 'not_working';
   hoursSitting: '<2' | '2-4' | '4-6' | '6-8' | '8+';
@@ -21,4 +51,7 @@ export type LifestyleAnswers = {
     | 'athletic_performance';
   injuries: string;
   preferredTrainingDays: number; // 3-6
+  activityPreferences?: ActivityPreferences;
+  equipment?: EquipmentAnswers;
+  nutrition?: NutritionAnswers;
 };

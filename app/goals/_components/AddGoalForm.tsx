@@ -7,20 +7,12 @@ import { Label } from '@/components/ui/label';
 import { Goal } from '../page';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Loader } from 'lucide-react';
+import { GOAL_TYPES } from '@/lib/goalTypes';
 
 type AddGoalFormProps = {
   onGoalAdded: (goal: Goal) => void;
   userId: string;
 };
-
-const GOAL_TYPES = [
-  { value: 'weight_loss', label: 'Weight Loss (kg)' },
-  { value: 'weight_gain', label: 'Weight Gain (kg)' },
-  { value: 'calories_burned', label: 'Daily Calories Burned (kcal)' },
-  { value: 'running_distance', label: 'Running Distance (km)' },
-  { value: 'workout_frequency', label: 'Weekly Workouts (count)' },
-  { value: 'workout_time', label: 'Workout Duration (mins)' }
-];
 
 export function AddGoalForm({ onGoalAdded, userId }: AddGoalFormProps) {
   const [goalType, setGoalType] = useState('weight_loss');
