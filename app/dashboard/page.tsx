@@ -13,6 +13,8 @@ import { BMIWidget } from './_components/BMIWidget';
 import { WorkoutPieChart } from './_components/WorkoutPieChart';
 import { GoalProgressWidget } from './_components/GoalProgressWidget';
 import { ShortcutWidget } from './_components/ShortcutWidget';
+import { DailyRingsWidget } from './_components/DailyRingsWidget';
+import { QuickLogFab } from './_components/QuickLogFab';
 
 interface FitnessGoal {
   id: string;
@@ -27,6 +29,7 @@ export default function DashboardPage() {
   const [userProfile, setUserProfile] = useState<any>(null);
   const [isInstallable, setIsInstallable] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   useEffect(() => {
     async function fetchData() {
@@ -115,7 +118,7 @@ export default function DashboardPage() {
 
         {/* Install App Prompt */}
         {isInstallable && (
-          <Card className="mb-4 border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950">
+          <Card className="mb-4 border-amber-200 bg-amber-50 dark:border-amber-700 dark:bg-amber-900">
             <CardContent className="pt-4 pb-4">
               <div className="flex items-center justify-between">
                 <div>
@@ -124,7 +127,7 @@ export default function DashboardPage() {
                 </div>
                 <button
                   onClick={installApp}
-                  className="px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 dark:bg-amber-700 dark:hover:bg-amber-600"
+                  className="px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 dark:bg-amber-600 dark:hover:bg-amber-500"
                 >
                   Install
                 </button>
@@ -154,6 +157,11 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
         
+        {/* Daily Rings */}
+        {userProfile && (
+          <DailyRingsWidget profileId={userProfile.id} refreshKey={refreshKey} />
+        )}
+
         {/* New Insight Widgets in Grid Layout */}
         <div className="grid grid-cols-4 gap-4">
           {/* BMI Widget - 4x1 */}
@@ -215,6 +223,9 @@ export default function DashboardPage() {
           </Card>
         )}
       </main>
+      {userProfile && (
+        <QuickLogFab profileId={userProfile.id} onLogged={() => setRefreshKey((k) => k + 1)} />
+      )}
       <BottomNav />
     </div>
   );
