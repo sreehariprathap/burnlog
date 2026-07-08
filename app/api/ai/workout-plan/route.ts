@@ -3,6 +3,7 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { generateWorkoutPlan } from '@/lib/ai/openrouter';
 import type { LifestyleAnswers } from '@/lib/ai/types';
+import { getModel } from '@/lib/ai/modelConfig';
 
 function isValidLifestyleAnswers(body: unknown): body is LifestyleAnswers {
   if (!body || typeof body !== 'object') return false;
@@ -43,13 +44,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
+    const model = await getModel(supabase, 'text');
+
     try {
-      const plan = await generateWorkoutPlan(profile, body);
+      const plan = await generateWorkoutPlan(profile, body, model);
       return NextResponse.json({ plan });
     } catch (firstError) {
       console.error('AI plan generation failed, retrying once:', firstError);
       try {
-        const plan = await generateWorkoutPlan(profile, body);
+        const plan = await generateWorkoutPlan(profile, body, model);
         return NextResponse.json({ plan });
       } catch (secondError) {
         console.error('AI plan generation failed on retry:', secondError);

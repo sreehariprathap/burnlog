@@ -2,8 +2,6 @@
 import OpenAI from 'openai';
 import { BODY_PARTS, type BodyPart, type LifestyleAnswers, type WorkoutPlanEntry } from './types';
 
-const MODEL = process.env.AI_WORKOUT_MODEL || 'openai/gpt-oss-120b:free';
-
 const client = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
   apiKey: process.env.NEXT_OPENROUTER_KEY,
@@ -218,10 +216,11 @@ function validatePlan(raw: unknown): WorkoutPlanEntry[] {
 
 export async function generateWorkoutPlan(
   profile: ProfileContext,
-  lifestyle: LifestyleAnswers
+  lifestyle: LifestyleAnswers,
+  model: string
 ): Promise<WorkoutPlanEntry[]> {
   const completion = await client.chat.completions.create({
-    model: MODEL,
+    model,
     temperature: 0.4,
     messages: [{ role: 'user', content: buildPrompt(profile, lifestyle) }],
     response_format: { type: 'json_object' },

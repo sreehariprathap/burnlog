@@ -2,13 +2,12 @@ import { NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import OpenAI from 'openai';
+import { getModel } from '@/lib/ai/modelConfig';
 
 const client = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
   apiKey: process.env.NEXT_OPENROUTER_KEY,
 });
-
-const MODEL = process.env.AI_TEXT_MODEL || 'openai/gpt-oss-120b:free';
 
 export async function POST(request: Request) {
   try {
@@ -17,6 +16,8 @@ export async function POST(request: Request) {
     if (!user) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
+
+    const MODEL = await getModel(supabase, 'text');
 
     const body = await request.json();
     const { activityType, durationMinutes } = body as {

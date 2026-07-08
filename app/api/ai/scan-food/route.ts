@@ -2,14 +2,12 @@ import { NextResponse } from 'next/server';
 import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import OpenAI from 'openai';
+import { getModel } from '@/lib/ai/modelConfig';
 
 const client = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
   apiKey: process.env.NEXT_OPENROUTER_KEY,
 });
-
-// Vision-capable model — Gemini Flash is fast and cheap for food analysis
-const VISION_MODEL = process.env.AI_VISION_MODEL || 'google/gemini-flash-1.5';
 
 export async function POST(request: Request) {
   try {
@@ -18,6 +16,8 @@ export async function POST(request: Request) {
     if (!user) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
+
+    const VISION_MODEL = await getModel(supabase, 'vision');
 
     const body = await request.json();
     const { imageBase64, mealType = 'meal' } = body as {

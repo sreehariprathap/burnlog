@@ -3,13 +3,12 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import OpenAI from 'openai';
 import type { LifestyleAnswers } from '@/lib/ai/types';
+import { getModel } from '@/lib/ai/modelConfig';
 
 const client = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
   apiKey: process.env.NEXT_OPENROUTER_KEY,
 });
-
-const MODEL = process.env.AI_WORKOUT_MODEL || 'openai/gpt-oss-120b:free';
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -122,6 +121,8 @@ export async function POST(request: Request) {
     if (!profile) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
+
+    const MODEL = await getModel(supabase, 'text');
 
     const lifestyle = (profile.lifestyle ?? {}) as LifestyleAnswers;
 
