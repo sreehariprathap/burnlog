@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
 import { Loader2 } from 'lucide-react';
-import type { LifestyleAnswers } from '@/lib/ai/types';
+import type { LifestyleAnswers, CommuteDetails } from '@/lib/ai/types';
 
 type LifestyleFormProps = {
   submitting: boolean;
@@ -18,17 +19,33 @@ export function LifestyleForm({ submitting, initialAnswers, onSubmit }: Lifestyl
   const [jobType, setJobType] = useState<LifestyleAnswers['jobType']>(initialAnswers?.jobType ?? 'desk');
   const [hoursSitting, setHoursSitting] = useState<LifestyleAnswers['hoursSitting']>(initialAnswers?.hoursSitting ?? '4-6');
   const [commuteActivity, setCommuteActivity] = useState<LifestyleAnswers['commuteActivity']>(initialAnswers?.commuteActivity ?? 'sedentary');
+  const [commuteMode, setCommuteMode] = useState<CommuteDetails['preferredMode']>(
+    initialAnswers?.commuteDetails?.preferredMode ?? 'drive'
+  );
+  const [commuteDistanceKm, setCommuteDistanceKm] = useState<number>(
+    initialAnswers?.commuteDetails?.distanceKm ?? 5
+  );
+  const [workDaysPerWeek, setWorkDaysPerWeek] = useState<number>(
+    initialAnswers?.commuteDetails?.workDaysPerWeek ?? 5
+  );
   const [exerciseFrequency, setExerciseFrequency] = useState<LifestyleAnswers['exerciseFrequency']>(initialAnswers?.exerciseFrequency ?? '1-2');
   const [goalFocus, setGoalFocus] = useState<LifestyleAnswers['goalFocus']>(initialAnswers?.goalFocus ?? 'general_health');
   const [injuries, setInjuries] = useState(initialAnswers?.injuries ?? '');
   const [preferredTrainingDays, setPreferredTrainingDays] = useState(initialAnswers?.preferredTrainingDays ?? 4);
 
+  const showCommuteDetails = jobType !== 'not_working';
+  const isActiveCommuter = commuteMode === 'walk' || commuteMode === 'cycle';
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const commuteDetails: CommuteDetails | undefined = showCommuteDetails
+      ? { distanceKm: commuteDistanceKm, preferredMode: commuteMode, workDaysPerWeek }
+      : undefined;
     onSubmit({
       jobType,
       hoursSitting,
-      commuteActivity,
+      commuteActivity: isActiveCommuter ? 'walk_or_bike' : 'sedentary',
+      commuteDetails,
       exerciseFrequency,
       goalFocus,
       injuries,
@@ -70,16 +87,54 @@ export function LifestyleForm({ submitting, initialAnswers, onSubmit }: Lifestyl
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label>Commute activity</Label>
-            <Select value={commuteActivity} onValueChange={(v) => setCommuteActivity(v as LifestyleAnswers['commuteActivity'])}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="sedentary">Sedentary (car/public transit)</SelectItem>
-                <SelectItem value="walk_or_bike">Walk or bike</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {showCommuteDetails && (
+            <div className="space-y-4 border rounded-lg p-4 bg-muted/30">
+              <p className="text-sm font-medium">Commute & workplace</p>
+
+              <div className="space-y-2">
+                <Label>How do you get to work?</Label>
+                <Select value={commuteMode} onValueChange={(v) => setCommuteMode(v as CommuteDetails['preferredMode'])}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="drive">Drive / Car</SelectItem>
+                    <SelectItem value="transit">Public transit</SelectItem>
+                    <SelectItem value="walk">Walk</SelectItem>
+                    <SelectItem value="cycle">Cycle</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Distance to work (km)</Label>
+                <Input
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={commuteDistanceKm}
+                  onChange={(e) => setCommuteDistanceKm(Number(e.target.value))}
+                  placeholder="e.g. 4"
+                />
+                {isActiveCommuter && commuteDistanceKm > 0 && (
+                  <p className="text-xs text-green-600 dark:text-green-400">
+                    ✅ Your commute can count as a workout day!
+                  </p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Days per week you go to the workplace: {workDaysPerWeek}</Label>
+                <input
+                  type="range"
+                  min={1}
+                  max={7}
+                  step={1}
+                  value={workDaysPerWeek}
+                  onChange={(e) => setWorkDaysPerWeek(Number(e.target.value))}
+                  className="w-full"
+                />
+              </div>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label>Current exercise frequency</Label>

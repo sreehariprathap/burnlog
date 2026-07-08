@@ -7,6 +7,9 @@ import { PushPullLegLogger } from './session-loggers/PushPullLegLogger';
 import { CardioLogger } from './session-loggers/CardioLogger';
 import { RestLogger } from './session-loggers/RestLogger';
 import { FullBodyLogger } from './session-loggers/FullBodyLogger';
+import { BodyweightLogger } from './session-loggers/BodyweightLogger';
+import { OutdoorCardioLogger } from './session-loggers/OutdoorCardioLogger';
+import { ActiveCommuteLogger } from './session-loggers/ActiveCommuteLogger';
 import { CompletionTracker } from './CompletionTracker';
 import { TopBar } from '@/components/TopBar';
 import { BottomNav } from '@/components/BottomNav';
@@ -39,6 +42,12 @@ export function SessionLogger({ plan, onEnd }: SessionLoggerProps) {
         return <RestLogger onEnd={handleLoggerEnd} />;
       case 'Full Body':
         return <FullBodyLogger onEnd={handleLoggerEnd} />;
+      case 'Bodyweight':
+        return <BodyweightLogger onEnd={handleLoggerEnd} />;
+      case 'Outdoor Cardio':
+        return <OutdoorCardioLogger onEnd={handleLoggerEnd} />;
+      case 'Active Commute':
+        return <ActiveCommuteLogger onEnd={handleLoggerEnd} />;
       default:
         return <div>Unknown session type: {plan.bodyPart}</div>;
     }

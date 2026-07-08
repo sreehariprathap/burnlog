@@ -1,6 +1,16 @@
 // lib/ai/types.ts
 
-export const BODY_PARTS = ['Push', 'Pull', 'Legs', 'Full Body', 'Cardio', 'Rest'] as const;
+export const BODY_PARTS = [
+  'Push',
+  'Pull',
+  'Legs',
+  'Full Body',
+  'Cardio',
+  'Rest',
+  'Bodyweight',
+  'Outdoor Cardio',
+  'Active Commute',
+] as const;
 export type BodyPart = (typeof BODY_PARTS)[number];
 
 export type WorkoutPlanEntry = {
@@ -8,16 +18,24 @@ export type WorkoutPlanEntry = {
   bodyPart: BodyPart;
 };
 
-export const ACTIVITY_TYPES = ['Weights', 'Cardio', 'Sports', 'Yoga', 'HIIT', 'Swimming'] as const;
+export const ACTIVITY_TYPES = ['Weights', 'Cardio', 'Sports', 'Yoga', 'HIIT', 'Swimming', 'Bodyweight', 'Cycling', 'Running'] as const;
 
 export const EQUIPMENT_OPTIONS = [
+  // Gym
   'Dumbbells',
   'Barbell',
   'Resistance Bands',
   'Pull-up Bar',
   'Cardio Machine',
   'Kettlebell',
-  'None',
+  // Home-friendly
+  'Yoga Mat',
+  'Jump Rope',
+  'Foam Roller',
+  'Parallette Bars',
+  'TRX / Suspension Trainer',
+  // None
+  'None (bodyweight only)',
 ] as const;
 
 export type ActivityPreferences = {
@@ -27,9 +45,22 @@ export type ActivityPreferences = {
   social: 'solo' | 'group' | 'either';
 };
 
+export type HomeEnvironment = {
+  hasOutdoorSpace: boolean;
+  nearbyPark: boolean;
+  spaceSize: 'small' | 'medium' | 'large';
+};
+
 export type EquipmentAnswers = {
-  trainingLocation: 'commercial_gym' | 'home_gym' | 'bodyweight_only' | 'mixed';
+  trainingLocation: 'commercial_gym' | 'home_gym' | 'bodyweight_only' | 'mixed' | 'outdoor';
   availableEquipment: string[];
+  homeEnvironment?: HomeEnvironment;
+};
+
+export type CommuteDetails = {
+  distanceKm: number;
+  preferredMode: 'walk' | 'cycle' | 'drive' | 'transit';
+  workDaysPerWeek: number;
 };
 
 export type NutritionAnswers = {
@@ -42,6 +73,7 @@ export type LifestyleAnswers = {
   jobType: 'desk' | 'physical' | 'mixed' | 'not_working';
   hoursSitting: '<2' | '2-4' | '4-6' | '6-8' | '8+';
   commuteActivity: 'sedentary' | 'walk_or_bike';
+  commuteDetails?: CommuteDetails;
   exerciseFrequency: 'none' | '1-2' | '3-4' | '5+';
   goalFocus:
     | 'lose_weight'
