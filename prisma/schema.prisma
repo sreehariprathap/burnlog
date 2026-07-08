@@ -177,7 +177,7 @@ model AiModelSetting {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   slot      String   @unique
   modelId   String
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @default(now())
 
   @@map("ai_model_settings")
 }
