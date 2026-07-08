@@ -32,8 +32,9 @@ create policy "profiles_delete_own" on profiles
 
 -- Tables owned via profiles.id ("profileId") ---------------------------
 -- fitness_goals, workouts, workout_plans, sessions, weight_entries,
--- calorie_burns, food_intakes, stamina_sessions all share the same shape:
--- a row is visible/writable only if its profileId belongs to the caller.
+-- calorie_burns, food_intakes, stamina_sessions, step_entries all share
+-- the same shape: a row is visible/writable only if its profileId
+-- belongs to the caller.
 
 do $$
 declare
@@ -47,7 +48,8 @@ begin
     'weight_entries',
     'calorie_burns',
     'food_intakes',
-    'stamina_sessions'
+    'stamina_sessions',
+    'step_entries'
   ]
   loop
     execute format('alter table %I enable row level security', t);

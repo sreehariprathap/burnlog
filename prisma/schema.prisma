@@ -35,6 +35,7 @@ model Profile {
   CalorieBurn    CalorieBurn[]
   FoodIntake     FoodIntake[]
   StaminaSession StaminaSession[]
+  StepEntry      StepEntry[]
 
   @@map("profiles")
 }
@@ -157,6 +158,18 @@ model StaminaSession {
   notes        String?
 
   @@map("stamina_sessions")
+}
+
+/// daily step count tracking
+model StepEntry {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile   Profile  @relation(fields: [profileId], references: [id])
+  profileId String   @db.Uuid
+  date      DateTime @default(now())
+  steps     Int
+  createdAt DateTime @default(now())
+
+  @@map("step_entries")
 }
 
 /// admin-toggleable onboarding page flags
