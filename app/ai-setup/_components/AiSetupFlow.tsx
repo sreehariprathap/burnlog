@@ -12,15 +12,17 @@ import { ActivityPreferencesStep } from './ActivityPreferencesStep';
 import { EquipmentStep } from './EquipmentStep';
 import { NutritionStep } from './NutritionStep';
 import { PlanPreview } from './PlanPreview';
+import { GroceryStep } from '@/app/goals/_components/GroceryStep';
 import type {
   LifestyleAnswers,
   WorkoutPlanEntry,
   ActivityPreferences,
   EquipmentAnswers,
   NutritionAnswers,
+  GroceryAnswers,
 } from '@/lib/ai/types';
 
-const ORDERED_PAGE_KEYS = ['goals', 'activity_preferences', 'equipment', 'nutrition'] as const;
+const ORDERED_PAGE_KEYS = ['goals', 'activity_preferences', 'equipment', 'nutrition', 'grocery'] as const;
 type PageKey = (typeof ORDERED_PAGE_KEYS)[number];
 
 type Step = 'loading' | 'consent' | 'questionnaire' | PageKey | 'generating' | 'preview' | 'error';
@@ -40,6 +42,7 @@ export function AiSetupFlow() {
   const [activityPreferences, setActivityPreferences] = useState<ActivityPreferences | undefined>(undefined);
   const [equipment, setEquipment] = useState<EquipmentAnswers | undefined>(undefined);
   const [nutrition, setNutrition] = useState<NutritionAnswers | undefined>(undefined);
+  const [grocery, setGrocery] = useState<GroceryAnswers | undefined>(undefined);
   const [plan, setPlan] = useState<WorkoutPlanEntry[] | null>(null);
   const [saving, setSaving] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
@@ -162,6 +165,15 @@ export function AiSetupFlow() {
     advanceFrom('nutrition');
   };
 
+  const handleGroceryContinue = (answers: GroceryAnswers) => {
+    setGrocery(answers);
+    advanceFrom('grocery');
+  };
+
+  const handleGrocerySkip = () => {
+    advanceFrom('grocery');
+  };
+
   const handleRegenerate = async () => {
     if (!lifestyle) return;
     setRegenerating(true);
@@ -199,6 +211,7 @@ export function AiSetupFlow() {
         ...(activityPreferences && { activityPreferences }),
         ...(equipment && { equipment }),
         ...(nutrition && { nutrition }),
+        ...(grocery && { grocery }),
       };
 
       const { error: profileError } = await supabase
@@ -261,6 +274,10 @@ export function AiSetupFlow() {
 
       {step === 'nutrition' && (
         <NutritionStep onContinue={handleNutritionContinue} onSkip={handleNutritionSkip} />
+      )}
+
+      {step === 'grocery' && (
+        <GroceryStep onContinue={handleGroceryContinue} onSkip={handleGrocerySkip} />
       )}
 
       {step === 'generating' && (

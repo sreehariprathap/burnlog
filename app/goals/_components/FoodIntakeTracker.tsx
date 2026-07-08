@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { FoodScanner } from './FoodScanner';
 
 type FoodIntakeEntry = {
   id: string;
@@ -41,6 +42,7 @@ export function FoodIntakeTracker({ userId }: FoodIntakeTrackerProps) {
   const [carbs, setCarbs] = useState('');
   const [fat, setFat] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [showScanner, setShowScanner] = useState(false);
   
   useEffect(() => {
     if (userId) {
@@ -227,10 +229,43 @@ export function FoodIntakeTracker({ userId }: FoodIntakeTrackerProps) {
     );
   };
 
+  const handleScanResult = (result: {
+    foodName: string;
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    mealType: string;
+  }) => {
+    setFoodName(result.foodName);
+    setCalories(String(result.calories));
+    setProtein(String(result.protein));
+    setCarbs(String(result.carbs));
+    setFat(String(result.fat));
+    if (result.mealType) setMealType(result.mealType);
+    setShowScanner(false);
+  };
+
   return (
+    <>
+      {showScanner && (
+        <FoodScanner
+          onResult={handleScanResult}
+          onClose={() => setShowScanner(false)}
+        />
+      )}
     <Card>
       <CardHeader>
-        <CardTitle>Food Intake Tracker</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle>Food Intake Tracker</CardTitle>
+          <button
+            type="button"
+            onClick={() => setShowScanner(true)}
+            className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
+          >
+            📸 Scan Food
+          </button>
+        </div>
       </CardHeader>
       <CardContent>
         {loading ? (
@@ -363,5 +398,6 @@ export function FoodIntakeTracker({ userId }: FoodIntakeTrackerProps) {
         )}
       </CardContent>
     </Card>
+    </>
   );
 }

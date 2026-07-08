@@ -69,6 +69,27 @@ export type NutritionAnswers = {
   restrictions: string;
 };
 
+export const GROCERY_STORES = [
+  // North America
+  'Walmart', 'Target', 'Costco', 'Kroger', 'Whole Foods', "Trader Joe's",
+  'Aldi', 'Safeway', 'Publix', 'H-E-B', 'Wegmans', 'Meijer', 'Food Lion',
+  // Canada
+  'Loblaws', "No Frills", 'FreshCo', 'Sobeys', 'Metro', 'Real Canadian Superstore',
+  // UK / Europe
+  'Tesco', "Sainsbury's", 'Asda', 'Morrisons', 'Lidl', 'Aldi UK', 'Waitrose',
+  // Online
+  'Amazon Fresh', 'Instacart',
+  // Other
+  'Local / Independent Market', 'Other',
+] as const;
+
+export type GroceryAnswers = {
+  preferredStore: string;
+  shoppingFrequency: 'multiple_per_week' | 'weekly' | 'biweekly' | 'monthly' | 'as_needed';
+  budget: 'budget' | 'moderate' | 'flexible';
+  cookingSkill: 'beginner' | 'intermediate' | 'advanced';
+};
+
 export type LifestyleAnswers = {
   jobType: 'desk' | 'physical' | 'mixed' | 'not_working';
   hoursSitting: '<2' | '2-4' | '4-6' | '6-8' | '8+';
@@ -86,4 +107,5 @@ export type LifestyleAnswers = {
   activityPreferences?: ActivityPreferences;
   equipment?: EquipmentAnswers;
   nutrition?: NutritionAnswers;
+  grocery?: GroceryAnswers;
 };

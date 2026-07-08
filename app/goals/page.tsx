@@ -9,6 +9,7 @@ import { CalorieTracker } from './_components/CalorieTracker';
 import { WeightTracker } from './_components/WeightTracker';
 import { AddGoalForm } from './_components/AddGoalForm';
 import { GoalsList } from './_components/GoalsList';
+import { MealPlanWidget } from './_components/MealPlanWidget';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { TopBar } from '@/components/TopBar';
 import { BottomNav } from '@/components/BottomNav';
@@ -131,7 +132,9 @@ export default function GoalsPage() {
         <FoodIntakeTracker userId={userId!} />
         <StaminaTracker userId={userId!} />
       </div>
-              
+
+      <MealPlanWidget />
+
       </div>
       <BottomNav />
     </div>
