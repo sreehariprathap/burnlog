@@ -15,13 +15,16 @@ import { TopBar } from '@/components/TopBar';
 import { BottomNav } from '@/components/BottomNav';
 import { Button } from '@/components/ui/button';
 import { Check } from 'lucide-react';
+import type { LifestyleAnswers } from '@/lib/ai/types';
 
 type SessionLoggerProps = {
   plan: PlanDay & { repeatWeekly?: boolean };
+  lifestyle?: LifestyleAnswers | null;
   onEnd: () => void;
 };
 
-export function SessionLogger({ plan, onEnd }: SessionLoggerProps) {
+export function SessionLogger({ plan, lifestyle, onEnd }: SessionLoggerProps) {
+  const userEquipment = lifestyle?.equipment?.availableEquipment ?? [];
   const [isCompleting, setIsCompleting] = useState(false);
   const [exerciseLog, setExerciseLog] = useState<Record<string, unknown> | null>(null);
 
@@ -35,19 +38,19 @@ export function SessionLogger({ plan, onEnd }: SessionLoggerProps) {
       case 'Push':
       case 'Pull':
       case 'Legs':
-        return <PushPullLegLogger bodyPart={plan.bodyPart} onEnd={handleLoggerEnd} />;
+        return <PushPullLegLogger bodyPart={plan.bodyPart} userEquipment={userEquipment} onEnd={handleLoggerEnd} />;
       case 'Cardio':
         return <CardioLogger onEnd={handleLoggerEnd} />;
       case 'Rest':
         return <RestLogger onEnd={handleLoggerEnd} />;
       case 'Full Body':
-        return <FullBodyLogger onEnd={handleLoggerEnd} />;
+        return <FullBodyLogger userEquipment={userEquipment} onEnd={handleLoggerEnd} />;
       case 'Bodyweight':
-        return <BodyweightLogger onEnd={handleLoggerEnd} />;
+        return <BodyweightLogger userEquipment={userEquipment} onEnd={handleLoggerEnd} />;
       case 'Outdoor Cardio':
-        return <OutdoorCardioLogger onEnd={handleLoggerEnd} />;
+        return <OutdoorCardioLogger lifestyle={lifestyle} onEnd={handleLoggerEnd} />;
       case 'Active Commute':
-        return <ActiveCommuteLogger onEnd={handleLoggerEnd} />;
+        return <ActiveCommuteLogger commuteDetails={lifestyle?.commuteDetails} onEnd={handleLoggerEnd} />;
       default:
         return <div>Unknown session type: {plan.bodyPart}</div>;
     }

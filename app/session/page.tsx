@@ -14,7 +14,8 @@ import { BottomNav } from '@/components/BottomNav';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { History, BarChart } from 'lucide-react';
+import { BarChart } from 'lucide-react';
+import type { LifestyleAnswers } from '@/lib/ai/types';
 
 export default function SessionsPage() {
   const supabase = createClientComponentClient();
@@ -25,6 +26,7 @@ export default function SessionsPage() {
   const [showHistory, setShowHistory] = useState<boolean>(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [profileId, setProfileId] = useState<string | null>(null);
+  const [lifestyle, setLifestyle] = useState<LifestyleAnswers | null>(null);
   const [loadingPlan, setLoadingPlan] = useState<boolean>(true);
 
   // 1️⃣ Get current user
@@ -37,12 +39,15 @@ export default function SessionsPage() {
         // Fetch the profile ID associated with this user
         const { data: profileData } = await supabase
           .from('profiles')
-          .select('id')
+          .select('id, lifestyle')
           .eq('userId', user.id)
           .single();
-          
+
         if (profileData) {
           setProfileId(profileData.id);
+          if (profileData.lifestyle) {
+            setLifestyle(profileData.lifestyle as LifestyleAnswers);
+          }
         }
       }
     };
@@ -105,7 +110,7 @@ export default function SessionsPage() {
 
   // 5️⃣ Session logger
   if (logging && plan) {
-    return <SessionLogger plan={plan} onEnd={() => setLogging(false)} />;
+    return <SessionLogger plan={plan} lifestyle={lifestyle} onEnd={() => setLogging(false)} />;
   }
 
   // 5️⃣-B Workout history view

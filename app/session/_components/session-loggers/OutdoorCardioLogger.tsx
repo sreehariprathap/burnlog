@@ -8,7 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+import type { LifestyleAnswers } from '@/lib/ai/types';
+
 type OutdoorCardioLoggerProps = {
+  lifestyle?: LifestyleAnswers | null;
   onEnd: (log: {
     activityType: string;
     durationMinutes: number;
@@ -18,11 +21,21 @@ type OutdoorCardioLoggerProps = {
   }) => void;
 };
 
-const OUTDOOR_ACTIVITIES = ['Running', 'Cycling', 'Brisk Walking', 'Hiking', 'Outdoor HIIT', 'Swimming'];
+const BASE_ACTIVITIES = ['Running', 'Cycling', 'Brisk Walking', 'Hiking', 'Outdoor HIIT', 'Swimming'];
 const EXTRAS = ['Warm-up stretch', 'Cool-down stretch', 'Hill intervals', 'Sprint intervals', 'Fasted'];
 
-export function OutdoorCardioLogger({ onEnd }: OutdoorCardioLoggerProps) {
-  const [activityType, setActivityType] = useState('Running');
+export function OutdoorCardioLogger({ lifestyle, onEnd }: OutdoorCardioLoggerProps) {
+  const hasOutdoorSpace = lifestyle?.equipment?.homeEnvironment?.hasOutdoorSpace;
+  const nearbyPark = lifestyle?.equipment?.homeEnvironment?.nearbyPark;
+
+  // Suggest activities based on what the user has access to
+  const activities = [
+    ...BASE_ACTIVITIES,
+    ...(hasOutdoorSpace ? ['Garden HIIT Circuit', 'Backyard Sprint Intervals'] : []),
+    ...(nearbyPark ? ['Park Trail Run', 'Park Bench Workout', 'Outdoor Yoga'] : []),
+  ];
+
+  const [activityType, setActivityType] = useState(activities[0]);
   const [durationMinutes, setDurationMinutes] = useState(30);
   const [distanceKm, setDistanceKm] = useState(0);
   const [notes, setNotes] = useState('');
@@ -48,7 +61,7 @@ export function OutdoorCardioLogger({ onEnd }: OutdoorCardioLoggerProps) {
             <Select value={activityType} onValueChange={setActivityType}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {OUTDOOR_ACTIVITIES.map((a) => (
+                {activities.map((a) => (
                   <SelectItem key={a} value={a}>{a}</SelectItem>
                 ))}
               </SelectContent>

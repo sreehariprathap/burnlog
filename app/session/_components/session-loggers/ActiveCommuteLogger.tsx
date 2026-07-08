@@ -8,7 +8,10 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
+import type { CommuteDetails } from '@/lib/ai/types';
+
 type ActiveCommuteLoggerProps = {
+  commuteDetails?: CommuteDetails;
   onEnd: (log: {
     mode: string;
     trips: number;
@@ -18,11 +21,20 @@ type ActiveCommuteLoggerProps = {
   }) => void;
 };
 
-export function ActiveCommuteLogger({ onEnd }: ActiveCommuteLoggerProps) {
-  const [mode, setMode] = useState<'walk' | 'cycle'>('walk');
-  const [trips, setTrips] = useState<1 | 2>(2); // 1 = one-way, 2 = both ways
-  const [distanceKmPerTrip, setDistanceKmPerTrip] = useState(3);
-  const [durationMinutesPerTrip, setDurationMinutesPerTrip] = useState(20);
+export function ActiveCommuteLogger({ commuteDetails, onEnd }: ActiveCommuteLoggerProps) {
+  const defaultMode = (commuteDetails?.preferredMode === 'walk' || commuteDetails?.preferredMode === 'cycle')
+    ? commuteDetails.preferredMode
+    : 'walk';
+
+  const [mode, setMode] = useState<'walk' | 'cycle'>(defaultMode);
+  const [trips, setTrips] = useState<1 | 2>(2);
+  // Pre-fill distance from the user's profile if available
+  const [distanceKmPerTrip, setDistanceKmPerTrip] = useState(commuteDetails?.distanceKm ?? 3);
+  // Estimate duration from distance (walking ~12min/km, cycling ~4min/km)
+  const estimatedDuration = commuteDetails?.distanceKm
+    ? Math.round(commuteDetails.distanceKm * (defaultMode === 'cycle' ? 4 : 12))
+    : 20;
+  const [durationMinutesPerTrip, setDurationMinutesPerTrip] = useState(estimatedDuration);
   const [notes, setNotes] = useState('');
 
   const totalDistance = distanceKmPerTrip * trips;

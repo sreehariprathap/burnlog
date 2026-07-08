@@ -1,110 +1,87 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Info } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { ExerciseInfoModal } from '../ExerciseInfoModal';
+import { buildWorkoutExercises } from '@/lib/exercises';
 
 type BodyweightLoggerProps = {
+  userEquipment: string[];
   onEnd: (exerciseLog: Record<string, Record<string, boolean>>) => void;
 };
 
-const bodyweightExercises: Record<string, string[]> = {
-  'Upper Body': [
-    'Push-Ups',
-    'Wide Push-Ups',
-    'Diamond Push-Ups',
-    'Pike Push-Ups',
-    'Tricep Dips (chair)',
-    'Plank Shoulder Taps',
-  ],
-  Core: [
-    'Plank (30–60s)',
-    'Mountain Climbers',
-    'Bicycle Crunches',
-    'Leg Raises',
-    'Russian Twists',
-    'Dead Bug',
-  ],
-  'Lower Body': [
-    'Bodyweight Squats',
-    'Reverse Lunges',
-    'Glute Bridges',
-    'Wall Sit (45s)',
-    'Calf Raises',
-    'Jump Squats',
-  ],
-  Cardio: [
-    'Burpees',
-    'High Knees (30s)',
-    'Jumping Jacks',
-    'Skaters',
-    'Star Jumps',
-    'Inchworms',
-  ],
-};
-
-export function BodyweightLogger({ onEnd }: BodyweightLoggerProps) {
+export function BodyweightLogger({ userEquipment, onEnd }: BodyweightLoggerProps) {
   const [infoExercise, setInfoExercise] = useState<string | null>(null);
-  const muscles = Object.keys(bodyweightExercises);
+
+  // Build exercises from the DB — includes bodyweight items plus any home gear the user has
+  const exercisesByGroup = useMemo(
+    () => buildWorkoutExercises('Bodyweight', userEquipment),
+    [userEquipment]
+  );
+
+  const categories = Object.keys(exercisesByGroup);
 
   const [checks, setChecks] = useState<Record<string, Record<string, boolean>>>(() => {
     const init: any = {};
-    muscles.forEach((m) => {
-      init[m] = {};
-      bodyweightExercises[m].forEach((ex) => {
-        init[m][ex] = false;
-      });
+    categories.forEach((c) => {
+      init[c] = {};
+      exercisesByGroup[c].forEach((ex) => { init[c][ex] = false; });
     });
     return init;
   });
 
-  const muscleDone = muscles.map(
-    (m) => Object.values(checks[m]).filter((v) => v).length >= 3
+  const catDone = categories.map((c) => Object.values(checks[c] ?? {}).filter(Boolean).length >= 3);
+  const sessionSuccess = categories.length > 0 && catDone.every(Boolean);
+
+  const hasHomeGear = userEquipment.filter(
+    (e) => !['None (bodyweight only)', 'Dumbbells', 'Barbell', 'Cardio Machine'].includes(e)
   );
-  const sessionSuccess = muscleDone.every(Boolean);
 
   return (
     <div className="p-6">
       <Card className="shadow-lg">
         <CardHeader className="pb-2">
           <CardTitle className="text-2xl">🏠 Bodyweight Session</CardTitle>
-          <p className="text-sm text-muted-foreground">No equipment needed — anywhere, anytime.</p>
+          <p className="text-sm text-muted-foreground mt-1">
+            {hasHomeGear.length > 0
+              ? `Using: ${hasHomeGear.join(', ')}`
+              : 'No equipment needed — anywhere, anytime.'}
+          </p>
         </CardHeader>
         <CardContent className="space-y-8">
-          {muscles.map((muscle, i) => (
-            <div key={muscle} className="mb-6">
+          {categories.length === 0 && (
+            <p className="text-sm text-muted-foreground">No exercises found. Check your profile equipment settings.</p>
+          )}
+          {categories.map((cat, i) => (
+            <div key={cat} className="mb-6">
               <Label className="text-lg font-semibold mb-3 flex items-center">
-                {muscle} {muscleDone[i] && <span className="ml-2 text-green-500">✅</span>}
+                {cat} {catDone[i] && <span className="ml-2 text-green-500">✅</span>}
               </Label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
-                {bodyweightExercises[muscle].map((ex) => (
+                {exercisesByGroup[cat].map((ex) => (
                   <label
                     key={ex}
                     className="flex items-center space-x-3 p-2 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-md"
                   >
                     <Checkbox
-                      checked={checks[muscle][ex]}
+                      checked={checks[cat]?.[ex] ?? false}
                       onCheckedChange={(val) =>
                         setChecks((prev) => ({
                           ...prev,
-                          [muscle]: { ...prev[muscle], [ex]: !!val },
+                          [cat]: { ...prev[cat], [ex]: !!val },
                         }))
                       }
                       className="h-5 w-5"
                     />
-                    <span className={checks[muscle][ex] ? 'line-through opacity-60' : ''}>{ex}</span>
+                    <span className={checks[cat]?.[ex] ? 'line-through opacity-60' : ''}>{ex}</span>
                     <button
                       type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setInfoExercise(ex);
-                      }}
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); setInfoExercise(ex); }}
                       className="ml-auto text-muted-foreground hover:text-foreground"
                       aria-label={`How to do ${ex}`}
                     >
