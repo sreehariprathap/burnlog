@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import { generateWorkoutPlan } from '@/lib/ai/openrouter';
 import type { LifestyleAnswers } from '@/lib/ai/types';
 import { getModel } from '@/lib/ai/modelConfig';
+import { formatAiError } from '@/lib/ai/errors';
 
 function isValidLifestyleAnswers(body: unknown): body is LifestyleAnswers {
   if (!body || typeof body !== 'object') return false;
@@ -22,6 +23,7 @@ function isValidLifestyleAnswers(body: unknown): body is LifestyleAnswers {
 }
 
 export async function POST(request: Request) {
+  let model = 'unknown';
   try {
     const supabase = createRouteHandlerClient({ cookies });
     const { data: { user } } = await supabase.auth.getUser();
@@ -44,7 +46,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
-    const model = await getModel(supabase, 'text');
+    model = await getModel(supabase, 'text');
 
     try {
       const plan = await generateWorkoutPlan(profile, body, model);
@@ -56,12 +58,11 @@ export async function POST(request: Request) {
         return NextResponse.json({ plan });
       } catch (secondError) {
         console.error('AI plan generation failed on retry:', secondError);
-        const message = secondError instanceof Error ? secondError.message : 'AI generation failed';
-        return NextResponse.json({ error: message }, { status: 502 });
+        return NextResponse.json({ error: formatAiError(model, secondError) }, { status: 502 });
       }
     }
   } catch (error) {
     console.error('Unexpected error in /api/ai/workout-plan:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: formatAiError(model, error) }, { status: 500 });
   }
 }

@@ -3,6 +3,7 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import OpenAI from 'openai';
 import { getModel } from '@/lib/ai/modelConfig';
+import { formatAiError } from '@/lib/ai/errors';
 
 const client = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
@@ -10,6 +11,7 @@ const client = new OpenAI({
 });
 
 export async function POST(request: Request) {
+  let VISION_MODEL = 'unknown';
   try {
     const supabase = createRouteHandlerClient({ cookies });
     const { data: { user } } = await supabase.auth.getUser();
@@ -17,7 +19,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
-    const VISION_MODEL = await getModel(supabase, 'vision');
+    VISION_MODEL = await getModel(supabase, 'vision');
 
     const body = await request.json();
     const { imageBase64, mealType = 'meal' } = body as {
@@ -110,6 +112,6 @@ Be realistic with estimates. If there are multiple items, estimate for the whole
     });
   } catch (error) {
     console.error('scan-food error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: formatAiError(VISION_MODEL, error) }, { status: 500 });
   }
 }

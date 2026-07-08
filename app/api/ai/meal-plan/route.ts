@@ -4,6 +4,7 @@ import { cookies } from 'next/headers';
 import OpenAI from 'openai';
 import type { LifestyleAnswers } from '@/lib/ai/types';
 import { getModel } from '@/lib/ai/modelConfig';
+import { formatAiError } from '@/lib/ai/errors';
 
 const client = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
@@ -105,6 +106,7 @@ Respond ONLY with a valid JSON object (no markdown) in this exact shape:
 }
 
 export async function POST(request: Request) {
+  let MODEL = 'unknown';
   try {
     const supabase = createRouteHandlerClient({ cookies });
     const { data: { user } } = await supabase.auth.getUser();
@@ -122,7 +124,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
-    const MODEL = await getModel(supabase, 'text');
+    MODEL = await getModel(supabase, 'text');
 
     const lifestyle = (profile.lifestyle ?? {}) as LifestyleAnswers;
 
@@ -159,6 +161,6 @@ export async function POST(request: Request) {
     return NextResponse.json(result);
   } catch (error) {
     console.error('meal-plan error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: formatAiError(MODEL, error) }, { status: 500 });
   }
 }

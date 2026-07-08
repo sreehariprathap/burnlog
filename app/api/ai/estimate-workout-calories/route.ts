@@ -3,6 +3,7 @@ import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import OpenAI from 'openai';
 import { getModel } from '@/lib/ai/modelConfig';
+import { formatAiError } from '@/lib/ai/errors';
 
 const client = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
@@ -10,6 +11,7 @@ const client = new OpenAI({
 });
 
 export async function POST(request: Request) {
+  let MODEL = 'unknown';
   try {
     const supabase = createRouteHandlerClient({ cookies });
     const { data: { user } } = await supabase.auth.getUser();
@@ -17,7 +19,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
-    const MODEL = await getModel(supabase, 'text');
+    MODEL = await getModel(supabase, 'text');
 
     const body = await request.json();
     const { activityType, durationMinutes } = body as {
@@ -84,6 +86,6 @@ Respond ONLY with a valid JSON object (no markdown, no extra text) with this exa
     });
   } catch (error) {
     console.error('estimate-workout-calories error:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ error: formatAiError(MODEL, error) }, { status: 500 });
   }
 }
