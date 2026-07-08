@@ -82,3 +82,42 @@ create policy "push_subscriptions_owner_access" on push_subscriptions
   for all
   using (auth.uid() = user_id)
   with check (auth.uid() = user_id);
+
+-- ai_model_settings -----------------------------------------------------
+-- Global (non-per-user) config: any authenticated user may read it (every
+-- AI route needs to resolve the active model regardless of who's calling),
+-- but only an admin (profiles.isAdmin = true) may write it. This is the
+-- first admin-gated RLS policy in this file — everywhere else "admin" is
+-- currently only a client-side UI check.
+alter table ai_model_settings enable row level security;
+
+create policy "ai_model_settings_select_any_authenticated" on ai_model_settings
+  for select
+  using (auth.uid() is not null);
+
+create policy "ai_model_settings_admin_write" on ai_model_settings
+  for insert
+  with check (
+    exists (
+      select 1 from profiles
+      where profiles."userId" = auth.uid()
+        and profiles."isAdmin" = true
+    )
+  );
+
+create policy "ai_model_settings_admin_update" on ai_model_settings
+  for update
+  using (
+    exists (
+      select 1 from profiles
+      where profiles."userId" = auth.uid()
+        and profiles."isAdmin" = true
+    )
+  )
+  with check (
+    exists (
+      select 1 from profiles
+      where profiles."userId" = auth.uid()
+        and profiles."isAdmin" = true
+    )
+  );

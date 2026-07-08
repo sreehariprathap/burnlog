@@ -172,6 +172,16 @@ model StepEntry {
   @@map("step_entries")
 }
 
+/// admin-configurable AI model selection per capability slot ('text' | 'vision')
+model AiModelSetting {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  slot      String   @unique
+  modelId   String
+  updatedAt DateTime @updatedAt
+
+  @@map("ai_model_settings")
+}
+
 /// admin-toggleable onboarding page flags
 model OnboardingPageFlag {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
