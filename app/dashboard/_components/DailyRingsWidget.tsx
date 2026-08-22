@@ -5,6 +5,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { resolveTarget, getTodayRange } from '@/lib/dailyTargets';
+import AppleActivityCard, { type ActivityData } from '@/components/kokonutui/apple-activity-card';
 
 type Goal = { goalType: string; targetValue: number };
 
@@ -16,10 +17,10 @@ type Metrics = {
 };
 
 const RINGS = [
-  { key: 'burn' as const, goalType: 'calories_burned', color: '#F97316', radius: 88, label: 'Calories Burned', unit: 'kcal' },
-  { key: 'eat' as const, goalType: 'calories_intake', color: '#22C55E', radius: 72, label: 'Calories Eaten', unit: 'kcal' },
-  { key: 'workoutMinutes' as const, goalType: 'workout_time', color: '#3B82F6', radius: 56, label: 'Workout Minutes', unit: 'min' },
-  { key: 'steps' as const, goalType: 'daily_steps', color: '#A855F7', radius: 40, label: 'Steps', unit: 'steps' },
+  { key: 'burn' as const, goalType: 'calories_burned', color: '#F97316', colorEnd: '#FDBA74', size: 200, label: 'BURN', unit: 'KCAL' },
+  { key: 'eat' as const, goalType: 'calories_intake', color: '#22C55E', colorEnd: '#86EFAC', size: 165, label: 'EAT', unit: 'KCAL' },
+  { key: 'workoutMinutes' as const, goalType: 'workout_time', color: '#3B82F6', colorEnd: '#93C5FD', size: 130, label: 'MOVE', unit: 'MIN' },
+  { key: 'steps' as const, goalType: 'daily_steps', color: '#A855F7', colorEnd: '#D8B4FE', size: 95, label: 'STEPS', unit: '' },
 ];
 
 type DailyRingsWidgetProps = {
@@ -91,73 +92,30 @@ export function DailyRingsWidget({ profileId, refreshKey }: DailyRingsWidgetProp
     steps: metrics.steps,
   };
 
-  const size = 200;
-  const center = size / 2;
+  const activities: ActivityData[] = RINGS.map((ring) => {
+    const target = resolveTarget(goals, ring.goalType);
+    const value = values[ring.key];
+    const pct = target > 0 ? Math.min(100, Math.round((value / target) * 100)) : 0;
+    return {
+      label: ring.label,
+      value: pct,
+      color: ring.color,
+      colorEnd: ring.colorEnd,
+      size: ring.size,
+      current: Math.round(value),
+      target,
+      unit: ring.unit,
+    };
+  });
 
   return (
     <Card>
-      <CardContent className="pt-6 flex flex-col items-center gap-4">
-        <div className="relative" style={{ width: size, height: size }}>
-          <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-            {RINGS.map((ring) => {
-              const target = resolveTarget(goals, ring.goalType);
-              const value = values[ring.key];
-              const pct = target > 0 ? Math.min(1, value / target) : 0;
-              const circumference = 2 * Math.PI * ring.radius;
-              const offset = circumference * (1 - pct);
-
-              return (
-                <g key={ring.key}>
-                  <circle
-                    cx={center}
-                    cy={center}
-                    r={ring.radius}
-                    fill="none"
-                    stroke="currentColor"
-                    strokeOpacity={0.1}
-                    strokeWidth={12}
-                  />
-                  <circle
-                    cx={center}
-                    cy={center}
-                    r={ring.radius}
-                    fill="none"
-                    stroke={ring.color}
-                    strokeWidth={12}
-                    strokeLinecap="round"
-                    strokeDasharray={circumference}
-                    strokeDashoffset={offset}
-                    transform={`rotate(-90 ${center} ${center})`}
-                  />
-                </g>
-              );
-            })}
-          </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-2xl font-bold">{metrics.steps.toLocaleString()}</span>
-            <span className="text-xs text-muted-foreground">steps today</span>
-          </div>
-        </div>
-
-        <div className="w-full space-y-1">
-          {RINGS.map((ring) => {
-            const hasGoal = goals.some((g) => g.goalType === ring.goalType);
-            const target = resolveTarget(goals, ring.goalType);
-            const value = values[ring.key];
-            return (
-              <div key={ring.key} className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: ring.color }} />
-                  <span>{ring.label}</span>
-                </div>
-                <span className="text-muted-foreground">
-                  {Math.round(value)} / {target} {ring.unit}
-                  {!hasGoal && ' (default)'}
-                </span>
-              </div>
-            );
-          })}
-        </div>
+      <CardContent className="pt-6">
+        <AppleActivityCard
+          title="Today's Activity"
+          activities={activities}
+          className="p-0"
+        />
       </CardContent>
     </Card>
   );

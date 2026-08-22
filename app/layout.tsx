@@ -9,6 +9,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import PWAInstall from "@/components/PWAInstall";
 import PWAStatus from "@/components/PWAStatus";
 import PWAUpdateNotification from "@/components/PWAUpdateNotification";
+import SplashScreen from "@/components/SplashScreen";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -53,6 +54,7 @@ export default function RootLayout({
       >
         <ThemeProvider defaultTheme="light" storageKey="burnlog-theme">
           <SessionContextProvider supabaseClient={supabaseClient}>
+            <SplashScreen />
             {children}
             <Toaster />
             <PWAInstall />

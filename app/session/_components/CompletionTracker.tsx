@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Trophy } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import { computeLevel, computeStreakUpdate } from '@/lib/leveling';
+import { AchievementOverlay } from '@/components/AchievementOverlay';
 
 type CompletionData = {
   id?: string;
@@ -35,6 +36,7 @@ export function CompletionTracker({ plan, exerciseLog, onComplete }: CompletionT
   const [duration, setDuration] = useState<number>(45);
   const [completed, setCompleted] = useState<boolean>(true);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [achievement, setAchievement] = useState<{ stats: string[] } | null>(null);
 
   const handleSubmit = async () => {
     try {
@@ -117,6 +119,12 @@ export function CompletionTracker({ plan, exerciseLog, onComplete }: CompletionT
         if (streakError) {
           console.error('Error updating streak/xp:', streakError);
         }
+
+        // Celebrate with a sparkled achievement message
+        const stats = [`+${xpGained} XP`, `🔥 ${newStreak} day streak`];
+        if (newStreak > profileData.longestStreak) stats.push('🏆 New record!');
+        setAchievement({ stats });
+        return;
       }
 
       toast({
@@ -134,6 +142,17 @@ export function CompletionTracker({ plan, exerciseLog, onComplete }: CompletionT
 
   return (
     <div className="space-y-6 p-4">
+      <AchievementOverlay
+        open={!!achievement}
+        title="Workout Complete!"
+        message="You showed up and put in the work. Proud of you!"
+        stats={achievement?.stats ?? []}
+        onClose={() => {
+          setAchievement(null);
+          onComplete();
+        }}
+      />
+
       <div className="flex items-center justify-center space-x-2 py-6">
         <Trophy className="w-8 h-8 text-yellow-500" />
         <h2 className="text-2xl font-bold">Complete Workout</h2>

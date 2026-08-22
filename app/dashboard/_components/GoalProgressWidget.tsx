@@ -1,7 +1,8 @@
 'use client';
 
 import { Target } from 'lucide-react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AnimatedCircularProgressBar } from '@/components/ui/animated-circular-progress-bar';
+import { NeonGradientCard } from '@/components/ui/neon-gradient-card';
 
 type Goal = {
   id: string;
@@ -16,95 +17,105 @@ type GoalProgressWidgetProps = {
   loading?: boolean;
 };
 
-export function GoalProgressWidget({ 
+// burnlog fire-themed neon
+const NEON = { firstColor: '#FF9E4F', secondColor: '#FF3D71' };
+
+export function GoalProgressWidget({
   goal = {
     id: '1',
     goalType: 'weight_loss',
     targetValue: 70,
     currentValue: 75,
-    unit: 'kg'
+    unit: 'kg',
   },
-  loading = false
+  loading = false,
 }: GoalProgressWidgetProps) {
   // If no goal or loading, show placeholder
   if (loading || !goal) {
     return (
-      <Card className="col-span-4">
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
-            <CardTitle>Goal Progress</CardTitle>
-            <Target className="w-5 h-5 text-amber-500" />
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="text-sm text-muted-foreground">
-            {loading ? "Loading goal data..." : "Set a goal to track your progress"}
-          </div>
-        </CardContent>
-      </Card>
+      <NeonGradientCard
+        className="col-span-4"
+        borderSize={2}
+        borderRadius={16}
+        neonColors={NEON}
+      >
+        <div className="flex items-center justify-between">
+          <span className="font-semibold">Goal Progress</span>
+          <Target className="w-5 h-5 text-amber-500" />
+        </div>
+        <div className="mt-4 text-sm text-muted-foreground">
+          {loading ? 'Loading goal data…' : 'Set a goal to track your progress'}
+        </div>
+      </NeonGradientCard>
     );
   }
 
   // Format the goal type for display
   const formattedGoalType = goal.goalType
     .split('_')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
-  
+
   // Calculate progress percentage
   const calculateProgress = () => {
     if (goal.currentValue === undefined) return 0;
-    
+
     // For weight loss goals, progress is inverse (lower is better)
     if (goal.goalType === 'weight_loss') {
-      // If current weight is above starting point, no progress
       if (goal.currentValue >= 100) return 0;
-      
-      // If reached target, 100% progress
       if (goal.currentValue <= goal.targetValue) return 100;
-      
-      // Calculate percentage between starting point and target
-      // Assuming 100 is the starting weight for this example
       const totalToLose = 100 - goal.targetValue;
       const lostSoFar = 100 - goal.currentValue;
       return Math.round((lostSoFar / totalToLose) * 100);
     }
-    
+
     // For other goals where higher is better (e.g., strength goals)
-    // Assuming 0 as the starting point
     const percentage = Math.round((goal.currentValue / goal.targetValue) * 100);
-    return Math.min(percentage, 100); // Cap at 100%
+    return Math.min(percentage, 100);
   };
-  
+
   const progress = calculateProgress();
-  
+
   return (
-    <Card className="col-span-4">
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
-          <CardTitle>{formattedGoalType}</CardTitle>
-          <Target className="w-5 h-5 text-amber-500" />
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-center justify-between mb-1">
-          <div className="text-sm font-medium">
-            Current: {goal.currentValue} {goal.unit}
+    <NeonGradientCard
+      className="col-span-4"
+      borderSize={2}
+      borderRadius={16}
+      neonColors={NEON}
+    >
+      <div className="flex items-center justify-between">
+        <span className="font-semibold">{formattedGoalType}</span>
+        <Target className="w-5 h-5 text-amber-500" />
+      </div>
+
+      <div className="mt-4 flex items-center gap-5">
+        <AnimatedCircularProgressBar
+          value={progress}
+          min={0}
+          max={100}
+          gaugePrimaryColor="#FF9E4F"
+          gaugeSecondaryColor="rgba(255, 158, 79, 0.15)"
+          className="size-24 text-xl"
+        />
+
+        <div className="flex-1 space-y-2 text-sm">
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">Current</span>
+            <span className="font-medium">
+              {goal.currentValue} {goal.unit}
+            </span>
           </div>
-          <div className="text-sm font-medium">
-            Target: {goal.targetValue} {goal.unit}
+          <div className="flex items-center justify-between">
+            <span className="text-muted-foreground">Target</span>
+            <span className="font-medium">
+              {goal.targetValue} {goal.unit}
+            </span>
+          </div>
+          <div className="pt-1 text-xs text-muted-foreground">
+            {progress}% complete
           </div>
         </div>
-        
-        {/* Progress bar */}
-        <div className="relative h-2 w-full bg-gray-200 rounded-full mt-1">
-          <div
-            className="absolute h-full bg-amber-500 rounded-full"
-            style={{ width: `${progress}%` }}
-          ></div>
-        </div>
-        <div className="text-right text-xs mt-1 text-gray-500">{progress}% complete</div>
-      </CardContent>
-    </Card>
+      </div>
+    </NeonGradientCard>
   );
 }
