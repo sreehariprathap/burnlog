@@ -13,6 +13,7 @@ import { MealPlanWidget } from './_components/MealPlanWidget';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { TopBar } from '@/components/TopBar';
 import { BottomNav } from '@/components/BottomNav';
+import { MotionCarousel } from '@/components/kokonutui/motion-carousel';
 
 export type Goal = {
   id: string;
@@ -96,44 +97,41 @@ export default function GoalsPage() {
             <Skeleton className="h-20 w-full" />
           </CardContent>
         </Card>
-      ) : goals.length > 0 ? (
-        <GoalsList goals={goals} />
       ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>No Goals Set</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-muted-foreground mb-4">
-              You haven&apos;t set any fitness goals yet. Start by adding your first goal.
-            </p>
-            <AddGoalForm onGoalAdded={handleGoalAdded} userId={userId!}  />
-          </CardContent>
-        </Card>
+        <MotionCarousel
+          slides={[
+            <div key="goals-list" className="space-y-4">
+              {goals.length > 0 ? (
+                <GoalsList goals={goals} />
+              ) : (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>No Goals Set</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-muted-foreground mb-4">
+                      You haven&apos;t set any fitness goals yet. Start by adding your first goal.
+                    </p>
+                  </CardContent>
+                </Card>
+              )}
+              <Card>
+                <CardHeader>
+                  <CardTitle>{goals.length > 0 ? 'Add Another Goal' : 'Add Your First Goal'}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <AddGoalForm onGoalAdded={handleGoalAdded} userId={userId!} />
+                </CardContent>
+              </Card>
+            </div>,
+            <WeightTracker key="weight" userId={userId!} />,
+            <CalorieTracker key="calorie" userId={userId!} />,
+            <FoodIntakeTracker key="food" userId={userId!} />,
+            <StaminaTracker key="stamina" userId={userId!} />,
+            <MealPlanWidget key="meal-plan" />,
+          ]}
+        />
       )}
-
-      {goals.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Add Another Goal</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <AddGoalForm onGoalAdded={handleGoalAdded}  userId={userId!}/>
-          </CardContent>
-        </Card>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <WeightTracker userId={userId!} />
-        <CalorieTracker userId={userId!} />
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <FoodIntakeTracker userId={userId!} />
-        <StaminaTracker userId={userId!} />
-      </div>
-
-      <MealPlanWidget />
 
       </div>
       <BottomNav />
