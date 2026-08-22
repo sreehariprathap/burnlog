@@ -9,6 +9,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, Info, AlertTriangle, Sparkles, Bell, Flame, Settings, Cpu } from 'lucide-react';
 import { OnboardingPageTogglesModal } from './_components/OnboardingPageTogglesModal';
+import { ProfileAvatar } from './_components/ProfileAvatar';
 import { AiModelSettingsModal } from './_components/AiModelSettingsModal';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
@@ -30,6 +31,7 @@ export default function ProfilePage() {
   const [disablingAi, setDisablingAi] = useState(false);
   const [showPageToggles, setShowPageToggles] = useState(false);
   const [showAiModelSettings, setShowAiModelSettings] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -50,10 +52,11 @@ export default function ProfilePage() {
         }
 
         setEmail(session.user.email || null);
+        setUserId(session.user.id);
         const userId = session.user.id;
         const { data, error: profErr } = await supabase
           .from('profiles')
-          .select('id,firstName,lastName,age,weight,height,activityLevel,aiEnabled,isAdmin,currentStreak,longestStreak,xp,level')
+          .select('id,firstName,lastName,age,weight,height,activityLevel,aiEnabled,isAdmin,currentStreak,longestStreak,xp,level,avatarUrl')
           .eq('userId', userId)
           .single();
 
@@ -164,8 +167,17 @@ export default function ProfilePage() {
         
         {!error && !profileNotFound && profile && (
           <>
-            {/* Large name display */}
-            <div className="mb-6 text-center">
+            {/* Avatar + large name display */}
+            <div className="mb-6 flex flex-col items-center gap-3 text-center">
+              {userId && (
+                <ProfileAvatar
+                  userId={userId}
+                  firstName={profile.firstName}
+                  lastName={profile.lastName}
+                  avatarUrl={profile.avatarUrl ?? null}
+                  onUploaded={(url) => setProfile((prev: any) => ({ ...prev, avatarUrl: url }))}
+                />
+              )}
               <h1 className="text-3xl font-bold tracking-tight">{`${profile.firstName} ${profile.lastName}`}</h1>
             </div>
             
