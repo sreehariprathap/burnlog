@@ -79,17 +79,17 @@ function GlowingEffectComponent({
   const gradient =
     variant === "white"
       ? "repeating-conic-gradient(from 236.84deg at 50% 50%, var(--foreground), var(--foreground) calc(25% / var(--repeating-conic-gradient-times)))"
-      : `radial-gradient(circle, #dd7bbb 10%, #dd7bbb00 20%),
-         radial-gradient(circle at 40% 40%, #d79f1e 5%, #d79f1e00 15%),
-         radial-gradient(circle at 60% 60%, #5a922c 10%, #5a922c00 20%),
-         radial-gradient(circle at 40% 60%, #4c7894 10%, #4c789400 20%),
+      : `radial-gradient(circle, #ff9e4f 10%, #ff9e4f00 20%),
+         radial-gradient(circle at 40% 40%, #ffbb70 5%, #ffbb7000 15%),
+         radial-gradient(circle at 60% 60%, #f97316 10%, #f9731600 20%),
+         radial-gradient(circle at 40% 60%, #ffd39a 10%, #ffd39a00 20%),
          repeating-conic-gradient(
            from 236.84deg at 50% 50%,
-           #dd7bbb 0%,
-           #d79f1e calc(25% / var(--repeating-conic-gradient-times)),
-           #5a922c calc(50% / var(--repeating-conic-gradient-times)),
-           #4c7894 calc(75% / var(--repeating-conic-gradient-times)),
-           #dd7bbb calc(100% / var(--repeating-conic-gradient-times))
+           #ff9e4f 0%,
+           #ffbb70 calc(25% / var(--repeating-conic-gradient-times)),
+           #f97316 calc(50% / var(--repeating-conic-gradient-times)),
+           #ffd39a calc(75% / var(--repeating-conic-gradient-times)),
+           #ff9e4f calc(100% / var(--repeating-conic-gradient-times))
          )`;
 
   if (disabled) return null;
