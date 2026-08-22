@@ -36,7 +36,7 @@ export function CompletionTracker({ plan, exerciseLog, onComplete }: CompletionT
   const [duration, setDuration] = useState<number>(45);
   const [completed, setCompleted] = useState<boolean>(true);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [achievement, setAchievement] = useState<{ stats: string[] } | null>(null);
+  const [achievement, setAchievement] = useState<{ stats: string[]; celebrate: boolean } | null>(null);
 
   const handleSubmit = async () => {
     try {
@@ -57,7 +57,7 @@ export function CompletionTracker({ plan, exerciseLog, onComplete }: CompletionT
       // references profiles.id, which is not the same as the auth user id)
       const { data: profileData } = await supabase
         .from('profiles')
-        .select('id, currentStreak, longestStreak, xp, lastSessionDate')
+        .select('id, currentStreak, longestStreak, xp, level, lastSessionDate')
         .eq('userId', user.id)
         .single();
 
@@ -121,9 +121,15 @@ export function CompletionTracker({ plan, exerciseLog, onComplete }: CompletionT
         }
 
         // Celebrate with a sparkled achievement message
+        const newLevel = computeLevel(newXp);
+        const leveledUp = newLevel > profileData.level;
+        const streakMilestone = newStreak > 0 && (newStreak % 7 === 0 || newStreak === 100);
+
         const stats = [`+${xpGained} XP`, `🔥 ${newStreak} day streak`];
         if (newStreak > profileData.longestStreak) stats.push('🏆 New record!');
-        setAchievement({ stats });
+        if (leveledUp) stats.push(`⭐ Level ${newLevel}!`);
+
+        setAchievement({ stats, celebrate: leveledUp || streakMilestone });
         return;
       }
 
@@ -147,6 +153,7 @@ export function CompletionTracker({ plan, exerciseLog, onComplete }: CompletionT
         title="Workout Complete!"
         message="You showed up and put in the work. Proud of you!"
         stats={achievement?.stats ?? []}
+        celebrate={achievement?.celebrate ?? false}
         onClose={() => {
           setAchievement(null);
           onComplete();

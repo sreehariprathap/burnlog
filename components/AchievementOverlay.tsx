@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { Trophy } from 'lucide-react';
 import { SparklesText } from '@/components/ui/sparkles-text';
 import { Button } from '@/components/ui/button';
+import { FireworksBackground } from '@/components/kokonutui/fireworks-background';
 
 type AchievementOverlayProps = {
   open: boolean;
@@ -16,6 +17,8 @@ type AchievementOverlayProps = {
   onClose: () => void;
   /** Auto-dismiss after this many ms (0 disables). */
   autoCloseMs?: number;
+  /** Show a fireworks background for level-ups / streak milestones. */
+  celebrate?: boolean;
 };
 
 // burnlog fire-themed sparkles
@@ -28,6 +31,7 @@ export function AchievementOverlay({
   stats = [],
   onClose,
   autoCloseMs = 0,
+  celebrate = false,
 }: AchievementOverlayProps) {
   useEffect(() => {
     if (!open || !autoCloseMs) return;
@@ -45,6 +49,7 @@ export function AchievementOverlay({
       className="fixed inset-0 z-[110] flex items-center justify-center p-6 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300"
       onClick={onClose}
     >
+      {celebrate && <FireworksBackground />}
       <div
         className="relative w-full max-w-sm overflow-hidden rounded-3xl border border-amber-300/30 bg-background p-8 text-center shadow-2xl animate-in zoom-in-95 duration-300"
         onClick={(e) => e.stopPropagation()}
