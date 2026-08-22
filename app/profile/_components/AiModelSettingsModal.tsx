@@ -3,11 +3,11 @@
 import { useEffect, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { DEFAULT_MODELS, type ModelSlot } from '@/lib/ai/modelConfig';
@@ -99,21 +99,23 @@ export function AiModelSettingsModal({ open, onOpenChange }: AiModelSettingsModa
   );
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>AI Model Settings</DialogTitle>
-        </DialogHeader>
-        {loading ? (
-          <Loader2 className="animate-spin h-6 w-6 mx-auto" />
-        ) : (
-          <div className="space-y-4">
-            {renderSelect('text', 'Text Model', catalog.text)}
-            {renderSelect('vision', 'Image Model', catalog.vision)}
-            {error && <p className="text-sm text-red-500">{error}</p>}
-          </div>
-        )}
-      </DialogContent>
-    </Dialog>
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>AI Model Settings</DrawerTitle>
+        </DrawerHeader>
+        <div className="px-4 pb-6">
+          {loading ? (
+            <Loader2 className="animate-spin h-6 w-6 mx-auto" />
+          ) : (
+            <div className="space-y-4">
+              {renderSelect('text', 'Text Model', catalog.text)}
+              {renderSelect('vision', 'Image Model', catalog.vision)}
+              {error && <p className="text-sm text-red-500">{error}</p>}
+            </div>
+          )}
+        </div>
+      </DrawerContent>
+    </Drawer>
   );
 }

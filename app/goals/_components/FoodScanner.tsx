@@ -3,9 +3,9 @@
 import { useState, useRef } from 'react';
 import { Camera, Upload, Loader2, CheckCircle, AlertTriangle, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 
 type ScanResult = {
   foodName: string;
@@ -106,20 +106,13 @@ export function FoodScanner({ onResult, onClose }: FoodScannerProps) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-4">
-      <Card className="w-full max-w-sm max-h-[90vh] overflow-y-auto">
-        <CardContent className="pt-5 space-y-4">
-          {/* Header */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="font-semibold text-lg">📸 Scan Food</h2>
-              <p className="text-xs text-muted-foreground">AI analyses your meal and estimates calories & macros</p>
-            </div>
-            <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-
+    <Drawer open onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>📸 Scan Food</DrawerTitle>
+          <p className="text-xs text-muted-foreground">AI analyses your meal and estimates calories &amp; macros</p>
+        </DrawerHeader>
+        <div className="px-4 pb-6 space-y-4 overflow-y-auto">
           {/* Meal type selector */}
           <div className="space-y-1">
             <Label>Meal type</Label>
@@ -252,8 +245,8 @@ export function FoodScanner({ onResult, onClose }: FoodScannerProps) {
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </DrawerContent>
+    </Drawer>
   );
 }
