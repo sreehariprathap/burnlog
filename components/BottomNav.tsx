@@ -15,7 +15,7 @@ import { cn } from '@/lib/utils';
 
 const tabs = [
   { href: '/dashboard', label: 'Home', Icon: HomeIcon },
-  { href: '/session',   label: 'Workout', Icon: DumbbellIcon },
+  { href: '/session',   label: 'Plan', Icon: DumbbellIcon },
   { href: '/goals',     label: 'Goals', Icon: TargetIcon },
   { href: '/insights',  label: 'Insights', Icon: ChartLine },
   { href: '/profile',   label: 'Profile', Icon: UserIcon },

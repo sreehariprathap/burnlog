@@ -121,7 +121,7 @@ export default function SessionsPage() {
   // 6️⃣ Main UI
   return (
     <div className="pb-16">
-      <TopBar title="Sessions"  actions={
+      <TopBar title="Plan"  actions={
           <Button
             variant="outline"
             size="sm"
