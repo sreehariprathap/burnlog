@@ -13,6 +13,7 @@ import { EquipmentStep } from './EquipmentStep';
 import { NutritionStep } from './NutritionStep';
 import { PlanPreview } from './PlanPreview';
 import { GroceryStep } from '@/app/goals/_components/GroceryStep';
+import { AiLoading } from '@/components/kokonutui/ai-loading';
 import type {
   LifestyleAnswers,
   WorkoutPlanEntry,
@@ -281,10 +282,7 @@ export function AiSetupFlow() {
       )}
 
       {step === 'generating' && (
-        <div className="flex flex-col items-center gap-3">
-          <Loader2 className="animate-spin h-8 w-8" />
-          <p className="text-sm text-muted-foreground">Generating your personalized plan…</p>
-        </div>
+        <AiLoading tasks={["Analyzing your lifestyle", "Building your weekly split", "Balancing recovery days", "Finalizing your plan"]} />
       )}
 
       {step === 'preview' && plan && (

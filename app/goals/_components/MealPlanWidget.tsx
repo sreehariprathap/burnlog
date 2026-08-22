@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, RefreshCw, ChevronDown, ChevronUp, ShoppingCart } from 'lucide-react';
+import { RefreshCw, ChevronDown, ChevronUp, ShoppingCart } from 'lucide-react';
+import { AiLoading } from '@/components/kokonutui/ai-loading';
 
 type Meal = {
   name: string;
@@ -102,12 +103,8 @@ export function MealPlanWidget() {
   if (loading) {
     return (
       <Card>
-        <CardContent className="py-12 flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground text-center">
-            Crafting your personalised 7-day meal plan…<br />
-            <span className="text-xs">This takes about 20 seconds</span>
-          </p>
+        <CardContent className="py-4">
+          <AiLoading tasks={["Reviewing your goals", "Planning your meals", "Balancing macros", "Building your grocery list"]} />
         </CardContent>
       </Card>
     );
