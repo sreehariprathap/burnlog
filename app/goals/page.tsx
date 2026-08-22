@@ -14,6 +14,8 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { TopBar } from '@/components/TopBar';
 import { BottomNav } from '@/components/BottomNav';
 import { MotionCarousel } from '@/components/kokonutui/motion-carousel';
+import { SmoothTabs, type TabItem } from '@/components/kokonutui/smooth-tabs';
+import { Target, Scale, Flame, Utensils, HeartPulse, CalendarCheck } from 'lucide-react';
 
 export type Goal = {
   id: string;
@@ -24,11 +26,21 @@ export type Goal = {
 
 const supabase = createClientComponentClient();
 
+const goalTabs: TabItem[] = [
+  { id: 'goals', icon: Target, label: 'Goals', color: 'var(--chart-1)' },
+  { id: 'weight', icon: Scale, label: 'Weight', color: 'var(--chart-2)' },
+  { id: 'calories', icon: Flame, label: 'Calories', color: 'var(--chart-3)' },
+  { id: 'food', icon: Utensils, label: 'Food', color: 'var(--chart-4)' },
+  { id: 'stamina', icon: HeartPulse, label: 'Stamina', color: 'var(--chart-5)' },
+  { id: 'meal-plan', icon: CalendarCheck, label: 'Meal Plan', color: 'var(--chart-1)' },
+];
+
 
 export default function GoalsPage() {
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   useEffect(() => {
     const getUser = async () => {
@@ -86,6 +98,11 @@ export default function GoalsPage() {
   return (
     <div className="pb-16">
       <TopBar title="Fitness Goals" />
+      {!loading && (
+        <div className="sticky top-14 z-10 border-b bg-background/80 px-4 py-2 backdrop-blur">
+          <SmoothTabs items={goalTabs} selectedIndex={selectedIndex} onSelect={setSelectedIndex} />
+        </div>
+      )}
       <div className='px-4 py-2 flex flex-col gap-2'>
 
       {loading ? (
@@ -99,6 +116,8 @@ export default function GoalsPage() {
         </Card>
       ) : (
         <MotionCarousel
+          selectedIndex={selectedIndex}
+          onSelect={setSelectedIndex}
           slides={[
             <div key="goals-list" className="space-y-4">
               {goals.length > 0 ? (
