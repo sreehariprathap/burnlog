@@ -1,9 +1,7 @@
 import * as React from "react"
-import { useId } from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
-import { GlassFilter } from "@/components/kokonutui/glass-filter"
 
 const cardVariants = cva("", {
   variants: {
@@ -20,39 +18,23 @@ const cardVariants = cva("", {
 
 type CardProps = React.ComponentProps<"div"> &
   VariantProps<typeof cardVariants> & {
+    /** Enables the pointer-tracked glowing border effect. Default true. */
     glassEffect?: boolean
   }
 
 function Card({ className, glassSize, glassEffect = true, style, children, ...rest }: CardProps) {
-  const filterId = useId()
-
   return (
     <div
       data-slot="card"
       className={cn(
-        "group relative flex flex-col rounded-xl text-card-foreground overflow-hidden",
+        "relative flex flex-col rounded-xl border bg-card text-card-foreground shadow-sm",
         cardVariants({ glassSize }),
         className
       )}
       style={style}
       {...rest}
     >
-      {glassEffect && <GlassFilter id={filterId} scale={30} />}
-      {/* Background-only layer: the displacement filter distorts this layer's
-          own translucent fill + backdrop-blur, never the text/content on top. */}
-      <div
-        className="pointer-events-none absolute inset-0 rounded-[inherit] border border-white/10 bg-background/20 backdrop-blur-[2px]"
-        style={{
-          boxShadow: "var(--glass-shadow)",
-          filter: glassEffect ? `url(#glass-distortion-${filterId})` : undefined,
-        }}
-        aria-hidden="true"
-      />
-      <div
-        className="pointer-events-none absolute inset-0 rounded-[inherit] bg-gradient-to-r from-transparent via-black/5 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100"
-        aria-hidden="true"
-      />
-      <div className="relative flex flex-col gap-[inherit]">{children}</div>
+      {children}
     </div>
   )
 }
