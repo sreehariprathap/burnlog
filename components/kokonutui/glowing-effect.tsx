@@ -19,10 +19,13 @@ interface GlowingEffectProps {
 
 type Instance = {
   container: HTMLDivElement;
-  glow: HTMLDivElement;
+  glowElement: HTMLDivElement;
   inactiveZone: number;
   proximity: number;
-  lastAngle: number;
+  // A ref-like box (not a plain number) so the angle persists across
+  // effect re-runs of the same mounted component (e.g. if inactiveZone
+  // or proximity change), instead of snapping back to 0 each time.
+  lastAngle: { value: number };
 };
 
 // A single shared document-level pointermove listener serves every
@@ -64,15 +67,15 @@ function processFrame() {
     const targetAngle =
       (180 * Math.atan2(pointerY - centerY, pointerX - centerX)) / Math.PI + 90;
     // Shortest angular path so the transition never spins the long way around.
-    const delta = (((targetAngle - instance.lastAngle + 180) % 360) + 360) % 360 - 180;
-    const newAngle = instance.lastAngle + delta;
-    instance.lastAngle = newAngle;
+    const delta = (((targetAngle - instance.lastAngle.value + 180) % 360) + 360) % 360 - 180;
+    const newAngle = instance.lastAngle.value + delta;
+    instance.lastAngle.value = newAngle;
     instance.container.style.setProperty("--start", `${newAngle}deg`);
     // --start is registered with `inherits: false` (required for the CSS
     // transition to animate smoothly), so it must also be set directly on
     // the descendant that reads it in its ::after mask-image, or the angle
     // would stay frozen at the initial 0deg.
-    instance.glow.style.setProperty("--start", `${newAngle}deg`);
+    instance.glowElement.style.setProperty("--start", `${newAngle}deg`);
   }
 }
 
@@ -118,14 +121,21 @@ function GlowingEffectComponent({
 }: GlowingEffectProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
+  const lastAngleRef = useRef({ value: 0 });
 
   useEffect(() => {
     if (disabled) return;
     const container = containerRef.current;
-    const glowEl = glowRef.current;
-    if (!container || !glowEl) return;
+    const glowElement = glowRef.current;
+    if (!container || !glowElement) return;
 
-    const instance: Instance = { container, glow: glowEl, inactiveZone, proximity, lastAngle: 0 };
+    const instance: Instance = {
+      container,
+      glowElement,
+      inactiveZone,
+      proximity,
+      lastAngle: lastAngleRef.current,
+    };
     registerInstance(instance);
     return () => unregisterInstance(instance);
   }, [disabled, inactiveZone, proximity]);
