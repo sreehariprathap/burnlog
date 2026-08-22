@@ -2,11 +2,11 @@
 
 import { useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { X, Loader2 } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 
 const WORKOUT_TYPES = [
   { value: 'Gym', label: 'Gym' },
@@ -87,16 +87,12 @@ export function LogWorkoutModal({ profileId, onClose, onSaved }: LogWorkoutModal
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-4">
-      <Card className="w-full max-w-sm max-h-[90vh] overflow-y-auto">
-        <CardContent className="pt-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-lg">Log Workout</h2>
-            <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-
+    <Drawer open onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>Log Workout</DrawerTitle>
+        </DrawerHeader>
+        <div className="px-4 pb-6 space-y-4 overflow-y-auto">
           <div className="space-y-1">
             <Label htmlFor="activityType">Workout Type</Label>
             <select
@@ -137,8 +133,8 @@ export function LogWorkoutModal({ profileId, onClose, onSaved }: LogWorkoutModal
           <Button onClick={handleSave} disabled={saving} className="w-full">
             {saving ? 'Saving...' : 'Save'}
           </Button>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </DrawerContent>
+    </Drawer>
   );
 }

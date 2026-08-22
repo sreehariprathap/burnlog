@@ -3,11 +3,10 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { X } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 
 type WalkTrackerModalProps = {
   profileId: string;
@@ -137,16 +136,12 @@ export function WalkTrackerModal({ profileId, onClose, onSaved }: WalkTrackerMod
   const canFinish = tracking && elapsedSeconds >= MIN_FINISH_SECONDS;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-4">
-      <Card className="w-full max-w-sm">
-        <CardContent className="pt-5 space-y-5">
-          <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-lg">🚶 Walk Tracker</h2>
-            <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-
+    <Drawer open onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>🚶 Walk Tracker</DrawerTitle>
+        </DrawerHeader>
+        <div className="px-4 pb-6 space-y-5">
           {showIdleScreen ? (
             <div className="space-y-4 text-center py-4">
               <p className="text-sm text-muted-foreground">
@@ -182,8 +177,8 @@ export function WalkTrackerModal({ profileId, onClose, onSaved }: WalkTrackerMod
               </Button>
             </div>
           )}
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </DrawerContent>
+    </Drawer>
   );
 }

@@ -2,12 +2,11 @@
 
 import { useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { X } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { FoodScanner } from '@/app/goals/_components/FoodScanner';
 
 const MEAL_TYPES = [
@@ -93,16 +92,12 @@ export function LogCaloriesModal({ profileId, onClose, onSaved }: LogCaloriesMod
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/60 p-4">
-      <Card className="w-full max-w-sm max-h-[90vh] overflow-y-auto">
-        <CardContent className="pt-5 space-y-4">
-          <div className="flex items-center justify-between">
-            <h2 className="font-semibold text-lg">Log Calories</h2>
-            <button onClick={onClose} className="text-muted-foreground hover:text-foreground">
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-
+    <Drawer open onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle>Log Calories</DrawerTitle>
+        </DrawerHeader>
+        <div className="px-4 pb-6 space-y-4 overflow-y-auto">
           <Tabs value={tab} onValueChange={(v) => setTab(v as 'manual' | 'photo')}>
             <TabsList className="grid grid-cols-2">
               <TabsTrigger value="manual">Manual</TabsTrigger>
@@ -162,8 +157,8 @@ export function LogCaloriesModal({ profileId, onClose, onSaved }: LogCaloriesMod
           <Button onClick={handleSave} disabled={saving} className="w-full">
             {saving ? 'Saving...' : 'Save'}
           </Button>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </DrawerContent>
+    </Drawer>
   );
 }
