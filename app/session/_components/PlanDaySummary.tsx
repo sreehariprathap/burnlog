@@ -9,7 +9,7 @@ type PlanDaySummaryProps = {
   /** The recurring weekday's scheduled body part, or null/'Rest' for a rest day. */
   scheduledBodyPart: string | null;
   /** The actual logged session for this exact date, if any. Only meaningful for past dates. */
-  session: { completed: boolean; duration?: number; notes?: string } | null;
+  session: { completed: boolean; bodyPart?: string; duration?: number; notes?: string } | null;
 };
 
 export function PlanDaySummary({ date, scheduledBodyPart, session }: PlanDaySummaryProps) {
@@ -26,7 +26,9 @@ export function PlanDaySummary({ date, scheduledBodyPart, session }: PlanDaySumm
     description = 'Nothing was scheduled.';
     tone = 'rest';
   } else if (session?.completed) {
-    title = `${scheduledBodyPart} — Completed`;
+    // Prefer what was actually logged over the recurring schedule — a user
+    // may have logged a different body part than what was scheduled.
+    title = `${session.bodyPart || scheduledBodyPart} — Completed`;
     description = session.notes || 'Logged and completed.';
     tone = 'done';
   } else if (isFuture) {
@@ -57,7 +59,7 @@ export function PlanDaySummary({ date, scheduledBodyPart, session }: PlanDaySumm
           {title}
         </p>
         <p className="text-sm text-muted-foreground">{description}</p>
-        {session?.duration && <p className="text-sm">Duration: {session.duration} minutes</p>}
+        {session?.duration ? <p className="text-sm">Duration: {session.duration} minutes</p> : null}
       </CardContent>
     </Card>
   );

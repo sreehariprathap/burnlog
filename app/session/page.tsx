@@ -35,7 +35,7 @@ export default function SessionsPage() {
   const [view, setView] = useState<'day' | 'month'>('day');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentStreak, setCurrentStreak] = useState<number>(0);
-  const [dateSession, setDateSession] = useState<{ completed: boolean; duration?: number; notes?: string } | null>(null);
+  const [dateSession, setDateSession] = useState<{ completed: boolean; bodyPart?: string; duration?: number; notes?: string } | null>(null);
 
   // 1️⃣ Get current user
   useEffect(() => {
@@ -117,7 +117,7 @@ export default function SessionsPage() {
         .maybeSingle();
 
       if (!cancelled) {
-        setDateSession(data ? (data.sessionData as { completed: boolean; duration?: number; notes?: string }) : null);
+        setDateSession(data ? (data.sessionData as { completed: boolean; bodyPart?: string; duration?: number; notes?: string }) : null);
       }
     })();
 
