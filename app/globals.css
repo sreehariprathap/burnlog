@@ -3,6 +3,12 @@
 
 @custom-variant dark (&:is(.dark *));
 
+@property --start {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -137,6 +143,36 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+.glowing-effect-glow {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+}
+
+.glowing-effect-glow::after {
+  content: "";
+  position: absolute;
+  inset: calc(-1 * var(--glowingeffect-border-width));
+  border: var(--glowingeffect-border-width) solid transparent;
+  background: var(--gradient);
+  opacity: var(--active);
+  transition: --start var(--movement-duration) linear, opacity 300ms ease;
+  mask-clip: padding-box, border-box;
+  mask-composite: intersect;
+  mask-image:
+    linear-gradient(#0000, #0000),
+    conic-gradient(
+      from calc(var(--start) - (var(--spread) * 1deg)),
+      #00000000 0deg,
+      #fff,
+      #00000000 calc(var(--spread) * 2deg)
+    );
+}
+
+.glowing-effect-glow.glow::after {
+  opacity: 1;
 }
 
 ::view-transition-old(root), ::view-transition-new(root) {
