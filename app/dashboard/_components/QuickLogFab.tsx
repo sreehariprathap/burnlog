@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Plus } from 'lucide-react';
 import { RadialMenu } from '@/components/kokonutui/radial-menu';
 import { LogCaloriesModal } from './quick-log/LogCaloriesModal';
@@ -15,9 +15,13 @@ type QuickLogFabProps = {
 
 type ModalKey = 'calories' | 'workout' | 'steps' | 'walk' | null;
 
-export function QuickLogFab({ profileId, onLogged }: QuickLogFabProps) {
+export function QuickLogFab({ profileId, onLogged, initialOpen }: QuickLogFabProps & { initialOpen?: ModalKey }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [open, setOpen] = useState<ModalKey>(null);
+
+  useEffect(() => {
+    if (initialOpen) setOpen(initialOpen);
+  }, [initialOpen]);
 
   const handleSaved = () => {
     setOpen(null);

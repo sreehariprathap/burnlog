@@ -3,6 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { Search } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
 import { BottomNav } from '@/components/BottomNav';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -14,6 +15,7 @@ import { GoalProgressWidget } from './_components/GoalProgressWidget';
 import { ShortcutWidget } from './_components/ShortcutWidget';
 import { DailyRingsWidget } from './_components/DailyRingsWidget';
 import { QuickLogFab } from './_components/QuickLogFab';
+import { ActionSearchBar } from '@/components/kokonutui/action-search-bar';
 
 interface FitnessGoal {
   id: string;
@@ -29,6 +31,8 @@ export default function DashboardPage() {
   const [isInstallable, setIsInstallable] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [quickLogTrigger, setQuickLogTrigger] = useState<'calories' | 'workout' | 'steps' | 'walk' | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -110,7 +114,14 @@ export default function DashboardPage() {
 
   return (
     <div className="pb-16">
-      <TopBar title="Dashboard" />
+      <TopBar
+        title="Dashboard"
+        actions={
+          <button onClick={() => setSearchOpen(true)} aria-label="Search actions">
+            <Search className="h-5 w-5" />
+          </button>
+        }
+      />
       <main className="p-4 mt-4 space-y-6">
         {/* Install App Prompt */}
         {isInstallable && (
@@ -220,7 +231,22 @@ export default function DashboardPage() {
         )}
       </main>
       {userProfile && (
-        <QuickLogFab profileId={userProfile.id} onLogged={() => setRefreshKey((k) => k + 1)} />
+        <>
+          <QuickLogFab
+            profileId={userProfile.id}
+            onLogged={() => setRefreshKey((k) => k + 1)}
+            initialOpen={quickLogTrigger}
+          />
+          <ActionSearchBar
+            open={searchOpen}
+            onOpenChange={setSearchOpen}
+            isAdmin={!!userProfile?.isAdmin}
+            onQuickLog={(key) => {
+              setQuickLogTrigger(key);
+              setTimeout(() => setQuickLogTrigger(null), 0);
+            }}
+          />
+        </>
       )}
       <BottomNav />
     </div>
