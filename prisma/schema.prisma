@@ -137,7 +137,7 @@ model FoodIntake {
 /// web push subscriptions
 model PushSubscription {
   id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  userId           String   @unique @map("user_id") @db.Uuid
+  userId           String   @map("user_id") @db.Uuid
   subscriptionData Json     @map("subscription_data")
   createdAt        DateTime @default(now()) @map("created_at")
   endpoint         String   @unique
