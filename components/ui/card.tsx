@@ -1,17 +1,59 @@
 import * as React from "react"
+import { useId } from "react"
+import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
+import { GlassFilter } from "@/components/kokonutui/glass-filter"
 
-function Card({ className, ...props }: React.ComponentProps<"div">) {
+const cardVariants = cva("", {
+  variants: {
+    glassSize: {
+      sm: "p-3 gap-3",
+      default: "py-6 gap-6",
+      lg: "p-8 gap-8",
+    },
+  },
+  defaultVariants: {
+    glassSize: "default",
+  },
+})
+
+type CardProps = React.ComponentProps<"div"> &
+  VariantProps<typeof cardVariants> & {
+    glassEffect?: boolean
+  }
+
+function Card({ className, glassSize, glassEffect = true, style, children, ...rest }: CardProps) {
+  const filterId = useId()
+
   return (
     <div
       data-slot="card"
       className={cn(
-        "bg-card text-card-foreground flex flex-col gap-6 rounded-xl border py-6 shadow-sm",
+        "group relative flex flex-col rounded-xl text-card-foreground overflow-hidden",
+        cardVariants({ glassSize }),
         className
       )}
-      {...props}
-    />
+      style={style}
+      {...rest}
+    >
+      {glassEffect && <GlassFilter id={filterId} scale={30} />}
+      {/* Background-only layer: the displacement filter distorts this layer's
+          own translucent fill + backdrop-blur, never the text/content on top. */}
+      <div
+        className="pointer-events-none absolute inset-0 rounded-[inherit] border border-white/10 bg-background/20 backdrop-blur-[2px]"
+        style={{
+          boxShadow: "var(--glass-shadow)",
+          filter: glassEffect ? `url(#glass-distortion-${filterId})` : undefined,
+        }}
+        aria-hidden="true"
+      />
+      <div
+        className="pointer-events-none absolute inset-0 rounded-[inherit] bg-gradient-to-r from-transparent via-black/5 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100"
+        aria-hidden="true"
+      />
+      <div className="relative flex flex-col gap-[inherit]">{children}</div>
+    </div>
   )
 }
 
