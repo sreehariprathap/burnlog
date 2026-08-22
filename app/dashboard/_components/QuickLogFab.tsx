@@ -7,13 +7,14 @@ import { Button } from '@/components/ui/button';
 import { LogCaloriesModal } from './quick-log/LogCaloriesModal';
 import { LogWorkoutModal } from './quick-log/LogWorkoutModal';
 import { LogStepsModal } from './quick-log/LogStepsModal';
+import { WalkTrackerModal } from './quick-log/WalkTrackerModal';
 
 type QuickLogFabProps = {
   profileId: string;
   onLogged: () => void;
 };
 
-type ModalKey = 'menu' | 'calories' | 'workout' | 'steps' | null;
+type ModalKey = 'menu' | 'calories' | 'workout' | 'steps' | 'walk' | null;
 
 export function QuickLogFab({ profileId, onLogged }: QuickLogFabProps) {
   const [open, setOpen] = useState<ModalKey>(null);
@@ -48,6 +49,9 @@ export function QuickLogFab({ profileId, onLogged }: QuickLogFabProps) {
             <Button variant="outline" className="justify-start" onClick={() => setOpen('steps')}>
               🚶 Log Steps
             </Button>
+            <Button variant="outline" className="justify-start" onClick={() => setOpen('walk')}>
+              🚶 Start Walk
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
@@ -60,6 +64,9 @@ export function QuickLogFab({ profileId, onLogged }: QuickLogFabProps) {
       )}
       {open === 'steps' && (
         <LogStepsModal profileId={profileId} onClose={() => setOpen(null)} onSaved={handleSaved} />
+      )}
+      {open === 'walk' && (
+        <WalkTrackerModal profileId={profileId} onClose={() => setOpen(null)} onSaved={handleSaved} />
       )}
     </>
   );
