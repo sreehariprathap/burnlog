@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { KineticText } from '@/components/ui/kinetic-text';
+import { BackgroundPaths } from '@/components/kokonutui/background-paths';
 
 const SESSION_KEY = 'burnlog-splash-shown';
 const VISIBLE_MS = 2000;
@@ -48,6 +49,8 @@ export default function SplashScreen() {
             'radial-gradient(60% 50% at 50% 45%, rgba(255,158,79,0.35), transparent 70%), radial-gradient(50% 40% at 50% 60%, rgba(255,61,113,0.30), transparent 70%)',
         }}
       />
+
+      <BackgroundPaths className="pointer-events-none absolute inset-0 h-full w-full opacity-60" />
 
       <div className="relative flex flex-col items-center animate-in fade-in zoom-in-95 duration-700">
         <KineticText
