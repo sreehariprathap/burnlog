@@ -2,8 +2,7 @@
 
 import { useState } from 'react';
 import { Plus } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+import { RadialMenu } from '@/components/kokonutui/radial-menu';
 import { LogCaloriesModal } from './quick-log/LogCaloriesModal';
 import { LogWorkoutModal } from './quick-log/LogWorkoutModal';
 import { LogStepsModal } from './quick-log/LogStepsModal';
@@ -14,9 +13,10 @@ type QuickLogFabProps = {
   onLogged: () => void;
 };
 
-type ModalKey = 'menu' | 'calories' | 'workout' | 'steps' | 'walk' | null;
+type ModalKey = 'calories' | 'workout' | 'steps' | 'walk' | null;
 
 export function QuickLogFab({ profileId, onLogged }: QuickLogFabProps) {
+  const [menuOpen, setMenuOpen] = useState(false);
   const [open, setOpen] = useState<ModalKey>(null);
 
   const handleSaved = () => {
@@ -24,37 +24,25 @@ export function QuickLogFab({ profileId, onLogged }: QuickLogFabProps) {
     onLogged();
   };
 
+  const items = [
+    { key: 'calories', label: 'Calories', icon: <span className="text-lg">🍽️</span>, onSelect: () => { setMenuOpen(false); setOpen('calories'); } },
+    { key: 'workout', label: 'Workout', icon: <span className="text-lg">🏋️</span>, onSelect: () => { setMenuOpen(false); setOpen('workout'); } },
+    { key: 'steps', label: 'Steps', icon: <span className="text-lg">🚶</span>, onSelect: () => { setMenuOpen(false); setOpen('steps'); } },
+    { key: 'walk', label: 'Walk', icon: <span className="text-lg">🚶</span>, onSelect: () => { setMenuOpen(false); setOpen('walk'); } },
+  ];
+
   return (
     <>
       <button
-        onClick={() => setOpen('menu')}
+        onClick={() => setMenuOpen((v) => !v)}
         className="fixed bottom-20 right-4 z-30 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:opacity-90 transition-opacity"
         aria-label="Quick log"
+        aria-expanded={menuOpen}
       >
         <Plus className="h-6 w-6" />
       </button>
 
-      <Dialog open={open === 'menu'} onOpenChange={(isOpen) => !isOpen && setOpen(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Quick Log</DialogTitle>
-          </DialogHeader>
-          <div className="grid gap-2 pt-2">
-            <Button variant="outline" className="justify-start" onClick={() => setOpen('calories')}>
-              🍽️ Log Calories
-            </Button>
-            <Button variant="outline" className="justify-start" onClick={() => setOpen('workout')}>
-              🏋️ Log Workout
-            </Button>
-            <Button variant="outline" className="justify-start" onClick={() => setOpen('steps')}>
-              🚶 Log Steps
-            </Button>
-            <Button variant="outline" className="justify-start" onClick={() => setOpen('walk')}>
-              🚶 Start Walk
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <RadialMenu open={menuOpen} items={items} onClose={() => setMenuOpen(false)} />
 
       {open === 'calories' && (
         <LogCaloriesModal profileId={profileId} onClose={() => setOpen(null)} onSaved={handleSaved} />
