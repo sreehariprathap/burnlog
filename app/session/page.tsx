@@ -17,8 +17,9 @@ import { Button } from '@/components/ui/button';
 import { BarChart } from 'lucide-react';
 import type { LifestyleAnswers } from '@/lib/ai/types';
 import { PlanViewToggle } from '@/components/kokonutui/plan-view-toggle';
-import { nearestPastOrTodayWeekday } from '@/lib/date';
+import { nearestPastOrTodayWeekday, isSameLocalDay, toLocalDateString } from '@/lib/date';
 import { PlanMonthCalendar } from './_components/PlanMonthCalendar';
+import { PlanDaySummary } from './_components/PlanDaySummary';
 
 export default function SessionsPage() {
   const supabase = createClientComponentClient();
@@ -34,6 +35,7 @@ export default function SessionsPage() {
   const [view, setView] = useState<'day' | 'month'>('day');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentStreak, setCurrentStreak] = useState<number>(0);
+  const [dateSession, setDateSession] = useState<{ completed: boolean; duration?: number; notes?: string } | null>(null);
 
   // 1️⃣ Get current user
   useEffect(() => {
@@ -96,6 +98,33 @@ export default function SessionsPage() {
   useEffect(() => {
     fetchPlan();
   }, [fetchPlan]);
+
+  // 3️⃣-B Fetch the logged session for the selected date (non-today dates only)
+  useEffect(() => {
+    const today = new Date();
+    if (isSameLocalDay(selectedDate, today) || !profileId) {
+      setDateSession(null);
+      return;
+    }
+
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase
+        .from('sessions')
+        .select('sessionData')
+        .eq('profileId', profileId)
+        .eq('date', toLocalDateString(selectedDate))
+        .maybeSingle();
+
+      if (!cancelled) {
+        setDateSession(data ? (data.sessionData as { completed: boolean; duration?: number; notes?: string }) : null);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [supabase, profileId, selectedDate]);
 
   // 4️⃣ Upsert a new plan
   const handleSaved = async (newPlan: PlanDay & { repeatWeekly: boolean }) => {
@@ -178,14 +207,14 @@ export default function SessionsPage() {
               <Skeleton className="h-4 w-full" />
             </div>
           </Card>
-        ) : (
+        ) : isSameLocalDay(selectedDate, new Date()) ? (
           <>
             <PlanCard
               plan={plan}
               onStart={() => setLogging(true)}
               onAdd={() => setShowAddModal(true)}
             />
-            
+
             {/* Show workout checklist when a plan exists but not yet started */}
             {plan && (
               <div className="mt-6">
@@ -193,6 +222,12 @@ export default function SessionsPage() {
               </div>
             )}
           </>
+        ) : (
+          <PlanDaySummary
+            date={selectedDate}
+            scheduledBodyPart={plan?.bodyPart ?? null}
+            session={dateSession}
+          />
         )}
       </div>
         </>
