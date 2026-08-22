@@ -4,25 +4,44 @@
 import { useCallback, useEffect, useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import { motion } from "motion/react";
-import { cn } from "@/lib/utils";
 
-export function MotionCarousel({ slides }: { slides: React.ReactNode[] }) {
+type MotionCarouselProps = {
+  slides: React.ReactNode[];
+  /** Externally-controlled active slide index. Omit for uncontrolled use. */
+  selectedIndex?: number;
+  /** Fires whenever the active slide changes, from either a swipe or an external selectedIndex change. */
+  onSelect?: (index: number) => void;
+};
+
+export function MotionCarousel({ slides, selectedIndex: controlledIndex, onSelect: onSelectProp }: MotionCarouselProps) {
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false, align: "center" });
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [internalIndex, setInternalIndex] = useState(0);
+  const activeIndex = controlledIndex ?? internalIndex;
 
-  const onSelect = useCallback(() => {
+  const handleEmblaSelect = useCallback(() => {
     if (!emblaApi) return;
-    setSelectedIndex(emblaApi.selectedScrollSnap());
-  }, [emblaApi]);
+    const index = emblaApi.selectedScrollSnap();
+    setInternalIndex(index);
+    onSelectProp?.(index);
+  }, [emblaApi, onSelectProp]);
 
   useEffect(() => {
     if (!emblaApi) return;
-    onSelect();
-    emblaApi.on("select", onSelect);
+    handleEmblaSelect();
+    emblaApi.on("select", handleEmblaSelect);
     return () => {
-      emblaApi.off("select", onSelect);
+      emblaApi.off("select", handleEmblaSelect);
     };
-  }, [emblaApi, onSelect]);
+  }, [emblaApi, handleEmblaSelect]);
+
+  // Drive embla when the controlled selectedIndex prop changes externally
+  // (e.g. a tab was tapped), without fighting embla's own "select" events.
+  useEffect(() => {
+    if (!emblaApi || controlledIndex === undefined) return;
+    if (emblaApi.selectedScrollSnap() !== controlledIndex) {
+      emblaApi.scrollTo(controlledIndex);
+    }
+  }, [emblaApi, controlledIndex]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -32,27 +51,13 @@ export function MotionCarousel({ slides }: { slides: React.ReactNode[] }) {
             <motion.div
               key={index}
               className="min-w-0 shrink-0 grow-0 basis-full px-1"
-              animate={{ scale: index === selectedIndex ? 1 : 0.94, opacity: index === selectedIndex ? 1 : 0.7 }}
+              animate={{ scale: index === activeIndex ? 1 : 0.94, opacity: index === activeIndex ? 1 : 0.7 }}
               transition={{ duration: 0.3 }}
             >
               {slide}
             </motion.div>
           ))}
         </div>
-      </div>
-
-      <div className="flex justify-center gap-2">
-        {slides.map((_, index) => (
-          <button
-            key={index}
-            aria-label={`Go to slide ${index + 1}`}
-            onClick={() => emblaApi?.scrollTo(index)}
-            className={cn(
-              "h-2 rounded-full transition-all duration-300",
-              index === selectedIndex ? "w-6 bg-primary" : "w-2 bg-muted-foreground/30"
-            )}
-          />
-        ))}
       </div>
     </div>
   );
