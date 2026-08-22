@@ -18,6 +18,7 @@ import { BarChart } from 'lucide-react';
 import type { LifestyleAnswers } from '@/lib/ai/types';
 import { PlanViewToggle } from '@/components/kokonutui/plan-view-toggle';
 import { nearestPastOrTodayWeekday } from '@/lib/date';
+import { PlanMonthCalendar } from './_components/PlanMonthCalendar';
 
 export default function SessionsPage() {
   const supabase = createClientComponentClient();
@@ -32,6 +33,7 @@ export default function SessionsPage() {
   const [loadingPlan, setLoadingPlan] = useState<boolean>(true);
   const [view, setView] = useState<'day' | 'month'>('day');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [currentStreak, setCurrentStreak] = useState<number>(0);
 
   // 1️⃣ Get current user
   useEffect(() => {
@@ -43,12 +45,13 @@ export default function SessionsPage() {
         // Fetch the profile ID associated with this user
         const { data: profileData } = await supabase
           .from('profiles')
-          .select('id, lifestyle')
+          .select('id, lifestyle, currentStreak')
           .eq('userId', user.id)
           .single();
 
         if (profileData) {
           setProfileId(profileData.id);
+          setCurrentStreak(profileData.currentStreak ?? 0);
           if (profileData.lifestyle) {
             setLifestyle(profileData.lifestyle as LifestyleAnswers);
           }
@@ -141,9 +144,18 @@ export default function SessionsPage() {
       </div>
 
       {view === 'month' ? (
-        <div className="p-4">
-          <p className="text-sm text-muted-foreground">Month view coming soon.</p>
-        </div>
+        profileId && (
+          <PlanMonthCalendar
+            profileId={profileId}
+            currentStreak={currentStreak}
+            selectedDate={selectedDate}
+            onSelectDate={(date) => {
+              setSelectedDate(date);
+              setDay(date.getDay());
+              setView('day');
+            }}
+          />
+        )
       ) : (
         <>
       <div className="flex w-full gap-2 items-center px-4 py-2">
