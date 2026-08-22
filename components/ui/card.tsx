@@ -2,6 +2,7 @@ import * as React from "react"
 import { cva, type VariantProps } from "class-variance-authority"
 
 import { cn } from "@/lib/utils"
+import { GlowingEffect } from "@/components/kokonutui/glowing-effect"
 
 const cardVariants = cva("", {
   variants: {
@@ -34,6 +35,7 @@ function Card({ className, glassSize, glassEffect = true, style, children, ...re
       style={style}
       {...rest}
     >
+      <GlowingEffect disabled={!glassEffect} />
       {children}
     </div>
   )
