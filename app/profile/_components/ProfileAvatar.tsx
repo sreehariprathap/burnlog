@@ -46,12 +46,17 @@ export function ProfileAvatar({ userId, firstName, lastName, avatarUrl, onUpload
 
     setUploading(true);
     try {
-      const ext = file.name.split('.').pop() || 'jpg';
-      const path = `${userId}/avatar.${ext}`;
+      const path = `${userId}/avatar`;
+
+      const { data: existing } = await supabase.storage.from('avatars').list(userId);
+      const stale = (existing ?? []).filter((obj) => obj.name !== 'avatar').map((obj) => `${userId}/${obj.name}`);
+      if (stale.length > 0) {
+        await supabase.storage.from('avatars').remove(stale);
+      }
 
       const { error: uploadError } = await supabase.storage
         .from('avatars')
-        .upload(path, file, { upsert: true });
+        .upload(path, file, { upsert: true, contentType: file.type });
 
       if (uploadError) throw uploadError;
 
@@ -100,7 +105,11 @@ export function ProfileAvatar({ userId, firstName, lastName, avatarUrl, onUpload
         type="file"
         accept="image/*"
         className="hidden"
-        onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0])}
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          e.target.value = '';
+          if (file) handleFile(file);
+        }}
       />
       {error && <p className="text-xs text-red-500">{error}</p>}
     </div>
