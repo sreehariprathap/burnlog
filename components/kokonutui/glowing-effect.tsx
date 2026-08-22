@@ -17,6 +17,93 @@ interface GlowingEffectProps {
   borderWidth?: number;
 }
 
+type Instance = {
+  container: HTMLDivElement;
+  glow: HTMLDivElement;
+  inactiveZone: number;
+  proximity: number;
+  lastAngle: number;
+};
+
+// A single shared document-level pointermove listener serves every
+// GlowingEffect instance, rAF-throttled and read/write-batched: all
+// instances' getBoundingClientRect() calls happen before any style
+// writes, so N cards never cause N interleaved layout reflows.
+const instances = new Set<Instance>();
+let pointerX = 0;
+let pointerY = 0;
+let rafId: number | null = null;
+let listenerAttached = false;
+
+function processFrame() {
+  rafId = null;
+  const rects = new Map<Instance, DOMRect>();
+  for (const instance of instances) {
+    rects.set(instance, instance.container.getBoundingClientRect());
+  }
+  for (const instance of instances) {
+    const { left, top, width, height } = rects.get(instance)!;
+    const centerX = left + width / 2;
+    const centerY = top + height / 2;
+    const distanceFromCenter = Math.hypot(pointerX - centerX, pointerY - centerY);
+    const inactiveRadius = 0.5 * Math.min(width, height) * instance.inactiveZone;
+
+    const withinProximity =
+      pointerX > left - instance.proximity &&
+      pointerX < left + width + instance.proximity &&
+      pointerY > top - instance.proximity &&
+      pointerY < top + height + instance.proximity;
+
+    if (distanceFromCenter < inactiveRadius || !withinProximity) {
+      instance.container.style.setProperty("--active", "0");
+      continue;
+    }
+
+    instance.container.style.setProperty("--active", "1");
+
+    const targetAngle =
+      (180 * Math.atan2(pointerY - centerY, pointerX - centerX)) / Math.PI + 90;
+    // Shortest angular path so the transition never spins the long way around.
+    const delta = (((targetAngle - instance.lastAngle + 180) % 360) + 360) % 360 - 180;
+    const newAngle = instance.lastAngle + delta;
+    instance.lastAngle = newAngle;
+    instance.container.style.setProperty("--start", `${newAngle}deg`);
+    // --start is registered with `inherits: false` (required for the CSS
+    // transition to animate smoothly), so it must also be set directly on
+    // the descendant that reads it in its ::after mask-image, or the angle
+    // would stay frozen at the initial 0deg.
+    instance.glow.style.setProperty("--start", `${newAngle}deg`);
+  }
+}
+
+function handlePointerMove(e: PointerEvent) {
+  pointerX = e.clientX;
+  pointerY = e.clientY;
+  if (rafId === null) {
+    rafId = requestAnimationFrame(processFrame);
+  }
+}
+
+function registerInstance(instance: Instance) {
+  instances.add(instance);
+  if (!listenerAttached) {
+    document.body.addEventListener("pointermove", handlePointerMove, { passive: true });
+    listenerAttached = true;
+  }
+}
+
+function unregisterInstance(instance: Instance) {
+  instances.delete(instance);
+  if (instances.size === 0 && listenerAttached) {
+    document.body.removeEventListener("pointermove", handlePointerMove);
+    listenerAttached = false;
+    if (rafId !== null) {
+      cancelAnimationFrame(rafId);
+      rafId = null;
+    }
+  }
+}
+
 function GlowingEffectComponent({
   blur = 0,
   inactiveZone = 0.7,
@@ -31,49 +118,16 @@ function GlowingEffectComponent({
 }: GlowingEffectProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const glowRef = useRef<HTMLDivElement>(null);
-  const lastAngleRef = useRef(0);
 
   useEffect(() => {
     if (disabled) return;
-    const element = containerRef.current;
-    if (!element) return;
+    const container = containerRef.current;
+    const glowEl = glowRef.current;
+    if (!container || !glowEl) return;
 
-    const handlePointerMove = (e: PointerEvent) => {
-      const { left, top, width, height } = element.getBoundingClientRect();
-      const centerX = left + width / 2;
-      const centerY = top + height / 2;
-      const distanceFromCenter = Math.hypot(e.clientX - centerX, e.clientY - centerY);
-      const inactiveRadius = 0.5 * Math.min(width, height) * inactiveZone;
-
-      const withinProximity =
-        e.clientX > left - proximity &&
-        e.clientX < left + width + proximity &&
-        e.clientY > top - proximity &&
-        e.clientY < top + height + proximity;
-
-      if (distanceFromCenter < inactiveRadius || !withinProximity) {
-        element.style.setProperty("--active", "0");
-        return;
-      }
-
-      element.style.setProperty("--active", "1");
-
-      const targetAngle =
-        (180 * Math.atan2(e.clientY - centerY, e.clientX - centerX)) / Math.PI + 90;
-      // Shortest angular path so the transition never spins the long way around.
-      const delta = (((targetAngle - lastAngleRef.current + 180) % 360) + 360) % 360 - 180;
-      const newAngle = lastAngleRef.current + delta;
-      lastAngleRef.current = newAngle;
-      element.style.setProperty("--start", `${newAngle}deg`);
-      // --start is registered with `inherits: false` (required for the CSS
-      // transition to animate smoothly), so it must also be set directly on
-      // the descendant that reads it in its ::after mask-image, or the angle
-      // would stay frozen at the initial 0deg.
-      glowRef.current?.style.setProperty("--start", `${newAngle}deg`);
-    };
-
-    document.body.addEventListener("pointermove", handlePointerMove, { passive: true });
-    return () => document.body.removeEventListener("pointermove", handlePointerMove);
+    const instance: Instance = { container, glow: glowEl, inactiveZone, proximity, lastAngle: 0 };
+    registerInstance(instance);
+    return () => unregisterInstance(instance);
   }, [disabled, inactiveZone, proximity]);
 
   const gradient =
