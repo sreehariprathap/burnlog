@@ -16,6 +16,8 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BarChart } from 'lucide-react';
 import type { LifestyleAnswers } from '@/lib/ai/types';
+import { PlanViewToggle } from '@/components/kokonutui/plan-view-toggle';
+import { nearestPastOrTodayWeekday } from '@/lib/date';
 
 export default function SessionsPage() {
   const supabase = createClientComponentClient();
@@ -28,6 +30,8 @@ export default function SessionsPage() {
   const [profileId, setProfileId] = useState<string | null>(null);
   const [lifestyle, setLifestyle] = useState<LifestyleAnswers | null>(null);
   const [loadingPlan, setLoadingPlan] = useState<boolean>(true);
+  const [view, setView] = useState<'day' | 'month'>('day');
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   // 1️⃣ Get current user
   useEffect(() => {
@@ -132,8 +136,24 @@ export default function SessionsPage() {
             <span className="hidden sm:inline">History</span>
           </Button>
         }/>
+      <div className="sticky top-14 z-10 border-b bg-background/80 px-4 py-2 backdrop-blur">
+        <PlanViewToggle view={view} onChange={setView} />
+      </div>
+
+      {view === 'month' ? (
+        <div className="p-4">
+          <p className="text-sm text-muted-foreground">Month view coming soon.</p>
+        </div>
+      ) : (
+        <>
       <div className="flex w-full gap-2 items-center px-4 py-2">
-        <DayNavigator value={day} onChange={setDay} />
+        <DayNavigator
+          value={day}
+          onChange={(newDay) => {
+            setDay(newDay);
+            setSelectedDate(nearestPastOrTodayWeekday(newDay));
+          }}
+        />
       </div>
 
       <div className="p-4 space-y-4">
@@ -163,6 +183,8 @@ export default function SessionsPage() {
           </>
         )}
       </div>
+        </>
+      )}
 
       <AddWorkoutModal
         open={showAddModal}
