@@ -7,7 +7,6 @@ import { TopBar } from '@/components/TopBar';
 import { BottomNav } from '@/components/BottomNav';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { SetGoalsPrompt } from './_components/SetGoalsPrompt';
-import { PushNotificationPrompt } from './_components/PushNotificationPrompt';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BMIWidget } from './_components/BMIWidget';
 import { WorkoutPieChart } from './_components/WorkoutPieChart';
@@ -113,9 +112,6 @@ export default function DashboardPage() {
     <div className="pb-16">
       <TopBar title="Dashboard" />
       <main className="p-4 mt-4 space-y-6">
-        {/* Push Notification Prompt */}
-        <PushNotificationPrompt />
-
         {/* Install App Prompt */}
         {isInstallable && (
           <Card className="mb-4 border-amber-200 bg-amber-50 dark:border-amber-700 dark:bg-amber-900">
