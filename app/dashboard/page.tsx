@@ -14,6 +14,7 @@ import { WorkoutPieChart } from './_components/WorkoutPieChart';
 import { GoalProgressWidget } from './_components/GoalProgressWidget';
 import { ShortcutWidget } from './_components/ShortcutWidget';
 import { DailyRingsWidget } from './_components/DailyRingsWidget';
+import { ConsistencyTracker } from './_components/ConsistencyTracker';
 import { QuickLogFab } from './_components/QuickLogFab';
 import { ActionSearchBar } from '@/components/kokonutui/action-search-bar';
 
@@ -163,7 +164,19 @@ export default function DashboardPage() {
             )}
           </CardContent>
         </Card>
-        
+
+        {/* Consistency Tracker */}
+        {userProfile && (
+          <ConsistencyTracker
+            profileId={userProfile.id}
+            currentStreak={userProfile.currentStreak}
+            xp={userProfile.xp}
+            level={userProfile.level}
+            lastConsistencyBonusWeek={userProfile.lastConsistencyBonusWeek}
+            refreshKey={refreshKey}
+          />
+        )}
+
         {/* Daily Rings */}
         {userProfile && (
           <DailyRingsWidget profileId={userProfile.id} refreshKey={refreshKey} />

@@ -27,6 +27,7 @@ model Profile {
   level           Int       @default(1)
   lastSessionDate DateTime? @db.Date
   avatarUrl       String?
+  lastConsistencyBonusWeek String?
 
   FitnessGoal    FitnessGoal[]
   Workout        Workout[]
