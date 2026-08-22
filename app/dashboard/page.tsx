@@ -106,10 +106,10 @@ export default function DashboardPage() {
   
   // Example workout data for pie chart
   const workoutData = [
-    { name: 'Push', value: 3, color: '#3B82F6' },
-    { name: 'Pull', value: 2, color: '#10B981' },
-    { name: 'Legs', value: 2, color: '#F59E0B' },
-    { name: 'Rest', value: 1, color: '#A1A1AA' },
+    { name: 'Push', value: 3, color: 'var(--chart-1)' },
+    { name: 'Pull', value: 2, color: 'var(--chart-3)' },
+    { name: 'Legs', value: 2, color: 'var(--chart-2)' },
+    { name: 'Rest', value: 1, color: 'var(--chart-5)' },
   ];
 
   return (
