@@ -26,6 +26,7 @@ model Profile {
   xp              Int       @default(0)
   level           Int       @default(1)
   lastSessionDate DateTime? @db.Date
+  avatarUrl       String?
 
   FitnessGoal    FitnessGoal[]
   Workout        Workout[]
