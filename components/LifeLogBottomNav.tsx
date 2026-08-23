@@ -17,7 +17,7 @@ const tabs = [
 
 export function LifeLogBottomNav() {
   const pathname = usePathname();
-  const isProfileActive = pathname === '/lifelog/profile' || pathname.startsWith('/lifelog/profile/');
+  const isProfileActive = pathname === '/profile' || pathname.startsWith('/profile/');
 
   return (
     <nav

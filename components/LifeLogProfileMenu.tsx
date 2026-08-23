@@ -56,7 +56,7 @@ export function LifeLogProfileMenu({ isActive }: LifeLogProfileMenuProps) {
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent side="top" align="center">
-        <DropdownMenuItem onClick={() => router.push('/lifelog/profile')}>
+        <DropdownMenuItem onClick={() => router.push('/profile')}>
           <UserIcon className="size-4" />
           Profile
         </DropdownMenuItem>

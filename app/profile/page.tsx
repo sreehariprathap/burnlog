@@ -16,9 +16,10 @@ import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TopBar } from '@/components/TopBar';
 import { BottomNav } from '@/components/BottomNav';
+import { LifeLogBottomNav } from '@/components/LifeLogBottomNav';
 import { sendRealTestNotification } from '@/lib/pushNotification';
 import { Switch } from '@/components/ui/switch';
-import { APPS, AppId, getDefaultApp, setDefaultApp } from '@/lib/appMode';
+import { APPS, AppId, getActiveApp, getDefaultApp, setDefaultApp } from '@/lib/appMode';
 
 export default function ProfilePage() {
   const supabase = createClientComponentClient();
@@ -36,9 +37,11 @@ export default function ProfilePage() {
   const [showAiModelSettings, setShowAiModelSettings] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [defaultApp, setDefaultAppState] = useState<AppId>('burnlog');
+  const [activeApp, setActiveAppState] = useState<AppId>('burnlog');
 
   useEffect(() => {
     setDefaultAppState(getDefaultApp());
+    setActiveAppState(getActiveApp());
   }, []);
 
   function handleSetDefaultApp(app: AppId) {
@@ -265,159 +268,167 @@ export default function ProfilePage() {
               </Card>
 
               {/* Health Metrics */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Health Metrics</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Accordion type="single" collapsible>
-                    <AccordionItem value="bmi">
-                      <AccordionTrigger>
-                        BMI: {+(profile.weight/((profile.height/100)*(profile.height/100))).toFixed(1)} ({profile.weight/((profile.height/100)*(profile.height/100)) < 18.5 ? 'Underweight' : profile.weight/((profile.height/100)*(profile.height/100)) < 25 ? 'Normal' : profile.weight/((profile.height/100)*(profile.height/100)) < 30 ? 'Overweight' : 'Obese'})
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <p>Your BMI category is <strong>{profile.weight/((profile.height/100)*(profile.height/100)) < 18.5 ? 'Underweight' : profile.weight/((profile.height/100)*(profile.height/100)) < 25 ? 'Normal' : profile.weight/((profile.height/100)*(profile.height/100)) < 30 ? 'Overweight' : 'Obese'}</strong>.</p>
-                        <div className="h-2 bg-gray-200 rounded-full mt-2">
-                          <div
-                            className="h-2 bg-blue-500 rounded-full"
-                            style={{ width: `${(+(profile.weight/((profile.height/100)*(profile.height/100))).toFixed(1)/40)*100}%` }}
-                          />
-                        </div>
-                        <p className="text-sm  mt-1">
-                          Underweight &lt;18.5 | Normal 18.5–24.9 | Overweight 25–29.9 | Obese 30+
-                        </p>
-                      </AccordionContent>
-                    </AccordionItem>
-                    <AccordionItem value="bmr">
-                      <AccordionTrigger>
-                        BMR: {Math.round(10*profile.weight +6.25*profile.height -5*profile.age +5)} kcal/day
-                      </AccordionTrigger>
-                      <AccordionContent>
-                        <p>Your Basal Metabolic Rate: <strong>{Math.round(10*profile.weight +6.25*profile.height -5*profile.age +5)}</strong> kcal/day.</p>
-                        <div className="h-2 bg-gray-200 rounded-full mt-2">
-                          <div
-                            className="h-2 bg-green-500 rounded-full"
-                            style={{ width: `${Math.min(Math.round(10*profile.weight +6.25*profile.height -5*profile.age +5)/3000,1)*100}%` }}
-                          />
-                        </div>
-                        <p className="text-sm mt-1">
-                          Avg male 1600–2400 | Avg female 1400–2000 kcal/day
-                        </p>
-                      </AccordionContent>
-                    </AccordionItem>
-                  </Accordion>
-                </CardContent>
-              </Card>
+              {activeApp === 'burnlog' && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Health Metrics</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Accordion type="single" collapsible>
+                      <AccordionItem value="bmi">
+                        <AccordionTrigger>
+                          BMI: {+(profile.weight/((profile.height/100)*(profile.height/100))).toFixed(1)} ({profile.weight/((profile.height/100)*(profile.height/100)) < 18.5 ? 'Underweight' : profile.weight/((profile.height/100)*(profile.height/100)) < 25 ? 'Normal' : profile.weight/((profile.height/100)*(profile.height/100)) < 30 ? 'Overweight' : 'Obese'})
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <p>Your BMI category is <strong>{profile.weight/((profile.height/100)*(profile.height/100)) < 18.5 ? 'Underweight' : profile.weight/((profile.height/100)*(profile.height/100)) < 25 ? 'Normal' : profile.weight/((profile.height/100)*(profile.height/100)) < 30 ? 'Overweight' : 'Obese'}</strong>.</p>
+                          <div className="h-2 bg-gray-200 rounded-full mt-2">
+                            <div
+                              className="h-2 bg-blue-500 rounded-full"
+                              style={{ width: `${(+(profile.weight/((profile.height/100)*(profile.height/100))).toFixed(1)/40)*100}%` }}
+                            />
+                          </div>
+                          <p className="text-sm  mt-1">
+                            Underweight &lt;18.5 | Normal 18.5–24.9 | Overweight 25–29.9 | Obese 30+
+                          </p>
+                        </AccordionContent>
+                      </AccordionItem>
+                      <AccordionItem value="bmr">
+                        <AccordionTrigger>
+                          BMR: {Math.round(10*profile.weight +6.25*profile.height -5*profile.age +5)} kcal/day
+                        </AccordionTrigger>
+                        <AccordionContent>
+                          <p>Your Basal Metabolic Rate: <strong>{Math.round(10*profile.weight +6.25*profile.height -5*profile.age +5)}</strong> kcal/day.</p>
+                          <div className="h-2 bg-gray-200 rounded-full mt-2">
+                            <div
+                              className="h-2 bg-green-500 rounded-full"
+                              style={{ width: `${Math.min(Math.round(10*profile.weight +6.25*profile.height -5*profile.age +5)/3000,1)*100}%` }}
+                            />
+                          </div>
+                          <p className="text-sm mt-1">
+                            Avg male 1600–2400 | Avg female 1400–2000 kcal/day
+                          </p>
+                        </AccordionContent>
+                      </AccordionItem>
+                    </Accordion>
+                  </CardContent>
+                </Card>
+              )}
             </div>
 
-            <div className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Flame className="w-5 h-5 text-orange-500" />
-                    Level {profile.level}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div>
-                    <div className="flex justify-between text-sm mb-1">
-                      <span>{profile.xp} xp</span>
-                      <span>{100 - (profile.xp % 100)} xp to next level</span>
+            {activeApp === 'burnlog' && (
+              <div className="mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Flame className="w-5 h-5 text-orange-500" />
+                      Level {profile.level}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <div>
+                      <div className="flex justify-between text-sm mb-1">
+                        <span>{profile.xp} xp</span>
+                        <span>{100 - (profile.xp % 100)} xp to next level</span>
+                      </div>
+                      <div className="h-2 bg-gray-200 rounded-full">
+                        <div
+                          className="h-2 bg-orange-500 rounded-full"
+                          style={{ width: `${(profile.xp % 100)}%` }}
+                        />
+                      </div>
                     </div>
-                    <div className="h-2 bg-gray-200 rounded-full">
-                      <div
-                        className="h-2 bg-orange-500 rounded-full"
-                        style={{ width: `${(profile.xp % 100)}%` }}
+                    <div className="flex justify-between text-sm">
+                      <span>Current streak: <strong>{profile.currentStreak}</strong> day{profile.currentStreak === 1 ? '' : 's'}</span>
+                      <span>Longest: <strong>{profile.longestStreak}</strong> day{profile.longestStreak === 1 ? '' : 's'}</span>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {activeApp === 'burnlog' && (
+              <div className="mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Sparkles className="w-5 h-5 text-amber-500" />
+                      AI Insights
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <p className="text-sm text-muted-foreground">
+                      {profile.aiEnabled
+                        ? 'AI-powered suggestions are enabled for your account.'
+                        : 'Enable AI to get a personalized workout plan based on your lifestyle.'}
+                    </p>
+                    {profile.aiEnabled ? (
+                      <Button variant="outline" onClick={handleDisableAi} disabled={disablingAi}>
+                        {disablingAi ? 'Disabling...' : 'Disable AI Insights'}
+                      </Button>
+                    ) : (
+                      <Button onClick={() => router.push('/ai-setup?returnTo=/profile')}>
+                        Enable AI Insights
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {activeApp === 'burnlog' && (
+              <div className="mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <GlassWater className="w-5 h-5 text-primary" />
+                      Water Tracking
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">Unit</span>
+                      <Select
+                        value={profile.waterUnit}
+                        onValueChange={(value) => handleWaterSettingChange('waterUnit', value)}
+                      >
+                        <SelectTrigger className="w-32">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="glasses">Glasses</SelectItem>
+                          <SelectItem value="liters">Liters</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">Glass size (ml)</span>
+                      <input
+                        type="number"
+                        min={50}
+                        max={1000}
+                        defaultValue={profile.glassSizeMl}
+                        onBlur={(e) => handleWaterSettingChange('glassSizeMl', Number(e.target.value))}
+                        className="w-24 rounded-md border bg-background px-2 py-1 text-right"
                       />
                     </div>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Current streak: <strong>{profile.currentStreak}</strong> day{profile.currentStreak === 1 ? '' : 's'}</span>
-                    <span>Longest: <strong>{profile.longestStreak}</strong> day{profile.longestStreak === 1 ? '' : 's'}</span>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+                    <div className="flex items-center justify-between">
+                      <span className="font-medium">Daily goal (ml)</span>
+                      <input
+                        type="number"
+                        min={500}
+                        max={10000}
+                        step={250}
+                        defaultValue={profile.waterGoalMl}
+                        onBlur={(e) => handleWaterSettingChange('waterGoalMl', Number(e.target.value))}
+                        className="w-24 rounded-md border bg-background px-2 py-1 text-right"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
 
-            <div className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Sparkles className="w-5 h-5 text-amber-500" />
-                    AI Insights
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <p className="text-sm text-muted-foreground">
-                    {profile.aiEnabled
-                      ? 'AI-powered suggestions are enabled for your account.'
-                      : 'Enable AI to get a personalized workout plan based on your lifestyle.'}
-                  </p>
-                  {profile.aiEnabled ? (
-                    <Button variant="outline" onClick={handleDisableAi} disabled={disablingAi}>
-                      {disablingAi ? 'Disabling...' : 'Disable AI Insights'}
-                    </Button>
-                  ) : (
-                    <Button onClick={() => router.push('/ai-setup?returnTo=/profile')}>
-                      Enable AI Insights
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="mt-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <GlassWater className="w-5 h-5 text-primary" />
-                    Water Tracking
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">Unit</span>
-                    <Select
-                      value={profile.waterUnit}
-                      onValueChange={(value) => handleWaterSettingChange('waterUnit', value)}
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="glasses">Glasses</SelectItem>
-                        <SelectItem value="liters">Liters</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">Glass size (ml)</span>
-                    <input
-                      type="number"
-                      min={50}
-                      max={1000}
-                      defaultValue={profile.glassSizeMl}
-                      onBlur={(e) => handleWaterSettingChange('glassSizeMl', Number(e.target.value))}
-                      className="w-24 rounded-md border bg-background px-2 py-1 text-right"
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">Daily goal (ml)</span>
-                    <input
-                      type="number"
-                      min={500}
-                      max={10000}
-                      step={250}
-                      defaultValue={profile.waterGoalMl}
-                      onBlur={(e) => handleWaterSettingChange('waterGoalMl', Number(e.target.value))}
-                      className="w-24 rounded-md border bg-background px-2 py-1 text-right"
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            {profile.isAdmin && (
+            {activeApp === 'burnlog' && profile.isAdmin && (
               <div className="mt-6">
                 <Card>
                   <CardHeader>
@@ -438,7 +449,7 @@ export default function ProfilePage() {
               </div>
             )}
 
-            {profile.isAdmin && (
+            {activeApp === 'burnlog' && profile.isAdmin && (
               <div className="mt-6">
                 <Card>
                   <CardHeader>
@@ -461,7 +472,7 @@ export default function ProfilePage() {
               </div>
             )}
 
-            {profile.isAdmin && (
+            {activeApp === 'burnlog' && profile.isAdmin && (
               <div className="mt-6">
                 <Card>
                   <CardHeader>
@@ -495,9 +506,13 @@ export default function ProfilePage() {
           </>
         )}
       </main>
-      <OnboardingPageTogglesModal open={showPageToggles} onOpenChange={setShowPageToggles} />
-      <AiModelSettingsModal open={showAiModelSettings} onOpenChange={setShowAiModelSettings} />
-      <BottomNav />
+      {activeApp === 'burnlog' && (
+        <>
+          <OnboardingPageTogglesModal open={showPageToggles} onOpenChange={setShowPageToggles} />
+          <AiModelSettingsModal open={showAiModelSettings} onOpenChange={setShowAiModelSettings} />
+        </>
+      )}
+      {activeApp === 'lifelog' ? <LifeLogBottomNav /> : <BottomNav />}
     </div>
   );
 }
