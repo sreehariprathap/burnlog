@@ -6,14 +6,16 @@ interface LifeLogMarkProps {
   className?: string;
 }
 
-// Fixed green, independent of the ambient theme (`bg-primary` would render
+// Fixed green, independent of the ambient theme (`text-primary` would render
 // orange when this is shown from a BurnLog page, since `.app-lifelog` isn't
-// applied there and --primary still resolves to BurnLog's palette).
+// applied there and --primary still resolves to BurnLog's palette). Plain
+// letterform to match how the BurnLog "B" mark (/B.png) reads — bold glyph,
+// no background badge.
 export function LifeLogMark({ size = 20, className }: LifeLogMarkProps) {
   return (
     <span
-      className={cn('inline-flex items-center justify-center rounded-md border-0 bg-emerald-500 font-bold text-white leading-none', className)}
-      style={{ width: size, height: size, fontSize: size * 0.65 }}
+      className={cn('inline-flex items-center justify-center font-bold leading-none text-emerald-500', className)}
+      style={{ width: size, height: size, fontSize: size * 0.9 }}
       aria-hidden="true"
     >
       L
