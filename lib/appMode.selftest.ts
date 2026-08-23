@@ -1,5 +1,6 @@
 // lib/appMode.selftest.ts
 /* eslint-disable @typescript-eslint/no-explicit-any */
+export {};
 
 class FakeStorage {
   private store = new Map<string, string>();

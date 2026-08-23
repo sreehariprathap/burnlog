@@ -1,4 +1,6 @@
 // lib/financeGoalProgress.selftest.ts
+export {};
+
 async function main() {
   const { computeGoalProgress } = await import('./financeGoalProgress');
 

@@ -1,4 +1,6 @@
 // lib/financePeriods.selftest.ts
+export {};
+
 async function main() {
   const { getPeriodRange, expandRecurringInRange } = await import('./financePeriods');
 
