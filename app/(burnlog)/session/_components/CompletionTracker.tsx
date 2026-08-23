@@ -125,9 +125,9 @@ export function CompletionTracker({ plan, exerciseLog, onComplete }: CompletionT
         const leveledUp = newLevel > profileData.level;
         const streakMilestone = newStreak > 0 && (newStreak % 7 === 0 || newStreak === 100);
 
-        const stats = [`+${xpGained} XP`, `🔥 ${newStreak} day streak`];
-        if (newStreak > profileData.longestStreak) stats.push('🏆 New record!');
-        if (leveledUp) stats.push(`⭐ Level ${newLevel}!`);
+        const stats = [`+${xpGained} XP`, `${newStreak} day streak`];
+        if (newStreak > profileData.longestStreak) stats.push('New record!');
+        if (leveledUp) stats.push(`Level ${newLevel}!`);
 
         setAchievement({ stats, celebrate: leveledUp || streakMilestone });
         return;

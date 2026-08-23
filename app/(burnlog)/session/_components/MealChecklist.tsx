@@ -6,7 +6,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCw, UtensilsCrossed, Sparkles, Clock, Sunrise, Sun, Moon, Apple } from 'lucide-react';
 import { AiLoading } from '@/components/kokonutui/ai-loading';
 import { toLocalDateString } from '@/lib/date';
 
@@ -24,10 +24,16 @@ type MealEntry = {
 
 const MEAL_ORDER = ['breakfast', 'lunch', 'dinner', 'snack'];
 const MEAL_LABEL: Record<string, string> = {
-  breakfast: '🌅 Breakfast',
-  lunch: '☀️ Lunch',
-  dinner: '🌙 Dinner',
-  snack: '🍎 Snack',
+  breakfast: 'Breakfast',
+  lunch: 'Lunch',
+  dinner: 'Dinner',
+  snack: 'Snack',
+};
+const MEAL_ICON: Record<string, typeof Sunrise> = {
+  breakfast: Sunrise,
+  lunch: Sun,
+  dinner: Moon,
+  snack: Apple,
 };
 
 type MealChecklistProps = {
@@ -151,7 +157,10 @@ export function MealChecklist({ profileId, dayOfWeek, selectedDate }: MealCheckl
     return (
       <Card>
         <CardHeader>
-          <CardTitle>🍽️ Meals</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <UtensilsCrossed className="h-5 w-5" />
+            Meals
+          </CardTitle>
           <p className="text-sm text-muted-foreground">
             AI-powered 7-day meal plan tailored to your goals and preferences.
           </p>
@@ -162,8 +171,9 @@ export function MealChecklist({ profileId, dayOfWeek, selectedDate }: MealCheckl
               {error}
             </div>
           )}
-          <Button onClick={handleGenerate} className="w-full" size="lg">
-            ✨ Generate My Meal Plan
+          <Button onClick={handleGenerate} className="w-full gap-2" size="lg">
+            <Sparkles className="h-4 w-4" />
+            Generate My Meal Plan
           </Button>
         </CardContent>
       </Card>
@@ -174,7 +184,10 @@ export function MealChecklist({ profileId, dayOfWeek, selectedDate }: MealCheckl
     <Card>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle>🍽️ Meals</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <UtensilsCrossed className="h-5 w-5" />
+            Meals
+          </CardTitle>
           <Button variant="ghost" size="sm" onClick={handleGenerate} title="Regenerate">
             <RefreshCw className="h-4 w-4" />
           </Button>
@@ -196,11 +209,18 @@ export function MealChecklist({ profileId, dayOfWeek, selectedDate }: MealCheckl
             />
             <div className="flex-1 space-y-1">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                <span className="flex items-center gap-1 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                  {(() => {
+                    const MealIcon = MEAL_ICON[meal.mealType];
+                    return MealIcon ? <MealIcon className="h-3 w-3" /> : null;
+                  })()}
                   {MEAL_LABEL[meal.mealType] ?? meal.mealType}
                 </span>
                 {meal.prepMinutes ? (
-                  <span className="text-[10px] text-muted-foreground">⏱ {meal.prepMinutes} min</span>
+                  <span className="flex items-center gap-1 text-[10px] text-muted-foreground">
+                    <Clock className="h-3 w-3" />
+                    {meal.prepMinutes} min
+                  </span>
                 ) : null}
               </div>
               <p className="font-medium text-sm">{meal.name}</p>

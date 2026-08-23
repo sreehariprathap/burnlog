@@ -3,7 +3,7 @@
 
 import React, { useState, useMemo } from 'react';
 import Image from 'next/image';
-import { Info } from 'lucide-react';
+import { Info, CheckCircle2 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
@@ -54,8 +54,8 @@ export function FullBodyLogger({ userEquipment, onEnd }: FullBodyLoggerProps) {
         <CardContent className="space-y-8">
           {groups.map((group, i) => (
             <div key={group} className="mb-6">
-              <Label className="font-semibold text-lg mb-2 block">
-                {group} {groupDone[i] && '✅'}
+              <Label className="font-semibold text-lg mb-2 flex items-center gap-2">
+                {group} {groupDone[i] && <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
               </Label>
               <div className="grid grid-cols-2 gap-4 mt-2">
                 {exercisesByGroup[group].map((ex) => (

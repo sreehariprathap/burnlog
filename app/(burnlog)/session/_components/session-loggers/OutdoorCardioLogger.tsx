@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { TreePine } from 'lucide-react';
 
 import type { LifestyleAnswers } from '@/lib/ai/types';
 
@@ -52,7 +53,10 @@ export function OutdoorCardioLogger({ lifestyle, onEnd }: OutdoorCardioLoggerPro
     <div className="p-4">
       <Card>
         <CardHeader>
-          <CardTitle>🌳 Outdoor Cardio</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <TreePine className="h-5 w-5" />
+            Outdoor Cardio
+          </CardTitle>
           <p className="text-sm text-muted-foreground">Log your outdoor session</p>
         </CardHeader>
         <CardContent className="space-y-5">
@@ -122,7 +126,7 @@ export function OutdoorCardioLogger({ lifestyle, onEnd }: OutdoorCardioLoggerPro
 
           <div className="flex justify-end">
             <Button onClick={() => onEnd({ activityType, durationMinutes, distanceKm, notes, extras })} disabled={!sessionSuccess}>
-              Finish Outdoor Session 🏃
+              Finish Outdoor Session
             </Button>
           </div>
         </CardContent>

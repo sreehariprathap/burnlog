@@ -2,7 +2,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Info } from 'lucide-react';
+import { Info, Home, CheckCircle2 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
@@ -46,7 +46,10 @@ export function BodyweightLogger({ userEquipment, onEnd }: BodyweightLoggerProps
     <div className="p-6">
       <Card className="shadow-lg">
         <CardHeader className="pb-2">
-          <CardTitle className="text-2xl">🏠 Bodyweight Session</CardTitle>
+          <CardTitle className="text-2xl flex items-center gap-2">
+            <Home className="h-5 w-5" />
+            Bodyweight Session
+          </CardTitle>
           <p className="text-sm text-muted-foreground mt-1">
             {hasHomeGear.length > 0
               ? `Using: ${hasHomeGear.join(', ')}`
@@ -60,7 +63,7 @@ export function BodyweightLogger({ userEquipment, onEnd }: BodyweightLoggerProps
           {categories.map((cat, i) => (
             <div key={cat} className="mb-6">
               <Label className="text-lg font-semibold mb-3 flex items-center">
-                {cat} {catDone[i] && <span className="ml-2 text-green-500">✅</span>}
+                {cat} {catDone[i] && <CheckCircle2 className="ml-2 h-4 w-4 text-emerald-500" />}
               </Label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
                 {exercisesByGroup[cat].map((ex) => (
@@ -95,7 +98,7 @@ export function BodyweightLogger({ userEquipment, onEnd }: BodyweightLoggerProps
 
           <div className="flex justify-end pt-4">
             <Button onClick={() => onEnd(checks)} disabled={!sessionSuccess} className="px-6">
-              {sessionSuccess ? 'Finish Session 🎉' : 'Complete 3 per category'}
+              {sessionSuccess ? 'Finish Session' : 'Complete 3 per category'}
             </Button>
           </div>
         </CardContent>

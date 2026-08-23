@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Bike, Footprints, CheckCircle2 } from 'lucide-react';
 
 import type { CommuteDetails } from '@/lib/ai/types';
 
@@ -49,7 +50,10 @@ export function ActiveCommuteLogger({ commuteDetails, onEnd }: ActiveCommuteLogg
     <div className="p-4">
       <Card>
         <CardHeader>
-          <CardTitle>🚴 Active Commute</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            {mode === 'cycle' ? <Bike className="h-5 w-5" /> : <Footprints className="h-5 w-5" />}
+            Active Commute
+          </CardTitle>
           <p className="text-sm text-muted-foreground">Your commute counts — log it as your workout.</p>
         </CardHeader>
         <CardContent className="space-y-5">
@@ -58,8 +62,12 @@ export function ActiveCommuteLogger({ commuteDetails, onEnd }: ActiveCommuteLogg
             <Select value={mode} onValueChange={(v) => setMode(v as 'walk' | 'cycle')}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="walk">🚶 Walking</SelectItem>
-                <SelectItem value="cycle">🚴 Cycling</SelectItem>
+                <SelectItem value="walk">
+                  <span className="flex items-center gap-2"><Footprints className="h-4 w-4" /> Walking</span>
+                </SelectItem>
+                <SelectItem value="cycle">
+                  <span className="flex items-center gap-2"><Bike className="h-4 w-4" /> Cycling</span>
+                </SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -142,7 +150,8 @@ export function ActiveCommuteLogger({ commuteDetails, onEnd }: ActiveCommuteLogg
               }
               disabled={distanceKmPerTrip <= 0 || durationMinutesPerTrip <= 0}
             >
-              Log Commute ✅
+              Log Commute
+              <CheckCircle2 className="ml-2 h-4 w-4" />
             </Button>
           </div>
         </CardContent>

@@ -3,7 +3,7 @@
 
 import React, { useState, useMemo } from 'react';
 import Image from 'next/image';
-import { Info } from 'lucide-react';
+import { Info, CheckCircle2 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
@@ -61,7 +61,7 @@ export function PushPullLegLogger({ bodyPart, userEquipment, onEnd }: PushPullLe
           {muscles.map((muscle, i) => (
             <div key={muscle} className="mb-6">
               <Label className="text-lg font-semibold mb-3 flex items-center">
-                {muscle} {muscleDone[i] && <span className="ml-2 text-green-500">✅</span>}
+                {muscle} {muscleDone[i] && <CheckCircle2 className="ml-2 h-4 w-4 text-emerald-500" />}
               </Label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
                 {exercisesByMuscle[muscle].map((ex) => (
@@ -94,7 +94,7 @@ export function PushPullLegLogger({ bodyPart, userEquipment, onEnd }: PushPullLe
 
           <div className="flex justify-end pt-4 mt-6">
             <Button onClick={() => onEnd(checks)} disabled={!sessionSuccess} className="px-6 py-2">
-              {sessionSuccess ? 'Finish Session 🎉' : 'Complete 3 per muscle'}
+              {sessionSuccess ? 'Finish Session' : 'Complete 3 per muscle'}
             </Button>
           </div>
         </CardContent>

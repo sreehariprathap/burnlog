@@ -14,6 +14,7 @@ import { categoryLabel } from '@/lib/financeCategories';
 import type { Period } from '@/lib/financePeriods';
 import { GetStartedCard } from './_components/GetStartedCard';
 import { NetSummaryCard } from './_components/NetSummaryCard';
+import { LifeLogFab } from './_components/LifeLogFab';
 
 const periodTabs: TabItem[] = [
   { id: 'weekly', icon: CalendarDays, label: 'Weekly', color: 'var(--chart-1)' },
@@ -38,12 +39,14 @@ function PeriodSlide({
   profileId,
   period,
   hasAnyData,
+  refreshKey,
 }: {
   profileId: string | null;
   period: Period;
   hasAnyData: boolean;
+  refreshKey: number;
 }) {
-  const data = useFinanceData(profileId, period);
+  const data = useFinanceData(profileId, period, refreshKey);
 
   return (
     <div className="flex flex-col gap-4">
@@ -62,6 +65,15 @@ export default function LifeLogHomePage() {
   const [profileId, setProfileId] = useState<string | null>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [hasAnyData, setHasAnyData] = useState(true);
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  const refreshData = async (id: string) => {
+    const [{ count: recurringCount }, { count: transactionCount }] = await Promise.all([
+      supabase.from('recurring_items').select('id', { count: 'exact', head: true }).eq('profileId', id),
+      supabase.from('finance_transactions').select('id', { count: 'exact', head: true }).eq('profileId', id),
+    ]);
+    setHasAnyData((recurringCount || 0) + (transactionCount || 0) > 0);
+  };
 
   useEffect(() => {
     (async () => {
@@ -72,12 +84,7 @@ export default function LifeLogHomePage() {
       const { data: profile } = await supabase.from('profiles').select('id').eq('userId', user.id).single();
       if (!profile) return;
       setProfileId(profile.id);
-
-      const [{ count: recurringCount }, { count: transactionCount }] = await Promise.all([
-        supabase.from('recurring_items').select('id', { count: 'exact', head: true }).eq('profileId', profile.id),
-        supabase.from('finance_transactions').select('id', { count: 'exact', head: true }).eq('profileId', profile.id),
-      ]);
-      setHasAnyData((recurringCount || 0) + (transactionCount || 0) > 0);
+      await refreshData(profile.id);
     })();
   }, [supabase]);
 
@@ -85,17 +92,26 @@ export default function LifeLogHomePage() {
     <div className="pb-24">
       <TopBar title="LifeLog" />
       <div className="sticky top-14 z-10 border-b bg-background/80 px-4 py-2 backdrop-blur">
-        <SmoothTabs items={periodTabs} selectedIndex={selectedIndex} onSelect={setSelectedIndex} />
+        <SmoothTabs items={periodTabs} selectedIndex={selectedIndex} onSelect={setSelectedIndex} showLabels />
       </div>
       <div className="px-4 py-2">
         <MotionCarousel
           selectedIndex={selectedIndex}
           onSelect={setSelectedIndex}
           slides={PERIODS.map((period) => (
-            <PeriodSlide key={period} profileId={profileId} period={period} hasAnyData={hasAnyData} />
+            <PeriodSlide key={period} profileId={profileId} period={period} hasAnyData={hasAnyData} refreshKey={refreshKey} />
           ))}
         />
       </div>
+      {profileId && (
+        <LifeLogFab
+          profileId={profileId}
+          onLogged={() => {
+            setRefreshKey((k) => k + 1);
+            refreshData(profileId);
+          }}
+        />
+      )}
       <LifeLogBottomNav />
     </div>
   );

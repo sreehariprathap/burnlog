@@ -17,9 +17,11 @@ type SmoothTabsProps = {
   selectedIndex: number;
   onSelect: (index: number) => void;
   className?: string;
+  /** Show the tab's text label next to its icon (widens the active pill). Defaults to icon-only. */
+  showLabels?: boolean;
 };
 
-export function SmoothTabs({ items, selectedIndex, onSelect, className }: SmoothTabsProps) {
+export function SmoothTabs({ items, selectedIndex, onSelect, className, showLabels }: SmoothTabsProps) {
   return (
     <div className={cn("flex items-center gap-1 overflow-x-auto", className)}>
       {items.map((item, index) => {
@@ -32,7 +34,10 @@ export function SmoothTabs({ items, selectedIndex, onSelect, className }: Smooth
             onClick={() => onSelect(index)}
             aria-label={item.label}
             aria-current={isActive}
-            className="relative flex shrink-0 items-center justify-center rounded-full p-2.5 transition-colors"
+            className={cn(
+              "relative flex shrink-0 items-center justify-center gap-1.5 rounded-full transition-colors",
+              showLabels ? "px-3 py-2" : "p-2.5"
+            )}
           >
             {isActive && (
               <motion.span
@@ -48,6 +53,16 @@ export function SmoothTabs({ items, selectedIndex, onSelect, className }: Smooth
                 isActive ? "text-white" : "text-muted-foreground"
               )}
             />
+            {showLabels && (
+              <span
+                className={cn(
+                  "relative z-10 text-sm font-medium",
+                  isActive ? "text-white" : "text-muted-foreground"
+                )}
+              >
+                {item.label}
+              </span>
+            )}
           </button>
         );
       })}

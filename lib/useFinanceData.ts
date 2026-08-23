@@ -22,7 +22,7 @@ const EMPTY_DATA: FinanceData = {
   loading: true,
 };
 
-export function useFinanceData(profileId: string | null, period: Period): FinanceData {
+export function useFinanceData(profileId: string | null, period: Period, refreshKey: number = 0): FinanceData {
   const supabase = createClientComponentClient();
   const [data, setData] = useState<FinanceData>(EMPTY_DATA);
 
@@ -75,7 +75,7 @@ export function useFinanceData(profileId: string | null, period: Period): Financ
       console.error('Error fetching finance data:', error);
       setData({ ...EMPTY_DATA, loading: false });
     }
-  }, [profileId, period, supabase]);
+  }, [profileId, period, supabase, refreshKey]);
 
   useEffect(() => {
     fetchData();
