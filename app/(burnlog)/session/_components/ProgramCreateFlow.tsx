@@ -1,7 +1,7 @@
 // app/(burnlog)/session/_components/ProgramCreateFlow.tsx
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,6 +21,12 @@ export function ProgramCreateFlow({ profileId, onCreated }: ProgramCreateFlowPro
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [generated, setGenerated] = useState<GeneratedProgram | null>(null);
+  // Synchronous guard against a double "Save" click firing two overlapping
+  // handleSave runs before the `saving` state re-render lands — without
+  // this, two interleaved delete+insert sequences can orphan a program's
+  // weeks (see final review). `saving` state alone doesn't close that
+  // same-tick window; this ref does.
+  const savingRef = useRef(false);
 
   const handleGenerate = async () => {
     setGenerating(true);
@@ -42,7 +48,8 @@ export function ProgramCreateFlow({ profileId, onCreated }: ProgramCreateFlowPro
   };
 
   const handleSave = async () => {
-    if (!generated) return;
+    if (!generated || savingRef.current) return;
+    savingRef.current = true;
     setSaving(true);
     setError(null);
     try {
@@ -92,6 +99,7 @@ export function ProgramCreateFlow({ profileId, onCreated }: ProgramCreateFlowPro
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save program');
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
   };
