@@ -25,8 +25,12 @@ export function ProfileMenu({ isActive }: ProfileMenuProps) {
 
   const handleLogout = async () => {
     setLoggingOut(true);
-    await supabase.auth.signOut();
-    router.push('/login');
+    try {
+      await supabase.auth.signOut();
+      router.push('/login');
+    } finally {
+      setLoggingOut(false);
+    }
   };
 
   return (
