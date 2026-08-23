@@ -14,6 +14,7 @@ import { WorkoutPieChart } from './_components/WorkoutPieChart';
 import { GoalProgressWidget } from './_components/GoalProgressWidget';
 import { ShortcutWidget } from './_components/ShortcutWidget';
 import { DailyRingsWidget } from './_components/DailyRingsWidget';
+import { WaterIntakeTracker } from '@/components/kokonutui/water-intake-tracker';
 import { ConsistencyTracker } from './_components/ConsistencyTracker';
 import { QuickLogFab } from './_components/QuickLogFab';
 import { ActionSearchBar } from '@/components/kokonutui/action-search-bar';
@@ -180,6 +181,16 @@ export default function DashboardPage() {
         {/* Daily Rings */}
         {userProfile && (
           <DailyRingsWidget profileId={userProfile.id} refreshKey={refreshKey} />
+        )}
+
+        {/* Water Intake */}
+        {userProfile && (
+          <WaterIntakeTracker
+            profileId={userProfile.id}
+            waterUnit={userProfile.waterUnit}
+            glassSizeMl={userProfile.glassSizeMl}
+            waterGoalMl={userProfile.waterGoalMl}
+          />
         )}
 
         {/* New Insight Widgets in Grid Layout */}
