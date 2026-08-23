@@ -13,6 +13,16 @@ const client = new OpenAI({
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
+const DAY_NAME_TO_INDEX: Record<string, number> = {
+  Sunday: 0,
+  Monday: 1,
+  Tuesday: 2,
+  Wednesday: 3,
+  Thursday: 4,
+  Friday: 5,
+  Saturday: 6,
+};
+
 const SHOPPING_FREQ_LABEL: Record<string, string> = {
   multiple_per_week: 'shops multiple times per week',
   weekly: 'shops once a week',
@@ -116,7 +126,7 @@ export async function POST(request: Request) {
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('age, weight, lifestyle')
+      .select('id, age, weight, lifestyle')
       .eq('userId', user.id)
       .single();
 
@@ -156,6 +166,66 @@ export async function POST(request: Request) {
 
     if (!result.weekPlan || !result.groceryList) {
       return NextResponse.json({ error: 'AI response missing required fields' }, { status: 502 });
+    }
+
+    type GeneratedMeal = {
+      name: string;
+      description?: string;
+      calories?: number;
+      protein?: number;
+      carbs?: number;
+      fat?: number;
+      prepMinutes?: number;
+    };
+    type GeneratedDayPlan = {
+      day: string;
+      meals: Record<string, GeneratedMeal | undefined>;
+    };
+
+    const weekPlan = result.weekPlan as GeneratedDayPlan[];
+    const rows: {
+      profileId: string;
+      dayOfWeek: number;
+      mealType: string;
+      name: string;
+      description: string | null;
+      calories: number | null;
+      protein: number | null;
+      carbs: number | null;
+      fat: number | null;
+      prepMinutes: number | null;
+    }[] = [];
+
+    for (const dayPlan of weekPlan) {
+      const dayOfWeek = DAY_NAME_TO_INDEX[dayPlan.day];
+      if (dayOfWeek === undefined) continue;
+      for (const [mealType, meal] of Object.entries(dayPlan.meals ?? {})) {
+        if (!meal) continue;
+        rows.push({
+          profileId: profile.id,
+          dayOfWeek,
+          mealType,
+          name: meal.name,
+          description: meal.description ?? null,
+          calories: meal.calories ?? null,
+          protein: meal.protein ?? null,
+          carbs: meal.carbs ?? null,
+          fat: meal.fat ?? null,
+          prepMinutes: meal.prepMinutes ?? null,
+        });
+      }
+    }
+
+    if (rows.length > 0) {
+      const { error: persistError } = await supabase
+        .from('meal_plan_entries')
+        .upsert(rows, { onConflict: 'profileId,dayOfWeek,mealType' });
+      if (persistError) {
+        // Don't fail the request over a persistence hiccup — the user still
+        // gets their freshly generated plan back; it just won't show up in
+        // the Plan tab's checklist until the next successful generate.
+        console.error('meal-plan persist error:', persistError);
+      }
     }
 
     return NextResponse.json(result);
