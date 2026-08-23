@@ -17,6 +17,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { TopBar } from '@/components/TopBar';
 import { BottomNav } from '@/components/BottomNav';
 import { sendRealTestNotification } from '@/lib/pushNotification';
+import { Switch } from '@/components/ui/switch';
+import { APPS, AppId, getDefaultApp, setDefaultApp } from '@/lib/appMode';
 
 export default function ProfilePage() {
   const supabase = createClientComponentClient();
@@ -33,6 +35,16 @@ export default function ProfilePage() {
   const [showPageToggles, setShowPageToggles] = useState(false);
   const [showAiModelSettings, setShowAiModelSettings] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [defaultApp, setDefaultAppState] = useState<AppId>('burnlog');
+
+  useEffect(() => {
+    setDefaultAppState(getDefaultApp());
+  }, []);
+
+  function handleSetDefaultApp(app: AppId) {
+    setDefaultApp(app);
+    setDefaultAppState(app);
+  }
 
   useEffect(() => {
     (async () => {
@@ -226,6 +238,27 @@ export default function ProfilePage() {
                           </TooltipContent>
                         </Tooltip>
                       </span>
+                    </div>
+                  ))}
+                </CardContent>
+              </Card>
+
+              {/* App */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>App</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  {Object.values(APPS).map((app) => (
+                    <div key={app.id} className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium">{app.name}</p>
+                        <p className="text-xs text-muted-foreground">Boot into {app.name} by default</p>
+                      </div>
+                      <Switch
+                        checked={defaultApp === app.id}
+                        onCheckedChange={() => handleSetDefaultApp(app.id)}
+                      />
                     </div>
                   ))}
                 </CardContent>
