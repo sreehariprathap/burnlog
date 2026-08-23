@@ -47,6 +47,7 @@ model Profile {
   WaterEntry         WaterEntry[]
   MealPlanEntry      MealPlanEntry[]
   MealPlanCheckIn    MealPlanCheckIn[]
+  Program            Program?
 
   @@map("profiles")
 }
@@ -300,4 +301,41 @@ model MealPlanCheckIn {
 
   @@unique([profileId, date, mealType])
   @@map("meal_plan_checkins")
+}
+
+/// an active multi-week transformation program (workout template + nutrition guidance + weekly checklists)
+model Program {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile      Profile  @relation(fields: [profileId], references: [id])
+  profileId    String   @unique @db.Uuid
+  title        String
+  subtitle     String?
+  totalWeeks   Int
+  startWeight  Float?
+  targetWeight Float?
+  startDate    DateTime @default(now()) @db.Date
+  rules        Json
+  mealPlan     Json
+  createdAt    DateTime @default(now())
+
+  weeks ProgramWeek[]
+
+  @@map("programs")
+}
+
+/// one week's schedule/checklist within a Program
+model ProgramWeek {
+  id               String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  program          Program @relation(fields: [programId], references: [id], onDelete: Cascade)
+  programId        String  @db.Uuid
+  weekIndex        Int
+  title            String
+  subtitle         String?
+  socialActivity   String?
+  soloActivity     String?
+  checklist        Json
+  milestoneAwarded Boolean @default(false)
+
+  @@unique([programId, weekIndex])
+  @@map("program_weeks")
 }

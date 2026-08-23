@@ -163,3 +163,48 @@ create policy "avatars_owner_delete" on storage.objects
     bucket_id = 'avatars'
     and (storage.foldername(name))[1] = auth.uid()::text
   );
+
+-- programs / program_weeks ------------------------------------------------
+-- programs is owned directly via profileId (same shape as the owner-loop
+-- tables). program_weeks has no profileId of its own — ownership is via
+-- its parent program row, so it gets a bespoke join-based policy instead
+-- of joining the generic do-loop.
+alter table programs enable row level security;
+
+create policy "programs_owner_access" on programs
+  for all
+  using (
+    exists (
+      select 1 from profiles
+      where profiles.id = programs."profileId"
+        and profiles."userId" = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from profiles
+      where profiles.id = programs."profileId"
+        and profiles."userId" = auth.uid()
+    )
+  );
+
+alter table program_weeks enable row level security;
+
+create policy "program_weeks_owner_access" on program_weeks
+  for all
+  using (
+    exists (
+      select 1 from programs
+      join profiles on profiles.id = programs."profileId"
+      where programs.id = program_weeks."programId"
+        and profiles."userId" = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from programs
+      join profiles on profiles.id = programs."profileId"
+      where programs.id = program_weeks."programId"
+        and profiles."userId" = auth.uid()
+    )
+  );
