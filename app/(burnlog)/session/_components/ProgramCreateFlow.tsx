@@ -157,7 +157,7 @@ export function ProgramCreateFlow({ profileId, onCreated }: ProgramCreateFlowPro
         </CardHeader>
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
-            Paste a multi-week transformation plan (from an AI chat, a coach, or your own notes) and it'll be
+            Paste a multi-week transformation plan (from an AI chat, a coach, or your own notes) and it&apos;ll be
             structured into a trackable program with weekly checklists.
           </p>
           <Textarea
