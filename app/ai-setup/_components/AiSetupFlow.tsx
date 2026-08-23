@@ -12,7 +12,7 @@ import { ActivityPreferencesStep } from './ActivityPreferencesStep';
 import { EquipmentStep } from './EquipmentStep';
 import { NutritionStep } from './NutritionStep';
 import { PlanPreview } from './PlanPreview';
-import { GroceryStep } from '@/app/goals/_components/GroceryStep';
+import { GroceryStep } from '@/app/(burnlog)/goals/_components/GroceryStep';
 import { AiLoading } from '@/components/kokonutui/ai-loading';
 import type {
   LifestyleAnswers,
