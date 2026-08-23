@@ -1,9 +1,12 @@
 // components/TopBar.tsx
 'use client';
 
-import { X } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { X, Wallet } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
+import { AppSwitcher } from './AppSwitcher';
 import Image from 'next/image';
+import { AppId, getActiveApp } from '@/lib/appMode';
 
 interface TopBarProps {
   title: string;
@@ -12,16 +15,29 @@ interface TopBarProps {
 }
 
 export function TopBar({ title, onClose, actions }: TopBarProps) {
+  const [switcherOpen, setSwitcherOpen] = useState(false);
+  const [activeApp, setActiveAppState] = useState<AppId>('burnlog');
+
+  useEffect(() => {
+    setActiveAppState(getActiveApp());
+  }, []);
+
   return (
     <div className="w-full bg-background text-foreground shadow p-4 sticky top-0 z-10 relative flex justify-between">
       <div className='flex gap-3 items-center'>
-      <Image
-        src="/B.png" 
-        alt="Logo"
-        width={20}
-        height={20}
-        />
-      <h1 className="text-lg font-semibold">{title}</h1>
+        <button
+          type="button"
+          onClick={() => setSwitcherOpen(true)}
+          aria-label="Switch app"
+          className="flex items-center justify-center"
+        >
+          {activeApp === 'lifelog' ? (
+            <Wallet className="h-5 w-5 text-primary" />
+          ) : (
+            <Image src="/B.png" alt="Logo" width={20} height={20} />
+          )}
+        </button>
+        <h1 className="text-lg font-semibold">{title}</h1>
       </div>
       <div className="flex items-center gap-4">
         <ThemeToggle />
@@ -36,6 +52,7 @@ export function TopBar({ title, onClose, actions }: TopBarProps) {
           </button>
         )}
       </div>
+      <AppSwitcher open={switcherOpen} onOpenChange={setSwitcherOpen} />
     </div>
   );
 }
