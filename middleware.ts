@@ -7,7 +7,11 @@ export async function middleware(request: NextRequest) {
 
   // Create a Supabase client configured for middleware
   const supabase = createMiddlewareClient({ req: request, res: response });
-  const { data: { session } } = await supabase.auth.getSession();
+  // getUser() validates the token against Supabase's auth server rather than
+  // just decoding whatever's in the request cookies — getSession() trusted
+  // the local cookie state, which raced with token-refresh rotation and
+  // intermittently bounced authenticated users to /login in prod.
+  const { data: { user } } = await supabase.auth.getUser();
 
   const { pathname } = request.nextUrl;
 
@@ -20,22 +24,22 @@ export async function middleware(request: NextRequest) {
   const isPublic = publicRoutes.some(route => pathname.startsWith(route));
 
   // If not authenticated and not on a public route, redirect to login
-  if (!session && !isPublic) {
+  if (!user && !isPublic) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
-  
+
   // If authenticated and on login or signup (but not profile setup), redirect to dashboard
-  if (session && ['/login', '/signup'].includes(pathname)) {
+  if (user && ['/login', '/signup'].includes(pathname)) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
   // If authenticated and trying to access protected routes
-  if (session && !isPublic) {
+  if (user && !isPublic) {
     // Check if user has a profile record
     const { data: profile, error } = await supabase
       .from('profiles')
       .select('id')
-      .eq('userId', session.user.id)
+      .eq('userId', user.id)
       .single();
 
     // If no profile, redirect to profile setup

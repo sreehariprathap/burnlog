@@ -6,11 +6,13 @@ import { BootRedirect } from '@/components/BootRedirect';
 
 export default async function Home() {
   const supabase = createServerComponentClient({ cookies });
-  const { data: { session } } = await supabase.auth.getSession();
-
+  // getUser() validates against Supabase's auth server instead of trusting
+  // locally-decoded cookie state (which raced with middleware's token
+  // refresh and intermittently logged authenticated users out in prod).
+  const { data: { user } } = await supabase.auth.getUser();
 
   // If no session, redirect to login
-  if (!session) {
+  if (!user) {
     return redirect('/login');
   }
 
@@ -18,7 +20,7 @@ export default async function Home() {
   const { data: profile } = await supabase
     .from('profiles')
     .select('*')
-    .eq('userId', session.user.id)
+    .eq('userId', user.id)
     .single();
 
   // If no profile, redirect to profile setup

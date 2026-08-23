@@ -9,12 +9,15 @@ import { BottomNav } from '@/components/BottomNav';
 export default async function InsightsPage() {
   const supabase = createServerComponentClient({ cookies });
 
-  // 1) Get the current session
+  // 1) Get the current user. getUser() validates against Supabase's auth
+  // server instead of trusting locally-decoded cookie state — getSession()
+  // raced with middleware's token refresh and intermittently logged
+  // authenticated users out of this page in prod.
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (!session) {
+  if (!user) {
     // Not logged in → send to login
     return redirect('/login');
   }
@@ -24,7 +27,7 @@ export default async function InsightsPage() {
   const { data: profile } = await supabase
     .from('profiles')
     .select('id')
-    .eq('userId', session.user.id)
+    .eq('userId', user.id)
     .single();
 
   if (!profile) {

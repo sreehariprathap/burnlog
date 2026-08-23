@@ -9,15 +9,18 @@ import FinanceInsightsClient from './_components/FinanceInsightsClient';
 export default async function LifeLogInsightsPage() {
   const supabase = createServerComponentClient({ cookies });
 
+  // getUser() validates against Supabase's auth server instead of trusting
+  // locally-decoded cookie state (which raced with middleware's token
+  // refresh and intermittently logged authenticated users out in prod).
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (!session) {
+  if (!user) {
     return redirect('/login');
   }
 
-  const { data: profile } = await supabase.from('profiles').select('id').eq('userId', session.user.id).single();
+  const { data: profile } = await supabase.from('profiles').select('id').eq('userId', user.id).single();
 
   if (!profile) {
     return redirect('/signup/profile');
