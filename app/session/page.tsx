@@ -21,6 +21,7 @@ import { nearestPastOrTodayWeekday, isSameLocalDay, toLocalDateString } from '@/
 import { PlanMonthCalendar } from './_components/PlanMonthCalendar';
 import { PlanDaySummary } from './_components/PlanDaySummary';
 import { WaterIntakeTracker } from '@/components/kokonutui/water-intake-tracker';
+import { DailyRingsWidget } from '@/app/dashboard/_components/DailyRingsWidget';
 
 export default function SessionsPage() {
   const supabase = createClientComponentClient();
@@ -40,6 +41,7 @@ export default function SessionsPage() {
   const [glassSizeMl, setGlassSizeMl] = useState<number>(250);
   const [waterGoalMl, setWaterGoalMl] = useState<number>(2000);
   const [dateSession, setDateSession] = useState<{ completed: boolean; bodyPart?: string; duration?: number; notes?: string } | null>(null);
+  const [ringsRefreshKey] = useState(0);
 
   // 1️⃣ Get current user
   useEffect(() => {
@@ -228,6 +230,8 @@ export default function SessionsPage() {
                 <WorkoutChecklist workoutType={plan.bodyPart} />
               </div>
             )}
+
+            {profileId && <DailyRingsWidget profileId={profileId} refreshKey={ringsRefreshKey} />}
 
             {profileId && (
               <WaterIntakeTracker
