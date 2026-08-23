@@ -9,13 +9,12 @@ import { CalorieTracker } from './_components/CalorieTracker';
 import { WeightTracker } from './_components/WeightTracker';
 import { AddGoalForm } from './_components/AddGoalForm';
 import { GoalsList } from './_components/GoalsList';
-import { MealPlanWidget } from './_components/MealPlanWidget';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { TopBar } from '@/components/TopBar';
 import { BottomNav } from '@/components/BottomNav';
 import { MotionCarousel } from '@/components/kokonutui/motion-carousel';
 import { SmoothTabs, type TabItem } from '@/components/kokonutui/smooth-tabs';
-import { Target, Scale, Flame, Utensils, HeartPulse, CalendarCheck } from 'lucide-react';
+import { Target, Scale, Flame, Utensils, HeartPulse } from 'lucide-react';
 
 export type Goal = {
   id: string;
@@ -32,7 +31,6 @@ const goalTabs: TabItem[] = [
   { id: 'calories', icon: Flame, label: 'Calories', color: 'var(--chart-3)' },
   { id: 'food', icon: Utensils, label: 'Food', color: 'var(--chart-4)' },
   { id: 'stamina', icon: HeartPulse, label: 'Stamina', color: 'var(--chart-5)' },
-  { id: 'meal-plan', icon: CalendarCheck, label: 'Meal Plan', color: 'var(--chart-1)' },
 ];
 
 
@@ -147,7 +145,6 @@ export default function GoalsPage() {
             <CalorieTracker key="calorie" userId={userId!} />,
             <FoodIntakeTracker key="food" userId={userId!} />,
             <StaminaTracker key="stamina" userId={userId!} />,
-            <MealPlanWidget key="meal-plan" />,
           ]}
         />
       )}
