@@ -331,7 +331,7 @@ export default function ProfilePage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <GlassWater className="w-5 h-5 text-sky-500" />
+                    <GlassWater className="w-5 h-5 text-primary" />
                     Water Tracking
                   </CardTitle>
                 </CardHeader>
