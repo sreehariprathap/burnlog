@@ -28,6 +28,9 @@ model Profile {
   lastSessionDate DateTime? @db.Date
   avatarUrl       String?
   lastConsistencyBonusWeek String?
+  waterUnit                String    @default("glasses")
+  glassSizeMl              Int       @default(250)
+  waterGoalMl              Int       @default(2000)
 
   FitnessGoal    FitnessGoal[]
   Workout        Workout[]
@@ -38,6 +41,7 @@ model Profile {
   FoodIntake     FoodIntake[]
   StaminaSession StaminaSession[]
   StepEntry      StepEntry[]
+  WaterEntry     WaterEntry[]
 
   @@map("profiles")
 }
@@ -172,6 +176,18 @@ model StepEntry {
   createdAt DateTime @default(now())
 
   @@map("step_entries")
+}
+
+/// daily water intake tracking (one row per profile per day)
+model WaterEntry {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile   Profile  @relation(fields: [profileId], references: [id])
+  profileId String   @db.Uuid
+  date      DateTime @db.Date
+  amountMl  Int      @default(0)
+
+  @@unique([profileId, date])
+  @@map("water_entries")
 }
 
 /// admin-configurable AI model selection per capability slot ('text' | 'vision')

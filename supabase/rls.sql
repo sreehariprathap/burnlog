@@ -49,7 +49,8 @@ begin
     'calorie_burns',
     'food_intakes',
     'stamina_sessions',
-    'step_entries'
+    'step_entries',
+    'water_entries'
   ]
   loop
     execute format('alter table %I enable row level security', t);
