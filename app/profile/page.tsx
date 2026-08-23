@@ -108,12 +108,18 @@ export default function ProfilePage() {
 
   const handleWaterSettingChange = async (field: 'waterUnit' | 'glassSizeMl' | 'waterGoalMl', value: string | number) => {
     if (!profile) return;
+    // Guard against 0/negative values reaching the DB (would divide-by-zero
+    // in the water tracker's glasses-mode display and step size).
+    const safeValue =
+      field === 'glassSizeMl' ? Math.max(50, Number(value)) :
+      field === 'waterGoalMl' ? Math.max(250, Number(value)) :
+      value;
     const { error } = await supabase
       .from('profiles')
-      .update({ [field]: value })
+      .update({ [field]: safeValue })
       .eq('id', profile.id);
     if (!error) {
-      setProfile((prev: any) => ({ ...prev, [field]: value }));
+      setProfile((prev: any) => ({ ...prev, [field]: safeValue }));
     }
   };
 

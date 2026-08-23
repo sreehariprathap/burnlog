@@ -41,7 +41,7 @@ export default function SessionsPage() {
   const [glassSizeMl, setGlassSizeMl] = useState<number>(250);
   const [waterGoalMl, setWaterGoalMl] = useState<number>(2000);
   const [dateSession, setDateSession] = useState<{ completed: boolean; bodyPart?: string; duration?: number; notes?: string } | null>(null);
-  const [ringsRefreshKey] = useState(0);
+  const [ringsRefreshKey, setRingsRefreshKey] = useState(0);
 
   // 1️⃣ Get current user
   useEffect(() => {
@@ -155,7 +155,16 @@ export default function SessionsPage() {
 
   // 5️⃣ Session logger
   if (logging && plan) {
-    return <SessionLogger plan={plan} lifestyle={lifestyle} onEnd={() => setLogging(false)} />;
+    return (
+      <SessionLogger
+        plan={plan}
+        lifestyle={lifestyle}
+        onEnd={() => {
+          setLogging(false);
+          setRingsRefreshKey((k) => k + 1);
+        }}
+      />
+    );
   }
 
   // 5️⃣-B Workout history view
