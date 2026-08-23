@@ -53,7 +53,9 @@ begin
     'water_entries',
     'recurring_items',
     'finance_transactions',
-    'financial_goals'
+    'financial_goals',
+    'meal_plan_entries',
+    'meal_plan_checkins'
   ]
   loop
     execute format('alter table %I enable row level security', t);
