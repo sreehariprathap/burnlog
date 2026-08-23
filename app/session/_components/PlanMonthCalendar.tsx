@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Flame, Moon, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toLocalDateString, isSameLocalDay } from '@/lib/date';
+import { PlanMonthActivitySummary } from './PlanMonthActivitySummary';
 
 type PlanMonthCalendarProps = {
   profileId: string;
@@ -151,6 +152,8 @@ export function PlanMonthCalendar({ profileId, currentStreak, selectedDate, onSe
           {restDaysThisMonth} rest day{restDaysThisMonth === 1 ? '' : 's'}
         </div>
       </div>
+
+      <PlanMonthActivitySummary profileId={profileId} displayMonth={displayMonth} />
 
       <div className="flex items-center justify-between">
         <Button variant="ghost" size="icon" onClick={() => setDisplayMonth((m) => addMonths(m, -1))} aria-label="Previous month">
