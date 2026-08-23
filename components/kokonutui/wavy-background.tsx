@@ -2,9 +2,16 @@
 
 import { useEffect, useRef } from 'react';
 
-const COLORS = ['#FF9E4F', '#F97316', '#EF4444', '#B55233'];
+const DEFAULT_COLORS = ['#FF9E4F', '#F97316', '#EF4444', '#B55233'];
+const DEFAULT_BACKGROUND_FILL = '#FFF7ED';
 
-export function WavyBackground({ className }: { className?: string }) {
+type WavyBackgroundProps = {
+  className?: string;
+  colors?: string[];
+  backgroundFill?: string;
+};
+
+export function WavyBackground({ className, colors = DEFAULT_COLORS, backgroundFill = DEFAULT_BACKGROUND_FILL }: WavyBackgroundProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -29,10 +36,10 @@ export function WavyBackground({ className }: { className?: string }) {
     const render = () => {
       ctx.clearRect(0, 0, width, height);
       ctx.globalAlpha = 1;
-      ctx.fillStyle = '#FFF7ED';
+      ctx.fillStyle = backgroundFill;
       ctx.fillRect(0, 0, width, height);
 
-      COLORS.forEach((color, i) => {
+      colors.forEach((color, i) => {
         ctx.beginPath();
         ctx.strokeStyle = color;
         ctx.globalAlpha = 0.45;
