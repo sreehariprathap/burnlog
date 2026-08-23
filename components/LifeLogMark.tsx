@@ -14,8 +14,8 @@ interface LifeLogMarkProps {
 export function LifeLogMark({ size = 20, className }: LifeLogMarkProps) {
   return (
     <span
-      className={cn('inline-flex items-center justify-center font-bold leading-none text-emerald-500', className)}
-      style={{ width: size, height: size, fontSize: size * 0.9 }}
+      className={cn('inline-flex items-center justify-center font-black leading-none text-emerald-500', className)}
+      style={{ width: size, height: size, fontSize: size * 1.6 }}
       aria-hidden="true"
     >
       L
