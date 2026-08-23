@@ -5,7 +5,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 import { TopBar } from '@/components/TopBar';
 import { SessionLogger } from './_components/SessionLogger';
-import { DayNavigator } from './_components/DayNavigator';
+import { WeekdayTabs } from '@/components/kokonutui/weekday-tabs';
 import { PlanCard, PlanDay } from './_components/PlanCard';
 import { AddWorkoutModal } from './_components/AddWorkoutModal';
 import { WorkoutHistory } from './_components/WorkoutHistory';
@@ -197,7 +197,7 @@ export default function SessionsPage() {
       ) : (
         <>
       <div className="flex w-full gap-2 items-center px-4 py-2">
-        <DayNavigator
+        <WeekdayTabs
           value={day}
           onChange={(newDay) => {
             setDay(newDay);

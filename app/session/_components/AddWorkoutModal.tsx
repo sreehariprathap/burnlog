@@ -17,7 +17,7 @@ import { PlanDay } from './PlanCard';
 import { Dumbbell, PersonStanding, Pickaxe, Bed, Footprints, Bike } from 'lucide-react';
 
 // index is the canonical dayOfWeek convention (0=Sun...6=Sat); order here is
-// display order only (Mon first), matching DayNavigator.
+// display order only (Mon first), matching WeekdayTabs.
 const daysOfWeek = [
   { index: 1, label: 'Mon' },
   { index: 2, label: 'Tue' },
