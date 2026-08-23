@@ -3,12 +3,14 @@
 
 import { useEffect, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { CalendarDays, CalendarRange, Calendar, TrendingUp, TrendingDown } from 'lucide-react';
+import { CalendarDays, CalendarRange, Calendar } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
 import { TopBar } from '@/components/TopBar';
 import { LifeLogBottomNav } from '@/components/LifeLogBottomNav';
 import { SmoothTabs, type TabItem } from '@/components/kokonutui/smooth-tabs';
 import { MotionCarousel } from '@/components/kokonutui/motion-carousel';
-import { SegmentedRingCard, type RingSegment } from '@/components/kokonutui/segmented-ring-card';
+import { DualRingCard } from '@/components/kokonutui/dual-ring-card';
+import { type RingSegment } from '@/components/kokonutui/segmented-ring-card';
 import { useFinanceData } from '@/lib/useFinanceData';
 import { categoryLabel } from '@/lib/financeCategories';
 import { getPeriodRange, formatPeriodLabel, type Period } from '@/lib/financePeriods';
@@ -24,14 +26,15 @@ const periodTabs: TabItem[] = [
 
 const PERIODS: Period[] = ['weekly', 'monthly', 'yearly'];
 
-const RING_COLORS = ['#14B8A6', '#0EA5E9', '#6366F1', '#F59E0B', '#EC4899', '#84CC16', '#F43F5E', '#8B5CF6', '#22C55E', '#EAB308'];
+const INCOME_RING_COLORS = ['#10B981', '#14B8A6', '#22C55E', '#059669', '#0D9488', '#65A30D'];
+const EXPENSE_RING_COLORS = ['#F43F5E', '#F97316', '#EF4444', '#EC4899', '#F59E0B', '#DC2626'];
 
-function toSegments(byCategory: Record<string, number>): RingSegment[] {
+function toSegments(byCategory: Record<string, number>, palette: string[]): RingSegment[] {
   return Object.entries(byCategory).map(([category, value], index) => ({
     category,
     label: categoryLabel(category),
     value,
-    color: RING_COLORS[index % RING_COLORS.length],
+    color: palette[index % palette.length],
   }));
 }
 
@@ -52,24 +55,17 @@ function PeriodSlide({
   return (
     <div className="flex flex-col gap-4">
       {!hasAnyData && !data.loading && <GetStartedCard />}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <SegmentedRingCard
-          title="Income"
-          subtitle={periodLabel}
-          icon={TrendingUp}
-          iconClassName="text-emerald-500"
-          segments={toSegments(data.incomeByCategory)}
-          total={data.totalIncome}
-        />
-        <SegmentedRingCard
-          title="Expenses"
-          subtitle={periodLabel}
-          icon={TrendingDown}
-          iconClassName="text-rose-500"
-          segments={toSegments(data.expenseByCategory)}
-          total={data.totalExpense}
-        />
-      </div>
+      <Card>
+        <CardContent className="pt-6">
+          <DualRingCard
+            subtitle={periodLabel}
+            incomeSegments={toSegments(data.incomeByCategory, INCOME_RING_COLORS)}
+            incomeTotal={data.totalIncome}
+            expenseSegments={toSegments(data.expenseByCategory, EXPENSE_RING_COLORS)}
+            expenseTotal={data.totalExpense}
+          />
+        </CardContent>
+      </Card>
       <NetSummaryCard income={data.totalIncome} expense={data.totalExpense} />
     </div>
   );
