@@ -8,21 +8,21 @@ import {
   HomeIcon,
   DumbbellIcon,
   TargetIcon,
-  UserIcon,
   ChartLine
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { ProfileMenu } from '@/components/ProfileMenu';
 
 const tabs = [
   { href: '/dashboard', label: 'Home', Icon: HomeIcon },
   { href: '/session',   label: 'Plan', Icon: DumbbellIcon },
   { href: '/goals',     label: 'Goals', Icon: TargetIcon },
   { href: '/insights',  label: 'Insights', Icon: ChartLine },
-  { href: '/profile',   label: 'Profile', Icon: UserIcon },
 ];
 
 export function BottomNav() {
   const pathname = usePathname();
+  const isProfileActive = pathname === '/profile' || pathname.startsWith('/profile/');
 
   return (
     <nav
@@ -52,6 +52,7 @@ export function BottomNav() {
           </Link>
         );
       })}
+      <ProfileMenu isActive={isProfileActive} />
     </nav>
   );
 }
