@@ -3,11 +3,13 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { WalletIcon, CalendarClockIcon, TargetIcon, ChartLineIcon } from 'lucide-react';
+import { CalendarClockIcon, TargetIcon, ChartLineIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { LifeLogMark } from '@/components/LifeLogMark';
+import { LifeLogProfileMenu } from '@/components/LifeLogProfileMenu';
 
 const tabs = [
-  { href: '/lifelog', label: 'Home', Icon: WalletIcon },
+  { href: '/lifelog', label: 'Home', Icon: null },
   { href: '/lifelog/plan', label: 'Plan', Icon: CalendarClockIcon },
   { href: '/lifelog/goals', label: 'Goals', Icon: TargetIcon },
   { href: '/lifelog/insights', label: 'Insights', Icon: ChartLineIcon },
@@ -15,6 +17,7 @@ const tabs = [
 
 export function LifeLogBottomNav() {
   const pathname = usePathname();
+  const isProfileActive = pathname === '/lifelog/profile' || pathname.startsWith('/lifelog/profile/');
 
   return (
     <nav
@@ -32,11 +35,16 @@ export function LifeLogBottomNav() {
               isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
             )}
           >
-            <Icon className="relative z-10 mb-0.5 h-5 w-5" />
+            {Icon ? (
+              <Icon className="relative z-10 mb-0.5 h-5 w-5" />
+            ) : (
+              <LifeLogMark size={20} className="relative z-10 mb-0.5" />
+            )}
             <span className="relative z-10">{label}</span>
           </Link>
         );
       })}
+      <LifeLogProfileMenu isActive={isProfileActive} />
     </nav>
   );
 }

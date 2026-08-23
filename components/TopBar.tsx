@@ -2,9 +2,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { X, Wallet } from 'lucide-react';
+import { X } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { AppSwitcher } from './AppSwitcher';
+import { LifeLogMark } from './LifeLogMark';
 import Image from 'next/image';
 import { AppId, getActiveApp } from '@/lib/appMode';
 
@@ -32,7 +33,7 @@ export function TopBar({ title, onClose, actions }: TopBarProps) {
           className="flex items-center justify-center"
         >
           {activeApp === 'lifelog' ? (
-            <Wallet className="h-5 w-5 text-primary" />
+            <LifeLogMark size={20} />
           ) : (
             <Image src="/B.png" alt="Logo" width={20} height={20} />
           )}

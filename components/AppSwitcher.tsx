@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { Wallet } from 'lucide-react';
+import { LifeLogMark } from '@/components/LifeLogMark';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -55,7 +55,7 @@ export function AppSwitcher({ open, onOpenChange }: AppSwitcherProps) {
               <CardContent className="flex items-center justify-between gap-4 py-4">
                 <div className="flex items-center gap-3">
                   {app.id === 'lifelog' ? (
-                    <Wallet className="h-6 w-6 text-primary" />
+                    <LifeLogMark size={24} />
                   ) : (
                     <Image src="/B.png" alt={app.name} width={24} height={24} />
                   )}
