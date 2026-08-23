@@ -2,6 +2,7 @@
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
+import { BootRedirect } from '@/components/BootRedirect';
 
 export default async function Home() {
   const supabase = createServerComponentClient({ cookies });
@@ -25,6 +26,6 @@ export default async function Home() {
     return redirect('/signup/profile');
   }
 
-  // User is authenticated and has a profile, redirect to dashboard
-  return redirect('/dashboard');
+  // User is authenticated and has a profile — boot into their default app
+  return <BootRedirect />;
 }
