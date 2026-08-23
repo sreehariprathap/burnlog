@@ -8,6 +8,7 @@ import {
   endOfYear,
   eachDayOfInterval,
   isWithinInterval,
+  format,
 } from 'date-fns';
 
 export type Period = 'weekly' | 'monthly' | 'yearly';
@@ -25,6 +26,22 @@ export function getPeriodRange(period: Period, anchor: Date = new Date()): Perio
       return { start: startOfMonth(anchor), end: endOfMonth(anchor) };
     case 'yearly':
       return { start: startOfYear(anchor), end: endOfYear(anchor) };
+  }
+}
+
+/** Human-readable label for the current period's date range, e.g. "Aug 17 – Aug 23" or "August 2026". */
+export function formatPeriodLabel(period: Period, range: PeriodRange): string {
+  switch (period) {
+    case 'weekly': {
+      const sameMonth = range.start.getMonth() === range.end.getMonth();
+      const startStr = format(range.start, sameMonth ? 'MMM d' : 'MMM d, yyyy');
+      const endStr = format(range.end, 'MMM d, yyyy');
+      return `${startStr} – ${endStr}`;
+    }
+    case 'monthly':
+      return format(range.start, 'MMMM yyyy');
+    case 'yearly':
+      return format(range.start, 'yyyy');
   }
 }
 

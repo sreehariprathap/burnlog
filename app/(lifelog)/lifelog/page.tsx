@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { CalendarDays, CalendarRange, Calendar } from 'lucide-react';
+import { CalendarDays, CalendarRange, Calendar, TrendingUp, TrendingDown } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
 import { LifeLogBottomNav } from '@/components/LifeLogBottomNav';
 import { SmoothTabs, type TabItem } from '@/components/kokonutui/smooth-tabs';
@@ -11,7 +11,7 @@ import { MotionCarousel } from '@/components/kokonutui/motion-carousel';
 import { SegmentedRingCard, type RingSegment } from '@/components/kokonutui/segmented-ring-card';
 import { useFinanceData } from '@/lib/useFinanceData';
 import { categoryLabel } from '@/lib/financeCategories';
-import type { Period } from '@/lib/financePeriods';
+import { getPeriodRange, formatPeriodLabel, type Period } from '@/lib/financePeriods';
 import { GetStartedCard } from './_components/GetStartedCard';
 import { NetSummaryCard } from './_components/NetSummaryCard';
 import { LifeLogFab } from './_components/LifeLogFab';
@@ -47,13 +47,28 @@ function PeriodSlide({
   refreshKey: number;
 }) {
   const data = useFinanceData(profileId, period, refreshKey);
+  const periodLabel = formatPeriodLabel(period, getPeriodRange(period));
 
   return (
     <div className="flex flex-col gap-4">
       {!hasAnyData && !data.loading && <GetStartedCard />}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <SegmentedRingCard title="Income" segments={toSegments(data.incomeByCategory)} total={data.totalIncome} />
-        <SegmentedRingCard title="Expenses" segments={toSegments(data.expenseByCategory)} total={data.totalExpense} />
+        <SegmentedRingCard
+          title="Income"
+          subtitle={periodLabel}
+          icon={TrendingUp}
+          iconClassName="text-emerald-500"
+          segments={toSegments(data.incomeByCategory)}
+          total={data.totalIncome}
+        />
+        <SegmentedRingCard
+          title="Expenses"
+          subtitle={periodLabel}
+          icon={TrendingDown}
+          iconClassName="text-rose-500"
+          segments={toSegments(data.expenseByCategory)}
+          total={data.totalExpense}
+        />
       </div>
       <NetSummaryCard income={data.totalIncome} expense={data.totalExpense} />
     </div>
