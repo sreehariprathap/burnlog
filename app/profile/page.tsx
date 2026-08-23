@@ -7,12 +7,13 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Loader2, Info, AlertTriangle, Sparkles, Bell, Flame, Settings, Cpu } from 'lucide-react';
+import { Loader2, Info, AlertTriangle, Sparkles, Bell, Flame, Settings, Cpu, GlassWater } from 'lucide-react';
 import { OnboardingPageTogglesModal } from './_components/OnboardingPageTogglesModal';
 import { ProfileAvatar } from './_components/ProfileAvatar';
 import { AiModelSettingsModal } from './_components/AiModelSettingsModal';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TopBar } from '@/components/TopBar';
 import { BottomNav } from '@/components/BottomNav';
 import { sendRealTestNotification } from '@/lib/pushNotification';
@@ -56,7 +57,7 @@ export default function ProfilePage() {
         const userId = session.user.id;
         const { data, error: profErr } = await supabase
           .from('profiles')
-          .select('id,firstName,lastName,age,weight,height,activityLevel,aiEnabled,isAdmin,currentStreak,longestStreak,xp,level,avatarUrl')
+          .select('id,firstName,lastName,age,weight,height,activityLevel,aiEnabled,isAdmin,currentStreak,longestStreak,xp,level,avatarUrl,waterUnit,glassSizeMl,waterGoalMl')
           .eq('userId', userId)
           .single();
 
@@ -103,6 +104,17 @@ export default function ProfilePage() {
       setProfile((prev: any) => ({ ...prev, aiEnabled: false }));
     }
     setDisablingAi(false);
+  };
+
+  const handleWaterSettingChange = async (field: 'waterUnit' | 'glassSizeMl' | 'waterGoalMl', value: string | number) => {
+    if (!profile) return;
+    const { error } = await supabase
+      .from('profiles')
+      .update({ [field]: value })
+      .eq('id', profile.id);
+    if (!error) {
+      setProfile((prev: any) => ({ ...prev, [field]: value }));
+    }
   };
 
   const handleLogout = async () => {
@@ -311,6 +323,57 @@ export default function ProfilePage() {
                       Enable AI Insights
                     </Button>
                   )}
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="mt-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <GlassWater className="w-5 h-5 text-sky-500" />
+                    Water Tracking
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">Unit</span>
+                    <Select
+                      value={profile.waterUnit}
+                      onValueChange={(value) => handleWaterSettingChange('waterUnit', value)}
+                    >
+                      <SelectTrigger className="w-32">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="glasses">Glasses</SelectItem>
+                        <SelectItem value="liters">Liters</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">Glass size (ml)</span>
+                    <input
+                      type="number"
+                      min={50}
+                      max={1000}
+                      defaultValue={profile.glassSizeMl}
+                      onBlur={(e) => handleWaterSettingChange('glassSizeMl', Number(e.target.value))}
+                      className="w-24 rounded-md border bg-background px-2 py-1 text-right"
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">Daily goal (ml)</span>
+                    <input
+                      type="number"
+                      min={500}
+                      max={10000}
+                      step={250}
+                      defaultValue={profile.waterGoalMl}
+                      onBlur={(e) => handleWaterSettingChange('waterGoalMl', Number(e.target.value))}
+                      className="w-24 rounded-md border bg-background px-2 py-1 text-right"
+                    />
+                  </div>
                 </CardContent>
               </Card>
             </div>

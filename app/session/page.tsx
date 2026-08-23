@@ -20,6 +20,7 @@ import { PlanViewToggle } from '@/components/kokonutui/plan-view-toggle';
 import { nearestPastOrTodayWeekday, isSameLocalDay, toLocalDateString } from '@/lib/date';
 import { PlanMonthCalendar } from './_components/PlanMonthCalendar';
 import { PlanDaySummary } from './_components/PlanDaySummary';
+import { WaterIntakeTracker } from '@/components/kokonutui/water-intake-tracker';
 
 export default function SessionsPage() {
   const supabase = createClientComponentClient();
@@ -35,6 +36,9 @@ export default function SessionsPage() {
   const [view, setView] = useState<'day' | 'month'>('day');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentStreak, setCurrentStreak] = useState<number>(0);
+  const [waterUnit, setWaterUnit] = useState<'glasses' | 'liters'>('glasses');
+  const [glassSizeMl, setGlassSizeMl] = useState<number>(250);
+  const [waterGoalMl, setWaterGoalMl] = useState<number>(2000);
   const [dateSession, setDateSession] = useState<{ completed: boolean; bodyPart?: string; duration?: number; notes?: string } | null>(null);
 
   // 1️⃣ Get current user
@@ -47,13 +51,16 @@ export default function SessionsPage() {
         // Fetch the profile ID associated with this user
         const { data: profileData } = await supabase
           .from('profiles')
-          .select('id, lifestyle, currentStreak')
+          .select('id, lifestyle, currentStreak, waterUnit, glassSizeMl, waterGoalMl')
           .eq('userId', user.id)
           .single();
 
         if (profileData) {
           setProfileId(profileData.id);
           setCurrentStreak(profileData.currentStreak ?? 0);
+          setWaterUnit((profileData.waterUnit as 'glasses' | 'liters') ?? 'glasses');
+          setGlassSizeMl(profileData.glassSizeMl ?? 250);
+          setWaterGoalMl(profileData.waterGoalMl ?? 2000);
           if (profileData.lifestyle) {
             setLifestyle(profileData.lifestyle as LifestyleAnswers);
           }
@@ -220,6 +227,15 @@ export default function SessionsPage() {
               <div className="mt-6">
                 <WorkoutChecklist workoutType={plan.bodyPart} />
               </div>
+            )}
+
+            {profileId && (
+              <WaterIntakeTracker
+                profileId={profileId}
+                waterUnit={waterUnit}
+                glassSizeMl={glassSizeMl}
+                waterGoalMl={waterGoalMl}
+              />
             )}
           </>
         ) : (
