@@ -77,7 +77,7 @@ export default async function InsightsPage() {
   return (
     <div className="flex flex-col h-screen">
       <TopBar title="Insights" />
-      <main className="flex-1 overflow-auto px-4 py-6 pb-16">
+      <main className="flex-1 overflow-auto px-4 pb-16">
         <InsightsClient
           weightEntries={weightEntries || []}
           weightGoal={weightGoal }
