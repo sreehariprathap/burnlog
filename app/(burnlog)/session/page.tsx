@@ -23,6 +23,7 @@ import { PlanMonthCalendar } from './_components/PlanMonthCalendar';
 import { PlanDaySummary } from './_components/PlanDaySummary';
 import { WaterIntakeTracker } from '@/components/kokonutui/water-intake-tracker';
 import { DailyRingsWidget } from '@/app/(burnlog)/dashboard/_components/DailyRingsWidget';
+import { ProgramView } from './_components/ProgramView';
 
 export default function SessionsPage() {
   const supabase = createClientComponentClient();
@@ -35,7 +36,7 @@ export default function SessionsPage() {
   const [profileId, setProfileId] = useState<string | null>(null);
   const [lifestyle, setLifestyle] = useState<LifestyleAnswers | null>(null);
   const [loadingPlan, setLoadingPlan] = useState<boolean>(true);
-  const [view, setView] = useState<'day' | 'month'>('day');
+  const [view, setView] = useState<'day' | 'month' | 'program'>('day');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentStreak, setCurrentStreak] = useState<number>(0);
   const [waterUnit, setWaterUnit] = useState<'glasses' | 'liters'>('glasses');
@@ -192,7 +193,9 @@ export default function SessionsPage() {
         <PlanViewToggle view={view} onChange={setView} />
       </div>
 
-      {view === 'month' ? (
+      {view === 'program' ? (
+        profileId && <ProgramView profileId={profileId} />
+      ) : view === 'month' ? (
         profileId && (
           <PlanMonthCalendar
             profileId={profileId}
