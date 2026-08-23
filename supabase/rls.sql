@@ -50,7 +50,10 @@ begin
     'food_intakes',
     'stamina_sessions',
     'step_entries',
-    'water_entries'
+    'water_entries',
+    'recurring_items',
+    'finance_transactions',
+    'financial_goals'
   ]
   loop
     execute format('alter table %I enable row level security', t);

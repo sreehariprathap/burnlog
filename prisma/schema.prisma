@@ -39,9 +39,12 @@ model Profile {
   WeightEntry    WeightEntry[]
   CalorieBurn    CalorieBurn[]
   FoodIntake     FoodIntake[]
-  StaminaSession StaminaSession[]
-  StepEntry      StepEntry[]
-  WaterEntry     WaterEntry[]
+  StaminaSession     StaminaSession[]
+  RecurringItem      RecurringItem[]
+  FinanceTransaction FinanceTransaction[]
+  FinancialGoal      FinancialGoal[]
+  StepEntry          StepEntry[]
+  WaterEntry         WaterEntry[]
 
   @@map("profiles")
 }
@@ -209,4 +212,56 @@ model OnboardingPageFlag {
   createdAt DateTime @default(now())
 
   @@map("onboarding_page_flags")
+}
+
+/// recurring income/expense templates — expanded into period ranges at read time, never materialized into rows
+model RecurringItem {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile     Profile  @relation(fields: [profileId], references: [id])
+  profileId   String   @db.Uuid
+  type        String // 'income' | 'expense'
+  category    String // e.g. 'salary', 'rent', 'mobile_bill', 'other_expense'
+  label       String // user-facing name, e.g. "Rent"
+  amount      Float
+  frequency   String // 'weekly' | 'monthly' | 'yearly'
+  dayOfWeek   Int? // 0-6, used when frequency = 'weekly'
+  dayOfMonth  Int? // 1-31, used when frequency = 'monthly' | 'yearly'
+  monthOfYear Int? // 1-12, used when frequency = 'yearly'
+  startDate   DateTime @default(now())
+  endDate     DateTime?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+
+  @@map("recurring_items")
+}
+
+/// one-off income/expense entries (manual logs, not from a recurring template)
+model FinanceTransaction {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile   Profile  @relation(fields: [profileId], references: [id])
+  profileId String   @db.Uuid
+  type      String // 'income' | 'expense'
+  category  String
+  label     String
+  amount    Float
+  date      DateTime @default(now())
+  notes     String?
+  createdAt DateTime @default(now())
+
+  @@map("finance_transactions")
+}
+
+/// financial goals — savings target, spending cap, debt payoff, investment contribution
+model FinancialGoal {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile     Profile   @relation(fields: [profileId], references: [id])
+  profileId   String    @db.Uuid
+  goalType    String // 'savings_target' | 'spending_cap' | 'debt_payoff' | 'investment_contribution'
+  label       String // e.g. "Emergency Fund", "Dining Budget"
+  category    String? // used by spending_cap / investment_contribution
+  targetValue Float
+  targetDate  DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@map("financial_goals")
 }
