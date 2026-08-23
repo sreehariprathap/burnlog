@@ -110,9 +110,10 @@ export default function SessionsPage() {
 
   // 3️⃣-B Fetch the logged session for the selected date (non-today dates only)
   useEffect(() => {
+    setDateSession(null);
+
     const today = new Date();
     if (isSameLocalDay(selectedDate, today) || !profileId) {
-      setDateSession(null);
       return;
     }
 
