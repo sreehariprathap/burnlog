@@ -3,11 +3,14 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { WalletIcon } from 'lucide-react';
+import { WalletIcon, CalendarClockIcon, TargetIcon, ChartLineIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const tabs = [
   { href: '/lifelog', label: 'Home', Icon: WalletIcon },
+  { href: '/lifelog/plan', label: 'Plan', Icon: CalendarClockIcon },
+  { href: '/lifelog/goals', label: 'Goals', Icon: TargetIcon },
+  { href: '/lifelog/insights', label: 'Insights', Icon: ChartLineIcon },
 ];
 
 export function LifeLogBottomNav() {
@@ -19,7 +22,7 @@ export function LifeLogBottomNav() {
       aria-label="Primary"
     >
       {tabs.map(({ href, label, Icon }) => {
-        const isActive = pathname === href || pathname.startsWith(href + '/');
+        const isActive = href === '/lifelog' ? pathname === href : pathname.startsWith(href + '/') || pathname === href;
         return (
           <Link
             key={href}
