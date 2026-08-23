@@ -79,7 +79,7 @@ export function WaterIntakeTracker({ profileId, waterUnit, glassSizeMl, waterGoa
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="flex items-center gap-2 text-base">
-          <GlassWater className="size-4 text-sky-500" />
+          <GlassWater className="size-4 text-primary" />
           Water Intake
         </CardTitle>
       </CardHeader>
@@ -92,7 +92,7 @@ export function WaterIntakeTracker({ profileId, waterUnit, glassSizeMl, waterGoa
               {Array.from({ length: MAX_ICONS }).map((_, i) => (
                 <GlassWater
                   key={i}
-                  className={cn('size-4 transition-colors', i < filledIcons ? 'text-sky-500' : 'text-muted-foreground/25')}
+                  className={cn('size-4 transition-colors', i < filledIcons ? 'text-primary' : 'text-muted-foreground/25')}
                 />
               ))}
             </div>
