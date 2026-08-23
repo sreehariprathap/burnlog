@@ -10,6 +10,7 @@ import { PlanCard, PlanDay } from './_components/PlanCard';
 import { AddWorkoutModal } from './_components/AddWorkoutModal';
 import { WorkoutHistory } from './_components/WorkoutHistory';
 import { WorkoutChecklist } from './_components/WorkoutChecklist';
+import { MealChecklist } from './_components/MealChecklist';
 import { BottomNav } from '@/components/BottomNav';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
@@ -241,6 +242,12 @@ export default function SessionsPage() {
               </div>
             )}
 
+            {profileId && (
+              <div className="mt-6">
+                <MealChecklist profileId={profileId} dayOfWeek={day} selectedDate={selectedDate} />
+              </div>
+            )}
+
             {profileId && <DailyRingsWidget profileId={profileId} refreshKey={ringsRefreshKey} />}
 
             {profileId && (
@@ -253,11 +260,18 @@ export default function SessionsPage() {
             )}
           </>
         ) : (
-          <PlanDaySummary
-            date={selectedDate}
-            scheduledBodyPart={plan?.bodyPart ?? null}
-            session={dateSession}
-          />
+          <>
+            <PlanDaySummary
+              date={selectedDate}
+              scheduledBodyPart={plan?.bodyPart ?? null}
+              session={dateSession}
+            />
+            {profileId && (
+              <div className="mt-6">
+                <MealChecklist profileId={profileId} dayOfWeek={day} selectedDate={selectedDate} />
+              </div>
+            )}
+          </>
         )}
       </div>
         </>
