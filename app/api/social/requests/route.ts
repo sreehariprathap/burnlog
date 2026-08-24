@@ -94,7 +94,14 @@ export async function GET() {
       .eq('addresseeId', meId)
       .eq('status', 'pending');
 
-    const incoming = (rows ?? []).map((r: any) => ({
+    type IncomingRow = {
+      id: string;
+      requesterId: string;
+      createdAt: string;
+      requester: { username: string; firstName: string; xp: number };
+    };
+
+    const incoming = ((rows ?? []) as unknown as IncomingRow[]).map((r) => ({
       id: r.id,
       requesterId: r.requesterId,
       requesterUsername: r.requester.username,
