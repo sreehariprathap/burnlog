@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Loader2 } from 'lucide-react';
 import { StoreStep } from './StoreStep';
+import { HouseholdStep } from './HouseholdStep';
+import { PreferencesStep } from './PreferencesStep';
 import type { LifestyleAnswers, MealPlannerWizardAnswers } from '@/lib/ai/types';
 
 export type WizardStep = 'loading' | 'store' | 'household' | 'preferences' | 'appliances' | 'generating-candidates' | 'selecting' | 'grid' | 'finalizing' | 'grocery' | 'shopping' | 'done';
@@ -80,7 +82,27 @@ export function MealPlannerFlow() {
       )}
 
       {step === 'household' && (
-        <div className="text-sm text-muted-foreground">Household step coming in Task 6…</div>
+        <HouseholdStep
+          initialAnswers={answers}
+          onContinue={(partial) => {
+            setAnswers((prev) => ({ ...prev, ...partial }));
+            setStep('preferences');
+          }}
+        />
+      )}
+
+      {step === 'preferences' && (
+        <PreferencesStep
+          initialAnswers={answers}
+          onContinue={(partial) => {
+            setAnswers((prev) => ({ ...prev, ...partial }));
+            setStep('appliances');
+          }}
+        />
+      )}
+
+      {step === 'appliances' && (
+        <div className="text-sm text-muted-foreground">Appliances step coming in Task 7…</div>
       )}
     </div>
   );
