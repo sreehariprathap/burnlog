@@ -29,7 +29,11 @@ export function CardioLogger({ onEnd }: CardioLoggerProps) {
   const [error, setError] = useState<string | null>(null);
 
   const isOther = activityType === 'Other';
-  const sessionSuccess = durationMinutes > 0 && !!caloriesBurned && !isNaN(Number(caloriesBurned));
+  const sessionSuccess =
+    durationMinutes > 0 &&
+    !!caloriesBurned &&
+    !isNaN(Number(caloriesBurned)) &&
+    (!isOther || !!description.trim());
 
   const handleEstimate = async () => {
     setError(null);
