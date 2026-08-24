@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -24,7 +25,7 @@ type LogCaloriesModalProps = {
 
 export function LogCaloriesModal({ profileId, onClose, onSaved }: LogCaloriesModalProps) {
   const supabase = createClientComponentClient();
-  const [tab, setTab] = useState<'manual' | 'photo'>('manual');
+  const [tab, setTab] = useState<'manual' | 'describe' | 'photo'>('manual');
   const [showScanner, setShowScanner] = useState(false);
   const [mealType, setMealType] = useState('lunch');
   const [foodName, setFoodName] = useState('');
@@ -32,6 +33,9 @@ export function LogCaloriesModal({ profileId, onClose, onSaved }: LogCaloriesMod
   const [protein, setProtein] = useState('');
   const [carbs, setCarbs] = useState('');
   const [fat, setFat] = useState('');
+  const [itemsNote, setItemsNote] = useState('');
+  const [foodDescription, setFoodDescription] = useState('');
+  const [estimating, setEstimating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -48,9 +52,43 @@ export function LogCaloriesModal({ profileId, onClose, onSaved }: LogCaloriesMod
     setProtein(String(result.protein));
     setCarbs(String(result.carbs));
     setFat(String(result.fat));
+    setItemsNote('');
     if (result.mealType) setMealType(result.mealType);
     setShowScanner(false);
     setTab('manual');
+  };
+
+  const handleDescribeEstimate = async () => {
+    setError(null);
+    if (!foodDescription.trim()) {
+      setError('Describe what you ate first');
+      return;
+    }
+    setEstimating(true);
+    try {
+      const res = await fetch('/api/ai/estimate-food-calories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ description: foodDescription.trim(), mealType }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        setError(data.error ?? 'Failed to estimate calories. Enter manually.');
+        return;
+      }
+      setFoodName(data.foodName);
+      setCalories(String(data.calories));
+      setProtein(String(data.protein));
+      setCarbs(String(data.carbs));
+      setFat(String(data.fat));
+      const items = data.items as { name: string; calories: number }[] | undefined;
+      setItemsNote(items?.length ? items.map((i) => `${i.name} (${i.calories} kcal)`).join(', ') : '');
+      setTab('manual');
+    } catch {
+      setError('Network error. Enter calories manually.');
+    } finally {
+      setEstimating(false);
+    }
   };
 
   const handleSave = async () => {
@@ -75,6 +113,7 @@ export function LogCaloriesModal({ profileId, onClose, onSaved }: LogCaloriesMod
           protein: protein ? Number(protein) : null,
           carbs: carbs ? Number(carbs) : null,
           fat: fat ? Number(fat) : null,
+          notes: itemsNote || null,
         },
       ]);
 
@@ -98,11 +137,30 @@ export function LogCaloriesModal({ profileId, onClose, onSaved }: LogCaloriesMod
           <DrawerTitle>Log Calories</DrawerTitle>
         </DrawerHeader>
         <div className="px-4 pb-6 space-y-4 overflow-y-auto">
-          <Tabs value={tab} onValueChange={(v) => setTab(v as 'manual' | 'photo')}>
-            <TabsList className="grid grid-cols-2">
+          <Tabs value={tab} onValueChange={(v) => setTab(v as 'manual' | 'describe' | 'photo')}>
+            <TabsList className="grid grid-cols-3">
               <TabsTrigger value="manual">Manual</TabsTrigger>
+              <TabsTrigger value="describe">Describe (AI)</TabsTrigger>
               <TabsTrigger value="photo">Photo (AI)</TabsTrigger>
             </TabsList>
+            <TabsContent value="describe" className="space-y-3 pt-3">
+              <div className="space-y-1">
+                <Label htmlFor="foodDescription">What did you eat?</Label>
+                <textarea
+                  id="foodDescription"
+                  value={foodDescription}
+                  onChange={(e) => setFoodDescription(e.target.value)}
+                  className="w-full p-2 border rounded-md h-20 text-sm"
+                  placeholder="e.g. coffee, 2 pancakes, a banana"
+                />
+              </div>
+              <Button className="w-full" onClick={handleDescribeEstimate} disabled={estimating}>
+                {estimating ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Estimate with AI'}
+              </Button>
+              <p className="text-xs text-muted-foreground">
+                List multiple items separated by commas or "+" — AI estimates calories and macros for each, then you can review and save below.
+              </p>
+            </TabsContent>
             <TabsContent value="photo" className="pt-3">
               <Button className="w-full" onClick={() => setShowScanner(true)}>
                 📸 Scan Food Photo
@@ -149,6 +207,7 @@ export function LogCaloriesModal({ profileId, onClose, onSaved }: LogCaloriesMod
                   <Input id="fat" type="number" step="0.1" value={fat} onChange={(e) => setFat(e.target.value)} />
                 </div>
               </div>
+              {itemsNote && <p className="text-xs text-muted-foreground">Items: {itemsNote}</p>}
             </TabsContent>
           </Tabs>
 
