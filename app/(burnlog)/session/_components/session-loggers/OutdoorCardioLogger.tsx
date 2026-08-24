@@ -1,13 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Loader2, TreePine } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TreePine } from 'lucide-react';
 
 import type { LifestyleAnswers } from '@/lib/ai/types';
 
@@ -16,9 +16,9 @@ type OutdoorCardioLoggerProps = {
   onEnd: (log: {
     activityType: string;
     durationMinutes: number;
-    distanceKm: number;
-    notes: string;
-    extras: Record<string, boolean>;
+    distanceKm?: number;
+    caloriesBurned: number;
+    notes?: string;
   }) => void;
 };
 
@@ -43,11 +43,51 @@ export function OutdoorCardioLogger({ lifestyle, onEnd }: OutdoorCardioLoggerPro
   const [extras, setExtras] = useState<Record<string, boolean>>(
     Object.fromEntries(EXTRAS.map((e) => [e, false]))
   );
+  const [caloriesBurned, setCaloriesBurned] = useState('');
+  const [estimating, setEstimating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const toggleExtra = (key: string) =>
     setExtras((prev) => ({ ...prev, [key]: !prev[key] }));
 
-  const sessionSuccess = durationMinutes > 0;
+  const sessionSuccess = durationMinutes > 0 && !!caloriesBurned && !isNaN(Number(caloriesBurned));
+
+  const buildNotes = () => {
+    const activeExtras = Object.entries(extras).filter(([, v]) => v).map(([k]) => k);
+    return [notes.trim(), activeExtras.length ? `Extras: ${activeExtras.join(', ')}` : '']
+      .filter(Boolean)
+      .join('\n') || undefined;
+  };
+
+  const handleEstimate = async () => {
+    setError(null);
+    if (durationMinutes <= 0) {
+      setError('Enter a valid duration first');
+      return;
+    }
+    setEstimating(true);
+    try {
+      const res = await fetch('/api/ai/estimate-workout-calories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          activityType,
+          durationMinutes,
+          distanceKm: distanceKm > 0 ? distanceKm : undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        setError(data.error ?? 'Failed to estimate calories. Enter manually.');
+        return;
+      }
+      setCaloriesBurned(String(data.caloriesBurned));
+    } catch {
+      setError('Network error. Enter calories manually.');
+    } finally {
+      setEstimating(false);
+    }
+  };
 
   return (
     <div className="p-4">
@@ -124,8 +164,36 @@ export function OutdoorCardioLogger({ lifestyle, onEnd }: OutdoorCardioLoggerPro
             </div>
           )}
 
+          <div className="space-y-2">
+            <Label>Calories burned</Label>
+            <div className="flex gap-2">
+              <Input
+                type="number"
+                placeholder="Calories"
+                value={caloriesBurned}
+                onChange={(e) => setCaloriesBurned(e.target.value)}
+              />
+              <Button type="button" variant="outline" onClick={handleEstimate} disabled={estimating}>
+                {estimating ? <Loader2 className="h-4 w-4 animate-spin" /> : 'AI'}
+              </Button>
+            </div>
+          </div>
+
+          {error && <p className="text-sm text-red-500">{error}</p>}
+
           <div className="flex justify-end">
-            <Button onClick={() => onEnd({ activityType, durationMinutes, distanceKm, notes, extras })} disabled={!sessionSuccess}>
+            <Button
+              onClick={() =>
+                onEnd({
+                  activityType,
+                  durationMinutes,
+                  distanceKm: distanceKm > 0 ? distanceKm : undefined,
+                  caloriesBurned: Number(caloriesBurned),
+                  notes: buildNotes(),
+                })
+              }
+              disabled={!sessionSuccess}
+            >
               Finish Outdoor Session
             </Button>
           </div>
