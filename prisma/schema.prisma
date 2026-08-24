@@ -49,6 +49,8 @@ model Profile {
   MealPlanEntry      MealPlanEntry[]
   MealPlanCheckIn    MealPlanCheckIn[]
   Program            Program?
+  friendshipsSent     Friendship[] @relation("FriendshipRequester")
+  friendshipsReceived Friendship[] @relation("FriendshipAddressee")
 
   @@map("profiles")
 }
@@ -339,4 +341,20 @@ model ProgramWeek {
 
   @@unique([programId, weekIndex])
   @@map("program_weeks")
+}
+
+/// friend relationship — one row per requested pair; deleted on decline/unfriend
+model Friendship {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  requesterId String    @db.Uuid
+  addresseeId String    @db.Uuid
+  status      String    @default("pending") // 'pending' | 'accepted'
+  createdAt   DateTime  @default(now())
+  respondedAt DateTime?
+
+  requester Profile @relation("FriendshipRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  addressee Profile @relation("FriendshipAddressee", fields: [addresseeId], references: [id], onDelete: Cascade)
+
+  @@unique([requesterId, addresseeId])
+  @@map("friendships")
 }

@@ -208,3 +208,35 @@ create policy "program_weeks_owner_access" on program_weeks
         and profiles."userId" = auth.uid()
     )
   );
+
+-- friendships -----------------------------------------------------------
+-- Not accessed directly by client-side Supabase calls (all social features
+-- go through app/api/social/* routes using the service-role client, which
+-- bypasses RLS and does its own authorization). RLS is still enabled here
+-- as a defensive default matching every other table in this file.
+alter table friendships enable row level security;
+
+create policy "friendships_select_own" on friendships
+  for select using (
+    exists (select 1 from profiles where profiles.id = friendships."requesterId" and profiles."userId" = auth.uid())
+    or exists (select 1 from profiles where profiles.id = friendships."addresseeId" and profiles."userId" = auth.uid())
+  );
+
+create policy "friendships_insert_own" on friendships
+  for insert with check (
+    exists (select 1 from profiles where profiles.id = friendships."requesterId" and profiles."userId" = auth.uid())
+  );
+
+create policy "friendships_update_addressee" on friendships
+  for update using (
+    exists (select 1 from profiles where profiles.id = friendships."addresseeId" and profiles."userId" = auth.uid())
+  )
+  with check (
+    exists (select 1 from profiles where profiles.id = friendships."addresseeId" and profiles."userId" = auth.uid())
+  );
+
+create policy "friendships_delete_own" on friendships
+  for delete using (
+    exists (select 1 from profiles where profiles.id = friendships."requesterId" and profiles."userId" = auth.uid())
+    or exists (select 1 from profiles where profiles.id = friendships."addresseeId" and profiles."userId" = auth.uid())
+  );
