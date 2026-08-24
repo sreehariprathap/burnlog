@@ -55,7 +55,9 @@ begin
     'finance_transactions',
     'financial_goals',
     'meal_plan_entries',
-    'meal_plan_checkins'
+    'meal_plan_checkins',
+    'grocery_lists',
+    'scheduled_reminders'
   ]
   loop
     execute format('alter table %I enable row level security', t);

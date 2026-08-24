@@ -32,6 +32,10 @@ model Profile {
   glassSizeMl              Int       @default(250)
   waterGoalMl              Int       @default(2000)
   username                 String    @unique
+  mealPrepDayOfWeek        Int?
+  mealPrepTime             String?
+  mealPrepTimezone         String?
+  lastMealPlanGeneratedAt  DateTime?
 
   FitnessGoal    FitnessGoal[]
   Workout        Workout[]
@@ -48,6 +52,8 @@ model Profile {
   WaterEntry         WaterEntry[]
   MealPlanEntry      MealPlanEntry[]
   MealPlanCheckIn    MealPlanCheckIn[]
+  GroceryList        GroceryList[]
+  ScheduledReminder  ScheduledReminder[]
   Program            Program?
   friendshipsSent     Friendship[] @relation("FriendshipRequester")
   friendshipsReceived Friendship[] @relation("FriendshipAddressee")
@@ -357,4 +363,37 @@ model Friendship {
 
   @@unique([requesterId, addresseeId])
   @@map("friendships")
+}
+
+/// this week's generated grocery list — one active row per profile, upserted per wizard run
+model GroceryList {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile         Profile   @relation(fields: [profileId], references: [id])
+  profileId       String    @unique @db.Uuid
+  items           Json
+  estimatedBudget String?
+  shoppingAt      DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("grocery_lists")
+}
+
+/// generic scheduled push: one-off (remindAt set) or weekly-recurring (dayOfWeek+timeOfDay+timezone set)
+model ScheduledReminder {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile     Profile   @relation(fields: [profileId], references: [id])
+  profileId   String    @db.Uuid
+  title       String
+  message     String
+  url         String
+  remindAt    DateTime?
+  dayOfWeek   Int?
+  timeOfDay   String?
+  timezone    String?
+  lastSentAt  DateTime? @db.Date
+  sentAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@map("scheduled_reminders")
 }
