@@ -22,13 +22,19 @@ export async function POST(request: Request) {
     MODEL = await getModel(supabase, 'text');
 
     const body = await request.json();
-    const { activityType, durationMinutes } = body as {
+    const { activityType, durationMinutes, distanceKm, description } = body as {
       activityType?: string;
       durationMinutes?: number;
+      distanceKm?: number;
+      description?: string;
     };
 
     if (!activityType || !durationMinutes || durationMinutes <= 0) {
       return NextResponse.json({ error: 'activityType and a positive durationMinutes are required' }, { status: 400 });
+    }
+
+    if (activityType === 'Other' && !description?.trim()) {
+      return NextResponse.json({ error: 'description is required when activityType is Other' }, { status: 400 });
     }
 
     const { data: profile } = await supabase
@@ -40,18 +46,27 @@ export async function POST(request: Request) {
     const weight = profile?.weight ?? 70;
     const age = profile?.age ?? 30;
 
+    const activityLine = activityType === 'Other'
+      ? `Activity: unspecified — infer the actual activity from this description: "${description?.trim()}"`
+      : `Activity: ${activityType}`;
+
+    const paceLine = distanceKm && distanceKm > 0
+      ? `\nDistance covered: ${distanceKm} km in ${durationMinutes} minutes (use this pace to judge intensity).`
+      : '';
+
     const prompt = `You are an exercise physiologist estimating calorie expenditure.
 
-Activity: ${activityType}
-Duration: ${durationMinutes} minutes
+${activityLine}
+Duration: ${durationMinutes} minutes${paceLine}
 User: ${weight} kg, ${age} years old
 
-Use a MET-based estimate appropriate for this activity type and duration, adjusted for the user's body weight.
+If the activity was inferred from a description, briefly name the inferred activity in your notes.
+Use a MET-based estimate appropriate for this activity type and duration, adjusted for the user's body weight and, if distance/pace was given, adjusted for intensity implied by that pace.
 
 Respond ONLY with a valid JSON object (no markdown, no extra text) with this exact shape:
 {
   "caloriesBurned": <integer estimate of total kcal burned for the full duration>,
-  "notes": "one short sentence explaining the estimate (e.g. MET value used)"
+  "notes": "one short sentence explaining the estimate (e.g. MET value used, inferred activity if applicable)"
 }`;
 
     const completion = await client.chat.completions.create({
