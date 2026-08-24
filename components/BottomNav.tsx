@@ -8,7 +8,8 @@ import {
   HomeIcon,
   DumbbellIcon,
   TargetIcon,
-  ChartLine
+  ChartLine,
+  UsersIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ProfileMenu } from '@/components/ProfileMenu';
@@ -18,6 +19,7 @@ const tabs = [
   { href: '/session',   label: 'Plan', Icon: DumbbellIcon },
   { href: '/goals',     label: 'Goals', Icon: TargetIcon },
   { href: '/insights',  label: 'Insights', Icon: ChartLine },
+  { href: '/social',    label: 'Social', Icon: UsersIcon },
 ];
 
 export function BottomNav() {
@@ -36,7 +38,7 @@ export function BottomNav() {
             key={href}
             href={href}
             className={cn(
-              'relative flex flex-col items-center rounded-full px-3 py-2 text-xs transition-colors',
+              'relative flex flex-col items-center rounded-full px-2 py-2 text-xs transition-colors',
               isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
             )}
           >
