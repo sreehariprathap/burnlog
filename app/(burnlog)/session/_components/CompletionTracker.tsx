@@ -97,6 +97,22 @@ export function CompletionTracker({ plan, exerciseLog, onComplete }: CompletionT
         return;
       }
 
+      const caloriesBurned = exerciseLog?.caloriesBurned;
+      if (typeof caloriesBurned === 'number' && caloriesBurned > 0) {
+        const { error: calorieError } = await supabase.from('calorie_burns').insert([
+          {
+            profileId: profileData.id,
+            activityType: typeof exerciseLog?.activityType === 'string' ? exerciseLog.activityType : plan.bodyPart,
+            duration: typeof exerciseLog?.durationMinutes === 'number' ? exerciseLog.durationMinutes : duration,
+            caloriesBurned,
+            notes: typeof exerciseLog?.notes === 'string' ? exerciseLog.notes : null,
+          },
+        ]);
+        if (calorieError) {
+          console.error('Error saving calorie burn:', calorieError);
+        }
+      }
+
       if (completed) {
         const { newStreak, xpGained } = computeStreakUpdate({
           lastSessionDate: profileData.lastSessionDate,
