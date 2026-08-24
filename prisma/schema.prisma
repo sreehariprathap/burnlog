@@ -31,6 +31,7 @@ model Profile {
   waterUnit                String    @default("glasses")
   glassSizeMl              Int       @default(250)
   waterGoalMl              Int       @default(2000)
+  username                 String    @unique
 
   FitnessGoal    FitnessGoal[]
   Workout        Workout[]
