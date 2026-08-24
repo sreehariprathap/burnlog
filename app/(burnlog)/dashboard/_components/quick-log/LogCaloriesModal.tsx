@@ -158,7 +158,7 @@ export function LogCaloriesModal({ profileId, onClose, onSaved }: LogCaloriesMod
                 {estimating ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Estimate with AI'}
               </Button>
               <p className="text-xs text-muted-foreground">
-                List multiple items separated by commas or "+" — AI estimates calories and macros for each, then you can review and save below.
+                List multiple items separated by commas or &quot;+&quot; — AI estimates calories and macros for each, then you can review and save below.
               </p>
             </TabsContent>
             <TabsContent value="photo" className="pt-3">
