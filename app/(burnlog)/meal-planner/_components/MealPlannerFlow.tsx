@@ -9,7 +9,9 @@ import { StoreStep } from './StoreStep';
 import { HouseholdStep } from './HouseholdStep';
 import { PreferencesStep } from './PreferencesStep';
 import { AppliancesStep } from './AppliancesStep';
-import type { LifestyleAnswers, MealPlannerWizardAnswers } from '@/lib/ai/types';
+import { MealSelectionStep } from './MealSelectionStep';
+import { AiLoading } from '@/components/kokonutui/ai-loading';
+import type { LifestyleAnswers, MealPlannerWizardAnswers, MealCandidate } from '@/lib/ai/types';
 
 export type WizardStep = 'loading' | 'store' | 'household' | 'preferences' | 'appliances' | 'generating-candidates' | 'selecting' | 'grid' | 'finalizing' | 'grocery' | 'shopping' | 'done';
 
@@ -22,6 +24,7 @@ export function MealPlannerFlow() {
   const [initialLifestyle, setInitialLifestyle] = useState<LifestyleAnswers | null>(null);
   const [answers, setAnswers] = useState<Partial<MealPlannerWizardAnswers>>({});
   const [error, setError] = useState<string | null>(null);
+  const [candidates, setCandidates] = useState<MealCandidate[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -55,6 +58,31 @@ export function MealPlannerFlow() {
       setStep('store');
     })();
   }, [supabase, router]);
+
+  useEffect(() => {
+    if (step !== 'generating-candidates') return;
+    (async () => {
+      setError(null);
+      try {
+        const res = await fetch('/api/ai/meal-plan/candidates', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(answers),
+        });
+        const data = await res.json();
+        if (!res.ok || data.error) {
+          setError(data.error ?? 'Failed to generate meal ideas. Please try again.');
+          setStep('appliances');
+          return;
+        }
+        setCandidates(data.candidates as MealCandidate[]);
+        setStep('selecting');
+      } catch {
+        setError('Network error. Please try again.');
+        setStep('appliances');
+      }
+    })();
+  }, [step, answers]);
 
   if (step === 'loading' || !profileId) {
     return (
@@ -113,7 +141,18 @@ export function MealPlannerFlow() {
       )}
 
       {step === 'generating-candidates' && (
-        <div className="text-sm text-muted-foreground">Candidate generation coming in Task 8…</div>
+        <AiLoading tasks={["Reviewing your preferences", "Thinking up meal ideas", "Balancing macros", "Almost ready"]} />
+      )}
+
+      {step === 'selecting' && (
+        <MealSelectionStep
+          candidates={candidates}
+          cookMode={answers.cookMode ?? 'fresh_daily'}
+          mealsPerDay={answers.mealsPerDay ?? 3}
+          onContinue={(selected) => {
+            setStep('grid');
+          }}
+        />
       )}
     </div>
   );
