@@ -7,13 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
-
-const WORKOUT_TYPES = [
-  { value: 'Gym', label: 'Gym' },
-  { value: 'Cycling', label: 'Cycling' },
-  { value: 'Swimming', label: 'Swimming' },
-  { value: 'Other', label: 'Other' },
-];
+import { COMMON_ACTIVITIES, formatWorkoutNotes } from '@/lib/workoutActivities';
 
 type LogWorkoutModalProps = {
   profileId: string;
@@ -23,12 +17,16 @@ type LogWorkoutModalProps = {
 
 export function LogWorkoutModal({ profileId, onClose, onSaved }: LogWorkoutModalProps) {
   const supabase = createClientComponentClient();
-  const [activityType, setActivityType] = useState('Gym');
+  const [activityType, setActivityType] = useState<string>(COMMON_ACTIVITIES[0]);
   const [duration, setDuration] = useState('');
+  const [distanceKm, setDistanceKm] = useState('');
+  const [description, setDescription] = useState('');
   const [caloriesBurned, setCaloriesBurned] = useState('');
   const [estimating, setEstimating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const isOther = activityType === 'Other';
 
   const handleEstimate = async () => {
     setError(null);
@@ -36,12 +34,21 @@ export function LogWorkoutModal({ profileId, onClose, onSaved }: LogWorkoutModal
       setError('Enter a valid duration first');
       return;
     }
+    if (isOther && !description.trim()) {
+      setError('Briefly describe what you did first');
+      return;
+    }
     setEstimating(true);
     try {
       const res = await fetch('/api/ai/estimate-workout-calories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ activityType, durationMinutes: Number(duration) }),
+        body: JSON.stringify({
+          activityType,
+          durationMinutes: Number(duration),
+          distanceKm: distanceKm ? Number(distanceKm) : undefined,
+          description: isOther ? description.trim() : undefined,
+        }),
       });
       const data = await res.json();
       if (!res.ok || data.error) {
@@ -66,6 +73,10 @@ export function LogWorkoutModal({ profileId, onClose, onSaved }: LogWorkoutModal
       setError('Please enter valid calories (or calculate with AI)');
       return;
     }
+    if (isOther && !description.trim()) {
+      setError('Briefly describe what you did');
+      return;
+    }
 
     setSaving(true);
     try {
@@ -75,6 +86,7 @@ export function LogWorkoutModal({ profileId, onClose, onSaved }: LogWorkoutModal
           activityType,
           duration: Number(duration),
           caloriesBurned: Number(caloriesBurned),
+          notes: formatWorkoutNotes(distanceKm ? Number(distanceKm) : undefined, isOther ? description : undefined),
         },
       ]);
       if (insertError) throw insertError;
@@ -101,16 +113,42 @@ export function LogWorkoutModal({ profileId, onClose, onSaved }: LogWorkoutModal
               onChange={(e) => setActivityType(e.target.value)}
               className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
             >
-              {WORKOUT_TYPES.map((type) => (
-                <option key={type.value} value={type.value}>{type.label}</option>
+              {COMMON_ACTIVITIES.map((type) => (
+                <option key={type} value={type}>{type}</option>
               ))}
             </select>
           </div>
 
-          <div className="space-y-1">
-            <Label htmlFor="duration">Duration (mins)</Label>
-            <Input id="duration" type="number" placeholder="Minutes" value={duration} onChange={(e) => setDuration(e.target.value)} />
+          <div className="grid grid-cols-2 gap-2">
+            <div className="space-y-1">
+              <Label htmlFor="duration">Duration (mins)</Label>
+              <Input id="duration" type="number" placeholder="Minutes" value={duration} onChange={(e) => setDuration(e.target.value)} />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor="distanceKm">Distance (km) — optional</Label>
+              <Input
+                id="distanceKm"
+                type="number"
+                step="0.1"
+                placeholder="e.g. 5.2"
+                value={distanceKm}
+                onChange={(e) => setDistanceKm(e.target.value)}
+              />
+            </div>
           </div>
+
+          {isOther && (
+            <div className="space-y-1">
+              <Label htmlFor="description">Briefly describe what you did</Label>
+              <textarea
+                id="description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full p-2 border rounded-md h-16 text-sm"
+                placeholder="e.g. 30 min bodyweight circuit: squats, push-ups, lunges"
+              />
+            </div>
+          )}
 
           <div className="space-y-1">
             <Label htmlFor="caloriesBurned">Calories Burned</Label>
