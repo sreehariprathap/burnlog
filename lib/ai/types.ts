@@ -75,6 +75,7 @@ export const GROCERY_STORES = [
   'Aldi', 'Safeway', 'Publix', 'H-E-B', 'Wegmans', 'Meijer', 'Food Lion',
   // Canada
   'Loblaws', "No Frills", 'FreshCo', 'Sobeys', 'Metro', 'Real Canadian Superstore',
+  'Save-On-Foods', 'T&T Supermarket', 'Indian Grocery Store',
   // UK / Europe
   'Tesco', "Sainsbury's", 'Asda', 'Morrisons', 'Lidl', 'Aldi UK', 'Waitrose',
   // Online
@@ -83,11 +84,32 @@ export const GROCERY_STORES = [
   'Local / Independent Market', 'Other',
 ] as const;
 
+export const MANUAL_INGREDIENTS_OPTION = 'Manual — I already have ingredients';
+
 export type GroceryAnswers = {
   preferredStore: string;
   shoppingFrequency: 'multiple_per_week' | 'weekly' | 'biweekly' | 'monthly' | 'as_needed';
   budget: 'budget' | 'moderate' | 'flexible';
   cookingSkill: 'beginner' | 'intermediate' | 'advanced';
+};
+
+export const CUISINE_STYLES = [
+  'Continental', 'Canadian', 'Indian', 'Italian', 'Mexican', 'Chinese',
+  'Thai', 'Mediterranean', 'Middle Eastern', 'Japanese', 'Other',
+] as const;
+
+export const KITCHEN_APPLIANCES = [
+  'Stove (gas)', 'Stove (electric/induction)', 'Oven', 'Microwave',
+  'Air Fryer', 'Toaster', 'Slow Cooker', 'Instant Pot / Pressure Cooker',
+  'Blender', 'Rice Cooker', 'Grill / BBQ',
+] as const;
+
+export type MealPlanningAnswers = {
+  householdSize: number;
+  cookMode: 'weekly_batch' | 'fresh_daily';
+  cuisinePreferences: string[]; // ignored when surpriseMe is true
+  surpriseMe: boolean;
+  kitchenAppliances: string[]; // [] means "not cooking at home"
 };
 
 export type LifestyleAnswers = {
@@ -108,4 +130,36 @@ export type LifestyleAnswers = {
   equipment?: EquipmentAnswers;
   nutrition?: NutritionAnswers;
   grocery?: GroceryAnswers;
+  mealPlanning?: MealPlanningAnswers;
+};
+
+export type MealType = 'breakfast' | 'lunch' | 'dinner' | 'snack';
+
+export type MealCandidate = {
+  id: string;
+  mealType: MealType;
+  name: string;
+  description: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  prepMinutes: number;
+};
+
+export type MealGridCell = {
+  dayOfWeek: number; // 0=Sun..6=Sat
+  mealType: MealType;
+  meal: MealCandidate | null;
+};
+
+export type MealPlannerWizardAnswers = {
+  store: string; // one of GROCERY_STORES, or MANUAL_INGREDIENTS_OPTION
+  onHandIngredients: string[]; // only meaningful when store === MANUAL_INGREDIENTS_OPTION
+  householdSize: number;
+  cookMode: 'weekly_batch' | 'fresh_daily';
+  mealsPerDay: number;
+  cuisinePreferences: string[];
+  surpriseMe: boolean;
+  appliances: string[];
 };
