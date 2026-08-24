@@ -14,11 +14,11 @@ import type { CommuteDetails } from '@/lib/ai/types';
 type ActiveCommuteLoggerProps = {
   commuteDetails?: CommuteDetails;
   onEnd: (log: {
-    mode: string;
-    trips: number;
-    distanceKmPerTrip: number;
-    durationMinutesPerTrip: number;
-    notes: string;
+    activityType: string;
+    durationMinutes: number;
+    distanceKm?: number;
+    caloriesBurned: number;
+    notes?: string;
   }) => void;
 };
 
@@ -146,7 +146,13 @@ export function ActiveCommuteLogger({ commuteDetails, onEnd }: ActiveCommuteLogg
           <div className="flex justify-end">
             <Button
               onClick={() =>
-                onEnd({ mode, trips, distanceKmPerTrip, durationMinutesPerTrip, notes })
+                onEnd({
+                  activityType: mode === 'cycle' ? 'Cycling' : 'Walking',
+                  durationMinutes: totalDuration,
+                  distanceKm: totalDistance > 0 ? totalDistance : undefined,
+                  caloriesBurned: caloriesEstimate,
+                  notes: notes.trim() || undefined,
+                })
               }
               disabled={distanceKmPerTrip <= 0 || durationMinutesPerTrip <= 0}
             >
