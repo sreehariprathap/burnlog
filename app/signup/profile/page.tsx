@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { generateUsername } from '@/lib/username';
 
 export default function ProfileSetupPage() {
   const router = useRouter();
@@ -87,17 +88,24 @@ export default function ProfileSetupPage() {
     const userId = session.user.id;
     
     try {
-      // Create new profile
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({ 
-          userId,
-          firstName, lastName,
-          age, weight: parseFloat(weight),
-          height: parseFloat(height),
-          activityLevel
-        });
-      
+      // Create new profile, retrying the auto-generated username on the
+      // rare unique-constraint collision (Postgres error code 23505).
+      let profileError: { code?: string; message: string } | null = null;
+      for (let attempt = 0; attempt < 5; attempt++) {
+        const result = await supabase
+          .from('profiles')
+          .insert({
+            userId,
+            firstName, lastName,
+            age, weight: parseFloat(weight),
+            height: parseFloat(height),
+            activityLevel,
+            username: generateUsername(firstName),
+          });
+        profileError = result.error;
+        if (!profileError || profileError.code !== '23505') break;
+      }
+
       if (profileError) {
         console.error("Profile error:", profileError);
         setError(profileError.message);
