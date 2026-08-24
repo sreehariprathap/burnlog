@@ -38,6 +38,10 @@ export default function ProfilePage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [defaultApp, setDefaultAppState] = useState<AppId>('burnlog');
   const [activeApp, setActiveAppState] = useState<AppId>('burnlog');
+  const [usernameInput, setUsernameInput] = useState('');
+  const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle');
+  const [savingUsername, setSavingUsername] = useState(false);
+  const [usernameSaveError, setUsernameSaveError] = useState<string | null>(null);
 
   useEffect(() => {
     setDefaultAppState(getDefaultApp());
@@ -72,7 +76,7 @@ export default function ProfilePage() {
         const userId = session.user.id;
         const { data, error: profErr } = await supabase
           .from('profiles')
-          .select('id,firstName,lastName,age,weight,height,activityLevel,aiEnabled,isAdmin,currentStreak,longestStreak,xp,level,avatarUrl,waterUnit,glassSizeMl,waterGoalMl')
+          .select('id,firstName,lastName,age,weight,height,activityLevel,aiEnabled,isAdmin,currentStreak,longestStreak,xp,level,avatarUrl,waterUnit,glassSizeMl,waterGoalMl,username')
           .eq('userId', userId)
           .single();
 
@@ -97,6 +101,56 @@ export default function ProfilePage() {
       }
     })();
   }, [supabase, router]);
+
+  useEffect(() => {
+    if (profile?.username) {
+      setUsernameInput(profile.username);
+    }
+  }, [profile?.username]);
+
+  useEffect(() => {
+    if (!profile || usernameInput === profile.username || usernameInput.length === 0) {
+      setUsernameStatus('idle');
+      return;
+    }
+    let cancelled = false;
+    setUsernameStatus('checking');
+    const handle = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/social/username-available?u=${encodeURIComponent(usernameInput)}`);
+        const data = await res.json();
+        if (cancelled) return;
+        if (data.error) {
+          setUsernameStatus('invalid');
+        } else {
+          setUsernameStatus(data.available ? 'available' : 'taken');
+        }
+      } catch {
+        if (!cancelled) setUsernameStatus('idle');
+      }
+    }, 400);
+    return () => {
+      cancelled = true;
+      clearTimeout(handle);
+    };
+  }, [usernameInput, profile]);
+
+  const handleSaveUsername = async () => {
+    if (!profile || usernameStatus !== 'available') return;
+    setSavingUsername(true);
+    setUsernameSaveError(null);
+    const { error } = await supabase
+      .from('profiles')
+      .update({ username: usernameInput })
+      .eq('id', profile.id);
+    if (error) {
+      setUsernameSaveError(error.code === '23505' ? 'That username was just taken — try another.' : error.message);
+    } else {
+      setProfile((prev: any) => ({ ...prev, username: usernameInput }));
+      setUsernameStatus('idle');
+    }
+    setSavingUsername(false);
+  };
 
   const handleSendTestPush = async () => {
     setTestSending(true);
@@ -243,6 +297,37 @@ export default function ProfilePage() {
                       </span>
                     </div>
                   ))}
+                </CardContent>
+              </Card>
+
+              {/* Username */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Username</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <p className="text-xs text-muted-foreground">
+                    Friends find you by this username on the Social tab.
+                  </p>
+                  <div className="flex gap-2">
+                    <input
+                      value={usernameInput}
+                      onChange={(e) => setUsernameInput(e.target.value.toLowerCase())}
+                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                      placeholder="username"
+                    />
+                    <Button
+                      onClick={handleSaveUsername}
+                      disabled={usernameStatus !== 'available' || savingUsername}
+                    >
+                      {savingUsername ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Save'}
+                    </Button>
+                  </div>
+                  {usernameStatus === 'checking' && <p className="text-xs text-muted-foreground">Checking availability…</p>}
+                  {usernameStatus === 'available' && <p className="text-xs text-green-600">Available</p>}
+                  {usernameStatus === 'taken' && <p className="text-xs text-red-500">Already taken</p>}
+                  {usernameStatus === 'invalid' && <p className="text-xs text-red-500">3-20 lowercase letters, digits, or underscores</p>}
+                  {usernameSaveError && <p className="text-xs text-red-500">{usernameSaveError}</p>}
                 </CardContent>
               </Card>
 
