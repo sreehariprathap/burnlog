@@ -1,30 +1,80 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import React, { useState } from 'react';
-import Image from 'next/image';
-import { Info } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { getExerciseImage } from '@/lib/exerciseImages';
-import { ExerciseInfoModal } from '../ExerciseInfoModal';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { COMMON_ACTIVITIES, formatWorkoutNotes } from '@/lib/workoutActivities';
 
-type CardioLoggerProps = { onEnd: (exerciseLog: { minutes: number; activities: Record<string, boolean> }) => void };
-
-const cardioOptions = ['Running','Cycling','Rowing','Elliptical','Other'];
+type CardioLoggerProps = {
+  onEnd: (log: {
+    activityType: string;
+    durationMinutes: number;
+    distanceKm?: number;
+    caloriesBurned: number;
+    notes?: string;
+  }) => void;
+};
 
 export function CardioLogger({ onEnd }: CardioLoggerProps) {
-  const [infoExercise, setInfoExercise] = useState<string | null>(null);
-  const [checks, setChecks] = useState<Record<string,boolean>>(() => {
-    const init: any = {};
-    cardioOptions.forEach(opt => (init[opt] = false));
-    return init;
-  });
-  const [minutes, setMinutes] = useState<number>(0);
-  const sessionSuccess = minutes > 0 || Object.values(checks).some(v => v);
+  const [activityType, setActivityType] = useState<string>(COMMON_ACTIVITIES[0]);
+  const [durationMinutes, setDurationMinutes] = useState<number>(0);
+  const [distanceKm, setDistanceKm] = useState<number>(0);
+  const [description, setDescription] = useState('');
+  const [caloriesBurned, setCaloriesBurned] = useState('');
+  const [estimating, setEstimating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const isOther = activityType === 'Other';
+  const sessionSuccess = durationMinutes > 0 && !!caloriesBurned && !isNaN(Number(caloriesBurned));
+
+  const handleEstimate = async () => {
+    setError(null);
+    if (durationMinutes <= 0) {
+      setError('Enter a valid duration first');
+      return;
+    }
+    if (isOther && !description.trim()) {
+      setError('Briefly describe what you did first');
+      return;
+    }
+    setEstimating(true);
+    try {
+      const res = await fetch('/api/ai/estimate-workout-calories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          activityType,
+          durationMinutes,
+          distanceKm: distanceKm > 0 ? distanceKm : undefined,
+          description: isOther ? description.trim() : undefined,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        setError(data.error ?? 'Failed to estimate calories. Enter manually.');
+        return;
+      }
+      setCaloriesBurned(String(data.caloriesBurned));
+    } catch {
+      setError('Network error. Enter calories manually.');
+    } finally {
+      setEstimating(false);
+    }
+  };
+
+  const handleFinish = () => {
+    onEnd({
+      activityType,
+      durationMinutes,
+      distanceKm: distanceKm > 0 ? distanceKm : undefined,
+      caloriesBurned: Number(caloriesBurned),
+      notes: formatWorkoutNotes(distanceKm > 0 ? distanceKm : undefined, isOther ? description : undefined) ?? undefined,
+    });
+  };
 
   return (
     <div className="p-4">
@@ -32,61 +82,79 @@ export function CardioLogger({ onEnd }: CardioLoggerProps) {
         <CardHeader>
           <CardTitle>Cardio Session</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="flex flex-col gap-2">
-            <Label>Minutes</Label>
-            <Input
-              type="number"
-              value={minutes}
-              onChange={e => setMinutes(Number(e.target.value))}
-              placeholder="e.g. 30"
-            />
+        <CardContent className="space-y-5">
+          <div className="space-y-2">
+            <Label>Activity</Label>
+            <Select value={activityType} onValueChange={setActivityType}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {COMMON_ACTIVITIES.map((a) => (
+                  <SelectItem key={a} value={a}>{a}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          <div>
-            <Label>Workouts</Label>
-            <div className="grid grid-cols-2 gap-2 mt-2">
-              {cardioOptions.map(opt => (
-                <label key={opt} className="flex items-center space-x-2">
-                  <Checkbox
-                    checked={checks[opt]}
-                    onCheckedChange={val =>
-                      setChecks(prev => ({ ...prev, [opt]: !!val }))
-                    }
-                  />
-                  <Image
-                    src={getExerciseImage(opt)}
-                    alt={opt}
-                    width={36}
-                    height={36}
-                    className="rounded-md flex-shrink-0"
-                  />
-                  <span>{opt}</span>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      setInfoExercise(opt);
-                    }}
-                    className="ml-auto text-muted-foreground hover:text-foreground"
-                    aria-label={`How to do ${opt}`}
-                  >
-                    <Info className="h-4 w-4" />
-                  </button>
-                </label>
-              ))}
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Duration (minutes)</Label>
+              <Input
+                type="number"
+                min={0}
+                value={durationMinutes || ''}
+                onChange={(e) => setDurationMinutes(Number(e.target.value))}
+                placeholder="e.g. 30"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Distance (km) — optional</Label>
+              <Input
+                type="number"
+                min={0}
+                step={0.1}
+                value={distanceKm || ''}
+                onChange={(e) => setDistanceKm(Number(e.target.value))}
+                placeholder="e.g. 5.2"
+              />
             </div>
           </div>
 
+          {isOther && (
+            <div className="space-y-2">
+              <Label>Briefly describe what you did</Label>
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full p-2 border rounded-md h-16 text-sm"
+                placeholder="e.g. 30 min bodyweight circuit: squats, push-ups, lunges"
+              />
+            </div>
+          )}
+
+          <div className="space-y-2">
+            <Label>Calories burned</Label>
+            <div className="flex gap-2">
+              <Input
+                type="number"
+                placeholder="Calories"
+                value={caloriesBurned}
+                onChange={(e) => setCaloriesBurned(e.target.value)}
+              />
+              <Button type="button" variant="outline" onClick={handleEstimate} disabled={estimating}>
+                {estimating ? <Loader2 className="h-4 w-4 animate-spin" /> : 'AI'}
+              </Button>
+            </div>
+          </div>
+
+          {error && <p className="text-sm text-red-500">{error}</p>}
+
           <div className="flex justify-end">
-            <Button onClick={() => onEnd({ minutes, activities: checks })} disabled={!sessionSuccess}>
+            <Button onClick={handleFinish} disabled={!sessionSuccess}>
               Finish Cardio
             </Button>
           </div>
         </CardContent>
       </Card>
-      <ExerciseInfoModal exerciseName={infoExercise} onClose={() => setInfoExercise(null)} />
     </div>
   );
 }
