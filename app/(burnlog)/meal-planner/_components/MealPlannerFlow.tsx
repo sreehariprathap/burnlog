@@ -10,8 +10,9 @@ import { HouseholdStep } from './HouseholdStep';
 import { PreferencesStep } from './PreferencesStep';
 import { AppliancesStep } from './AppliancesStep';
 import { MealSelectionStep } from './MealSelectionStep';
+import { WeekGridStep } from './WeekGridStep';
 import { AiLoading } from '@/components/kokonutui/ai-loading';
-import type { LifestyleAnswers, MealPlannerWizardAnswers, MealCandidate } from '@/lib/ai/types';
+import type { LifestyleAnswers, MealPlannerWizardAnswers, MealCandidate, MealGridCell } from '@/lib/ai/types';
 
 export type WizardStep = 'loading' | 'store' | 'household' | 'preferences' | 'appliances' | 'generating-candidates' | 'selecting' | 'grid' | 'finalizing' | 'grocery' | 'shopping' | 'done';
 
@@ -25,6 +26,10 @@ export function MealPlannerFlow() {
   const [answers, setAnswers] = useState<Partial<MealPlannerWizardAnswers>>({});
   const [error, setError] = useState<string | null>(null);
   const [candidates, setCandidates] = useState<MealCandidate[]>([]);
+  const [selectedMeals, setSelectedMeals] = useState<MealCandidate[]>([]);
+  const [grid, setGrid] = useState<MealGridCell[]>([]);
+  const [groceryList, setGroceryList] = useState<Record<string, string[]> | null>(null);
+  const [estimatedBudget, setEstimatedBudget] = useState('');
 
   useEffect(() => {
     (async () => {
@@ -83,6 +88,32 @@ export function MealPlannerFlow() {
       }
     })();
   }, [step, answers]);
+
+  useEffect(() => {
+    if (step !== 'finalizing') return;
+    (async () => {
+      setError(null);
+      try {
+        const res = await fetch('/api/ai/meal-plan/finalize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ grid, answers }),
+        });
+        const data = await res.json();
+        if (!res.ok || data.error) {
+          setError(data.error ?? 'Failed to finalize your plan. Please try again.');
+          setStep('grid');
+          return;
+        }
+        setGroceryList(data.groceryList);
+        setEstimatedBudget(data.estimatedBudget ?? '');
+        setStep('grocery');
+      } catch {
+        setError('Network error. Please try again.');
+        setStep('grid');
+      }
+    })();
+  }, [step, grid, answers]);
 
   if (step === 'loading' || !profileId) {
     return (
@@ -150,9 +181,29 @@ export function MealPlannerFlow() {
           cookMode={answers.cookMode ?? 'fresh_daily'}
           mealsPerDay={answers.mealsPerDay ?? 3}
           onContinue={(selected) => {
+            setSelectedMeals(selected);
             setStep('grid');
           }}
         />
+      )}
+
+      {step === 'grid' && (
+        <WeekGridStep
+          selected={selectedMeals}
+          mealsPerDay={answers.mealsPerDay ?? 3}
+          onConfirm={(confirmedGrid) => {
+            setGrid(confirmedGrid);
+            setStep('finalizing');
+          }}
+        />
+      )}
+
+      {step === 'finalizing' && (
+        <AiLoading tasks={["Building your grocery list", "Estimating your budget", "Saving your plan"]} />
+      )}
+
+      {step === 'grocery' && (
+        <div className="text-sm text-muted-foreground">Grocery list step coming in Task 10…</div>
       )}
     </div>
   );
