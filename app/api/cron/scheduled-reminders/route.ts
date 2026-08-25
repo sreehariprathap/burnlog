@@ -64,7 +64,8 @@ export async function GET(request: Request) {
   try {
     const { data: rows, error } = await supabase
       .from('scheduled_reminders')
-      .select('id, profileId, title, message, url, remindAt, dayOfWeek, timeOfDay, timezone, lastSentAt, sentAt');
+      .select('id, profileId, title, message, url, remindAt, dayOfWeek, timeOfDay, timezone, lastSentAt, sentAt')
+      .or('sentAt.is.null,remindAt.is.null');
     if (error) throw error;
 
     for (const row of (rows ?? []) as ReminderRow[]) {

@@ -62,7 +62,7 @@ export function MealPlannerFlow() {
         cookMode: lifestyle?.mealPlanning?.cookMode ?? 'fresh_daily',
         cuisinePreferences: lifestyle?.mealPlanning?.cuisinePreferences ?? [],
         surpriseMe: lifestyle?.mealPlanning?.surpriseMe ?? false,
-        appliances: lifestyle?.mealPlanning?.kitchenAppliances ?? [],
+        appliances: lifestyle?.mealPlanning?.kitchenAppliances,
       }));
       setStep('store');
     })();

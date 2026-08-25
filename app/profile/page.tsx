@@ -21,6 +21,7 @@ import { LifeLogBottomNav } from '@/components/LifeLogBottomNav';
 import { sendRealTestNotification } from '@/lib/pushNotification';
 import { Switch } from '@/components/ui/switch';
 import { APPS, AppId, getActiveApp, getDefaultApp, setDefaultApp } from '@/lib/appMode';
+import { MEAL_PREP_REMINDER_TITLE } from '@/lib/ai/types';
 
 export default function ProfilePage() {
   const supabase = createClientComponentClient();
@@ -204,10 +205,10 @@ export default function ProfilePage() {
       .from('scheduled_reminders')
       .delete()
       .eq('profileId', profile.id)
-      .eq('title', 'Time to plan your meals 🍽️');
+      .eq('title', MEAL_PREP_REMINDER_TITLE);
     await supabase.from('scheduled_reminders').insert({
       profileId: profile.id,
-      title: 'Time to plan your meals 🍽️',
+      title: MEAL_PREP_REMINDER_TITLE,
       message: 'It\'s your meal-prep day — open the Meal Planner to plan this week.',
       url: '/meal-planner',
       dayOfWeek,

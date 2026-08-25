@@ -3,7 +3,8 @@
 
 import { useEffect, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { Search } from 'lucide-react';
+import { Search, CalendarRange } from 'lucide-react';
+import Link from 'next/link';
 import { TopBar } from '@/components/TopBar';
 import { BottomNav } from '@/components/BottomNav';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -186,6 +187,17 @@ export default function DashboardPage() {
             lastMealPlanGeneratedAt={userProfile.lastMealPlanGeneratedAt ?? null}
           />
         )}
+
+        {/* Always-available entry point into the meal planner wizard */}
+        <div className="flex justify-end">
+          <Link
+            href="/meal-planner"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <CalendarRange className="w-3.5 h-3.5" />
+            Plan meals
+          </Link>
+        </div>
 
         {/* Daily Rings */}
         {userProfile && (

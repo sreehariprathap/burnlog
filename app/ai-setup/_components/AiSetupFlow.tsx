@@ -23,6 +23,7 @@ import type {
   NutritionAnswers,
   GroceryAnswers,
 } from '@/lib/ai/types';
+import { MEAL_PREP_REMINDER_TITLE } from '@/lib/ai/types';
 
 const ORDERED_PAGE_KEYS = ['goals', 'activity_preferences', 'equipment', 'nutrition', 'grocery', 'meal_prep'] as const;
 type PageKey = (typeof ORDERED_PAGE_KEYS)[number];
@@ -246,10 +247,10 @@ export function AiSetupFlow() {
           .from('scheduled_reminders')
           .delete()
           .eq('profileId', profileId)
-          .eq('title', 'Time to plan your meals 🍽️');
+          .eq('title', MEAL_PREP_REMINDER_TITLE);
         const { error: reminderError } = await supabase.from('scheduled_reminders').insert({
           profileId,
-          title: 'Time to plan your meals 🍽️',
+          title: MEAL_PREP_REMINDER_TITLE,
           message: 'It\'s your meal-prep day — open the Meal Planner to plan this week.',
           url: '/meal-planner',
           dayOfWeek: mealPrep.dayOfWeek,
