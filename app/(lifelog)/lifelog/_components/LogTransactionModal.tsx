@@ -134,7 +134,7 @@ export function LogTransactionModal({ profileId, onClose, onSaved }: LogTransact
                     id="category"
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
+                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background md:text-sm"
                   >
                     {categories.map((c) => (
                       <option key={c.value} value={c.value}>{c.label}</option>
