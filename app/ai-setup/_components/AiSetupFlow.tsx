@@ -13,6 +13,7 @@ import { EquipmentStep } from './EquipmentStep';
 import { NutritionStep } from './NutritionStep';
 import { PlanPreview } from './PlanPreview';
 import { GroceryStep } from '@/app/(burnlog)/goals/_components/GroceryStep';
+import { MealPrepStep } from '@/app/(burnlog)/goals/_components/MealPrepStep';
 import { AiLoading } from '@/components/kokonutui/ai-loading';
 import type {
   LifestyleAnswers,
@@ -23,7 +24,7 @@ import type {
   GroceryAnswers,
 } from '@/lib/ai/types';
 
-const ORDERED_PAGE_KEYS = ['goals', 'activity_preferences', 'equipment', 'nutrition', 'grocery'] as const;
+const ORDERED_PAGE_KEYS = ['goals', 'activity_preferences', 'equipment', 'nutrition', 'grocery', 'meal_prep'] as const;
 type PageKey = (typeof ORDERED_PAGE_KEYS)[number];
 
 type Step = 'loading' | 'consent' | 'questionnaire' | PageKey | 'generating' | 'preview' | 'error';
@@ -44,6 +45,7 @@ export function AiSetupFlow() {
   const [equipment, setEquipment] = useState<EquipmentAnswers | undefined>(undefined);
   const [nutrition, setNutrition] = useState<NutritionAnswers | undefined>(undefined);
   const [grocery, setGrocery] = useState<GroceryAnswers | undefined>(undefined);
+  const [mealPrep, setMealPrep] = useState<{ dayOfWeek: number; time: string; timezone: string } | undefined>(undefined);
   const [plan, setPlan] = useState<WorkoutPlanEntry[] | null>(null);
   const [saving, setSaving] = useState(false);
   const [regenerating, setRegenerating] = useState(false);
@@ -175,6 +177,15 @@ export function AiSetupFlow() {
     advanceFrom('grocery');
   };
 
+  const handleMealPrepContinue = (answers: { dayOfWeek: number; time: string; timezone: string }) => {
+    setMealPrep(answers);
+    advanceFrom('meal_prep');
+  };
+
+  const handleMealPrepSkip = () => {
+    advanceFrom('meal_prep');
+  };
+
   const handleRegenerate = async () => {
     if (!lifestyle) return;
     setRegenerating(true);
@@ -215,11 +226,38 @@ export function AiSetupFlow() {
         ...(grocery && { grocery }),
       };
 
+      const profileUpdate: Record<string, unknown> = { aiEnabled: true, lifestyle: fullLifestyle };
+      if (mealPrep) {
+        profileUpdate.mealPrepDayOfWeek = mealPrep.dayOfWeek;
+        profileUpdate.mealPrepTime = mealPrep.time;
+        profileUpdate.mealPrepTimezone = mealPrep.timezone;
+      }
+
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({ aiEnabled: true, lifestyle: fullLifestyle })
+        .update(profileUpdate)
         .eq('id', profileId);
       if (profileError) throw profileError;
+
+      if (mealPrep) {
+        // scheduled_reminders has no unique constraint on profileId (unlike
+        // grocery_lists), so this is a delete-then-insert rather than an upsert.
+        await supabase
+          .from('scheduled_reminders')
+          .delete()
+          .eq('profileId', profileId)
+          .eq('title', 'Time to plan your meals 🍽️');
+        const { error: reminderError } = await supabase.from('scheduled_reminders').insert({
+          profileId,
+          title: 'Time to plan your meals 🍽️',
+          message: 'It\'s your meal-prep day — open the Meal Planner to plan this week.',
+          url: '/meal-planner',
+          dayOfWeek: mealPrep.dayOfWeek,
+          timeOfDay: mealPrep.time,
+          timezone: mealPrep.timezone,
+        });
+        if (reminderError) console.error('meal-prep reminder insert failed:', reminderError);
+      }
 
       if (goals.length > 0) {
         const goalRows = goals.map((g) => ({
@@ -279,6 +317,10 @@ export function AiSetupFlow() {
 
       {step === 'grocery' && (
         <GroceryStep onContinue={handleGroceryContinue} onSkip={handleGrocerySkip} />
+      )}
+
+      {step === 'meal_prep' && (
+        <MealPrepStep onContinue={handleMealPrepContinue} onSkip={handleMealPrepSkip} />
       )}
 
       {step === 'generating' && (
