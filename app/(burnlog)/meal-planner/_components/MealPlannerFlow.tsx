@@ -11,6 +11,7 @@ import { PreferencesStep } from './PreferencesStep';
 import { AppliancesStep } from './AppliancesStep';
 import { MealSelectionStep } from './MealSelectionStep';
 import { WeekGridStep } from './WeekGridStep';
+import { GroceryListStep } from './GroceryListStep';
 import { AiLoading } from '@/components/kokonutui/ai-loading';
 import type { LifestyleAnswers, MealPlannerWizardAnswers, MealCandidate, MealGridCell } from '@/lib/ai/types';
 
@@ -202,8 +203,16 @@ export function MealPlannerFlow() {
         <AiLoading tasks={["Building your grocery list", "Estimating your budget", "Saving your plan"]} />
       )}
 
-      {step === 'grocery' && (
-        <div className="text-sm text-muted-foreground">Grocery list step coming in Task 10…</div>
+      {step === 'grocery' && groceryList && (
+        <GroceryListStep
+          groceryList={groceryList}
+          estimatedBudget={estimatedBudget}
+          onContinue={() => setStep('shopping')}
+        />
+      )}
+
+      {step === 'shopping' && (
+        <div className="text-sm text-muted-foreground">Shopping day step coming in Task 11…</div>
       )}
     </div>
   );
