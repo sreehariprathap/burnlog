@@ -7,6 +7,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Loader2, Info, AlertTriangle, Sparkles, Bell, Flame, Settings, Cpu, GlassWater } from 'lucide-react';
 import { OnboardingPageTogglesModal } from './_components/OnboardingPageTogglesModal';
 import { ProfileAvatar } from './_components/ProfileAvatar';
@@ -76,7 +77,7 @@ export default function ProfilePage() {
         const userId = session.user.id;
         const { data, error: profErr } = await supabase
           .from('profiles')
-          .select('id,firstName,lastName,age,weight,height,activityLevel,aiEnabled,isAdmin,currentStreak,longestStreak,xp,level,avatarUrl,waterUnit,glassSizeMl,waterGoalMl,username')
+          .select('id,firstName,lastName,age,weight,height,activityLevel,aiEnabled,isAdmin,currentStreak,longestStreak,xp,level,avatarUrl,waterUnit,glassSizeMl,waterGoalMl,username,mealPrepDayOfWeek,mealPrepTime,mealPrepTimezone')
           .eq('userId', userId)
           .single();
 
@@ -190,6 +191,30 @@ export default function ProfilePage() {
     if (!error) {
       setProfile((prev: any) => ({ ...prev, [field]: safeValue }));
     }
+  };
+
+  const handleMealPrepChange = async (dayOfWeek: number, time: string) => {
+    if (!profile) return;
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    await supabase
+      .from('profiles')
+      .update({ mealPrepDayOfWeek: dayOfWeek, mealPrepTime: time, mealPrepTimezone: timezone })
+      .eq('id', profile.id);
+    await supabase
+      .from('scheduled_reminders')
+      .delete()
+      .eq('profileId', profile.id)
+      .eq('title', 'Time to plan your meals 🍽️');
+    await supabase.from('scheduled_reminders').insert({
+      profileId: profile.id,
+      title: 'Time to plan your meals 🍽️',
+      message: 'It\'s your meal-prep day — open the Meal Planner to plan this week.',
+      url: '/meal-planner',
+      dayOfWeek,
+      timeOfDay: time,
+      timezone,
+    });
+    setProfile((prev: any) => ({ ...prev, mealPrepDayOfWeek: dayOfWeek, mealPrepTime: time, mealPrepTimezone: timezone }));
   };
 
   const handleLogout = async () => {
@@ -506,6 +531,42 @@ export default function ProfilePage() {
                         defaultValue={profile.waterGoalMl}
                         onBlur={(e) => handleWaterSettingChange('waterGoalMl', Number(e.target.value))}
                         className="w-24 rounded-md border bg-background px-2 py-1 text-right"
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {activeApp === 'burnlog' && (
+              <div className="mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      🍽️ Meal Planner
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="space-y-3 pt-4 border-t">
+                      <p className="text-sm font-medium">🍽️ Meal-prep day</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((label, value) => (
+                          <button
+                            key={label}
+                            type="button"
+                            onClick={() => handleMealPrepChange(value, profile.mealPrepTime ?? '10:00')}
+                            className={`text-sm px-3 py-2 rounded-lg border transition-colors ${
+                              profile.mealPrepDayOfWeek === value ? 'bg-primary text-primary-foreground border-primary' : 'border-border hover:bg-muted'
+                            }`}
+                          >
+                            {label}
+                          </button>
+                        ))}
+                      </div>
+                      <Input
+                        type="time"
+                        defaultValue={profile.mealPrepTime ?? '10:00'}
+                        onBlur={(e) => handleMealPrepChange(profile.mealPrepDayOfWeek ?? 0, e.target.value)}
                       />
                     </div>
                   </CardContent>
