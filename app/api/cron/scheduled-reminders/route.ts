@@ -43,7 +43,8 @@ function withinWindow(target: string, current: string, windowMinutes: number): b
   const [curH, curM] = current.split(':').map(Number);
   const targetTotal = targetH * 60 + targetM;
   const curTotal = curH * 60 + curM;
-  return curTotal >= targetTotal && curTotal - targetTotal < windowMinutes;
+  const diff = (curTotal - targetTotal + 1440) % 1440;
+  return diff < windowMinutes;
 }
 
 export async function GET(request: Request) {
