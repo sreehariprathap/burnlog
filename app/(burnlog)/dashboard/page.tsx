@@ -13,6 +13,7 @@ import { BMIWidget } from './_components/BMIWidget';
 import { WorkoutPieChart } from './_components/WorkoutPieChart';
 import { GoalProgressWidget } from './_components/GoalProgressWidget';
 import { ShortcutWidget } from './_components/ShortcutWidget';
+import { MealPrepBanner } from './_components/MealPrepBanner';
 import { DailyRingsWidget } from './_components/DailyRingsWidget';
 import { WaterIntakeTracker } from '@/components/kokonutui/water-intake-tracker';
 import { ConsistencyTracker } from './_components/ConsistencyTracker';
@@ -175,6 +176,14 @@ export default function DashboardPage() {
             level={userProfile.level}
             lastConsistencyBonusWeek={userProfile.lastConsistencyBonusWeek}
             refreshKey={refreshKey}
+          />
+        )}
+
+        {/* Meal Prep Banner */}
+        {userProfile && (
+          <MealPrepBanner
+            mealPrepDayOfWeek={userProfile.mealPrepDayOfWeek ?? null}
+            lastMealPlanGeneratedAt={userProfile.lastMealPlanGeneratedAt ?? null}
           />
         )}
 
