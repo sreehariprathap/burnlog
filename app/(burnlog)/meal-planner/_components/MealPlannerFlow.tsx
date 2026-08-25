@@ -12,6 +12,9 @@ import { AppliancesStep } from './AppliancesStep';
 import { MealSelectionStep } from './MealSelectionStep';
 import { WeekGridStep } from './WeekGridStep';
 import { GroceryListStep } from './GroceryListStep';
+import { ShoppingDayStep } from './ShoppingDayStep';
+import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { AiLoading } from '@/components/kokonutui/ai-loading';
 import type { LifestyleAnswers, MealPlannerWizardAnswers, MealCandidate, MealGridCell } from '@/lib/ai/types';
 
@@ -212,7 +215,16 @@ export function MealPlannerFlow() {
       )}
 
       {step === 'shopping' && (
-        <div className="text-sm text-muted-foreground">Shopping day step coming in Task 11…</div>
+        <ShoppingDayStep profileId={profileId} onDone={() => setStep('done')} />
+      )}
+
+      {step === 'done' && (
+        <Card className="w-full max-w-md text-center">
+          <CardContent className="pt-6 space-y-4">
+            <p className="text-lg font-medium">🎉 Your week is planned!</p>
+            <Button onClick={() => router.push('/session')}>Go to Plan</Button>
+          </CardContent>
+        </Card>
       )}
     </div>
   );
