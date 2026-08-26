@@ -2,7 +2,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import useSWR from 'swr';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { Search, CalendarRange } from 'lucide-react';
 import Link from 'next/link';
 import { TopBar } from '@/components/TopBar';
@@ -30,49 +32,24 @@ interface FitnessGoal {
 
 export default function DashboardPage() {
   const supabase = createClientComponentClient();
-  const [goals, setGoals] = useState<FitnessGoal[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [userProfile, setUserProfile] = useState<any>(null);
+  const { profile: userProfile, loading: profileLoading } = useCurrentProfile() as { profile: any; loading: boolean };
   const [isInstallable, setIsInstallable] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [searchOpen, setSearchOpen] = useState(false);
   const [quickLogTrigger, setQuickLogTrigger] = useState<'calories' | 'workout' | 'steps' | 'walk' | null>(null);
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        setLoading(true);
-        
-        // Get current user
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
-        
-        // Get user profile
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('userId', user.id)
-          .single();
-          
-        setUserProfile(profile);
-        
-        // Get user goals
-        const { data: goalsData } = await supabase
-          .from('fitness_goals')
-          .select('*')
-          .eq('profileId', profile?.id);
-          
-        setGoals(goalsData || []);
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-      } finally {
-        setLoading(false);
-      }
+  const { data: goals, isLoading: goalsLoading } = useSWR(
+    userProfile ? ['burnlog-fitness-goals', userProfile.id] : null,
+    async () => {
+      const { data } = await supabase.from('fitness_goals').select('*').eq('profileId', userProfile.id);
+      return (data as FitnessGoal[]) || [];
     }
-    
-    fetchData();
+  );
 
+  const loading = profileLoading || goalsLoading;
+
+  useEffect(() => {
     // Set up "Add to Home Screen" prompt listener
     window.addEventListener('beforeinstallprompt', (e) => {
       // Prevent the mini-infobar from appearing on mobile
@@ -89,7 +66,7 @@ export default function DashboardPage() {
       console.log('PWA was installed');
       setIsInstallable(false);
     });
-  }, [supabase]);
+  }, []);
 
   const installApp = async () => {
     if (!deferredPrompt) return;
@@ -107,7 +84,7 @@ export default function DashboardPage() {
   };
 
   // Get first weight goal for BMI widget (if exists)
-  const weightGoal = goals.find(g => g.goalType === 'weight_loss' || g.goalType === 'weight_gain');
+  const weightGoal = (goals ?? []).find(g => g.goalType === 'weight_loss' || g.goalType === 'weight_gain');
   
   // Example workout data for pie chart
   const workoutData = [
@@ -257,7 +234,7 @@ export default function DashboardPage() {
               <Skeleton className="h-4 w-3/4" />
             </CardContent>
           </Card>
-        ) : goals.length === 0 ? (
+        ) : !goals || goals.length === 0 ? (
           <SetGoalsPrompt />
         ) : (
           <Card>
