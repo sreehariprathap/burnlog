@@ -28,7 +28,7 @@ export async function GET() {
       .maybeSingle();
 
     if (!myMembership) {
-      return NextResponse.json({ household: null, members: [], myRole: null });
+      return NextResponse.json({ household: null, members: [], myRole: null, myProfileId: me.id });
     }
 
     const [{ data: household }, { data: memberRows }] = await Promise.all([
@@ -52,7 +52,7 @@ export async function GET() {
       firstName: profileById.get(m.profileId)?.firstName ?? 'Unknown',
     }));
 
-    return NextResponse.json({ household, members, myRole: myMembership.role });
+    return NextResponse.json({ household, members, myRole: myMembership.role, myProfileId: me.id });
   } catch (error) {
     console.error('get my household error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
