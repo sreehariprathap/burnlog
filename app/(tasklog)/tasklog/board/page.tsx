@@ -1,7 +1,8 @@
 // app/(tasklog)/tasklog/board/page.tsx
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
+import useSWR from 'swr';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { PlusIcon } from 'lucide-react';
 import {
@@ -20,51 +21,45 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LANES, type TaskLane, type TaskRow } from '@/lib/tasklog/types';
 import { markTaskComplete } from '@/lib/tasklog/completeTask';
+import { useCurrentProfile, refreshCurrentProfile } from '@/lib/useCurrentProfile';
+import type { StreakProfile } from '@/lib/tasklog/streak';
 import { TaskCard } from './_components/TaskCard';
 import { TaskDetailSheet } from './_components/TaskDetailSheet';
 import { BoardColumn } from './_components/BoardColumn';
 
-type ProfileRow = {
-  id: string;
-  taskLogCurrentStreak: number;
-  taskLogLongestStreak: number;
-  lastTaskLogStreakDate: string | null;
-};
+function toStreakProfile(profileId: string, profile: Record<string, unknown>): StreakProfile {
+  return {
+    id: profileId,
+    taskLogCurrentStreak: Number(profile.taskLogCurrentStreak ?? 0),
+    taskLogLongestStreak: Number(profile.taskLogLongestStreak ?? 0),
+    lastTaskLogStreakDate: (profile.lastTaskLogStreakDate as string | null) ?? null,
+  };
+}
 
 export default function BoardPage() {
   const supabase = createClientComponentClient();
-  const [profile, setProfile] = useState<ProfileRow | null>(null);
-  const [tasks, setTasks] = useState<TaskRow[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { profile } = useCurrentProfile();
   const [detailTask, setDetailTask] = useState<TaskRow | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
-  const fetchAll = useCallback(async () => {
-    setLoading(true);
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setLoading(false); return; }
-    const { data: profileRow } = await supabase
-      .from('profiles')
-      .select('id, taskLogCurrentStreak, taskLogLongestStreak, lastTaskLogStreakDate')
-      .eq('userId', user.id)
-      .single();
-    if (!profileRow) { setLoading(false); return; }
-    setProfile(profileRow as ProfileRow);
-
-    const { data: taskRows } = await supabase
+  const {
+    data: taskData,
+    isLoading,
+    mutate: mutateTasks,
+  } = useSWR(profile ? ['tasklog-board', profile.id] : null, async () => {
+    const { data } = await supabase
       .from('tasklog_tasks')
       .select('*')
-      .eq('profileId', profileRow.id)
+      .eq('profileId', profile!.id)
       .not('lane', 'is', null)
       .order('position', { ascending: true });
-    setTasks((taskRows as TaskRow[]) || []);
-    setLoading(false);
-  }, [supabase]);
+    return (data as TaskRow[]) || [];
+  });
 
-  useEffect(() => { fetchAll(); }, [fetchAll]);
+  const tasks = taskData ?? [];
 
   function tasksInLane(lane: TaskLane): TaskRow[] {
     return tasks.filter((t) => t.lane === lane);
@@ -72,6 +67,10 @@ export default function BoardPage() {
 
   function findLaneOfTask(id: string): TaskLane | null {
     return (tasks.find((t) => t.id === id)?.lane as TaskLane | undefined) ?? null;
+  }
+
+  async function setTasksOptimistic(next: TaskRow[]) {
+    await mutateTasks(next, { revalidate: false });
   }
 
   async function persistLanePositions(lane: TaskLane, ordered: TaskRow[]) {
@@ -97,7 +96,7 @@ export default function BoardPage() {
       const newIndex = laneTasks.findIndex((t) => t.id === overId);
       if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return;
       const reordered = arrayMove(laneTasks, oldIndex, newIndex);
-      setTasks((prev) => [...prev.filter((t) => t.lane !== sourceLane), ...reordered]);
+      await setTasksOptimistic([...tasks.filter((t) => t.lane !== sourceLane), ...reordered]);
       await persistLanePositions(sourceLane, reordered);
       return;
     }
@@ -113,8 +112,8 @@ export default function BoardPage() {
         ? [...destTasks, updatedMoved]
         : [...destTasks.slice(0, insertIndex), updatedMoved, ...destTasks.slice(insertIndex)];
 
-    setTasks((prev) => [
-      ...prev.filter((t) => t.lane !== sourceLane && t.lane !== destLane),
+    await setTasksOptimistic([
+      ...tasks.filter((t) => t.lane !== sourceLane && t.lane !== destLane),
       ...sourceTasks,
       ...newDestTasks,
     ]);
@@ -123,7 +122,8 @@ export default function BoardPage() {
     await persistLanePositions(destLane, newDestTasks);
 
     if (destLane === 'done' && profile) {
-      await markTaskComplete(supabase, { id: movedTask.id, goalId: movedTask.goalId }, profile, true);
+      await markTaskComplete(supabase, { id: movedTask.id, goalId: movedTask.goalId }, toStreakProfile(profile.id, profile), true);
+      await refreshCurrentProfile();
     }
   }
 
@@ -144,7 +144,7 @@ export default function BoardPage() {
       .select()
       .single();
     if (!error && data) {
-      setTasks((prev) => [...prev, data as TaskRow]);
+      await setTasksOptimistic([...tasks, data as TaskRow]);
       setNewTaskTitle('');
     }
   }
@@ -154,15 +154,16 @@ export default function BoardPage() {
     const { data, error } = await supabase.from('tasklog_tasks').update(updates).eq('id', id).select().single();
     if (error || !data) return;
     const updated = data as TaskRow;
-    setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)));
+    await setTasksOptimistic(tasks.map((t) => (t.id === id ? updated : t)));
     if (!wasCompleted && updated.completedAt && profile) {
-      await markTaskComplete(supabase, { id: updated.id, goalId: updated.goalId }, profile, true);
+      await markTaskComplete(supabase, { id: updated.id, goalId: updated.goalId }, toStreakProfile(profile.id, profile), true);
+      await refreshCurrentProfile();
     }
   }
 
   async function handleDeleteTask(id: string) {
     await supabase.from('tasklog_tasks').delete().eq('id', id);
-    setTasks((prev) => prev.filter((t) => t.id !== id));
+    await setTasksOptimistic(tasks.filter((t) => t.id !== id));
   }
 
   return (
@@ -174,7 +175,7 @@ export default function BoardPage() {
           <PlusIcon className="h-4 w-4" />
         </Button>
       </form>
-      {loading ? (
+      {isLoading ? (
         <div className="px-4"><Skeleton className="h-64 w-full" /></div>
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
