@@ -1,8 +1,9 @@
 // app/(homelog)/homelog/inventory/page.tsx
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
+import useSWR from 'swr';
 import { MinusIcon, PlusIcon } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
 import { HomeLogBottomNav } from '@/components/HomeLogBottomNav';
@@ -13,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { useHouseholdMe } from '@/lib/homelog/useHouseholdMe';
 
 interface InventoryItem {
   id: string;
@@ -36,11 +38,34 @@ const STATUS_LABEL: Record<InventoryItem['status'], string> = {
   out: 'Out',
 };
 
+async function fetchInventory(): Promise<InventoryItem[]> {
+  const res = await fetch('/api/homelog/inventory');
+  const body = await res.json();
+  return body.items ?? [];
+}
+
+async function fetchShoppingList(): Promise<ShoppingItem[]> {
+  const res = await fetch('/api/homelog/shopping-list');
+  const body = await res.json();
+  return body.items ?? [];
+}
+
 export default function InventoryPage() {
-  const [inHousehold, setInHousehold] = useState<boolean | null>(null);
-  const [items, setItems] = useState<InventoryItem[]>([]);
-  const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { household, isLoading: householdLoading } = useHouseholdMe();
+  const hasHousehold = !householdLoading && !!household;
+
+  const {
+    data: items,
+    isLoading: itemsLoading,
+    mutate: refreshItems,
+  } = useSWR(hasHousehold ? 'homelog-inventory' : null, fetchInventory);
+  const {
+    data: shoppingItems,
+    isLoading: shoppingLoading,
+    mutate: refreshShopping,
+  } = useSWR(hasHousehold ? 'homelog-shopping-list' : null, fetchShoppingList);
+
+  const loading = householdLoading || itemsLoading || shoppingLoading;
 
   const [name, setName] = useState('');
   const [category, setCategory] = useState('pantry');
@@ -50,31 +75,6 @@ export default function InventoryPage() {
   const [error, setError] = useState('');
 
   const [shoppingLabel, setShoppingLabel] = useState('');
-
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    const meRes = await fetch('/api/homelog/households/me');
-    const meBody = await meRes.json();
-    if (!meBody.household) {
-      setInHousehold(false);
-      setLoading(false);
-      return;
-    }
-    setInHousehold(true);
-    const [inventoryRes, shoppingRes] = await Promise.all([
-      fetch('/api/homelog/inventory'),
-      fetch('/api/homelog/shopping-list'),
-    ]);
-    const inventoryBody = await inventoryRes.json();
-    const shoppingBody = await shoppingRes.json();
-    setItems(inventoryBody.items ?? []);
-    setShoppingItems(shoppingBody.items ?? []);
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
 
   async function handleAddItem(e: React.FormEvent) {
     e.preventDefault();
@@ -98,7 +98,8 @@ export default function InventoryPage() {
       const body = await res.json();
       if (!res.ok) throw new Error(body.error || 'Failed to add item');
       setName('');
-      await refresh();
+      await refreshItems();
+      await refreshShopping();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to add item');
     } finally {
@@ -112,12 +113,13 @@ export default function InventoryPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ delta }),
     });
-    await refresh();
+    await refreshItems();
+    await refreshShopping();
   }
 
   async function handleDeleteItem(id: string) {
     await fetch(`/api/homelog/inventory/${id}`, { method: 'DELETE' });
-    await refresh();
+    await refreshItems();
   }
 
   async function handleAddShoppingItem(e: React.FormEvent) {
@@ -129,20 +131,21 @@ export default function InventoryPage() {
       body: JSON.stringify({ label: shoppingLabel.trim() }),
     });
     setShoppingLabel('');
-    await refresh();
+    await refreshShopping();
   }
 
   async function handleCheckOff(id: string) {
     await fetch(`/api/homelog/shopping-list/${id}/check`, { method: 'POST' });
-    await refresh();
+    await refreshShopping();
+    await refreshItems();
   }
 
   async function handleRemoveShoppingItem(id: string) {
     await fetch(`/api/homelog/shopping-list/${id}`, { method: 'DELETE' });
-    await refresh();
+    await refreshShopping();
   }
 
-  if (inHousehold === false) {
+  if (!householdLoading && !household) {
     return (
       <div className="pb-24">
         <TopBar title="Inventory" />
@@ -208,7 +211,7 @@ export default function InventoryPage() {
                 </CardContent>
               </Card>
 
-              {items.length === 0 ? (
+              {!items || items.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No items yet. Add one above.</p>
               ) : (
                 items.map((item) => (
@@ -250,7 +253,7 @@ export default function InventoryPage() {
                 </Button>
               </form>
 
-              {shoppingItems.length === 0 ? (
+              {!shoppingItems || shoppingItems.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Shopping list is empty.</p>
               ) : (
                 shoppingItems.map((item) => (
