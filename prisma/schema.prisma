@@ -63,6 +63,13 @@ model Profile {
   HouseholdMember           HouseholdMember?
   householdInvitesSent      HouseholdInvite[] @relation("HouseholdInviteSender")
   householdInvitesReceived  HouseholdInvite[] @relation("HouseholdInviteRecipient")
+  choresAssigned      HouseholdChoreInstance[] @relation("ChoreAssigned")
+  choresCompleted     HouseholdChoreInstance[] @relation("ChoreCompletedBy")
+  shoppingListAdded   HouseholdShoppingListItem[]
+  expensesPaid        HouseholdExpense[] @relation("ExpensePaidBy")
+  expenseSplitsOwed   HouseholdExpenseSplit[] @relation("ExpenseSplitOwed")
+  settlementsFrom     HouseholdSettlement[] @relation("SettlementFrom")
+  settlementsTo       HouseholdSettlement[] @relation("SettlementTo")
   friendshipsSent     Friendship[] @relation("FriendshipRequester")
   friendshipsReceived Friendship[] @relation("FriendshipAddressee")
 
@@ -444,11 +451,16 @@ model Task {
 
 /// a HomeLog household — the shared unit chores/inventory/bills will hang off of
 model Household {
-  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name      String
-  createdAt DateTime @default(now())
-  members   HouseholdMember[]
-  invites   HouseholdInvite[]
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String
+  createdAt   DateTime @default(now())
+  members     HouseholdMember[]
+  invites     HouseholdInvite[]
+  chores      HouseholdChore[]
+  inventoryItems HouseholdInventoryItem[]
+  shoppingListItems HouseholdShoppingListItem[]
+  expenses    HouseholdExpense[]
+  settlements HouseholdSettlement[]
 
   @@map("households")
 }
@@ -480,4 +492,114 @@ model HouseholdInvite {
   respondedAt DateTime?
 
   @@map("household_invites")
+}
+
+/// a recurring or one-off household chore definition
+model HouseholdChore {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  householdId String   @db.Uuid
+  title       String
+  category    String // 'cleaning' | 'maintenance' | 'other'
+  frequency   String // 'once' | 'weekly' | 'monthly' | 'yearly'
+  dayOfWeek   Int?
+  dayOfMonth  Int?
+  monthOfYear Int?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  instances   HouseholdChoreInstance[]
+
+  @@map("household_chores")
+}
+
+/// a single materialized occurrence of a chore — completion/assignment persist per-occurrence
+model HouseholdChoreInstance {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  chore                HouseholdChore @relation(fields: [choreId], references: [id], onDelete: Cascade)
+  choreId              String    @db.Uuid
+  dueDate              DateTime  @db.Date
+  assignedProfileId    String?   @db.Uuid
+  assignedProfile      Profile?  @relation("ChoreAssigned", fields: [assignedProfileId], references: [id])
+  completedAt          DateTime?
+  completedByProfileId String?   @db.Uuid
+  completedByProfile   Profile?  @relation("ChoreCompletedBy", fields: [completedByProfileId], references: [id])
+  createdAt            DateTime  @default(now())
+
+  @@map("household_chore_instances")
+}
+
+/// household-owned supply item — quantity/threshold drive shopping-list auto-population
+model HouseholdInventoryItem {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  household         Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  householdId       String   @db.Uuid
+  name              String
+  category          String // 'pantry' | 'household' | 'other'
+  quantity          Int      @default(1)
+  lowStockThreshold Int      @default(1)
+  status            String   @default("in_stock") // 'in_stock' | 'low' | 'out'
+  createdAt         DateTime @default(now())
+  shoppingListItems HouseholdShoppingListItem[]
+
+  @@map("household_inventory_items")
+}
+
+/// shared shopping list entry — may be linked back to the inventory item it restocks
+model HouseholdShoppingListItem {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  household         Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  householdId       String    @db.Uuid
+  inventoryItem     HouseholdInventoryItem? @relation(fields: [inventoryItemId], references: [id], onDelete: SetNull)
+  inventoryItemId   String?   @db.Uuid
+  label             String
+  addedByProfileId  String    @db.Uuid
+  addedByProfile    Profile   @relation(fields: [addedByProfileId], references: [id])
+  checkedAt         DateTime?
+  createdAt         DateTime  @default(now())
+
+  @@map("household_shopping_list_items")
+}
+
+/// a shared cost paid by one member and split across chosen members
+model HouseholdExpense {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  household       Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  householdId     String   @db.Uuid
+  paidByProfileId String   @db.Uuid
+  paidByProfile   Profile  @relation("ExpensePaidBy", fields: [paidByProfileId], references: [id])
+  label           String
+  category        String // 'rent' | 'utilities' | 'groceries' | 'other'
+  totalAmount     Float
+  date            DateTime @default(now())
+  createdAt       DateTime @default(now())
+  splits          HouseholdExpenseSplit[]
+
+  @@map("household_expenses")
+}
+
+/// one member's share of a HouseholdExpense — shares (including the payer's own) sum to totalAmount
+model HouseholdExpenseSplit {
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  expense     HouseholdExpense @relation(fields: [expenseId], references: [id], onDelete: Cascade)
+  expenseId   String  @db.Uuid
+  profileId   String  @db.Uuid
+  profile     Profile @relation("ExpenseSplitOwed", fields: [profileId], references: [id])
+  shareAmount Float
+
+  @@map("household_expense_splits")
+}
+
+/// a recorded settle-up between two members — reduces their pairwise balance, not a real payment
+model HouseholdSettlement {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  household     Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  householdId   String   @db.Uuid
+  fromProfileId String   @db.Uuid
+  fromProfile   Profile  @relation("SettlementFrom", fields: [fromProfileId], references: [id])
+  toProfileId   String   @db.Uuid
+  toProfile     Profile  @relation("SettlementTo", fields: [toProfileId], references: [id])
+  amount        Float
+  settledAt     DateTime @default(now())
+
+  @@map("household_settlements")
 }

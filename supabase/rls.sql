@@ -281,3 +281,80 @@ create policy "household_invites_read_own" on household_invites
     exists (select 1 from profiles p where p.id = household_invites."inviteeId" and p."userId" = auth.uid())
     or exists (select 1 from profiles p where p.id = household_invites."invitedById" and p."userId" = auth.uid())
   );
+
+-- household_chores / _instances, _inventory_items, _shopping_list_items,
+-- _expenses / _splits, _settlements -----------------------------------
+-- Same posture as the tables above: every mutation (and every read that
+-- needs another member's name) goes through app/api/homelog/* using the
+-- service-role client. These are defensive read policies only.
+alter table household_chores enable row level security;
+create policy "household_chores_member_read" on household_chores
+  for select using (
+    exists (
+      select 1 from household_members hm
+      join profiles p on p.id = hm."profileId"
+      where hm."householdId" = household_chores."householdId" and p."userId" = auth.uid()
+    )
+  );
+
+alter table household_chore_instances enable row level security;
+create policy "household_chore_instances_member_read" on household_chore_instances
+  for select using (
+    exists (
+      select 1 from household_chores hc
+      join household_members hm on hm."householdId" = hc."householdId"
+      join profiles p on p.id = hm."profileId"
+      where hc.id = household_chore_instances."choreId" and p."userId" = auth.uid()
+    )
+  );
+
+alter table household_inventory_items enable row level security;
+create policy "household_inventory_items_member_read" on household_inventory_items
+  for select using (
+    exists (
+      select 1 from household_members hm
+      join profiles p on p.id = hm."profileId"
+      where hm."householdId" = household_inventory_items."householdId" and p."userId" = auth.uid()
+    )
+  );
+
+alter table household_shopping_list_items enable row level security;
+create policy "household_shopping_list_items_member_read" on household_shopping_list_items
+  for select using (
+    exists (
+      select 1 from household_members hm
+      join profiles p on p.id = hm."profileId"
+      where hm."householdId" = household_shopping_list_items."householdId" and p."userId" = auth.uid()
+    )
+  );
+
+alter table household_expenses enable row level security;
+create policy "household_expenses_member_read" on household_expenses
+  for select using (
+    exists (
+      select 1 from household_members hm
+      join profiles p on p.id = hm."profileId"
+      where hm."householdId" = household_expenses."householdId" and p."userId" = auth.uid()
+    )
+  );
+
+alter table household_expense_splits enable row level security;
+create policy "household_expense_splits_member_read" on household_expense_splits
+  for select using (
+    exists (
+      select 1 from household_expenses he
+      join household_members hm on hm."householdId" = he."householdId"
+      join profiles p on p.id = hm."profileId"
+      where he.id = household_expense_splits."expenseId" and p."userId" = auth.uid()
+    )
+  );
+
+alter table household_settlements enable row level security;
+create policy "household_settlements_member_read" on household_settlements
+  for select using (
+    exists (
+      select 1 from household_members hm
+      join profiles p on p.id = hm."profileId"
+      where hm."householdId" = household_settlements."householdId" and p."userId" = auth.uid()
+    )
+  );
