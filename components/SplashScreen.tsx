@@ -53,6 +53,19 @@ const SPLASH_CONTENT: Record<
     darkEdgeColor: '52,211,153',
     darkCoreColor: '5,150,105',
   },
+  tasklog: {
+    label: 'Loading TaskLog',
+    text: 'tasklog',
+    tagline: 'Plan, track, and crush your goals',
+    darkTextColor: '#60A5FA',
+    lightTextColor: '#1E40AF',
+    darkTaglineClass: 'text-blue-200/70',
+    lightTaglineClass: 'text-blue-900/60',
+    lightColors: ['#60A5FA', '#3B82F6', '#2563EB', '#1D4ED8'],
+    lightBackgroundFill: '#EFF6FF',
+    darkEdgeColor: '96,165,250',
+    darkCoreColor: '37,99,235',
+  },
 };
 
 export default function SplashScreen() {
