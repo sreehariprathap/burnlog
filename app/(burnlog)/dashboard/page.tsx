@@ -18,6 +18,7 @@ import { MealPrepBanner } from './_components/MealPrepBanner';
 import { DailyRingsWidget } from './_components/DailyRingsWidget';
 import { WaterIntakeTracker } from '@/components/kokonutui/water-intake-tracker';
 import { ConsistencyTracker } from './_components/ConsistencyTracker';
+import { CrossAppSnapshot } from '@/components/CrossAppSnapshot';
 import { QuickLogFab } from './_components/QuickLogFab';
 import { ActionSearchBar } from '@/components/kokonutui/action-search-bar';
 
@@ -167,6 +168,9 @@ export default function DashboardPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Cross-App Snapshot */}
+        {userProfile && <CrossAppSnapshot currentApp="burnlog" profileId={userProfile.id} />}
 
         {/* Consistency Tracker */}
         {userProfile && (

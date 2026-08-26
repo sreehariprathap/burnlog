@@ -17,6 +17,7 @@ import { getPeriodRange, formatPeriodLabel, type Period } from '@/lib/financePer
 import { GetStartedCard } from './_components/GetStartedCard';
 import { NetSummaryCard } from './_components/NetSummaryCard';
 import { LifeLogFab } from './_components/LifeLogFab';
+import { CrossAppSnapshot } from '@/components/CrossAppSnapshot';
 
 const periodTabs: TabItem[] = [
   { id: 'weekly', icon: CalendarDays, label: 'Weekly', color: 'var(--chart-1)' },
@@ -102,6 +103,11 @@ export default function LifeLogHomePage() {
   return (
     <div className="pb-24">
       <TopBar title="LifeLog" />
+      {profileId && (
+        <div className="px-4 pt-2">
+          <CrossAppSnapshot currentApp="lifelog" profileId={profileId} />
+        </div>
+      )}
       <div className="sticky top-14 z-10 border-b bg-background/80 px-4 py-2 backdrop-blur">
         <SmoothTabs items={periodTabs} selectedIndex={selectedIndex} onSelect={setSelectedIndex} showLabels />
       </div>
