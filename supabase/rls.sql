@@ -57,7 +57,9 @@ begin
     'meal_plan_entries',
     'meal_plan_checkins',
     'grocery_lists',
-    'scheduled_reminders'
+    'scheduled_reminders',
+    'task_goals',
+    'tasklog_tasks'
   ]
   loop
     execute format('alter table %I enable row level security', t);
