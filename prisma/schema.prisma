@@ -36,6 +36,9 @@ model Profile {
   mealPrepTime             String?
   mealPrepTimezone         String?
   lastMealPlanGeneratedAt  DateTime?
+  taskLogCurrentStreak     Int       @default(0)
+  taskLogLongestStreak     Int       @default(0)
+  lastTaskLogStreakDate    DateTime? @db.Date
 
   FitnessGoal    FitnessGoal[]
   Workout        Workout[]
@@ -55,6 +58,8 @@ model Profile {
   GroceryList        GroceryList[]
   ScheduledReminder  ScheduledReminder[]
   Program            Program?
+  TaskGoal           TaskGoal[]
+  Task               Task[]
   friendshipsSent     Friendship[] @relation("FriendshipRequester")
   friendshipsReceived Friendship[] @relation("FriendshipAddressee")
 
@@ -396,4 +401,40 @@ model ScheduledReminder {
   createdAt   DateTime  @default(now())
 
   @@map("scheduled_reminders")
+}
+
+/// a user-authored goal that AI can break down into tasklog_tasks
+model TaskGoal {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile     Profile  @relation(fields: [profileId], references: [id])
+  profileId   String   @db.Uuid
+  title       String
+  description String?
+  category    String // 'life' | 'work'
+  status      String   @default("active") // 'active' | 'completed' | 'archived'
+  createdAt   DateTime @default(now())
+  tasks       Task[]
+
+  @@map("task_goals")
+}
+
+/// a single TaskLog task — lane null means it sits in the Plan inbox
+model Task {
+  id              String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile         Profile   @relation(fields: [profileId], references: [id])
+  profileId       String    @db.Uuid
+  goal            TaskGoal? @relation(fields: [goalId], references: [id])
+  goalId          String?   @db.Uuid
+  title           String
+  notes           String?
+  category        String // 'life' | 'work'
+  priority        String    @default("medium") // 'low' | 'medium' | 'high'
+  lane            String? // null = Plan inbox; else 'todo' | 'in_progress' | 'done'
+  dueDate         DateTime? @db.Date
+  plannedForToday Boolean   @default(false)
+  position        Int       @default(0)
+  completedAt     DateTime?
+  createdAt       DateTime  @default(now())
+
+  @@map("tasklog_tasks")
 }
