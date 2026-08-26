@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'motion/react';
 import { LifeLogMark } from '@/components/LifeLogMark';
+import { TaskLogMark } from '@/components/TaskLogMark';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -62,6 +63,8 @@ export function AppSwitcher({ open, onOpenChange }: AppSwitcherProps) {
                   <div className="flex items-center gap-3">
                     {app.id === 'lifelog' ? (
                       <LifeLogMark size={24} />
+                    ) : app.id === 'tasklog' ? (
+                      <TaskLogMark size={24} />
                     ) : (
                       <Image src="/B.png" alt={app.name} width={24} height={24} />
                     )}

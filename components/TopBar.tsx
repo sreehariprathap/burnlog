@@ -6,6 +6,7 @@ import { X } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { AppSwitcher } from './AppSwitcher';
 import { LifeLogMark } from './LifeLogMark';
+import { TaskLogMark } from './TaskLogMark';
 import Image from 'next/image';
 import { AppId, getActiveApp } from '@/lib/appMode';
 
@@ -34,6 +35,8 @@ export function TopBar({ title, onClose, actions }: TopBarProps) {
         >
           {activeApp === 'lifelog' ? (
             <LifeLogMark size={20} />
+          ) : activeApp === 'tasklog' ? (
+            <TaskLogMark size={20} />
           ) : (
             <Image src="/B.png" alt="Logo" width={20} height={20} />
           )}
