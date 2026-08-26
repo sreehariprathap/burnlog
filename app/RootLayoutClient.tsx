@@ -1,5 +1,6 @@
 "use client";
 import { useState } from "react";
+import { SWRConfig } from "swr";
 import { SessionContextProvider } from "@supabase/auth-helpers-react";
 import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
@@ -53,19 +54,28 @@ export default function RootLayoutClient({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
-        <ThemeProvider defaultTheme="light" storageKey="burnlog-theme">
-          <SessionContextProvider supabaseClient={supabaseClient}>
-            <AppSwitchProvider>
-              <SplashScreen />
-              {children}
-              <SwitchLoader />
-              <Toaster />
-              <PWAInstall />
-              <PWAStatus />
-              <PWAUpdateNotification />
-            </AppSwitchProvider>
-          </SessionContextProvider>
-        </ThemeProvider>
+        <SWRConfig
+          value={{
+            revalidateOnFocus: true,
+            revalidateIfStale: true,
+            dedupingInterval: 3000,
+            keepPreviousData: true,
+          }}
+        >
+          <ThemeProvider defaultTheme="light" storageKey="burnlog-theme">
+            <SessionContextProvider supabaseClient={supabaseClient}>
+              <AppSwitchProvider>
+                <SplashScreen />
+                {children}
+                <SwitchLoader />
+                <Toaster />
+                <PWAInstall />
+                <PWAStatus />
+                <PWAUpdateNotification />
+              </AppSwitchProvider>
+            </SessionContextProvider>
+          </ThemeProvider>
+        </SWRConfig>
       </body>
     </html>
   );
