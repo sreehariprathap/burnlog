@@ -1,7 +1,8 @@
 // app/(tasklog)/tasklog/plan/page.tsx
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
+import useSWR from 'swr';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { PlusIcon } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
@@ -12,39 +13,29 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { LANES, PRIORITIES, type TaskLane, type TaskRow } from '@/lib/tasklog/types';
-
-type ProfileRow = { id: string };
+import { useCurrentProfile } from '@/lib/useCurrentProfile';
 
 export default function PlanPage() {
   const supabase = createClientComponentClient();
-  const [profile, setProfile] = useState<ProfileRow | null>(null);
-  const [inboxTasks, setInboxTasks] = useState<TaskRow[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { profile } = useCurrentProfile();
   const [quickAddText, setQuickAddText] = useState('');
   const [parsing, setParsing] = useState(false);
 
-  const fetchInbox = useCallback(async (profileId: string) => {
-    setLoading(true);
+  const {
+    data: inboxData,
+    isLoading,
+    mutate: mutateInbox,
+  } = useSWR(profile ? ['tasklog-inbox', profile.id] : null, async () => {
     const { data } = await supabase
       .from('tasklog_tasks')
       .select('*')
-      .eq('profileId', profileId)
+      .eq('profileId', profile!.id)
       .is('lane', null)
       .order('createdAt', { ascending: false });
-    setInboxTasks((data as TaskRow[]) || []);
-    setLoading(false);
-  }, [supabase]);
+    return (data as TaskRow[]) || [];
+  });
 
-  useEffect(() => {
-    (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-      const { data: profileRow } = await supabase.from('profiles').select('id').eq('userId', user.id).single();
-      if (!profileRow) return;
-      setProfile(profileRow as ProfileRow);
-      await fetchInbox(profileRow.id);
-    })();
-  }, [supabase, fetchInbox]);
+  const inboxTasks = inboxData ?? [];
 
   async function handleQuickAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -78,7 +69,7 @@ export default function PlanPage() {
         .select()
         .single();
       if (!error && data) {
-        setInboxTasks((prev) => [data as TaskRow, ...prev]);
+        await mutateInbox([data as TaskRow, ...inboxTasks], { revalidate: false });
       }
     } finally {
       setParsing(false);
@@ -96,13 +87,13 @@ export default function PlanPage() {
     const position = laneTasks?.length ?? 0;
     const { error } = await supabase.from('tasklog_tasks').update({ lane, position }).eq('id', taskId);
     if (!error) {
-      setInboxTasks((prev) => prev.filter((t) => t.id !== taskId));
+      await mutateInbox(inboxTasks.filter((t) => t.id !== taskId), { revalidate: false });
     }
   }
 
   async function handleDelete(taskId: string) {
     await supabase.from('tasklog_tasks').delete().eq('id', taskId);
-    setInboxTasks((prev) => prev.filter((t) => t.id !== taskId));
+    await mutateInbox(inboxTasks.filter((t) => t.id !== taskId), { revalidate: false });
   }
 
   return (
@@ -120,7 +111,7 @@ export default function PlanPage() {
         </Button>
       </form>
       <div className="flex flex-col gap-3 px-4 pb-4">
-        {loading ? (
+        {isLoading ? (
           <Skeleton className="h-32 w-full" />
         ) : inboxTasks.length === 0 ? (
           <p className="text-sm text-muted-foreground">Nothing in your inbox. Dump a task above.</p>
