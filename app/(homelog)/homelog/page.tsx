@@ -1,7 +1,8 @@
 // app/(homelog)/homelog/page.tsx
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
+import useSWR from 'swr';
 import { TopBar } from '@/components/TopBar';
 import { HomeLogBottomNav } from '@/components/HomeLogBottomNav';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -9,20 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-
-interface HouseholdInfo {
-  id: string;
-  name: string;
-  createdAt: string;
-}
-
-interface MemberInfo {
-  profileId: string;
-  role: 'owner' | 'member';
-  joinedAt: string;
-  username: string;
-  firstName: string;
-}
+import { useHouseholdMe } from '@/lib/homelog/useHouseholdMe';
 
 interface PendingInvite {
   id: string;
@@ -32,12 +20,18 @@ interface PendingInvite {
   createdAt: string;
 }
 
+async function fetchPendingInvites(): Promise<PendingInvite[]> {
+  const res = await fetch('/api/homelog/invites');
+  const body = await res.json();
+  return body.invites ?? [];
+}
+
 export default function HomeLogPage() {
-  const [loading, setLoading] = useState(true);
-  const [household, setHousehold] = useState<HouseholdInfo | null>(null);
-  const [members, setMembers] = useState<MemberInfo[]>([]);
-  const [myRole, setMyRole] = useState<'owner' | 'member' | null>(null);
-  const [pendingInvites, setPendingInvites] = useState<PendingInvite[]>([]);
+  const { household, members, myRole, isLoading, refresh } = useHouseholdMe();
+  const { data: pendingInvites, mutate: mutateInvites } = useSWR(
+    !isLoading && !household ? 'homelog-invites' : null,
+    fetchPendingInvites
+  );
 
   const [householdName, setHouseholdName] = useState('');
   const [creating, setCreating] = useState(false);
@@ -50,26 +44,6 @@ export default function HomeLogPage() {
 
   const [confirmingLeave, setConfirmingLeave] = useState(false);
   const [leaving, setLeaving] = useState(false);
-
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    const meRes = await fetch('/api/homelog/households/me');
-    const meBody = await meRes.json();
-    setHousehold(meBody.household ?? null);
-    setMembers(meBody.members ?? []);
-    setMyRole(meBody.myRole ?? null);
-
-    if (!meBody.household) {
-      const invitesRes = await fetch('/api/homelog/invites');
-      const invitesBody = await invitesRes.json();
-      setPendingInvites(invitesBody.invites ?? []);
-    }
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
 
   async function handleCreateHousehold(e: React.FormEvent) {
     e.preventDefault();
@@ -98,6 +72,7 @@ export default function HomeLogPage() {
 
   async function handleRespondToInvite(inviteId: string, action: 'accept' | 'decline') {
     await fetch(`/api/homelog/invites/${inviteId}/${action}`, { method: 'POST' });
+    await mutateInvites();
     await refresh();
   }
 
@@ -149,7 +124,7 @@ export default function HomeLogPage() {
     <div className="pb-24">
       <TopBar title="HomeLog" />
       <div className="flex flex-col gap-4 px-4 py-4">
-        {loading ? (
+        {isLoading ? (
           <Skeleton className="h-40 w-full" />
         ) : !household ? (
           <>
@@ -175,13 +150,13 @@ export default function HomeLogPage() {
               </CardContent>
             </Card>
 
-            {pendingInvites.length > 0 && (
+            {(pendingInvites?.length ?? 0) > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle>Pending invites</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  {pendingInvites.map((invite) => (
+                  {pendingInvites!.map((invite) => (
                     <div key={invite.id} className="flex items-center justify-between rounded-md border p-3">
                       <div>
                         <p className="text-sm font-medium">{invite.householdName}</p>
