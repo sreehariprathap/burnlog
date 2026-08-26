@@ -60,6 +60,9 @@ model Profile {
   Program            Program?
   TaskGoal           TaskGoal[]
   Task               Task[]
+  HouseholdMember           HouseholdMember?
+  householdInvitesSent      HouseholdInvite[] @relation("HouseholdInviteSender")
+  householdInvitesReceived  HouseholdInvite[] @relation("HouseholdInviteRecipient")
   friendshipsSent     Friendship[] @relation("FriendshipRequester")
   friendshipsReceived Friendship[] @relation("FriendshipAddressee")
 
@@ -437,4 +440,44 @@ model Task {
   createdAt       DateTime  @default(now())
 
   @@map("tasklog_tasks")
+}
+
+/// a HomeLog household — the shared unit chores/inventory/bills will hang off of
+model Household {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String
+  createdAt DateTime @default(now())
+  members   HouseholdMember[]
+  invites   HouseholdInvite[]
+
+  @@map("households")
+}
+
+/// membership row — profileId is @unique so a profile can only be in one household at a time
+model HouseholdMember {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  householdId String    @db.Uuid
+  profile     Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId   String    @unique @db.Uuid
+  role        String    @default("member") // 'owner' | 'member'
+  joinedAt    DateTime  @default(now())
+
+  @@map("household_members")
+}
+
+/// username-based invite to join a household
+model HouseholdInvite {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  household   Household @relation(fields: [householdId], references: [id], onDelete: Cascade)
+  householdId String    @db.Uuid
+  invitedBy   Profile   @relation("HouseholdInviteSender", fields: [invitedById], references: [id])
+  invitedById String    @db.Uuid
+  invitee     Profile   @relation("HouseholdInviteRecipient", fields: [inviteeId], references: [id])
+  inviteeId   String    @db.Uuid
+  status      String    @default("pending") // 'pending' | 'accepted' | 'declined'
+  createdAt   DateTime  @default(now())
+  respondedAt DateTime?
+
+  @@map("household_invites")
 }

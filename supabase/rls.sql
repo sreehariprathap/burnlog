@@ -244,3 +244,40 @@ create policy "friendships_delete_own" on friendships
     exists (select 1 from profiles where profiles.id = friendships."requesterId" and profiles."userId" = auth.uid())
     or exists (select 1 from profiles where profiles.id = friendships."addresseeId" and profiles."userId" = auth.uid())
   );
+
+-- households / household_members / household_invites --------------------
+-- Same posture as friendships: all mutations go through app/api/homelog/*
+-- routes using the service-role client (create/invite/accept/decline/leave/
+-- remove-member all need cross-profile authorization logic RLS can't express
+-- alone). These read-only policies are a defensive default so client-side
+-- reads (listing my household/members/invites) work without needing the
+-- service role.
+alter table households enable row level security;
+
+create policy "households_member_read" on households
+  for select using (
+    exists (
+      select 1 from household_members hm
+      join profiles p on p.id = hm."profileId"
+      where hm."householdId" = households.id and p."userId" = auth.uid()
+    )
+  );
+
+alter table household_members enable row level security;
+
+create policy "household_members_read" on household_members
+  for select using (
+    exists (
+      select 1 from household_members hm2
+      join profiles p on p.id = hm2."profileId"
+      where hm2."householdId" = household_members."householdId" and p."userId" = auth.uid()
+    )
+  );
+
+alter table household_invites enable row level security;
+
+create policy "household_invites_read_own" on household_invites
+  for select using (
+    exists (select 1 from profiles p where p.id = household_invites."inviteeId" and p."userId" = auth.uid())
+    or exists (select 1 from profiles p where p.id = household_invites."invitedById" and p."userId" = auth.uid())
+  );
