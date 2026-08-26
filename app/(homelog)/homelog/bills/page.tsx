@@ -1,8 +1,9 @@
 // app/(homelog)/homelog/bills/page.tsx
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
+import useSWR from 'swr';
 import { TopBar } from '@/components/TopBar';
 import { HomeLogBottomNav } from '@/components/HomeLogBottomNav';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -11,11 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-interface MemberInfo {
-  profileId: string;
-  firstName: string;
-}
+import { useHouseholdMe } from '@/lib/homelog/useHouseholdMe';
 
 interface ExpenseSplitInfo {
   profileId: string;
@@ -42,13 +39,36 @@ interface BalanceInfo {
   net: number;
 }
 
+async function fetchExpenses(): Promise<ExpenseInfo[]> {
+  const res = await fetch('/api/homelog/expenses');
+  const body = await res.json();
+  return body.expenses ?? [];
+}
+
+async function fetchBalances(): Promise<BalanceInfo[]> {
+  const res = await fetch('/api/homelog/balances');
+  const body = await res.json();
+  return body.balances ?? [];
+}
+
 export default function BillsPage() {
-  const [inHousehold, setInHousehold] = useState<boolean | null>(null);
-  const [myProfileId, setMyProfileId] = useState<string | null>(null);
-  const [members, setMembers] = useState<MemberInfo[]>([]);
-  const [expenses, setExpenses] = useState<ExpenseInfo[]>([]);
-  const [balances, setBalances] = useState<BalanceInfo[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { household, members, myProfileId, isLoading: householdLoading } = useHouseholdMe();
+  const hasHousehold = !householdLoading && !!household;
+
+  const {
+    data: expenseData,
+    isLoading: expensesLoading,
+    mutate: refreshExpenses,
+  } = useSWR(hasHousehold ? 'homelog-expenses' : null, fetchExpenses);
+  const {
+    data: balanceData,
+    isLoading: balancesLoading,
+    mutate: refreshBalances,
+  } = useSWR(hasHousehold ? 'homelog-balances' : null, fetchBalances);
+
+  const expenses = expenseData ?? [];
+  const balances = balanceData ?? [];
+  const loading = householdLoading || expensesLoading || balancesLoading;
 
   const [label, setLabel] = useState('');
   const [category, setCategory] = useState('groceries');
@@ -56,34 +76,6 @@ export default function BillsPage() {
   const [shares, setShares] = useState<Record<string, string>>({});
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
-
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    const meRes = await fetch('/api/homelog/households/me');
-    const meBody = await meRes.json();
-    if (!meBody.household) {
-      setInHousehold(false);
-      setLoading(false);
-      return;
-    }
-    setInHousehold(true);
-    setMembers(meBody.members ?? []);
-    setMyProfileId(meBody.myProfileId ?? null);
-
-    const [expensesRes, balancesRes] = await Promise.all([
-      fetch('/api/homelog/expenses'),
-      fetch('/api/homelog/balances'),
-    ]);
-    const expensesBody = await expensesRes.json();
-    const balancesBody = await balancesRes.json();
-    setExpenses(expensesBody.expenses ?? []);
-    setBalances(balancesBody.balances ?? []);
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
 
   function updateShare(profileId: string, value: string) {
     setShares((prev) => ({ ...prev, [profileId]: value }));
@@ -120,7 +112,8 @@ export default function BillsPage() {
       setLabel('');
       setTotalAmount('');
       setShares({});
-      await refresh();
+      await refreshExpenses();
+      await refreshBalances();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to add expense');
     } finally {
@@ -134,10 +127,10 @@ export default function BillsPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ toProfileId, amount }),
     });
-    await refresh();
+    await refreshBalances();
   }
 
-  if (inHousehold === false) {
+  if (!householdLoading && !household) {
     return (
       <div className="pb-24">
         <TopBar title="Bills" />
