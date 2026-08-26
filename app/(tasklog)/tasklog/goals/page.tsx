@@ -8,6 +8,7 @@ import { TaskLogBottomNav } from '@/components/TaskLogBottomNav';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { TaskGoalRow } from '@/lib/tasklog/types';
 import { AddGoalForm } from './_components/AddGoalForm';
+import { GoalCard } from './_components/GoalCard';
 
 type ProfileRow = { id: string };
 
@@ -53,7 +54,7 @@ export default function GoalsPage() {
         ) : goals.length === 0 ? (
           <p className="text-sm text-muted-foreground">No goals yet. Add one above.</p>
         ) : (
-          <p className="text-sm text-muted-foreground">{goals.length} goal(s) — cards render once GoalCard lands.</p>
+          goals.map((goal) => <GoalCard key={goal.id} goal={goal} />)
         )}
       </div>
       <TaskLogBottomNav />
