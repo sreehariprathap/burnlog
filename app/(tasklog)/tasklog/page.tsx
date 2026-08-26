@@ -1,7 +1,8 @@
 // app/(tasklog)/tasklog/page.tsx
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
+import useSWR from 'swr';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { CheckIcon, FlameIcon } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
@@ -14,13 +15,8 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/u
 import { todayDateString, type TaskRow } from '@/lib/tasklog/types';
 import { markTaskComplete } from '@/lib/tasklog/completeTask';
 import { CrossAppSnapshot } from '@/components/CrossAppSnapshot';
-
-type ProfileRow = {
-  id: string;
-  taskLogCurrentStreak: number;
-  taskLogLongestStreak: number;
-  lastTaskLogStreakDate: string | null;
-};
+import { useCurrentProfile, refreshCurrentProfile } from '@/lib/useCurrentProfile';
+import type { StreakProfile } from '@/lib/tasklog/streak';
 
 function TodayTaskRow({ task, onToggle }: { task: TaskRow; onToggle: () => void }) {
   return (
@@ -33,62 +29,52 @@ function TodayTaskRow({ task, onToggle }: { task: TaskRow; onToggle: () => void 
   );
 }
 
+function toStreakProfile(profileId: string, profile: Record<string, unknown>): StreakProfile {
+  return {
+    id: profileId,
+    taskLogCurrentStreak: Number(profile.taskLogCurrentStreak ?? 0),
+    taskLogLongestStreak: Number(profile.taskLogLongestStreak ?? 0),
+    lastTaskLogStreakDate: (profile.lastTaskLogStreakDate as string | null) ?? null,
+  };
+}
+
 export default function TaskLogDashboardPage() {
   const supabase = createClientComponentClient();
-  const [profile, setProfile] = useState<ProfileRow | null>(null);
-  const [todayTasks, setTodayTasks] = useState<TaskRow[]>([]);
+  const { profile } = useCurrentProfile();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerCandidates, setPickerCandidates] = useState<TaskRow[]>([]);
-  const [loading, setLoading] = useState(true);
 
-  const fetchToday = useCallback(async (profileId: string) => {
-    setLoading(true);
-    const today = todayDateString();
+  const today = todayDateString();
+
+  const {
+    data: todayTasks,
+    isLoading,
+    mutate: refreshToday,
+  } = useSWR(profile ? ['tasklog-today', profile.id] : null, async () => {
     const { data } = await supabase
       .from('tasklog_tasks')
       .select('*')
-      .eq('profileId', profileId)
+      .eq('profileId', profile!.id)
       .or(`dueDate.eq.${today},plannedForToday.eq.true`)
       .order('dueDate', { ascending: true });
-    setTodayTasks((data as TaskRow[]) || []);
-    setLoading(false);
-  }, [supabase]);
+    return (data as TaskRow[]) || [];
+  });
 
-  const fetchProfileAndToday = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { setLoading(false); return; }
-    const { data: profileRow } = await supabase
-      .from('profiles')
-      .select('id, taskLogCurrentStreak, taskLogLongestStreak, lastTaskLogStreakDate')
-      .eq('userId', user.id)
-      .single();
-    if (!profileRow) { setLoading(false); return; }
-    setProfile(profileRow as ProfileRow);
-    await fetchToday(profileRow.id);
-  }, [supabase, fetchToday]);
-
-  useEffect(() => { fetchProfileAndToday(); }, [fetchProfileAndToday]);
-
-  const today = todayDateString();
-  const overdue = todayTasks.filter((t) => t.dueDate && t.dueDate < today && !t.completedAt);
-  const dueToday = todayTasks.filter((t) => !(t.dueDate && t.dueDate < today));
-  const doneCount = todayTasks.filter((t) => t.completedAt).length;
+  const tasks = todayTasks ?? [];
+  const overdue = tasks.filter((t) => t.dueDate && t.dueDate < today && !t.completedAt);
+  const dueToday = tasks.filter((t) => !(t.dueDate && t.dueDate < today));
+  const doneCount = tasks.filter((t) => t.completedAt).length;
 
   async function handleToggle(task: TaskRow) {
     if (!profile) return;
     const completed = !task.completedAt;
-    setTodayTasks((prev) =>
-      prev.map((t) => (t.id === task.id ? { ...t, completedAt: completed ? new Date().toISOString() : null } : t))
+    await refreshToday(
+      tasks.map((t) => (t.id === task.id ? { ...t, completedAt: completed ? new Date().toISOString() : null } : t)),
+      { revalidate: false }
     );
-    await markTaskComplete(supabase, { id: task.id, goalId: task.goalId }, profile, completed);
-    if (completed) {
-      const { data: refreshedProfile } = await supabase
-        .from('profiles')
-        .select('id, taskLogCurrentStreak, taskLogLongestStreak, lastTaskLogStreakDate')
-        .eq('id', profile.id)
-        .single();
-      if (refreshedProfile) setProfile(refreshedProfile as ProfileRow);
-    }
+    await markTaskComplete(supabase, { id: task.id, goalId: task.goalId }, toStreakProfile(profile.id, profile), completed);
+    if (completed) await refreshCurrentProfile();
+    await refreshToday();
   }
 
   async function openPlanMyDay() {
@@ -107,7 +93,7 @@ export default function TaskLogDashboardPage() {
   async function handlePickForToday(taskId: string) {
     await supabase.from('tasklog_tasks').update({ plannedForToday: true }).eq('id', taskId);
     setPickerCandidates((prev) => prev.filter((t) => t.id !== taskId));
-    if (profile) await fetchToday(profile.id);
+    await refreshToday();
   }
 
   return (
@@ -117,11 +103,11 @@ export default function TaskLogDashboardPage() {
         <div className="flex items-center gap-2">
           <FlameIcon className="h-5 w-5 text-primary" />
           <div>
-            <p className="text-sm font-semibold">{profile?.taskLogCurrentStreak ?? 0} day streak</p>
-            <p className="text-xs text-muted-foreground">Best: {profile?.taskLogLongestStreak ?? 0}</p>
+            <p className="text-sm font-semibold">{Number(profile?.taskLogCurrentStreak ?? 0)} day streak</p>
+            <p className="text-xs text-muted-foreground">Best: {Number(profile?.taskLogLongestStreak ?? 0)}</p>
           </div>
         </div>
-        <p className="text-sm text-muted-foreground">{doneCount}/{todayTasks.length} done today</p>
+        <p className="text-sm text-muted-foreground">{doneCount}/{tasks.length} done today</p>
       </div>
 
       {profile && (
@@ -137,7 +123,7 @@ export default function TaskLogDashboardPage() {
       </div>
 
       <div className="flex flex-col gap-4 px-4 py-4">
-        {loading ? (
+        {isLoading ? (
           <Skeleton className="h-40 w-full" />
         ) : (
           <>
