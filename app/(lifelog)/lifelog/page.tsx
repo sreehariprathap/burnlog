@@ -1,9 +1,11 @@
 // app/(lifelog)/lifelog/page.tsx
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
+import useSWR from 'swr';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { CalendarDays, CalendarRange, Calendar } from 'lucide-react';
+import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { Card, CardContent } from '@/components/ui/card';
 import { TopBar } from '@/components/TopBar';
 import { LifeLogBottomNav } from '@/components/LifeLogBottomNav';
@@ -74,34 +76,22 @@ function PeriodSlide({
 
 export default function LifeLogHomePage() {
   const supabase = createClientComponentClient();
-  const [profileId, setProfileId] = useState<string | null>(null);
+  const { profile } = useCurrentProfile();
+  const profileId = profile?.id ?? null;
   const [selectedIndex, setSelectedIndex] = useState(0);
-  const [hasAnyData, setHasAnyData] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const refreshData = useCallback(
-    async (id: string) => {
+  const { data: hasAnyData, mutate: refreshHasAnyData } = useSWR(
+    profileId ? ['lifelog-has-any-data', profileId] : null,
+    async () => {
       const [{ count: recurringCount }, { count: transactionCount }] = await Promise.all([
-        supabase.from('recurring_items').select('id', { count: 'exact', head: true }).eq('profileId', id),
-        supabase.from('finance_transactions').select('id', { count: 'exact', head: true }).eq('profileId', id),
+        supabase.from('recurring_items').select('id', { count: 'exact', head: true }).eq('profileId', profileId!),
+        supabase.from('finance_transactions').select('id', { count: 'exact', head: true }).eq('profileId', profileId!),
       ]);
-      setHasAnyData((recurringCount || 0) + (transactionCount || 0) > 0);
+      return (recurringCount || 0) + (transactionCount || 0) > 0;
     },
-    [supabase]
+    { fallbackData: true }
   );
-
-  useEffect(() => {
-    (async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
-      const { data: profile } = await supabase.from('profiles').select('id').eq('userId', user.id).single();
-      if (!profile) return;
-      setProfileId(profile.id);
-      await refreshData(profile.id);
-    })();
-  }, [supabase, refreshData]);
 
   return (
     <div className="pb-24">
@@ -119,7 +109,7 @@ export default function LifeLogHomePage() {
           selectedIndex={selectedIndex}
           onSelect={setSelectedIndex}
           slides={PERIODS.map((period) => (
-            <PeriodSlide key={period} profileId={profileId} period={period} hasAnyData={hasAnyData} refreshKey={refreshKey} />
+            <PeriodSlide key={period} profileId={profileId} period={period} hasAnyData={hasAnyData ?? true} refreshKey={refreshKey} />
           ))}
         />
       </div>
@@ -128,7 +118,7 @@ export default function LifeLogHomePage() {
           profileId={profileId}
           onLogged={() => {
             setRefreshKey((k) => k + 1);
-            refreshData(profileId);
+            refreshHasAnyData();
           }}
         />
       )}
