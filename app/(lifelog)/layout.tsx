@@ -6,6 +6,7 @@ import { setActiveApp } from '@/lib/appMode';
 
 export default function LifelogLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
+    document.documentElement.classList.remove('app-tasklog');
     document.documentElement.classList.add('app-lifelog');
     setActiveApp('lifelog');
   }, []);

@@ -1,14 +1,14 @@
-// app/(burnlog)/layout.tsx
+// app/(tasklog)/layout.tsx
 'use client';
 
 import { useEffect } from 'react';
 import { setActiveApp } from '@/lib/appMode';
 
-export default function BurnlogLayout({ children }: { children: React.ReactNode }) {
+export default function TaskLogLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     document.documentElement.classList.remove('app-lifelog');
-    document.documentElement.classList.remove('app-tasklog');
-    setActiveApp('burnlog');
+    document.documentElement.classList.add('app-tasklog');
+    setActiveApp('tasklog');
   }, []);
 
   return <>{children}</>;
