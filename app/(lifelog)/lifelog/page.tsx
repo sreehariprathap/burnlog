@@ -1,7 +1,7 @@
 // app/(lifelog)/lifelog/page.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { CalendarDays, CalendarRange, Calendar } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -79,13 +79,16 @@ export default function LifeLogHomePage() {
   const [hasAnyData, setHasAnyData] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const refreshData = async (id: string) => {
-    const [{ count: recurringCount }, { count: transactionCount }] = await Promise.all([
-      supabase.from('recurring_items').select('id', { count: 'exact', head: true }).eq('profileId', id),
-      supabase.from('finance_transactions').select('id', { count: 'exact', head: true }).eq('profileId', id),
-    ]);
-    setHasAnyData((recurringCount || 0) + (transactionCount || 0) > 0);
-  };
+  const refreshData = useCallback(
+    async (id: string) => {
+      const [{ count: recurringCount }, { count: transactionCount }] = await Promise.all([
+        supabase.from('recurring_items').select('id', { count: 'exact', head: true }).eq('profileId', id),
+        supabase.from('finance_transactions').select('id', { count: 'exact', head: true }).eq('profileId', id),
+      ]);
+      setHasAnyData((recurringCount || 0) + (transactionCount || 0) > 0);
+    },
+    [supabase]
+  );
 
   useEffect(() => {
     (async () => {
@@ -98,7 +101,7 @@ export default function LifeLogHomePage() {
       setProfileId(profile.id);
       await refreshData(profile.id);
     })();
-  }, [supabase]);
+  }, [supabase, refreshData]);
 
   return (
     <div className="pb-24">

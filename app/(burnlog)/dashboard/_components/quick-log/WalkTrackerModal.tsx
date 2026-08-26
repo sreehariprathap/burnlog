@@ -100,7 +100,6 @@ export function WalkTrackerModal({ profileId, onClose, onSaved }: WalkTrackerMod
       if (intervalRef.current) clearInterval(intervalRef.current);
       window.removeEventListener('devicemotion', handleMotion);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleFinish = async () => {

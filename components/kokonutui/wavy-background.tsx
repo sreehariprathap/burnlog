@@ -64,7 +64,7 @@ export function WavyBackground({ className, colors = DEFAULT_COLORS, backgroundF
       cancelAnimationFrame(animationId);
       window.removeEventListener('resize', resize);
     };
-  }, []);
+  }, [colors, backgroundFill]);
 
   return <canvas ref={canvasRef} className={className} />;
 }

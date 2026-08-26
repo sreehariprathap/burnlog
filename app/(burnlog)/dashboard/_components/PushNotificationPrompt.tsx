@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { registerServiceWorker, subscribeToPushNotifications, sendRealTestNotification } from '@/lib/pushNotification';
@@ -29,7 +29,7 @@ export function PushNotificationPrompt() {
   const [platform, setPlatform] = useState<Platform | null>(null);
   const { toast } = useToast();
 
-  const saveSubscription = async (subscription: Parameters<Parameters<typeof subscribeToPushNotifications>[1]>[0]) => {
+  const saveSubscription = useCallback(async (subscription: Parameters<Parameters<typeof subscribeToPushNotifications>[1]>[0]) => {
     const { data } = await supabase.auth.getUser();
     if (!data?.user) return;
 
@@ -48,7 +48,7 @@ export function PushNotificationPrompt() {
       console.error('Error saving subscription:', error);
       throw error;
     }
-  };
+  }, [supabase]);
 
   useEffect(() => {
     const checkPermission = async () => {
@@ -98,7 +98,7 @@ export function PushNotificationPrompt() {
     if ('serviceWorker' in navigator) {
       registerServiceWorker();
     }
-  }, [supabase]);
+  }, [supabase, saveSubscription]);
 
   const handleEnableNotifications = async () => {
     if (!userId) {

@@ -75,6 +75,9 @@ export function useFinanceData(profileId: string | null, period: Period, refresh
       console.error('Error fetching finance data:', error);
       setData({ ...EMPTY_DATA, loading: false });
     }
+    // refreshKey isn't read above — it's a caller-controlled cache-buster whose
+    // only job is to change identity so callers can force a refetch on demand.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [profileId, period, supabase, refreshKey]);
 
   useEffect(() => {

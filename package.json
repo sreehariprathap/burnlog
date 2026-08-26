@@ -48,6 +48,7 @@
     "react-dom": "^19.0.0",
     "recharts": "^2.15.3",
     "shadcn-ui": "^0.9.5",
+    "swr": "^2.5.1",
     "tailwind-merge": "^3.2.0",
     "vaul": "^1.1.2",
     "web-push": "^3.6.7",
