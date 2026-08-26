@@ -7,6 +7,7 @@ import { ThemeToggle } from './ThemeToggle';
 import { AppSwitcher } from './AppSwitcher';
 import { LifeLogMark } from './LifeLogMark';
 import { TaskLogMark } from './TaskLogMark';
+import { HomeLogMark } from './HomeLogMark';
 import Image from 'next/image';
 import { AppId, getActiveApp } from '@/lib/appMode';
 
@@ -37,6 +38,8 @@ export function TopBar({ title, onClose, actions }: TopBarProps) {
             <LifeLogMark size={20} />
           ) : activeApp === 'tasklog' ? (
             <TaskLogMark size={20} />
+          ) : activeApp === 'homelog' ? (
+            <HomeLogMark size={20} />
           ) : (
             <Image src="/B.png" alt="Logo" width={20} height={20} />
           )}

@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { motion } from 'motion/react';
 import { LifeLogMark } from '@/components/LifeLogMark';
 import { TaskLogMark } from '@/components/TaskLogMark';
+import { HomeLogMark } from '@/components/HomeLogMark';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -65,6 +66,8 @@ export function AppSwitcher({ open, onOpenChange }: AppSwitcherProps) {
                       <LifeLogMark size={24} />
                     ) : app.id === 'tasklog' ? (
                       <TaskLogMark size={24} />
+                    ) : app.id === 'homelog' ? (
+                      <HomeLogMark size={24} />
                     ) : (
                       <Image src="/B.png" alt={app.name} width={24} height={24} />
                     )}

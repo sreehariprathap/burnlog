@@ -66,6 +66,19 @@ const SPLASH_CONTENT: Record<
     darkEdgeColor: '96,165,250',
     darkCoreColor: '37,99,235',
   },
+  homelog: {
+    label: 'Loading HomeLog',
+    text: 'homelog',
+    tagline: 'Run your household together',
+    darkTextColor: '#E08E5B',
+    lightTextColor: '#8A4A2B',
+    darkTaglineClass: 'text-amber-200/60',
+    lightTaglineClass: 'text-amber-900/50',
+    lightColors: ['#E08E5B', '#C97A47', '#B5613A', '#8A4A2B'],
+    lightBackgroundFill: '#FBF3ED',
+    darkEdgeColor: '224,142,91',
+    darkCoreColor: '138,74,43',
+  },
 };
 
 export default function SplashScreen() {
