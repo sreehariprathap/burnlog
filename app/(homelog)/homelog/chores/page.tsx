@@ -1,8 +1,9 @@
 // app/(homelog)/homelog/chores/page.tsx
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
+import useSWR from 'swr';
 import { TopBar } from '@/components/TopBar';
 import { HomeLogBottomNav } from '@/components/HomeLogBottomNav';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -11,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useHouseholdMe } from '@/lib/homelog/useHouseholdMe';
 
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const MONTHS = [
@@ -33,10 +35,19 @@ interface ChoreInfo {
   instance: ChoreInstanceInfo | null;
 }
 
+async function fetchChores(): Promise<ChoreInfo[]> {
+  const res = await fetch('/api/homelog/chores');
+  const body = await res.json();
+  return body.chores ?? [];
+}
+
 export default function ChoresPage() {
-  const [inHousehold, setInHousehold] = useState<boolean | null>(null);
-  const [chores, setChores] = useState<ChoreInfo[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { household, isLoading: householdLoading } = useHouseholdMe();
+  const {
+    data: chores,
+    isLoading: choresLoading,
+    mutate: refresh,
+  } = useSWR(!householdLoading && household ? 'homelog-chores' : null, fetchChores);
 
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('cleaning');
@@ -48,25 +59,7 @@ export default function ChoresPage() {
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
 
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    const meRes = await fetch('/api/homelog/households/me');
-    const meBody = await meRes.json();
-    if (!meBody.household) {
-      setInHousehold(false);
-      setLoading(false);
-      return;
-    }
-    setInHousehold(true);
-    const choresRes = await fetch('/api/homelog/chores');
-    const choresBody = await choresRes.json();
-    setChores(choresBody.chores ?? []);
-    setLoading(false);
-  }, []);
-
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
+  const loading = householdLoading || choresLoading;
 
   async function handleCreate(e: React.FormEvent) {
     e.preventDefault();
@@ -111,7 +104,7 @@ export default function ChoresPage() {
     await refresh();
   }
 
-  if (inHousehold === false) {
+  if (!householdLoading && !household) {
     return (
       <div className="pb-24">
         <TopBar title="Chores" />
@@ -221,7 +214,7 @@ export default function ChoresPage() {
 
         {loading ? (
           <Skeleton className="h-40 w-full" />
-        ) : chores.length === 0 ? (
+        ) : !chores || chores.length === 0 ? (
           <p className="text-sm text-muted-foreground">No chores yet. Add one above.</p>
         ) : (
           chores.map((chore) => (
