@@ -1,5 +1,5 @@
 // lib/appMode.ts
-export type AppId = 'burnlog' | 'lifelog';
+export type AppId = 'burnlog' | 'lifelog' | 'tasklog';
 
 export interface AppMeta {
   id: AppId;
@@ -23,6 +23,13 @@ export const APPS: Record<AppId, AppMeta> = {
     home: '/lifelog',
     themeClass: 'app-lifelog',
   },
+  tasklog: {
+    id: 'tasklog',
+    name: 'TaskLog',
+    tagline: 'Plan, track, and crush your goals',
+    home: '/tasklog',
+    themeClass: 'app-tasklog',
+  },
 };
 
 const PROTECTED_PREFIX = 'app:';
@@ -34,7 +41,7 @@ function isBrowser(): boolean {
 }
 
 function isAppId(val: string | null): val is AppId {
-  return val === 'burnlog' || val === 'lifelog';
+  return val === 'burnlog' || val === 'lifelog' || val === 'tasklog';
 }
 
 function safeGet(key: string): string | null {
