@@ -1,7 +1,7 @@
 // app/(lifelog)/lifelog/insights/_components/FinanceInsightsClient.tsx
 'use client';
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import {
   LineChart,
   Line,
@@ -19,6 +19,9 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { expandRecurringInRange } from '@/lib/financePeriods';
 import type { RecurringItemRow, FinanceLineItem } from '@/lib/financePeriods';
 import { categoryLabel } from '@/lib/financeCategories';
+import { SmoothTabs, type TabItem } from '@/components/kokonutui/smooth-tabs';
+import { MotionCarousel } from '@/components/kokonutui/motion-carousel';
+import { LayoutGrid, TrendingUp, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
 
 interface FinanceInsightsClientProps {
   recurringItems: RecurringItemRow[];
@@ -27,7 +30,15 @@ interface FinanceInsightsClientProps {
 
 const MONTHS_BACK = 6;
 
+const insightTabs: TabItem[] = [
+  { id: 'overview', icon: LayoutGrid, label: 'Overview', color: 'var(--chart-1)' },
+  { id: 'cashflow', icon: TrendingUp, label: 'Cashflow', color: 'var(--chart-2)' },
+  { id: 'expenses', icon: ArrowDownCircle, label: 'Expenses', color: 'var(--chart-3)' },
+  { id: 'income', icon: ArrowUpCircle, label: 'Income', color: 'var(--chart-4)' },
+];
+
 export default function FinanceInsightsClient({ recurringItems, transactions }: FinanceInsightsClientProps) {
+  const [selectedIndex, setSelectedIndex] = useState(0);
   const now = new Date();
   const rangeStart = startOfMonth(subMonths(now, MONTHS_BACK - 1));
   const rangeEnd = endOfMonth(now);
@@ -75,88 +86,105 @@ export default function FinanceInsightsClient({ recurringItems, transactions }: 
   const net = totalIncome - totalExpense;
   const savingsRate = totalIncome > 0 ? (net / totalIncome) * 100 : 0;
 
+  const overviewSlide = (
+    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+      <Card>
+        <CardContent className="pt-4">
+          <p className="text-xs text-muted-foreground">Income</p>
+          <p className="font-semibold">{totalIncome.toLocaleString()}</p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent className="pt-4">
+          <p className="text-xs text-muted-foreground">Expense</p>
+          <p className="font-semibold">{totalExpense.toLocaleString()}</p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent className="pt-4">
+          <p className="text-xs text-muted-foreground">Net</p>
+          <p className="font-semibold">{net.toLocaleString()}</p>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent className="pt-4">
+          <p className="text-xs text-muted-foreground">Savings Rate</p>
+          <p className="font-semibold">{savingsRate.toFixed(1)}%</p>
+        </CardContent>
+      </Card>
+    </div>
+  );
+
+  const cashflowSlide = (
+    <Card>
+      <CardHeader>
+        <CardTitle>Cashflow (last {MONTHS_BACK} months)</CardTitle>
+      </CardHeader>
+      <CardContent className="h-64">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={monthlySeries}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="month" />
+            <YAxis />
+            <Tooltip />
+            <Legend />
+            <Line type="monotone" dataKey="income" stroke="#22C55E" />
+            <Line type="monotone" dataKey="expense" stroke="#EF4444" />
+            <Line type="monotone" dataKey="net" stroke="#3B82F6" />
+          </LineChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  );
+
+  const expensesSlide = (
+    <Card>
+      <CardHeader>
+        <CardTitle>Expenses by category</CardTitle>
+      </CardHeader>
+      <CardContent className="h-64">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={expenseByCategory}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="category" tick={{ fontSize: 10 }} interval={0} angle={-30} textAnchor="end" height={60} />
+            <YAxis />
+            <Tooltip />
+            <Bar dataKey="amount" fill="#EF4444" />
+          </BarChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  );
+
+  const incomeSlide = (
+    <Card>
+      <CardHeader>
+        <CardTitle>Income by category</CardTitle>
+      </CardHeader>
+      <CardContent className="h-64">
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart data={incomeByCategory}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis dataKey="category" tick={{ fontSize: 10 }} interval={0} angle={-30} textAnchor="end" height={60} />
+            <YAxis />
+            <Tooltip />
+            <Bar dataKey="amount" fill="#22C55E" />
+          </BarChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="flex flex-col gap-4">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <Card>
-          <CardContent className="pt-4">
-            <p className="text-xs text-muted-foreground">Income</p>
-            <p className="font-semibold">{totalIncome.toLocaleString()}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4">
-            <p className="text-xs text-muted-foreground">Expense</p>
-            <p className="font-semibold">{totalExpense.toLocaleString()}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4">
-            <p className="text-xs text-muted-foreground">Net</p>
-            <p className="font-semibold">{net.toLocaleString()}</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-4">
-            <p className="text-xs text-muted-foreground">Savings Rate</p>
-            <p className="font-semibold">{savingsRate.toFixed(1)}%</p>
-          </CardContent>
-        </Card>
+      <div className="sticky top-14 z-10 -mx-4 border-b bg-background/80 px-4 py-2 backdrop-blur">
+        <SmoothTabs items={insightTabs} selectedIndex={selectedIndex} onSelect={setSelectedIndex} showLabels />
       </div>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Cashflow (last {MONTHS_BACK} months)</CardTitle>
-        </CardHeader>
-        <CardContent className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={monthlySeries}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="month" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="income" stroke="#22C55E" />
-              <Line type="monotone" dataKey="expense" stroke="#EF4444" />
-              <Line type="monotone" dataKey="net" stroke="#3B82F6" />
-            </LineChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Expenses by category</CardTitle>
-        </CardHeader>
-        <CardContent className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={expenseByCategory}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="category" tick={{ fontSize: 10 }} interval={0} angle={-30} textAnchor="end" height={60} />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="amount" fill="#EF4444" />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle>Income by category</CardTitle>
-        </CardHeader>
-        <CardContent className="h-64">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={incomeByCategory}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="category" tick={{ fontSize: 10 }} interval={0} angle={-30} textAnchor="end" height={60} />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="amount" fill="#22C55E" />
-            </BarChart>
-          </ResponsiveContainer>
-        </CardContent>
-      </Card>
+      <MotionCarousel
+        selectedIndex={selectedIndex}
+        onSelect={setSelectedIndex}
+        slides={[overviewSlide, cashflowSlide, expensesSlide, incomeSlide]}
+      />
     </div>
   );
 }

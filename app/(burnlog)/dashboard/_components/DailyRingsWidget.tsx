@@ -2,10 +2,13 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { Flame, Utensils, Timer, Footprints } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { resolveTarget, getTodayRange } from '@/lib/dailyTargets';
-import AppleActivityCard, { type ActivityData } from '@/components/kokonutui/apple-activity-card';
+import { AnimatedCircularProgressBar } from '@/components/ui/animated-circular-progress-bar';
+import { SmoothTabs, type TabItem } from '@/components/kokonutui/smooth-tabs';
+import { MotionCarousel } from '@/components/kokonutui/motion-carousel';
 
 type Goal = { goalType: string; targetValue: number };
 
@@ -17,11 +20,18 @@ type Metrics = {
 };
 
 const RINGS = [
-  { key: 'burn' as const, goalType: 'calories_burned', color: '#F97316', colorEnd: '#FDBA74', size: 200, label: 'BURN', unit: 'KCAL' },
-  { key: 'eat' as const, goalType: 'calories_intake', color: '#22C55E', colorEnd: '#86EFAC', size: 165, label: 'EAT', unit: 'KCAL' },
-  { key: 'workoutMinutes' as const, goalType: 'workout_time', color: '#3B82F6', colorEnd: '#93C5FD', size: 130, label: 'MOVE', unit: 'MIN' },
-  { key: 'steps' as const, goalType: 'daily_steps', color: '#A855F7', colorEnd: '#D8B4FE', size: 95, label: 'STEPS', unit: '' },
+  { key: 'burn' as const, goalType: 'calories_burned', color: '#F97316', secondaryColor: 'rgba(249, 115, 22, 0.15)', icon: Flame, label: 'Burn', unit: 'kcal' },
+  { key: 'eat' as const, goalType: 'calories_intake', color: '#22C55E', secondaryColor: 'rgba(34, 197, 94, 0.15)', icon: Utensils, label: 'Eat', unit: 'kcal' },
+  { key: 'workoutMinutes' as const, goalType: 'workout_time', color: '#3B82F6', secondaryColor: 'rgba(59, 130, 246, 0.15)', icon: Timer, label: 'Move', unit: 'min' },
+  { key: 'steps' as const, goalType: 'daily_steps', color: '#A855F7', secondaryColor: 'rgba(168, 85, 247, 0.15)', icon: Footprints, label: 'Steps', unit: 'steps' },
 ];
+
+const ringTabs: TabItem[] = RINGS.map((ring) => ({
+  id: ring.key,
+  icon: ring.icon,
+  label: ring.label,
+  color: ring.color,
+}));
 
 type DailyRingsWidgetProps = {
   profileId: string;
@@ -33,6 +43,7 @@ export function DailyRingsWidget({ profileId, refreshKey }: DailyRingsWidgetProp
   const [loading, setLoading] = useState(true);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [metrics, setMetrics] = useState<Metrics>({ burn: 0, eat: 0, workoutMinutes: 0, steps: 0 });
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -92,30 +103,43 @@ export function DailyRingsWidget({ profileId, refreshKey }: DailyRingsWidgetProp
     steps: metrics.steps,
   };
 
-  const activities: ActivityData[] = RINGS.map((ring) => {
+  const slides = RINGS.map((ring) => {
     const target = resolveTarget(goals, ring.goalType);
     const value = values[ring.key];
     const pct = target > 0 ? Math.min(100, Math.round((value / target) * 100)) : 0;
-    return {
-      label: ring.label,
-      value: pct,
-      color: ring.color,
-      colorEnd: ring.colorEnd,
-      size: ring.size,
-      current: Math.round(value),
-      target,
-      unit: ring.unit,
-    };
+    const current = Math.round(value);
+
+    return (
+      <div key={ring.key} className="flex flex-col items-center gap-3 py-2">
+        <AnimatedCircularProgressBar
+          value={pct}
+          min={0}
+          max={100}
+          gaugePrimaryColor={ring.color}
+          gaugeSecondaryColor={ring.secondaryColor}
+          className="size-40"
+        />
+        <div className="flex flex-col items-center gap-0.5 text-center">
+          <span className="text-sm font-semibold">{ring.label}</span>
+          <span className="text-sm">
+            <span className="font-medium tabular-nums">{current.toLocaleString()}</span>
+            <span className="text-muted-foreground"> / {target.toLocaleString()} {ring.unit}</span>
+          </span>
+        </div>
+      </div>
+    );
   });
 
   return (
     <Card>
       <CardContent className="pt-6">
-        <AppleActivityCard
-          title="Today's Activity"
-          activities={activities}
-          className="p-0"
-        />
+        <div className="flex flex-col gap-3">
+          <div className="flex items-center justify-between">
+            <span className="font-semibold">Today&apos;s Activity</span>
+          </div>
+          <SmoothTabs items={ringTabs} selectedIndex={selectedIndex} onSelect={setSelectedIndex} />
+          <MotionCarousel selectedIndex={selectedIndex} onSelect={setSelectedIndex} slides={slides} />
+        </div>
       </CardContent>
     </Card>
   );
