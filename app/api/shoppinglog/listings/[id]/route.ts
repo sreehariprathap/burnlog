@@ -109,7 +109,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     }
 
     const body = await request.json();
-    const { title, description, price, condition, categoryId, stockQuantity, status } = body as {
+    const { title, description, price, condition, categoryId, stockQuantity, status, images } = body as {
       title?: string;
       description?: string;
       price?: number;
@@ -117,6 +117,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
       categoryId?: string;
       stockQuantity?: number;
       status?: 'active' | 'sold' | 'removed';
+      images?: string[];
     };
 
     const update: Record<string, unknown> = {};
@@ -128,9 +129,18 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     if (stockQuantity !== undefined) update.stockQuantity = stockQuantity;
     if (status !== undefined) update.status = status;
 
-    const { error } = await admin.from('shop_listings').update(update).eq('id', listingId);
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
+    if (Object.keys(update).length > 0) {
+      const { error } = await admin.from('shop_listings').update(update).eq('id', listingId);
+      if (error) {
+        return NextResponse.json({ error: error.message }, { status: 400 });
+      }
+    }
+
+    if (images !== undefined) {
+      await admin.from('shop_listing_images').delete().eq('listingId', listingId);
+      if (images.length > 0) {
+        await admin.from('shop_listing_images').insert(images.map((url, position) => ({ listingId, url, position })));
+      }
     }
 
     return NextResponse.json({ ok: true });
