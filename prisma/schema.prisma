@@ -73,6 +73,15 @@ model Profile {
   settlementsTo       HouseholdSettlement[] @relation("SettlementTo")
   friendshipsSent     Friendship[] @relation("FriendshipRequester")
   friendshipsReceived Friendship[] @relation("FriendshipAddressee")
+  socialPosts             SocialPost[]
+  socialComments          SocialComment[]
+  socialVotes             SocialVote[]
+  socialFollowersOf       SocialFollow[] @relation("SocialFollowFollowing")
+  socialFollowing         SocialFollow[] @relation("SocialFollowFollower")
+  socialMessageThreadsA   SocialMessageThread[] @relation("SocialMessageThreadParticipantA")
+  socialMessageThreadsB   SocialMessageThread[] @relation("SocialMessageThreadParticipantB")
+  socialMessagesSent      SocialMessage[]
+  socialProfileSettings   SocialProfileSettings?
 
   @@map("profiles")
 }
@@ -379,6 +388,135 @@ model Friendship {
 
   @@unique([requesterId, addresseeId])
   @@map("friendships")
+}
+
+/// sociallog: a post — original text/media, or an auto-generated cross-app activity card
+model SocialPost {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile           Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId         String    @db.Uuid
+  kind              String    // "TEXT" | "MEDIA" | "CROSS_APP_ACTIVITY"
+  body              String?
+  mediaType         String?   // "image" | "video"
+  mediaUrl          String?
+  mediaThumbnailUrl String?
+  sourceApp         String?   // "burnlog" | "tasklog" | "homelog" | "lifelog"
+  sourceRefType     String?
+  sourceRefId       String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  comments SocialComment[]
+  votes    SocialVote[]
+  topics   SocialPostTopic[]
+
+  @@map("social_posts")
+}
+
+/// sociallog: a comment on a post, with one level of threading via parentCommentId
+model SocialComment {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  post            SocialPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId          String   @db.Uuid
+  profile         Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId       String   @db.Uuid
+  parentCommentId String?  @db.Uuid
+  body            String
+  createdAt       DateTime @default(now())
+
+  @@map("social_comments")
+}
+
+/// sociallog: one profile's upvote (+1) or downvote (-1) on a post
+model SocialVote {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  post      SocialPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId    String   @db.Uuid
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId String   @db.Uuid
+  value     Int
+  createdAt DateTime @default(now())
+
+  @@unique([postId, profileId])
+  @@map("social_votes")
+}
+
+/// sociallog: one-directional follow, independent of the burnlog Friendship graph
+model SocialFollow {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  follower    Profile  @relation("SocialFollowFollower", fields: [followerId], references: [id], onDelete: Cascade)
+  followerId  String   @db.Uuid
+  following   Profile  @relation("SocialFollowFollowing", fields: [followingId], references: [id], onDelete: Cascade)
+  followingId String   @db.Uuid
+  createdAt   DateTime @default(now())
+
+  @@unique([followerId, followingId])
+  @@map("social_follows")
+}
+
+/// sociallog: a lightweight hashtag/topic, lowercase and unique
+model SocialTopic {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String   @unique
+  createdAt DateTime @default(now())
+
+  posts SocialPostTopic[]
+
+  @@map("social_topics")
+}
+
+/// sociallog: join table linking posts to the topics they mention
+model SocialPostTopic {
+  post    SocialPost  @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId  String      @db.Uuid
+  topic   SocialTopic @relation(fields: [topicId], references: [id], onDelete: Cascade)
+  topicId String      @db.Uuid
+
+  @@id([postId, topicId])
+  @@map("social_post_topics")
+}
+
+/// sociallog: a 1:1 DM thread; participantAId/participantBId are always stored with the lexicographically smaller id first
+model SocialMessageThread {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  participantA   Profile  @relation("SocialMessageThreadParticipantA", fields: [participantAId], references: [id], onDelete: Cascade)
+  participantAId String   @db.Uuid
+  participantB   Profile  @relation("SocialMessageThreadParticipantB", fields: [participantBId], references: [id], onDelete: Cascade)
+  participantBId String   @db.Uuid
+  lastMessageAt  DateTime @default(now())
+  createdAt      DateTime @default(now())
+
+  messages SocialMessage[]
+
+  @@unique([participantAId, participantBId])
+  @@map("social_message_threads")
+}
+
+/// sociallog: a single DM within a thread
+model SocialMessage {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  thread    SocialMessageThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  threadId  String   @db.Uuid
+  sender    Profile  @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  senderId  String   @db.Uuid
+  body      String
+  createdAt DateTime @default(now())
+  readAt    DateTime?
+
+  @@map("social_messages")
+}
+
+/// sociallog: 1:1 privacy/bio settings for a profile, created lazily on first visit to SocialLog profile settings
+model SocialProfileSettings {
+  profile                Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId              String   @id @db.Uuid
+  bio                    String?
+  isPrivate              Boolean  @default(false)
+  whoCanMessage          String   @default("everyone") // "everyone" | "followers" | "none"
+  showCrossAppActivity   Boolean  @default(true)
+  updatedAt              DateTime @updatedAt
+
+  @@map("social_profile_settings")
 }
 
 /// this week's generated grocery list — one active row per profile, upserted per wizard run
