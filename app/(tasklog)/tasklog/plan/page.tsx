@@ -12,8 +12,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { LANES, PRIORITIES, type TaskLane, type TaskRow } from '@/lib/tasklog/types';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { LANES, PRIORITIES, type IdeaRow, type TaskLane, type TaskRow } from '@/lib/tasklog/types';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
+import { AddIdeaForm } from './_components/AddIdeaForm';
+import { IdeaCard } from './_components/IdeaCard';
 
 export default function PlanPage() {
   const supabase = createClientComponentClient();
@@ -96,55 +99,124 @@ export default function PlanPage() {
     await mutateInbox(inboxTasks.filter((t) => t.id !== taskId), { revalidate: false });
   }
 
+  const {
+    data: ideaData,
+    isLoading: ideasLoading,
+    mutate: mutateIdeas,
+  } = useSWR(profile ? ['tasklog-ideas', profile.id] : null, async () => {
+    const { data } = await supabase
+      .from('tasklog_ideas')
+      .select('*')
+      .eq('profileId', profile!.id)
+      .order('createdAt', { ascending: false });
+    return (data as IdeaRow[]) || [];
+  });
+
+  const ideas = ideaData ?? [];
+
+  const {
+    data: ideaTaskData,
+  } = useSWR(profile ? ['tasklog-idea-task-counts', profile.id] : null, async () => {
+    const { data } = await supabase
+      .from('tasklog_tasks')
+      .select('ideaId')
+      .eq('profileId', profile!.id)
+      .not('ideaId', 'is', null);
+    return (data as { ideaId: string }[]) || [];
+  });
+
+  const ideaTaskCounts = new Map<string, number>();
+  for (const row of ideaTaskData ?? []) {
+    ideaTaskCounts.set(row.ideaId, (ideaTaskCounts.get(row.ideaId) ?? 0) + 1);
+  }
+
+  async function handleIdeaAdded(idea: IdeaRow) {
+    await mutateIdeas([idea, ...ideas], { revalidate: false });
+  }
+
+  async function handleDeleteIdea(ideaId: string) {
+    await supabase.from('tasklog_ideas').delete().eq('id', ideaId);
+    await mutateIdeas(ideas.filter((i) => i.id !== ideaId), { revalidate: false });
+  }
+
+  function handleGeneratePlan(idea: IdeaRow) {
+    // Wired up in Task 8 — opens the breakdown review sheet.
+    void idea;
+  }
+
   return (
     <div className="pb-24">
       <TopBar title="Plan" />
-      <form onSubmit={handleQuickAdd} className="flex gap-2 px-4 py-3">
-        <Input
-          value={quickAddText}
-          onChange={(e) => setQuickAddText(e.target.value)}
-          placeholder='Dump a task… e.g. "call mom tomorrow high priority"'
-          disabled={parsing}
-        />
-        <Button type="submit" size="icon" aria-label="Add to Plan" disabled={parsing}>
-          <PlusIcon className="h-4 w-4" />
-        </Button>
-      </form>
-      <div className="flex flex-col gap-3 px-4 pb-4">
-        {isLoading ? (
-          <Skeleton className="h-32 w-full" />
-        ) : inboxTasks.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Nothing in your inbox. Dump a task above.</p>
-        ) : (
-          inboxTasks.map((task) => {
-            const priority = PRIORITIES.find((p) => p.id === task.priority);
-            return (
-              <Card key={task.id}>
-                <CardContent className="flex flex-col gap-2 p-3">
-                  <div className="flex items-center gap-2">
-                    <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: priority?.color }} />
-                    <p className="text-sm font-medium">{task.title}</p>
-                  </div>
-                  {task.dueDate && <p className="text-xs text-muted-foreground">Due {task.dueDate}</p>}
-                  <div className="flex items-center gap-2">
-                    <Select onValueChange={(lane) => handleTriage(task.id, lane as TaskLane)}>
-                      <SelectTrigger className="h-8 w-40 text-xs"><SelectValue placeholder="Move to lane…" /></SelectTrigger>
-                      <SelectContent>
-                        {LANES.map((lane) => (
-                          <SelectItem key={lane.id} value={lane.id}>{lane.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Button type="button" variant="ghost" size="sm" onClick={() => handleDelete(task.id)}>
-                      Delete
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })
-        )}
-      </div>
+      <Tabs defaultValue="tasks" className="px-4 pt-3">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="tasks">Tasks</TabsTrigger>
+          <TabsTrigger value="ideas">Ideas</TabsTrigger>
+        </TabsList>
+        <TabsContent value="tasks" className="flex flex-col gap-3 pt-3">
+          <form onSubmit={handleQuickAdd} className="flex gap-2">
+            <Input
+              value={quickAddText}
+              onChange={(e) => setQuickAddText(e.target.value)}
+              placeholder='Dump a task… e.g. "call mom tomorrow high priority"'
+              disabled={parsing}
+            />
+            <Button type="submit" size="icon" aria-label="Add to Plan" disabled={parsing}>
+              <PlusIcon className="h-4 w-4" />
+            </Button>
+          </form>
+          {isLoading ? (
+            <Skeleton className="h-32 w-full" />
+          ) : inboxTasks.length === 0 ? (
+            <p className="text-sm text-muted-foreground">Nothing in your inbox. Dump a task above.</p>
+          ) : (
+            inboxTasks.map((task) => {
+              const priority = PRIORITIES.find((p) => p.id === task.priority);
+              return (
+                <Card key={task.id}>
+                  <CardContent className="flex flex-col gap-2 p-3">
+                    <div className="flex items-center gap-2">
+                      <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: priority?.color }} />
+                      <p className="text-sm font-medium">{task.title}</p>
+                    </div>
+                    {task.dueDate && <p className="text-xs text-muted-foreground">Due {task.dueDate}</p>}
+                    <div className="flex items-center gap-2">
+                      <Select onValueChange={(lane) => handleTriage(task.id, lane as TaskLane)}>
+                        <SelectTrigger className="h-8 w-40 text-xs"><SelectValue placeholder="Move to lane…" /></SelectTrigger>
+                        <SelectContent>
+                          {LANES.map((lane) => (
+                            <SelectItem key={lane.id} value={lane.id}>{lane.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Button type="button" variant="ghost" size="sm" onClick={() => handleDelete(task.id)}>
+                        Delete
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })
+          )}
+        </TabsContent>
+        <TabsContent value="ideas" className="flex flex-col gap-3 pt-3 pb-4">
+          {profile && <AddIdeaForm profileId={profile.id} onIdeaAdded={handleIdeaAdded} />}
+          {ideasLoading ? (
+            <Skeleton className="h-32 w-full" />
+          ) : ideas.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No ideas yet. Capture one above.</p>
+          ) : (
+            ideas.map((idea) => (
+              <IdeaCard
+                key={idea.id}
+                idea={idea}
+                taskCount={ideaTaskCounts.get(idea.id) ?? 0}
+                onGeneratePlan={handleGeneratePlan}
+                onDelete={handleDeleteIdea}
+              />
+            ))
+          )}
+        </TabsContent>
+      </Tabs>
       <TaskLogBottomNav />
     </div>
   );
