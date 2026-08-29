@@ -9,6 +9,7 @@ import { MoneyLogMark } from './MoneyLogMark';
 import { TaskLogMark } from './TaskLogMark';
 import { HomeLogMark } from './HomeLogMark';
 import { SocialLogMark } from './SocialLogMark';
+import { ShoppingLogMark } from './ShoppingLogMark';
 import Image from 'next/image';
 import { AppId, getActiveApp } from '@/lib/appMode';
 
@@ -43,6 +44,8 @@ export function TopBar({ title, onClose, actions }: TopBarProps) {
             <HomeLogMark size={20} />
           ) : activeApp === 'sociallog' ? (
             <SocialLogMark size={20} />
+          ) : activeApp === 'shoppinglog' ? (
+            <ShoppingLogMark size={20} />
           ) : (
             <Image src="/B.png" alt="Logo" width={20} height={20} />
           )}
