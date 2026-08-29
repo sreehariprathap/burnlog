@@ -79,6 +79,19 @@ const SPLASH_CONTENT: Record<
     darkEdgeColor: '196,181,253',
     darkCoreColor: '109,40,217',
   },
+  sociallog: {
+    label: 'Loading SocialLog',
+    text: 'sociallog',
+    tagline: 'Share, follow, and connect',
+    darkTextColor: '#F472B6',
+    lightTextColor: '#9D174D',
+    darkTaglineClass: 'text-pink-200/70',
+    lightTaglineClass: 'text-pink-900/60',
+    lightColors: ['#FF6FA5', '#F43F7E', '#DB2777', '#9D174D'],
+    lightBackgroundFill: '#FDF2F8',
+    darkEdgeColor: '244,63,126',
+    darkCoreColor: '158,0,89',
+  },
 };
 
 export default function SplashScreen() {
