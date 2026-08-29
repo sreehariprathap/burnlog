@@ -9,7 +9,8 @@
     "lint": "next lint",
     "pwa:dev": "next dev --turbopack",
     "pwa:build": "next build && next export",
-    "pwa:start": "next start"
+    "pwa:start": "next start",
+    "seed:sociallog": "ts-node --esm prisma/seed-sociallog.js"
   },
   "prisma": {
     "seed": "ts-node --esm prisma/seed.js"
