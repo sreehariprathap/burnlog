@@ -128,19 +128,27 @@ async function main() {
   const now = Date.now()
   const createdPosts = []
   for (const p of POSTS) {
-    const createdAt = new Date(now - p.hoursAgo * 60 * 60 * 1000)
-    const post = await prisma.socialPost.create({
-      data: {
-        profileId: personaProfiles[p.author].id,
-        kind: p.kind,
-        body: p.body,
-        sourceApp: p.sourceApp ?? null,
-        sourceRefType: p.sourceRefType ?? null,
-        sourceRefId: p.sourceRefType ? `seed-${p.author}-${p.hoursAgo}` : null,
-        createdAt,
-        updatedAt: createdAt,
-      },
+    // Dedup on (profileId, body) since seed bodies are all distinct — makes
+    // re-running the script idempotent without needing a schema change for
+    // a dedicated seed marker column.
+    let post = await prisma.socialPost.findFirst({
+      where: { profileId: personaProfiles[p.author].id, body: p.body },
     })
+    if (!post) {
+      const createdAt = new Date(now - p.hoursAgo * 60 * 60 * 1000)
+      post = await prisma.socialPost.create({
+        data: {
+          profileId: personaProfiles[p.author].id,
+          kind: p.kind,
+          body: p.body,
+          sourceApp: p.sourceApp ?? null,
+          sourceRefType: p.sourceRefType ?? null,
+          sourceRefId: p.sourceRefType ? `seed-${p.author}-${p.hoursAgo}` : null,
+          createdAt,
+          updatedAt: createdAt,
+        },
+      })
+    }
     createdPosts.push(post)
 
     const topicNames = Array.from(new Set((p.body.match(/#(\w+)/g) || []).map((t) => t.slice(1).toLowerCase())))
@@ -156,9 +164,14 @@ async function main() {
   console.log(`✅ Seeded ${createdPosts.length} demo posts`)
 
   for (const c of COMMENTS) {
-    await prisma.socialComment.create({
-      data: { postId: createdPosts[c.post].id, profileId: personaProfiles[c.author].id, body: c.body },
+    const existingComment = await prisma.socialComment.findFirst({
+      where: { postId: createdPosts[c.post].id, profileId: personaProfiles[c.author].id, body: c.body },
     })
+    if (!existingComment) {
+      await prisma.socialComment.create({
+        data: { postId: createdPosts[c.post].id, profileId: personaProfiles[c.author].id, body: c.body },
+      })
+    }
   }
   console.log(`✅ Seeded ${COMMENTS.length} demo comments`)
 
