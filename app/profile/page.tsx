@@ -18,6 +18,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { TopBar } from '@/components/TopBar';
 import { BottomNav } from '@/components/BottomNav';
 import { LifeLogBottomNav } from '@/components/LifeLogBottomNav';
+import { SocialLogBottomNav } from '@/components/SocialLogBottomNav';
+import { SocialLogSettingsCard } from './_components/SocialLogSettingsCard';
 import { sendRealTestNotification } from '@/lib/pushNotification';
 import { Switch } from '@/components/ui/switch';
 import { APPS, AppId, getActiveApp, getDefaultApp, setDefaultApp } from '@/lib/appMode';
@@ -641,6 +643,12 @@ export default function ProfilePage() {
               </div>
             )}
 
+            {activeApp === 'sociallog' && (
+              <div className="mt-6">
+                <SocialLogSettingsCard />
+              </div>
+            )}
+
             <div className="mt-6 text-center">
               <Button
                 variant="destructive"
@@ -659,7 +667,13 @@ export default function ProfilePage() {
           <AiModelSettingsModal open={showAiModelSettings} onOpenChange={setShowAiModelSettings} />
         </>
       )}
-      {activeApp === 'lifelog' ? <LifeLogBottomNav /> : <BottomNav />}
+      {activeApp === 'lifelog' ? (
+        <LifeLogBottomNav />
+      ) : activeApp === 'sociallog' ? (
+        <SocialLogBottomNav />
+      ) : (
+        <BottomNav />
+      )}
     </div>
   );
 }
