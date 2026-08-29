@@ -8,7 +8,7 @@ interface TaskLogMarkProps {
 
 // Fixed blue, independent of the ambient theme (`text-primary` would render
 // the wrong app's color if this renders before .app-tasklog is applied) —
-// see LifeLogMark for why. Plain letterform to match "B" (/B.png) and "L".
+// see MoneyLogMark for why. Plain letterform to match "B" (/B.png) and "L".
 export function TaskLogMark({ size = 20, className }: TaskLogMarkProps) {
   return (
     <span

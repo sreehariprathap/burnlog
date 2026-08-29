@@ -136,7 +136,7 @@
   --sidebar-ring: oklch(0.76 0.16 60); /* #FF9E4F - Primary */
 }
 
-.app-lifelog {
+.app-moneylog {
   --background: #f4faf9;
   --foreground: oklch(0.28 0.05 200);
   --card: #f4faf9;
@@ -170,7 +170,7 @@
   --sidebar-ring: oklch(0.6 0.14 165);
 }
 
-.app-lifelog.dark {
+.app-moneylog.dark {
   --background: oklch(0.22 0.03 200);
   --foreground: #f2fbf9;
   --card: oklch(0.28 0.04 195);

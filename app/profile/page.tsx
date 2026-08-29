@@ -17,7 +17,7 @@ import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TopBar } from '@/components/TopBar';
 import { BottomNav } from '@/components/BottomNav';
-import { LifeLogBottomNav } from '@/components/LifeLogBottomNav';
+import { MoneyLogBottomNav } from '@/components/MoneyLogBottomNav';
 import { SocialLogBottomNav } from '@/components/SocialLogBottomNav';
 import { SocialLogSettingsCard } from './_components/SocialLogSettingsCard';
 import { sendRealTestNotification } from '@/lib/pushNotification';
@@ -667,8 +667,8 @@ export default function ProfilePage() {
           <AiModelSettingsModal open={showAiModelSettings} onOpenChange={setShowAiModelSettings} />
         </>
       )}
-      {activeApp === 'lifelog' ? (
-        <LifeLogBottomNav />
+      {activeApp === 'moneylog' ? (
+        <MoneyLogBottomNav />
       ) : activeApp === 'sociallog' ? (
         <SocialLogBottomNav />
       ) : (

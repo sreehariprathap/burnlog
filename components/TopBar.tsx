@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { AppSwitcher } from './AppSwitcher';
-import { LifeLogMark } from './LifeLogMark';
+import { MoneyLogMark } from './MoneyLogMark';
 import { TaskLogMark } from './TaskLogMark';
 import { HomeLogMark } from './HomeLogMark';
 import { SocialLogMark } from './SocialLogMark';
@@ -35,8 +35,8 @@ export function TopBar({ title, onClose, actions }: TopBarProps) {
           aria-label="Switch app"
           className="flex items-center justify-center"
         >
-          {activeApp === 'lifelog' ? (
-            <LifeLogMark size={20} />
+          {activeApp === 'moneylog' ? (
+            <MoneyLogMark size={20} />
           ) : activeApp === 'tasklog' ? (
             <TaskLogMark size={20} />
           ) : activeApp === 'homelog' ? (

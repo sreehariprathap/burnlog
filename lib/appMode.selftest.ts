@@ -57,21 +57,21 @@ async function main() {
 
   // getDefaultApp fallback + set
   assert(getDefaultApp() === 'burnlog', 'getDefaultApp falls back to burnlog when unset');
-  setDefaultApp('lifelog');
-  assert(getDefaultApp() === 'lifelog', 'setDefaultApp persists');
-  assert((window as any).localStorage.getItem(DEFAULT_APP_KEY) === 'lifelog', 'default app key is app:defaultApp');
+  setDefaultApp('moneylog');
+  assert(getDefaultApp() === 'moneylog', 'setDefaultApp persists');
+  assert((window as any).localStorage.getItem(DEFAULT_APP_KEY) === 'moneylog', 'default app key is app:defaultApp');
 
   // getActiveApp fallback + set
   assert(getActiveApp() === 'burnlog', 'getActiveApp falls back to burnlog when unset');
-  setActiveApp('lifelog');
-  assert(getActiveApp() === 'lifelog', 'setActiveApp persists');
-  assert((window as any).localStorage.getItem(ACTIVE_APP_KEY) === 'lifelog', 'active app key is app:activeApp');
+  setActiveApp('moneylog');
+  assert(getActiveApp() === 'moneylog', 'setActiveApp persists');
+  assert((window as any).localStorage.getItem(ACTIVE_APP_KEY) === 'moneylog', 'active app key is app:activeApp');
 
   // wipeAppStorage safety
   nsSet('burnlog', 'streak', '5');
   nsSet('burnlog', 'draftEntry', 'x');
-  nsSet('lifelog', 'budget', '100');
-  setDefaultApp('lifelog');
+  nsSet('moneylog', 'budget', '100');
+  setDefaultApp('moneylog');
   setActiveApp('burnlog');
   (window as any).localStorage.setItem('sb-auth-token', 'secret');
   (window as any).localStorage.setItem('burnlog-theme', 'dark');
@@ -80,8 +80,8 @@ async function main() {
 
   assert(nsGet('burnlog', 'streak') === null, 'wipeAppStorage removes burnlog:streak');
   assert(nsGet('burnlog', 'draftEntry') === null, 'wipeAppStorage removes burnlog:draftEntry');
-  assert(nsGet('lifelog', 'budget') === '100', 'wipeAppStorage does not touch lifelog namespace');
-  assert(getDefaultApp() === 'lifelog', 'wipeAppStorage does not touch app:defaultApp');
+  assert(nsGet('moneylog', 'budget') === '100', 'wipeAppStorage does not touch moneylog namespace');
+  assert(getDefaultApp() === 'moneylog', 'wipeAppStorage does not touch app:defaultApp');
   assert(getActiveApp() === 'burnlog', 'wipeAppStorage does not touch app:activeApp');
   assert((window as any).localStorage.getItem('sb-auth-token') === 'secret', 'wipeAppStorage does not touch sb- auth keys');
   assert((window as any).localStorage.getItem('burnlog-theme') === 'dark', 'wipeAppStorage does not touch the theme key');

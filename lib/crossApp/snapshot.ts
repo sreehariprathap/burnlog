@@ -5,7 +5,7 @@ import { todayDateString } from '@/lib/tasklog/types';
 
 export interface CrossAppSnapshot {
   burnlogStreak: number | null; // null = no BurnLog usage signal at all
-  lifelogWeeklyNet: number | null; // null = no LifeLog usage signal at all
+  moneylogWeeklyNet: number | null; // null = no MoneyLog usage signal at all
   tasklogStreak: number | null; // null = no TaskLog usage signal at all
   tasklogDueToday: number; // always a number — "0 due today" is meaningful
 }
@@ -28,7 +28,7 @@ async function resolveTasklogStreak(supabase: SupabaseClient, profileId: string,
   return count && count > 0 ? 0 : null;
 }
 
-async function resolveLifelogWeeklyNet(supabase: SupabaseClient, profileId: string): Promise<number | null> {
+async function resolveMoneylogWeeklyNet(supabase: SupabaseClient, profileId: string): Promise<number | null> {
   const { start, end } = getPeriodRange('weekly');
 
   const [recurringRes, transactionsRes, everTransactedRes] = await Promise.all([
@@ -46,8 +46,8 @@ async function resolveLifelogWeeklyNet(supabase: SupabaseClient, profileId: stri
   const transactions =
     (transactionsRes.data as { type: string; category: string; amount: number; date: string }[]) || [];
 
-  const hasAnyLifelogActivity = recurringItems.length > 0 || (everTransactedRes.count ?? 0) > 0;
-  if (!hasAnyLifelogActivity) return null;
+  const hasAnyMoneylogActivity = recurringItems.length > 0 || (everTransactedRes.count ?? 0) > 0;
+  if (!hasAnyMoneylogActivity) return null;
 
   const virtualItems = expandRecurringInRange(recurringItems, start, end);
   const allItems = [
@@ -76,12 +76,12 @@ export async function getCrossAppSnapshot(supabase: SupabaseClient, profileId: s
     .eq('id', profileId)
     .single();
 
-  const [burnlogStreak, tasklogStreak, lifelogWeeklyNet, tasklogDueToday] = await Promise.all([
+  const [burnlogStreak, tasklogStreak, moneylogWeeklyNet, tasklogDueToday] = await Promise.all([
     resolveBurnlogStreak(supabase, profileId, profileRow?.currentStreak ?? 0).catch(() => null),
     resolveTasklogStreak(supabase, profileId, profileRow?.taskLogCurrentStreak ?? 0).catch(() => null),
-    resolveLifelogWeeklyNet(supabase, profileId).catch(() => null),
+    resolveMoneylogWeeklyNet(supabase, profileId).catch(() => null),
     resolveTasklogDueToday(supabase, profileId).catch(() => 0),
   ]);
 
-  return { burnlogStreak, lifelogWeeklyNet, tasklogStreak, tasklogDueToday };
+  return { burnlogStreak, moneylogWeeklyNet, tasklogStreak, tasklogDueToday };
 }

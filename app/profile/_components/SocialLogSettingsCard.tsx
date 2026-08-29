@@ -117,7 +117,7 @@ export function SocialLogSettingsCard() {
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-medium">Show cross-app activity</p>
-            <p className="text-xs text-muted-foreground">Let your BurnLog/TaskLog/HomeLog/LifeLog milestones post here</p>
+            <p className="text-xs text-muted-foreground">Let your BurnLog/TaskLog/HomeLog/MoneyLog milestones post here</p>
           </div>
           <Switch
             checked={settings.showCrossAppActivity}

@@ -40,9 +40,9 @@ const SPLASH_CONTENT: Record<
     darkEdgeColor: '255,158,79',
     darkCoreColor: '255,61,113',
   },
-  lifelog: {
-    label: 'Loading LifeLog',
-    text: 'lifelog',
+  moneylog: {
+    label: 'Loading MoneyLog',
+    text: 'moneylog',
     tagline: 'Track expenses & budgets',
     darkTextColor: '#34D399',
     lightTextColor: '#065F46',

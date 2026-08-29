@@ -32,7 +32,7 @@ const SOURCE_LABELS: Record<string, string> = {
   burnlog: 'BurnLog',
   tasklog: 'TaskLog',
   homelog: 'HomeLog',
-  lifelog: 'LifeLog',
+  moneylog: 'MoneyLog',
 };
 
 export function PostCard({ post, currentProfileId }: { post: FeedPost; currentProfileId: string | null }) {

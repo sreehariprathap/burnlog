@@ -6,7 +6,7 @@ interface HomeLogMarkProps {
   className?: string;
 }
 
-// Fixed purple (#9b5de5), independent of the ambient theme — see LifeLogMark
+// Fixed purple (#9b5de5), independent of the ambient theme — see MoneyLogMark
 // for why: this can render before .app-homelog is applied, so `text-primary`
 // would resolve to the wrong app's color. Plain letterform to match "B"/"L"/"T".
 export function HomeLogMark({ size = 20, className }: HomeLogMarkProps) {

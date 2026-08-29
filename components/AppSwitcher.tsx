@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'motion/react';
-import { LifeLogMark } from '@/components/LifeLogMark';
+import { MoneyLogMark } from '@/components/MoneyLogMark';
 import { TaskLogMark } from '@/components/TaskLogMark';
 import { HomeLogMark } from '@/components/HomeLogMark';
 import { SocialLogMark } from '@/components/SocialLogMark';
@@ -63,8 +63,8 @@ export function AppSwitcher({ open, onOpenChange }: AppSwitcherProps) {
               >
                 <CardContent className="flex items-center justify-between gap-4 py-4">
                   <div className="flex items-center gap-3">
-                    {app.id === 'lifelog' ? (
-                      <LifeLogMark size={24} />
+                    {app.id === 'moneylog' ? (
+                      <MoneyLogMark size={24} />
                     ) : app.id === 'tasklog' ? (
                       <TaskLogMark size={24} />
                     ) : app.id === 'homelog' ? (

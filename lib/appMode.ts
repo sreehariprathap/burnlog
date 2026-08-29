@@ -1,5 +1,5 @@
 // lib/appMode.ts
-export type AppId = 'burnlog' | 'lifelog' | 'tasklog' | 'homelog' | 'sociallog';
+export type AppId = 'burnlog' | 'moneylog' | 'tasklog' | 'homelog' | 'sociallog';
 
 export interface AppMeta {
   id: AppId;
@@ -16,12 +16,12 @@ export const APPS: Record<AppId, AppMeta> = {
     tagline: 'Track workouts & fitness goals',
     home: '/dashboard',
   },
-  lifelog: {
-    id: 'lifelog',
-    name: 'LifeLog',
+  moneylog: {
+    id: 'moneylog',
+    name: 'MoneyLog',
     tagline: 'Track expenses & budgets',
-    home: '/lifelog',
-    themeClass: 'app-lifelog',
+    home: '/moneylog',
+    themeClass: 'app-moneylog',
   },
   tasklog: {
     id: 'tasklog',
@@ -55,7 +55,7 @@ function isBrowser(): boolean {
 }
 
 function isAppId(val: string | null): val is AppId {
-  return val === 'burnlog' || val === 'lifelog' || val === 'tasklog' || val === 'homelog' || val === 'sociallog';
+  return val === 'burnlog' || val === 'moneylog' || val === 'tasklog' || val === 'homelog' || val === 'sociallog';
 }
 
 function safeGet(key: string): string | null {

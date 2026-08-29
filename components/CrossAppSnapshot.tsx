@@ -32,10 +32,10 @@ function buildChips(currentApp: AppId, data: SnapshotData): Chip[] {
     });
   }
 
-  if (currentApp !== 'lifelog' && data.lifelogWeeklyNet !== null) {
-    const net = Math.round(data.lifelogWeeklyNet);
+  if (currentApp !== 'moneylog' && data.moneylogWeeklyNet !== null) {
+    const net = Math.round(data.moneylogWeeklyNet);
     chips.push({
-      app: 'lifelog',
+      app: 'moneylog',
       icon: <WalletIcon className="h-4 w-4 text-emerald-500" />,
       label: `${net >= 0 ? '+' : ''}$${net} this week`,
     });
