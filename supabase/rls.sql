@@ -531,3 +531,130 @@ create policy "sociallog_media_owner_delete" on storage.objects
     bucket_id = 'sociallog-media'
     and (storage.foldername(name))[1] = auth.uid()::text
   );
+
+-- shoppinglog ---------------------------------------------------------------
+-- shop_categories: public read, no client write (seeded server-side only).
+alter table shop_categories enable row level security;
+create policy "shop_categories_public_read" on shop_categories
+  for select using (true);
+
+-- shop_listings / shop_listing_images / shop_reviews: publicly readable,
+-- writable only by the owning profile.
+do $$
+declare
+  t text;
+begin
+  foreach t in array array['shop_listings']
+  loop
+    execute format('alter table %I enable row level security', t);
+    execute format($f$ create policy %I on %I for select using (true) $f$, t || '_public_read', t);
+    execute format($f$
+      create policy %I on %I
+        for all
+        using (exists (select 1 from profiles where profiles.id = %I."sellerId" and profiles."userId" = auth.uid()))
+        with check (exists (select 1 from profiles where profiles.id = %I."sellerId" and profiles."userId" = auth.uid()))
+    $f$, t || '_owner_write', t, t, t);
+  end loop;
+end $$;
+
+alter table shop_listing_images enable row level security;
+create policy "shop_listing_images_public_read" on shop_listing_images
+  for select using (true);
+create policy "shop_listing_images_owner_write" on shop_listing_images
+  for all
+  using (
+    exists (
+      select 1 from shop_listings sl
+      join profiles p on p.id = sl."sellerId"
+      where sl.id = shop_listing_images."listingId" and p."userId" = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from shop_listings sl
+      join profiles p on p.id = sl."sellerId"
+      where sl.id = shop_listing_images."listingId" and p."userId" = auth.uid()
+    )
+  );
+
+alter table shop_reviews enable row level security;
+create policy "shop_reviews_public_read" on shop_reviews
+  for select using (true);
+create policy "shop_reviews_owner_write" on shop_reviews
+  for all
+  using (exists (select 1 from profiles where profiles.id = shop_reviews."reviewerId" and profiles."userId" = auth.uid()))
+  with check (exists (select 1 from profiles where profiles.id = shop_reviews."reviewerId" and profiles."userId" = auth.uid()));
+
+-- shop_favorites / shop_cart_items: private, owner-only.
+do $$
+declare
+  t text;
+begin
+  foreach t in array array['shop_favorites', 'shop_cart_items']
+  loop
+    execute format('alter table %I enable row level security', t);
+    execute format($f$
+      create policy %I on %I
+        for all
+        using (exists (select 1 from profiles where profiles.id = %I."profileId" and profiles."userId" = auth.uid()))
+        with check (exists (select 1 from profiles where profiles.id = %I."profileId" and profiles."userId" = auth.uid()))
+    $f$, t || '_owner_access', t, t, t);
+  end loop;
+end $$;
+
+-- shop_orders / shop_order_items: participant-only read, no direct client
+-- write (created only via the service-role checkout API route).
+alter table shop_orders enable row level security;
+create policy "shop_orders_participant_read" on shop_orders
+  for select using (
+    exists (
+      select 1 from profiles
+      where profiles."userId" = auth.uid()
+        and (profiles.id = shop_orders."buyerId" or profiles.id = shop_orders."sellerId")
+    )
+  );
+
+alter table shop_order_items enable row level security;
+create policy "shop_order_items_participant_read" on shop_order_items
+  for select using (
+    exists (
+      select 1 from shop_orders so
+      join profiles p on p."userId" = auth.uid()
+      where so.id = shop_order_items."orderId"
+        and (p.id = so."buyerId" or p.id = so."sellerId")
+    )
+  );
+
+-- shoplog-media storage bucket --------------------------------------------
+insert into storage.buckets (id, name, public)
+values ('shoplog-media', 'shoplog-media', true)
+on conflict (id) do nothing;
+
+create policy "shoplog_media_public_read" on storage.objects
+  for select
+  using (bucket_id = 'shoplog-media');
+
+create policy "shoplog_media_owner_insert" on storage.objects
+  for insert
+  with check (
+    bucket_id = 'shoplog-media'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+create policy "shoplog_media_owner_update" on storage.objects
+  for update
+  using (
+    bucket_id = 'shoplog-media'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  )
+  with check (
+    bucket_id = 'shoplog-media'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+create policy "shoplog_media_owner_delete" on storage.objects
+  for delete
+  using (
+    bucket_id = 'shoplog-media'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
