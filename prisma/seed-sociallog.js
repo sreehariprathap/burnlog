@@ -2,6 +2,13 @@
 import { PrismaClient } from '@prisma/client'
 const prisma = new PrismaClient()
 
+// Inline SVG data URIs — no external image host to depend on, and they
+// render instantly as <img>/grid thumbnails without a network round trip.
+function placeholderImage(hex, label) {
+  const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='600' height='600'><rect width='600' height='600' fill='${hex}'/><text x='50%' y='50%' font-family='sans-serif' font-size='40' fill='white' text-anchor='middle' dominant-baseline='middle'>${label}</text></svg>`
+  return `data:image/svg+xml;base64,${Buffer.from(svg).toString('base64')}`
+}
+
 // Stable synthetic UUIDs — these are demo "official account" personas with
 // no matching auth.users row (they can't log in), same idea as Instagram's
 // bundled/suggested accounts on a fresh install. Fixed IDs make the script
@@ -70,6 +77,11 @@ const COMMENTS = [
   { post: 2, author: 5, body: 'Stealing this.' },
   { post: 6, author: 0, body: 'Legend. Recovery day tomorrow?' },
   { post: 8, author: 1, body: 'Nice — what did conversion look like before?' },
+]
+
+const REEL_POSTS = [
+  { author: 4, body: 'Race day. #fitness', mediaUrl: placeholderImage('#9e0059', 'Race Day') },
+  { author: 0, body: 'New PR photo. #fitness', mediaUrl: placeholderImage('#DB2777', 'New PR') },
 ]
 
 const VOTES = [
@@ -174,6 +186,24 @@ async function main() {
     }
   }
   console.log(`✅ Seeded ${COMMENTS.length} demo comments`)
+
+  for (const r of REEL_POSTS) {
+    const existingReel = await prisma.socialPost.findFirst({
+      where: { profileId: personaProfiles[r.author].id, body: r.body },
+    })
+    if (!existingReel) {
+      await prisma.socialPost.create({
+        data: {
+          profileId: personaProfiles[r.author].id,
+          kind: 'MEDIA',
+          body: r.body,
+          mediaType: 'image',
+          mediaUrl: r.mediaUrl,
+        },
+      })
+    }
+  }
+  console.log(`✅ Seeded ${REEL_POSTS.length} demo reel posts`)
 
   for (const [postIdx, authorIdx, value] of VOTES) {
     await prisma.socialVote.upsert({
