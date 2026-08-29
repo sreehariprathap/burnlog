@@ -37,9 +37,9 @@ const PERSONAS = [
   },
   {
     id: '11111111-1111-1111-1111-111111111104',
-    username: 'lifelog_money',
-    firstName: 'LifeLog',
-    lastName: 'Money',
+    username: 'moneylog_tips',
+    firstName: 'MoneyLog',
+    lastName: 'Team',
     bio: 'Budgeting and money tips.',
   },
   {
@@ -101,7 +101,7 @@ async function main() {
   for (const p of PERSONAS) {
     const profile = await prisma.profile.upsert({
       where: { userId: p.id },
-      update: {},
+      update: { username: p.username, firstName: p.firstName, lastName: p.lastName },
       create: {
         userId: p.id,
         username: p.username,
