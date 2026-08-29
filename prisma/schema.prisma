@@ -60,6 +60,7 @@ model Profile {
   Program            Program?
   TaskGoal           TaskGoal[]
   Task               Task[]
+  Idea               Idea[]
   HouseholdMember           HouseholdMember?
   householdInvitesSent      HouseholdInvite[] @relation("HouseholdInviteSender")
   householdInvitesReceived  HouseholdInvite[] @relation("HouseholdInviteRecipient")
@@ -435,6 +436,8 @@ model Task {
   profileId       String    @db.Uuid
   goal            TaskGoal? @relation(fields: [goalId], references: [id])
   goalId          String?   @db.Uuid
+  idea            Idea?     @relation(fields: [ideaId], references: [id])
+  ideaId          String?   @db.Uuid
   title           String
   notes           String?
   category        String // 'life' | 'work'
@@ -447,6 +450,22 @@ model Task {
   createdAt       DateTime  @default(now())
 
   @@map("tasklog_tasks")
+}
+
+/// a raw idea captured before it's broken into tasks
+model Idea {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile     Profile   @relation(fields: [profileId], references: [id])
+  profileId   String    @db.Uuid
+  title       String
+  notes       String?
+  category    String // 'idea' | 'startup' | 'business' | 'money' | 'other'
+  plan        String? // AI-generated written summary, set after a breakdown is confirmed
+  status      String    @default("open") // 'open' | 'planned' | 'archived'
+  createdAt   DateTime  @default(now())
+  tasks       Task[]
+
+  @@map("tasklog_ideas")
 }
 
 /// a HomeLog household — the shared unit chores/inventory/bills will hang off of
