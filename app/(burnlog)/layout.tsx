@@ -9,6 +9,8 @@ export default function BurnlogLayout({ children }: { children: React.ReactNode 
     document.documentElement.classList.remove('app-moneylog');
     document.documentElement.classList.remove('app-tasklog');
     document.documentElement.classList.remove('app-homelog');
+    document.documentElement.classList.remove('app-sociallog');
+    document.documentElement.classList.remove('app-shoppinglog');
     setActiveApp('burnlog');
   }, []);
 
