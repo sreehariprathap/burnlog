@@ -82,6 +82,12 @@ model Profile {
   socialMessageThreadsB   SocialMessageThread[] @relation("SocialMessageThreadParticipantB")
   socialMessagesSent      SocialMessage[]
   socialProfileSettings   SocialProfileSettings?
+  shopListings            ShopListing[]
+  shopFavorites           ShopFavorite[]
+  shopCartItems           ShopCartItem[]
+  shopOrdersAsBuyer       ShopOrder[] @relation("ShopOrderBuyer")
+  shopOrdersAsSeller      ShopOrder[] @relation("ShopOrderSeller")
+  shopReviews             ShopReview[]
 
   @@map("profiles")
 }
@@ -759,4 +765,124 @@ model HouseholdSettlement {
   settledAt     DateTime @default(now())
 
   @@map("household_settlements")
+}
+
+/// shoppinglog: a fixed, seeded set of browse categories
+model ShopCategory {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String   @unique
+  slug      String   @unique
+  icon      String
+  createdAt DateTime @default(now())
+
+  listings ShopListing[]
+
+  @@map("shop_categories")
+}
+
+/// shoppinglog: a for-sale listing — new or used
+model ShopListing {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  seller        Profile  @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+  sellerId      String   @db.Uuid
+  category      ShopCategory @relation(fields: [categoryId], references: [id])
+  categoryId    String   @db.Uuid
+  title         String
+  description   String
+  price         Float
+  condition     String   // "new" | "used"
+  stockQuantity Int      @default(1)
+  status        String   @default("active") // "active" | "sold" | "removed"
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @default(now()) @updatedAt
+
+  images     ShopListingImage[]
+  favorites  ShopFavorite[]
+  cartItems  ShopCartItem[]
+  orderItems ShopOrderItem[]
+  reviews    ShopReview[]
+
+  @@map("shop_listings")
+}
+
+/// shoppinglog: a photo on a listing, ordered by position
+model ShopListingImage {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  listing   ShopListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listingId String   @db.Uuid
+  url       String
+  position  Int      @default(0)
+
+  @@map("shop_listing_images")
+}
+
+/// shoppinglog: a saved/wishlisted listing
+model ShopFavorite {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId String   @db.Uuid
+  listing   ShopListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listingId String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  @@unique([profileId, listingId])
+  @@map("shop_favorites")
+}
+
+/// shoppinglog: an item sitting in a profile's cart
+model ShopCartItem {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId String   @db.Uuid
+  listing   ShopListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listingId String   @db.Uuid
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+
+  @@unique([profileId, listingId])
+  @@map("shop_cart_items")
+}
+
+/// shoppinglog: one seller's portion of a checkout (a cart spanning multiple sellers creates one order per seller)
+model ShopOrder {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  buyer       Profile  @relation("ShopOrderBuyer", fields: [buyerId], references: [id], onDelete: Cascade)
+  buyerId     String   @db.Uuid
+  seller      Profile  @relation("ShopOrderSeller", fields: [sellerId], references: [id], onDelete: Cascade)
+  sellerId    String   @db.Uuid
+  totalAmount Float
+  createdAt   DateTime @default(now())
+
+  items ShopOrderItem[]
+
+  @@map("shop_orders")
+}
+
+/// shoppinglog: a line item within an order — title/price are snapshotted at purchase time
+model ShopOrderItem {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  order     ShopOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  orderId   String   @db.Uuid
+  listing   ShopListing @relation(fields: [listingId], references: [id])
+  listingId String   @db.Uuid
+  title     String
+  price     Float
+  quantity  Int
+
+  @@map("shop_order_items")
+}
+
+/// shoppinglog: a buyer's rating+review of a listing, only allowed after purchasing it
+model ShopReview {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  listing    ShopListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  listingId  String   @db.Uuid
+  reviewer   Profile  @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+  reviewerId String   @db.Uuid
+  rating     Int
+  body       String?
+  createdAt  DateTime @default(now())
+
+  @@unique([reviewerId, listingId])
+  @@map("shop_reviews")
 }
