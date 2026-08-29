@@ -17,6 +17,7 @@ import { LANES, PRIORITIES, type IdeaRow, type TaskLane, type TaskRow } from '@/
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { AddIdeaForm } from './_components/AddIdeaForm';
 import { IdeaCard } from './_components/IdeaCard';
+import { IdeaBreakdownReviewSheet, type BreakdownSuggestion } from './_components/IdeaBreakdownReviewSheet';
 
 export default function PlanPage() {
   const supabase = createClientComponentClient();
@@ -139,9 +140,39 @@ export default function PlanPage() {
     await mutateIdeas(ideas.filter((i) => i.id !== ideaId), { revalidate: false });
   }
 
+  const [breakdownIdea, setBreakdownIdea] = useState<IdeaRow | null>(null);
+  const [breakdownOpen, setBreakdownOpen] = useState(false);
+
   function handleGeneratePlan(idea: IdeaRow) {
-    // Wired up in Task 8 — opens the breakdown review sheet.
-    void idea;
+    setBreakdownIdea(idea);
+    setBreakdownOpen(true);
+  }
+
+  async function handleConfirmBreakdown(plan: string, selected: BreakdownSuggestion[]) {
+    if (!breakdownIdea || !profile) return;
+    const { data: updatedIdea, error: updateError } = await supabase
+      .from('tasklog_ideas')
+      .update({ plan })
+      .eq('id', breakdownIdea.id)
+      .select()
+      .single();
+    if (!updateError && updatedIdea) {
+      await mutateIdeas(ideas.map((i) => (i.id === breakdownIdea.id ? (updatedIdea as IdeaRow) : i)), { revalidate: false });
+    }
+    if (selected.length > 0) {
+      await supabase.from('tasklog_tasks').insert(
+        selected.map((t) => ({
+          profileId: profile.id,
+          ideaId: breakdownIdea.id,
+          title: t.title,
+          category: t.category,
+          priority: t.priority,
+          dueDate: t.suggestedDueDate || null,
+        }))
+      );
+      await mutateInbox();
+    }
+    setBreakdownOpen(false);
   }
 
   return (
@@ -218,6 +249,12 @@ export default function PlanPage() {
         </TabsContent>
       </Tabs>
       <TaskLogBottomNav />
+      <IdeaBreakdownReviewSheet
+        open={breakdownOpen}
+        onOpenChange={setBreakdownOpen}
+        idea={breakdownIdea}
+        onConfirm={handleConfirmBreakdown}
+      />
     </div>
   );
 }
