@@ -404,7 +404,7 @@ model SocialPost {
   sourceRefType     String?
   sourceRefId       String?
   createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  updatedAt         DateTime  @default(now()) @updatedAt
 
   comments SocialComment[]
   votes    SocialVote[]
@@ -514,7 +514,7 @@ model SocialProfileSettings {
   isPrivate              Boolean  @default(false)
   whoCanMessage          String   @default("everyone") // "everyone" | "followers" | "none"
   showCrossAppActivity   Boolean  @default(true)
-  updatedAt              DateTime @updatedAt
+  updatedAt              DateTime @default(now()) @updatedAt
 
   @@map("social_profile_settings")
 }
