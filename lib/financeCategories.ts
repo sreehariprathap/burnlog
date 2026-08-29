@@ -4,6 +4,7 @@ export const INCOME_CATEGORIES = [
   { value: 'salary', label: 'Salary' },
   { value: 'freelance', label: 'Freelance / Business' },
   { value: 'investment_returns', label: 'Investment Returns' },
+  { value: 'shopping_sales', label: 'Marketplace Sales' },
   { value: 'other_income', label: 'Other Income' },
 ] as const;
 
@@ -15,6 +16,7 @@ export const EXPENSE_CATEGORIES = [
   { value: 'subscriptions', label: 'Subscriptions' },
   { value: 'groceries', label: 'Groceries' },
   { value: 'transportation', label: 'Transportation' },
+  { value: 'shopping', label: 'Shopping' },
   { value: 'debt_payment', label: 'Debt Payment' },
   { value: 'investment_contribution', label: 'Investment Contribution' },
   { value: 'other_expense', label: 'Other' },
