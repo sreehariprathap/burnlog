@@ -10,7 +10,8 @@
     "pwa:dev": "next dev --turbopack",
     "pwa:build": "next build && next export",
     "pwa:start": "next start",
-    "seed:sociallog": "ts-node --esm prisma/seed-sociallog.js"
+    "seed:sociallog": "ts-node --esm prisma/seed-sociallog.js",
+    "seed:shoppinglog": "ts-node --esm prisma/seed-shoppinglog.js"
   },
   "prisma": {
     "seed": "ts-node --esm prisma/seed.js"
