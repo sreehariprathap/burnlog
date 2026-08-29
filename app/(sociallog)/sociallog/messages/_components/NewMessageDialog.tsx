@@ -7,11 +7,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2 } from 'lucide-react';
+import { apiFetch } from '@/lib/sociallog/apiFetch';
 
 type UserResult = { id: string; username: string; firstName: string; avatarUrl: string | null };
 
 async function fetcher(url: string) {
-  const res = await fetch(url);
+  const res = await apiFetch(url);
   if (!res.ok) throw new Error('Failed to search');
   return res.json();
 }
@@ -36,7 +37,7 @@ export function NewMessageDialog({
   const start = async (targetProfileId: string) => {
     setStarting(true);
     setError(null);
-    const res = await fetch('/api/sociallog/messages/threads', {
+    const res = await apiFetch('/api/sociallog/messages/threads', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ targetProfileId }),

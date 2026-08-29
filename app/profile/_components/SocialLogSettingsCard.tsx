@@ -6,6 +6,7 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2 } from 'lucide-react';
+import { apiFetch } from '@/lib/sociallog/apiFetch';
 
 type WhoCanMessage = 'everyone' | 'followers' | 'none';
 
@@ -24,7 +25,7 @@ export function SocialLogSettingsCard() {
 
   useEffect(() => {
     (async () => {
-      const res = await fetch('/api/sociallog/profile-settings');
+      const res = await apiFetch('/api/sociallog/profile-settings');
       if (res.ok) {
         const data: Settings = await res.json();
         setSettings(data);
@@ -36,7 +37,7 @@ export function SocialLogSettingsCard() {
 
   const patch = async (update: Partial<Settings>) => {
     setSaving(true);
-    const res = await fetch('/api/sociallog/profile-settings', {
+    const res = await apiFetch('/api/sociallog/profile-settings', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(update),

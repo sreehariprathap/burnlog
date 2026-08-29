@@ -6,11 +6,12 @@ import useSWR from 'swr';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
+import { apiFetch } from '@/lib/sociallog/apiFetch';
 
 type UserResult = { id: string; username: string; firstName: string; avatarUrl: string | null; isFollowing: boolean };
 
 async function fetcher(url: string) {
-  const res = await fetch(url);
+  const res = await apiFetch(url);
   if (!res.ok) throw new Error('Failed to search');
   return res.json();
 }
@@ -22,15 +23,15 @@ function FollowButton({ userId, initialFollowing }: { userId: string; initialFol
   const toggle = async () => {
     setBusy(true);
     if (following) {
-      await fetch(`/api/sociallog/follow/${userId}`, { method: 'DELETE' });
-      setFollowing(false);
+      const res = await apiFetch(`/api/sociallog/follow/${userId}`, { method: 'DELETE' });
+      if (res.ok) setFollowing(false);
     } else {
-      await fetch('/api/sociallog/follow', {
+      const res = await apiFetch('/api/sociallog/follow', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ followingId: userId }),
       });
-      setFollowing(true);
+      if (res.ok) setFollowing(true);
     }
     setBusy(false);
   };

@@ -5,9 +5,10 @@ import { useState } from 'react';
 import useSWR from 'swr';
 import { Loader2, Play } from 'lucide-react';
 import { ReelViewer, type Reel } from './ReelViewer';
+import { apiFetch } from '@/lib/sociallog/apiFetch';
 
 async function fetcher(url: string) {
-  const res = await fetch(url);
+  const res = await apiFetch(url);
   if (!res.ok) throw new Error('Failed to load reels');
   return res.json();
 }

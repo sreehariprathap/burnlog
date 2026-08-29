@@ -8,6 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
+import { apiFetch } from '@/lib/sociallog/apiFetch';
 
 type Comment = {
   id: string;
@@ -17,7 +18,7 @@ type Comment = {
 };
 
 async function fetcher(url: string) {
-  const res = await fetch(url);
+  const res = await apiFetch(url);
   if (!res.ok) throw new Error('Failed to load comments');
   return res.json();
 }
@@ -33,7 +34,7 @@ export function CommentList({ postId }: { postId: string }) {
   const handlePost = async () => {
     if (!text.trim()) return;
     setPosting(true);
-    const res = await fetch(`/api/sociallog/posts/${postId}/comments`, {
+    const res = await apiFetch(`/api/sociallog/posts/${postId}/comments`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ body: text.trim() }),

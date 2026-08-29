@@ -9,6 +9,7 @@ import { ArrowLeft, Loader2, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
+import { apiFetch } from '@/lib/sociallog/apiFetch';
 
 type Message = { id: string; body: string; senderId: string; createdAt: string };
 
@@ -28,7 +29,7 @@ export default function SocialLogThreadPage() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const res = await fetch(`/api/sociallog/messages/threads/${threadId}/messages`);
+      const res = await apiFetch(`/api/sociallog/messages/threads/${threadId}/messages`);
       if (res.ok && !cancelled) {
         const json: { messages: Message[] } = await res.json();
         setMessages(json.messages);
@@ -65,7 +66,7 @@ export default function SocialLogThreadPage() {
   const handleSend = async () => {
     if (!text.trim()) return;
     setSending(true);
-    const res = await fetch(`/api/sociallog/messages/threads/${threadId}/messages`, {
+    const res = await apiFetch(`/api/sociallog/messages/threads/${threadId}/messages`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ body: text.trim() }),

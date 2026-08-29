@@ -3,11 +3,12 @@
 
 import useSWR from 'swr';
 import { Loader2, Hash } from 'lucide-react';
+import { apiFetch } from '@/lib/sociallog/apiFetch';
 
 type TopicResult = { name: string; postCount: number };
 
 async function fetcher(url: string) {
-  const res = await fetch(url);
+  const res = await apiFetch(url);
   if (!res.ok) throw new Error('Failed to search');
   return res.json();
 }

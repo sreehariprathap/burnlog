@@ -10,9 +10,10 @@ import { ComposeBox } from './_components/ComposeBox';
 import { FeedControls } from './_components/FeedControls';
 import { PostCard, type FeedPost } from './_components/PostCard';
 import { Loader2 } from 'lucide-react';
+import { apiFetch } from '@/lib/sociallog/apiFetch';
 
 async function fetcher(url: string) {
-  const res = await fetch(url);
+  const res = await apiFetch(url);
   if (!res.ok) throw new Error('Failed to load feed');
   return res.json();
 }

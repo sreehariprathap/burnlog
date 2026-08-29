@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Loader2, PenSquare } from 'lucide-react';
 import { NewMessageDialog } from './_components/NewMessageDialog';
+import { apiFetch } from '@/lib/sociallog/apiFetch';
 
 type Thread = {
   id: string;
@@ -20,7 +21,7 @@ type Thread = {
 };
 
 async function fetcher(url: string) {
-  const res = await fetch(url);
+  const res = await apiFetch(url);
   if (!res.ok) throw new Error('Failed to load threads');
   return res.json();
 }

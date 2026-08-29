@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Image as ImageIcon, X, Loader2 } from 'lucide-react';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
+import { apiFetch } from '@/lib/sociallog/apiFetch';
 
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 25 * 1024 * 1024;
@@ -69,12 +70,12 @@ export function ComposeBox({ onPosted }: { onPosted: () => void }) {
         mediaUrl = publicUrlData.publicUrl;
       }
 
-      const res = await fetch('/api/sociallog/posts', {
+      const res = await apiFetch('/api/sociallog/posts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ body: text.trim() || undefined, mediaType, mediaUrl }),
       });
-      if (!res.ok) throw new Error('Failed to post');
+      if (!res.ok) return; // apiFetch already toasted the failure
 
       setText('');
       clearFile();

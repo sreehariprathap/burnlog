@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowBigUp, ArrowBigDown, MessageCircle, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CommentList } from './CommentList';
+import { apiFetch } from '@/lib/sociallog/apiFetch';
 
 export type FeedPost = {
   id: string;
@@ -48,7 +49,7 @@ export function PostCard({ post, currentProfileId }: { post: FeedPost; currentPr
     setScore(prevScore - (prevVote ?? 0) + (nextVote ?? 0));
     setMyVote(nextVote);
 
-    const res = await fetch(`/api/sociallog/posts/${post.id}/vote`, {
+    const res = await apiFetch(`/api/sociallog/posts/${post.id}/vote`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ value }),
@@ -62,15 +63,15 @@ export function PostCard({ post, currentProfileId }: { post: FeedPost; currentPr
   const toggleFollow = async () => {
     setFollowBusy(true);
     if (following) {
-      await fetch(`/api/sociallog/follow/${post.author.id}`, { method: 'DELETE' });
-      setFollowing(false);
+      const res = await apiFetch(`/api/sociallog/follow/${post.author.id}`, { method: 'DELETE' });
+      if (res.ok) setFollowing(false);
     } else {
-      await fetch('/api/sociallog/follow', {
+      const res = await apiFetch('/api/sociallog/follow', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ followingId: post.author.id }),
       });
-      setFollowing(true);
+      if (res.ok) setFollowing(true);
     }
     setFollowBusy(false);
   };
