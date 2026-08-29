@@ -30,6 +30,33 @@ export interface TaskGoalRow {
   createdAt: string;
 }
 
+export type IdeaCategory = 'idea' | 'startup' | 'business' | 'money' | 'other';
+export type IdeaStatus = 'open' | 'planned' | 'archived';
+
+export interface IdeaRow {
+  id: string;
+  profileId: string;
+  title: string;
+  notes: string | null;
+  category: IdeaCategory;
+  plan: string | null;
+  status: IdeaStatus;
+  createdAt: string;
+}
+
+export interface IdeaCategoryMeta {
+  id: IdeaCategory;
+  label: string;
+}
+
+export const IDEA_CATEGORIES: IdeaCategoryMeta[] = [
+  { id: 'idea', label: 'Idea' },
+  { id: 'startup', label: 'Startup' },
+  { id: 'business', label: 'Business' },
+  { id: 'money', label: 'Money' },
+  { id: 'other', label: 'Other' },
+];
+
 export interface LaneMeta {
   id: TaskLane;
   label: string;
