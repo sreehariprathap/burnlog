@@ -122,7 +122,7 @@ export default function BoardPage() {
     await persistLanePositions(destLane, newDestTasks);
 
     if (destLane === 'done' && profile) {
-      await markTaskComplete(supabase, { id: movedTask.id, goalId: movedTask.goalId }, toStreakProfile(profile.id, profile), true);
+      await markTaskComplete(supabase, { id: movedTask.id, goalId: movedTask.goalId, title: movedTask.title }, toStreakProfile(profile.id, profile), true);
       await refreshCurrentProfile();
     }
   }
@@ -156,7 +156,7 @@ export default function BoardPage() {
     const updated = data as TaskRow;
     await setTasksOptimistic(tasks.map((t) => (t.id === id ? updated : t)));
     if (!wasCompleted && updated.completedAt && profile) {
-      await markTaskComplete(supabase, { id: updated.id, goalId: updated.goalId }, toStreakProfile(profile.id, profile), true);
+      await markTaskComplete(supabase, { id: updated.id, goalId: updated.goalId, title: updated.title }, toStreakProfile(profile.id, profile), true);
       await refreshCurrentProfile();
     }
   }

@@ -6,6 +6,7 @@ import { maybeAdvanceTaskLogStreak, type StreakProfile } from './streak';
 interface CompletableTask {
   id: string;
   goalId: string | null;
+  title?: string;
 }
 
 /**
@@ -31,5 +32,18 @@ export async function markTaskComplete(
       await recomputeGoalProgress(supabase, task.goalId);
     }
     await maybeAdvanceTaskLogStreak(supabase, profile);
+
+    fetch('/api/sociallog/activity', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sourceApp: 'tasklog',
+        sourceRefType: 'task_completed',
+        sourceRefId: task.id,
+        body: task.title ? `Completed "${task.title}"` : 'Completed a task',
+      }),
+    }).catch(() => {
+      // Best-effort — a failed activity post must never block task completion.
+    });
   }
 }

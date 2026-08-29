@@ -72,7 +72,7 @@ export default function TaskLogDashboardPage() {
       tasks.map((t) => (t.id === task.id ? { ...t, completedAt: completed ? new Date().toISOString() : null } : t)),
       { revalidate: false }
     );
-    await markTaskComplete(supabase, { id: task.id, goalId: task.goalId }, toStreakProfile(profile.id, profile), completed);
+    await markTaskComplete(supabase, { id: task.id, goalId: task.goalId, title: task.title }, toStreakProfile(profile.id, profile), completed);
     if (completed) await refreshCurrentProfile();
     await refreshToday();
   }
