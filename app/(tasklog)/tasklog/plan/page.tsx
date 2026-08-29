@@ -117,6 +117,7 @@ export default function PlanPage() {
 
   const {
     data: ideaTaskData,
+    mutate: mutateIdeaTaskCounts,
   } = useSWR(profile ? ['tasklog-idea-task-counts', profile.id] : null, async () => {
     const { data } = await supabase
       .from('tasklog_tasks')
@@ -171,6 +172,7 @@ export default function PlanPage() {
         }))
       );
       await mutateInbox();
+      await mutateIdeaTaskCounts();
     }
     setBreakdownOpen(false);
   }
