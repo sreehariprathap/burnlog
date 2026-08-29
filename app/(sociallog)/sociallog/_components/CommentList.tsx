@@ -8,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
-import { apiFetch } from '@/lib/sociallog/apiFetch';
+import { apiFetch } from '@/lib/apiFetch';
 
 type Comment = {
   id: string;

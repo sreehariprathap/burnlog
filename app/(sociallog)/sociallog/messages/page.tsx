@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Loader2, PenSquare } from 'lucide-react';
 import { NewMessageDialog } from './_components/NewMessageDialog';
-import { apiFetch } from '@/lib/sociallog/apiFetch';
+import { apiFetch } from '@/lib/apiFetch';
 
 type Thread = {
   id: string;

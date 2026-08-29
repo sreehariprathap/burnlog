@@ -6,7 +6,7 @@ import useSWR from 'swr';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
-import { apiFetch } from '@/lib/sociallog/apiFetch';
+import { apiFetch } from '@/lib/apiFetch';
 
 type UserResult = { id: string; username: string; firstName: string; avatarUrl: string | null; isFollowing: boolean };
 

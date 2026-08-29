@@ -8,7 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Image as ImageIcon, X, Loader2 } from 'lucide-react';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
-import { apiFetch } from '@/lib/sociallog/apiFetch';
+import { apiFetch } from '@/lib/apiFetch';
 
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 25 * 1024 * 1024;

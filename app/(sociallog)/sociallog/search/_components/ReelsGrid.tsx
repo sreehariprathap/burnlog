@@ -5,7 +5,7 @@ import { useState } from 'react';
 import useSWR from 'swr';
 import { Loader2, Play } from 'lucide-react';
 import { ReelViewer, type Reel } from './ReelViewer';
-import { apiFetch } from '@/lib/sociallog/apiFetch';
+import { apiFetch } from '@/lib/apiFetch';
 
 async function fetcher(url: string) {
   const res = await apiFetch(url);

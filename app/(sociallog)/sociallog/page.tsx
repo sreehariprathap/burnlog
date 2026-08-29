@@ -10,7 +10,7 @@ import { ComposeBox } from './_components/ComposeBox';
 import { FeedControls } from './_components/FeedControls';
 import { PostCard, type FeedPost } from './_components/PostCard';
 import { Loader2 } from 'lucide-react';
-import { apiFetch } from '@/lib/sociallog/apiFetch';
+import { apiFetch } from '@/lib/apiFetch';
 
 async function fetcher(url: string) {
   const res = await apiFetch(url);

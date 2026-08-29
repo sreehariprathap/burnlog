@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowBigUp, ArrowBigDown, MessageCircle, Sparkles } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { CommentList } from './CommentList';
-import { apiFetch } from '@/lib/sociallog/apiFetch';
+import { apiFetch } from '@/lib/apiFetch';
 
 export type FeedPost = {
   id: string;

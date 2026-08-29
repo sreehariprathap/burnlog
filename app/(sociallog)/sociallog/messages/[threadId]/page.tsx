@@ -9,7 +9,7 @@ import { ArrowLeft, Loader2, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
-import { apiFetch } from '@/lib/sociallog/apiFetch';
+import { apiFetch } from '@/lib/apiFetch';
 
 type Message = { id: string; body: string; senderId: string; createdAt: string };
 

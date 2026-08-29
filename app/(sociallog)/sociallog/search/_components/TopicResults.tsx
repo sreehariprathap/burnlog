@@ -3,7 +3,7 @@
 
 import useSWR from 'swr';
 import { Loader2, Hash } from 'lucide-react';
-import { apiFetch } from '@/lib/sociallog/apiFetch';
+import { apiFetch } from '@/lib/apiFetch';
 
 type TopicResult = { name: string; postCount: number };
 
