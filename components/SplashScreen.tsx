@@ -92,6 +92,19 @@ const SPLASH_CONTENT: Record<
     darkEdgeColor: '244,63,126',
     darkCoreColor: '158,0,89',
   },
+  shoppinglog: {
+    label: 'Loading ShoppingLog',
+    text: 'shoppinglog',
+    tagline: 'Buy and sell, new or used',
+    darkTextColor: '#FDBA74',
+    lightTextColor: '#9A3412',
+    darkTaglineClass: 'text-orange-200/70',
+    lightTaglineClass: 'text-orange-900/60',
+    lightColors: ['#FDBA74', '#FB923C', '#F18701', '#C2660A'],
+    lightBackgroundFill: '#FFF7ED',
+    darkEdgeColor: '251,146,60',
+    darkCoreColor: '241,135,1',
+  },
 };
 
 export default function SplashScreen() {
