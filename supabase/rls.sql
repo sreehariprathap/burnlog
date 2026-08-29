@@ -359,3 +359,175 @@ create policy "household_settlements_member_read" on household_settlements
       where hm."householdId" = household_settlements."householdId" and p."userId" = auth.uid()
     )
   );
+
+-- sociallog ---------------------------------------------------------------
+-- social_posts / social_comments / social_votes: publicly readable (it's a
+-- feed), writable only by the row's own profile.
+do $$
+declare
+  t text;
+begin
+  foreach t in array array['social_posts', 'social_comments', 'social_votes']
+  loop
+    execute format('alter table %I enable row level security', t);
+
+    execute format($f$
+      create policy %I on %I
+        for select using (true)
+    $f$, t || '_public_read', t);
+
+    execute format($f$
+      create policy %I on %I
+        for all
+        using (
+          exists (
+            select 1 from profiles
+            where profiles.id = %I."profileId"
+              and profiles."userId" = auth.uid()
+          )
+        )
+        with check (
+          exists (
+            select 1 from profiles
+            where profiles.id = %I."profileId"
+              and profiles."userId" = auth.uid()
+          )
+        )
+    $f$, t || '_owner_write', t, t, t);
+  end loop;
+end $$;
+
+-- social_follows: publicly readable (follower/following counts), but a
+-- profile may only create/remove follow rows where it is the follower.
+alter table social_follows enable row level security;
+
+create policy "social_follows_public_read" on social_follows
+  for select using (true);
+
+create policy "social_follows_follower_write" on social_follows
+  for all
+  using (
+    exists (
+      select 1 from profiles
+      where profiles.id = social_follows."followerId"
+        and profiles."userId" = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from profiles
+      where profiles.id = social_follows."followerId"
+        and profiles."userId" = auth.uid()
+    )
+  );
+
+-- social_topics / social_post_topics: publicly readable; no client-side
+-- write policy (only the service-role API routes create/link topics).
+alter table social_topics enable row level security;
+create policy "social_topics_public_read" on social_topics
+  for select using (true);
+
+alter table social_post_topics enable row level security;
+create policy "social_post_topics_public_read" on social_post_topics
+  for select using (true);
+
+-- social_message_threads / social_messages: visible only to participants.
+alter table social_message_threads enable row level security;
+
+create policy "social_message_threads_participant_read" on social_message_threads
+  for select using (
+    exists (
+      select 1 from profiles
+      where profiles."userId" = auth.uid()
+        and (profiles.id = social_message_threads."participantAId" or profiles.id = social_message_threads."participantBId")
+    )
+  );
+
+alter table social_messages enable row level security;
+
+create policy "social_messages_participant_read" on social_messages
+  for select using (
+    exists (
+      select 1 from social_message_threads t
+      join profiles on profiles."userId" = auth.uid()
+      where t.id = social_messages."threadId"
+        and (profiles.id = t."participantAId" or profiles.id = t."participantBId")
+    )
+  );
+
+create policy "social_messages_sender_insert" on social_messages
+  for insert with check (
+    exists (
+      select 1 from social_message_threads t
+      join profiles on profiles."userId" = auth.uid()
+      where t.id = social_messages."threadId"
+        and profiles.id = social_messages."senderId"
+        and (profiles.id = t."participantAId" or profiles.id = t."participantBId")
+    )
+  );
+
+-- social_profile_settings: bio/privacy flags are publicly readable (needed
+-- to render other users' profile cards), writable only by the owner.
+alter table social_profile_settings enable row level security;
+
+create policy "social_profile_settings_public_read" on social_profile_settings
+  for select using (true);
+
+create policy "social_profile_settings_owner_write" on social_profile_settings
+  for insert with check (
+    exists (
+      select 1 from profiles
+      where profiles.id = social_profile_settings."profileId"
+        and profiles."userId" = auth.uid()
+    )
+  );
+
+create policy "social_profile_settings_owner_update" on social_profile_settings
+  for update using (
+    exists (
+      select 1 from profiles
+      where profiles.id = social_profile_settings."profileId"
+        and profiles."userId" = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from profiles
+      where profiles.id = social_profile_settings."profileId"
+        and profiles."userId" = auth.uid()
+    )
+  );
+
+-- sociallog-media storage bucket --------------------------------------------
+insert into storage.buckets (id, name, public)
+values ('sociallog-media', 'sociallog-media', true)
+on conflict (id) do nothing;
+
+create policy "sociallog_media_public_read" on storage.objects
+  for select
+  using (bucket_id = 'sociallog-media');
+
+create policy "sociallog_media_owner_insert" on storage.objects
+  for insert
+  with check (
+    bucket_id = 'sociallog-media'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+create policy "sociallog_media_owner_update" on storage.objects
+  for update
+  using (
+    bucket_id = 'sociallog-media'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  )
+  with check (
+    bucket_id = 'sociallog-media'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
+
+create policy "sociallog_media_owner_delete" on storage.objects
+  for delete
+  using (
+    bucket_id = 'sociallog-media'
+    and (storage.foldername(name))[1] = auth.uid()::text
+  );
