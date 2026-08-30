@@ -6,6 +6,13 @@ import { getMyProfileId, getMyHouseholdMembership } from '@/lib/homelog/serverAu
 
 const VALID_CATEGORIES = ['rent', 'utilities', 'groceries', 'other'];
 
+const CATEGORY_MAP: Record<string, string> = {
+  rent: 'rent',
+  utilities: 'utilities',
+  groceries: 'groceries',
+  other: 'other_expense',
+};
+
 export async function GET() {
   try {
     const supabase = createRouteHandlerClient({ cookies });
@@ -137,6 +144,19 @@ export async function POST(request: Request) {
       await admin.from('household_expenses').delete().eq('id', expense.id);
       return NextResponse.json({ error: insertSplitsError.message }, { status: 400 });
     }
+
+    admin
+      .from('finance_transactions')
+      .insert({
+        profileId: meId,
+        type: 'expense',
+        category: CATEGORY_MAP[body.category as string] ?? 'other_expense',
+        label: `HomeLog: ${body.label.trim()}`,
+        amount: body.totalAmount,
+      })
+      .then(({ error }) => {
+        if (error) console.error('homelog bill -> moneylog ledger insert failed:', error);
+      });
 
     return NextResponse.json({ expense });
   } catch (error) {
