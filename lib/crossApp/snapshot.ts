@@ -105,13 +105,21 @@ async function resolveSociallogUnreadCount(supabase: SupabaseClient, profileId: 
   const threadIds = (threads ?? []).map((t) => t.id);
   if (threadIds.length === 0) return null;
 
-  const { count } = await supabase
+  const { count: unreadCount } = await supabase
     .from('social_messages')
     .select('id', { count: 'exact', head: true })
     .in('threadId', threadIds)
     .neq('senderId', profileId)
     .is('readAt', null);
-  return count ?? 0;
+
+  if ((unreadCount ?? 0) > 0) return unreadCount;
+
+  // Unread count is 0: distinguish "caught up" (has sent/received messages) from "never used" (thread exists but no messages exchanged)
+  const { count: anyMessageCount } = await supabase
+    .from('social_messages')
+    .select('id', { count: 'exact', head: true })
+    .in('threadId', threadIds);
+  return (anyMessageCount ?? 0) > 0 ? 0 : null;
 }
 
 async function resolveShoppinglogCartCount(supabase: SupabaseClient, profileId: string): Promise<number | null> {
