@@ -6,6 +6,7 @@ import useSWR from 'swr';
 import { TopBar } from '@/components/TopBar';
 import { SocialLogBottomNav } from '@/components/SocialLogBottomNav';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
+import { CrossAppSnapshot } from '@/components/CrossAppSnapshot';
 import { ComposeBox } from './_components/ComposeBox';
 import { FeedControls } from './_components/FeedControls';
 import { PostCard, type FeedPost } from './_components/PostCard';
@@ -31,6 +32,7 @@ export default function SocialLogDashboardPage() {
   return (
     <div className="min-h-screen flex flex-col">
       <TopBar title="SocialLog" />
+      {profile && <CrossAppSnapshot currentApp="sociallog" profileId={profile.id} />}
       <main className="flex-1 container mx-auto max-w-2xl space-y-4 p-4 pb-24">
         <ComposeBox onPosted={() => mutate()} />
         <FeedControls tab={tab} sort={sort} onTabChange={setTab} onSortChange={setSort} />

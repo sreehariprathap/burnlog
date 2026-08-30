@@ -11,6 +11,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useHouseholdMe } from '@/lib/homelog/useHouseholdMe';
+import { useCurrentProfile } from '@/lib/useCurrentProfile';
+import { CrossAppSnapshot } from '@/components/CrossAppSnapshot';
 
 interface PendingInvite {
   id: string;
@@ -28,6 +30,7 @@ async function fetchPendingInvites(): Promise<PendingInvite[]> {
 
 export default function HomeLogPage() {
   const { household, members, myRole, isLoading, refresh } = useHouseholdMe();
+  const { profile } = useCurrentProfile();
   const { data: pendingInvites, mutate: mutateInvites } = useSWR(
     !isLoading && !household ? 'homelog-invites' : null,
     fetchPendingInvites
@@ -123,6 +126,7 @@ export default function HomeLogPage() {
   return (
     <div className="pb-24">
       <TopBar title="HomeLog" />
+      {profile && <CrossAppSnapshot currentApp="homelog" profileId={profile.id} />}
       <div className="flex flex-col gap-4 px-4 py-4">
         {isLoading ? (
           <Skeleton className="h-40 w-full" />

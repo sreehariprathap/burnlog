@@ -10,6 +10,8 @@ import { ShoppingLogBottomNav } from '@/components/ShoppingLogBottomNav';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/lib/apiFetch';
+import { useCurrentProfile } from '@/lib/useCurrentProfile';
+import { CrossAppSnapshot } from '@/components/CrossAppSnapshot';
 import { CategoryChips, type Category } from './_components/CategoryChips';
 import { ListingCard, type ListingSummary } from './_components/ListingCard';
 
@@ -20,6 +22,7 @@ async function fetcher(url: string) {
 }
 
 export default function ShoppingLogBrowsePage() {
+  const { profile } = useCurrentProfile();
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [categorySlug, setCategorySlug] = useState<string | null>(null);
@@ -54,6 +57,7 @@ export default function ShoppingLogBrowsePage() {
           </Link>
         }
       />
+      {profile && <CrossAppSnapshot currentApp="shoppinglog" profileId={profile.id} />}
       <main className="flex-1 container mx-auto max-w-4xl space-y-4 p-4 pb-24">
         <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search listings…" />
 
