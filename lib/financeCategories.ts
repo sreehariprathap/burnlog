@@ -5,6 +5,7 @@ export const INCOME_CATEGORIES = [
   { value: 'freelance', label: 'Freelance / Business' },
   { value: 'investment_returns', label: 'Investment Returns' },
   { value: 'shopping_sales', label: 'Marketplace Sales' },
+  { value: 'household_settlement', label: 'Household Settlement' },
   { value: 'other_income', label: 'Other Income' },
 ] as const;
 
