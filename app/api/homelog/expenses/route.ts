@@ -145,18 +145,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: insertSplitsError.message }, { status: 400 });
     }
 
-    admin
-      .from('finance_transactions')
-      .insert({
-        profileId: meId,
-        type: 'expense',
-        category: CATEGORY_MAP[body.category as string] ?? 'other_expense',
-        label: `HomeLog: ${body.label.trim()}`,
-        amount: body.totalAmount,
-      })
-      .then(({ error }) => {
-        if (error) console.error('homelog bill -> moneylog ledger insert failed:', error);
-      });
+    const { error: ledgerError } = await admin.from('finance_transactions').insert({
+      profileId: meId,
+      type: 'expense',
+      category: CATEGORY_MAP[body.category as string] ?? 'other_expense',
+      label: `HomeLog: ${body.label.trim()}`,
+      amount: body.totalAmount,
+    });
+    if (ledgerError) console.error('homelog bill -> moneylog ledger insert failed:', ledgerError);
 
     return NextResponse.json({ expense });
   } catch (error) {

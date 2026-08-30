@@ -53,40 +53,34 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: insertError.message }, { status: 400 });
     }
 
-    admin
+    const { data: names, error: namesError } = await admin
       .from('profiles')
       .select('id, firstName')
-      .in('id', [meId, toProfileId])
-      .then(({ data: names, error: namesError }) => {
-        if (namesError || !names) {
-          console.error('homelog settle-up -> moneylog: failed to look up names:', namesError);
-          return;
-        }
-        const meName = names.find((p) => p.id === meId)?.firstName ?? 'Someone';
-        const toName = names.find((p) => p.id === toProfileId)?.firstName ?? 'Someone';
+      .in('id', [meId, toProfileId]);
+    if (namesError || !names) {
+      console.error('homelog settle-up -> moneylog: failed to look up names:', namesError);
+    } else {
+      const meName = names.find((p) => p.id === meId)?.firstName ?? 'Someone';
+      const toName = names.find((p) => p.id === toProfileId)?.firstName ?? 'Someone';
 
-        admin
-          .from('finance_transactions')
-          .insert([
-            {
-              profileId: meId,
-              type: 'expense',
-              category: 'debt_payment',
-              label: `HomeLog settle-up to ${toName}`,
-              amount,
-            },
-            {
-              profileId: toProfileId,
-              type: 'income',
-              category: 'household_settlement',
-              label: `HomeLog settle-up from ${meName}`,
-              amount,
-            },
-          ])
-          .then(({ error }) => {
-            if (error) console.error('homelog settle-up -> moneylog ledger insert failed:', error);
-          });
-      });
+      const { error: ledgerError } = await admin.from('finance_transactions').insert([
+        {
+          profileId: meId,
+          type: 'expense',
+          category: 'debt_payment',
+          label: `HomeLog settle-up to ${toName}`,
+          amount,
+        },
+        {
+          profileId: toProfileId,
+          type: 'income',
+          category: 'household_settlement',
+          label: `HomeLog settle-up from ${meName}`,
+          amount,
+        },
+      ]);
+      if (ledgerError) console.error('homelog settle-up -> moneylog ledger insert failed:', ledgerError);
+    }
 
     return NextResponse.json({ settlement });
   } catch (error) {

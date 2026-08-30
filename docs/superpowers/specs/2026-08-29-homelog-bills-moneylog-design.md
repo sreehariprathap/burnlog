@@ -21,7 +21,7 @@ When a HomeLog household bill is logged or settled, reflect the real cash moveme
 2. **Category mapping**: `HouseholdExpense.category` maps directly onto MoneyLog's existing `EXPENSE_CATEGORIES` — `rent`→`rent`, `utilities`→`utilities`, `groceries`→`groceries`, `other`→`other_expense`.
 3. **New income category**: `household_settlement` (label "Household Settlement") added to `INCOME_CATEGORIES` in `lib/financeCategories.ts`, for the recipient side of a settle-up — mirrors how ShoppingLog added `shopping_sales` for the same reason (no existing category fit).
 4. **Settle-up debt-side category**: reuses the existing `debt_payment` expense category — no new category needed for the person paying off a debt.
-5. **Failure mode**: fire-and-forget, matching ShoppingLog checkout's existing posture — if the `finance_transactions` insert fails, the underlying `HouseholdExpense`/`HouseholdSettlement` write still succeeds and the API still returns success. Log the error server-side only.
+5. **Failure mode**: fail-soft, matching ShoppingLog checkout's existing posture — the `finance_transactions` insert(s) are `await`ed (not fire-and-forget) so they're guaranteed to run before the response is sent, but a failure is caught and logged rather than surfaced: the underlying `HouseholdExpense`/`HouseholdSettlement` write still succeeds and the API still returns success. Log the error server-side only.
 6. **Labels**: use `firstName` (not `username`) for the counterparty name in labels, matching how the rest of HomeLog's bills UI already identifies people (`app/api/homelog/expenses/route.ts`'s `paidByName`).
 
 ## Architecture
@@ -81,7 +81,7 @@ Add one entry to `INCOME_CATEGORIES`:
 
 ## Error Handling
 
-Both insert points wrap the `finance_transactions` insert(s) in fire-and-forget fashion (no `await`ed error check that affects the response) — consistent with `app/api/shoppinglog/checkout/route.ts`'s existing behavior. A ledger-write failure never blocks or rolls back the HomeLog-side write.
+Both insert points `await` the `finance_transactions` insert(s) before the handler returns — consistent with `app/api/shoppinglog/checkout/route.ts`'s existing behavior, which also awaits its ledger inserts. This avoids the risk (real on serverless deploy targets) that an un-awaited promise scheduled right before the response is sent gets silently dropped when the function tears down. The write remains fail-soft: the result is checked explicitly and any error is `console.error`-logged, but it never blocks the response or rolls back the HomeLog-side write.
 
 ## Testing
 
