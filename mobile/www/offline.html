@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>burnlog - Offline</title>
+<style>
+  html, body { height: 100%; margin: 0; }
+  body {
+    display: flex; align-items: center; justify-content: center;
+    background: #f9fafb; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) { body { background: #111827; } }
+  .card { text-align: center; padding: 2rem; }
+  .icon {
+    width: 6rem; height: 6rem; margin: 0 auto 1.5rem;
+    background: #dbeafe; border-radius: 9999px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  @media (prefers-color-scheme: dark) { .icon { background: #1e3a8a; } }
+  .icon svg { width: 3rem; height: 3rem; color: #2563eb; }
+  h1 { font-size: 1.5rem; font-weight: 700; color: #111827; margin: 0 0 1rem; }
+  @media (prefers-color-scheme: dark) { h1 { color: #ffffff; } }
+  p { color: #4b5563; max-width: 28rem; margin: 0 auto 1.5rem; }
+  @media (prefers-color-scheme: dark) { p { color: #9ca3af; } }
+  button {
+    background: #2563eb; color: #ffffff; font-weight: 500;
+    padding: 0.5rem 1rem; border-radius: 0.5rem; border: none; cursor: pointer;
+    font-size: 1rem;
+  }
+  button:hover { background: #1d4ed8; }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="icon">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M12 2.196l.707.707M12 21.804l-.707-.707M2.196 12l.707-.707M21.804 12l-.707.707" />
+      </svg>
+    </div>
+    <h1>You're Offline</h1>
+    <p>burnlog needs an internet connection to load. Check your connection and try again.</p>
+    <button onclick="window.location.href='https://burnlog-green.vercel.app'">Try Again</button>
+  </div>
+</body>
+</html>

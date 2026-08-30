@@ -28,7 +28,10 @@ export function TopBar({ title, onClose, actions }: TopBarProps) {
   }, []);
 
   return (
-    <div className="w-full bg-background text-foreground shadow p-4 sticky top-0 z-10 relative flex justify-between">
+    <div
+      className="w-full bg-background text-foreground shadow p-4 sticky top-0 z-10 relative flex justify-between"
+      style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}
+    >
       <div className='flex gap-3 items-center'>
         <button
           type="button"
