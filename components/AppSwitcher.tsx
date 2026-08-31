@@ -1,17 +1,16 @@
 // components/AppSwitcher.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'motion/react';
+import { Star } from 'lucide-react';
 import { MoneyLogMark } from '@/components/MoneyLogMark';
 import { TaskLogMark } from '@/components/TaskLogMark';
 import { HomeLogMark } from '@/components/HomeLogMark';
 import { SocialLogMark } from '@/components/SocialLogMark';
 import { ShoppingLogMark } from '@/components/ShoppingLogMark';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
-import { Card, CardContent } from '@/components/ui/card';
-import { Switch } from '@/components/ui/switch';
 import { APPS, AppId, getActiveApp, getDefaultApp, setDefaultApp } from '@/lib/appMode';
 import { useAppSwitch } from '@/lib/appSwitchContext';
 
@@ -20,10 +19,31 @@ interface AppSwitcherProps {
   onOpenChange: (open: boolean) => void;
 }
 
+const LONG_PRESS_MS = 500;
+
+function AppIcon({ id, size }: { id: AppId; size: number }) {
+  switch (id) {
+    case 'moneylog':
+      return <MoneyLogMark size={size} />;
+    case 'tasklog':
+      return <TaskLogMark size={size} />;
+    case 'homelog':
+      return <HomeLogMark size={size} />;
+    case 'sociallog':
+      return <SocialLogMark size={size} />;
+    case 'shoppinglog':
+      return <ShoppingLogMark size={size} />;
+    default:
+      return <Image src="/B.png" alt="BurnLog" width={size} height={size} />;
+  }
+}
+
 export function AppSwitcher({ open, onOpenChange }: AppSwitcherProps) {
   const { switchTo } = useAppSwitch();
   const [activeApp, setActiveAppState] = useState<AppId>('burnlog');
   const [defaultApp, setDefaultAppState] = useState<AppId>('burnlog');
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressFired = useRef(false);
 
   useEffect(() => {
     if (!open) return;
@@ -37,67 +57,68 @@ export function AppSwitcher({ open, onOpenChange }: AppSwitcherProps) {
     switchTo(id);
   }
 
-  function handleSetDefault(id: AppId) {
-    setDefaultApp(id);
-    setDefaultAppState(id);
+  function startLongPress(id: AppId) {
+    longPressFired.current = false;
+    longPressTimer.current = setTimeout(() => {
+      longPressFired.current = true;
+      setDefaultApp(id);
+      setDefaultAppState(id);
+      if (navigator.vibrate) navigator.vibrate(15);
+    }, LONG_PRESS_MS);
+  }
+
+  function cancelLongPress() {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  }
+
+  function handleTap(id: AppId) {
+    if (longPressFired.current) {
+      longPressFired.current = false;
+      return;
+    }
+    handleSelect(id);
   }
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent>
+      <DrawerContent className="max-h-[80vh]">
         <DrawerHeader>
-          <DrawerTitle>Switch app</DrawerTitle>
+          <DrawerTitle>Apps</DrawerTitle>
         </DrawerHeader>
-        <div className="flex flex-col gap-3 p-4 pb-8">
+        <div className="grid grid-cols-4 gap-4 p-4 pb-8 overflow-y-auto">
           {Object.values(APPS).map((app, index) => (
-            <motion.div
+            <motion.button
               key={app.id}
+              type="button"
               initial={{ opacity: 0, scale: 0.4 }}
               animate={open ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.4 }}
               transition={{ type: 'spring', stiffness: 300, damping: 22, delay: index * 0.03 }}
+              onPointerDown={() => startLongPress(app.id)}
+              onPointerUp={() => cancelLongPress()}
+              onPointerLeave={() => cancelLongPress()}
+              onClick={() => handleTap(app.id)}
+              className="flex flex-col items-center gap-1.5"
             >
-              <Card
-                onClick={() => handleSelect(app.id)}
-                className={`cursor-pointer border-0 transition-colors ${
-                  activeApp === app.id ? 'bg-primary/10' : ''
+              <div
+                className={`relative flex h-14 w-14 items-center justify-center rounded-2xl bg-muted ${
+                  activeApp === app.id ? 'ring-2 ring-primary' : ''
                 }`}
               >
-                <CardContent className="flex items-center justify-between gap-4 py-4">
-                  <div className="flex items-center gap-3">
-                    {app.id === 'moneylog' ? (
-                      <MoneyLogMark size={24} />
-                    ) : app.id === 'tasklog' ? (
-                      <TaskLogMark size={24} />
-                    ) : app.id === 'homelog' ? (
-                      <HomeLogMark size={24} />
-                    ) : app.id === 'sociallog' ? (
-                      <SocialLogMark size={24} />
-                    ) : app.id === 'shoppinglog' ? (
-                      <ShoppingLogMark size={24} />
-                    ) : (
-                      <Image src="/B.png" alt={app.name} width={24} height={24} />
-                    )}
-                    <div>
-                      <p className="font-semibold">
-                        {app.name}
-                        {activeApp === app.id ? ' (Active)' : ''}
-                      </p>
-                      <p className="text-xs text-muted-foreground">{app.tagline}</p>
-                    </div>
-                  </div>
-                  <div
-                    className="flex items-center gap-2"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <span className="text-xs text-muted-foreground">Default</span>
-                    <Switch
-                      checked={defaultApp === app.id}
-                      onCheckedChange={() => handleSetDefault(app.id)}
-                    />
-                  </div>
-                </CardContent>
-              </Card>
-            </motion.div>
+                <AppIcon id={app.id} size={28} />
+                {defaultApp === app.id && (
+                  <Star
+                    size={14}
+                    className="absolute -top-1 -right-1 fill-primary text-primary"
+                  />
+                )}
+              </div>
+              <span className="text-xs text-center leading-tight truncate w-full">
+                {app.name}
+              </span>
+            </motion.button>
           ))}
         </div>
       </DrawerContent>
