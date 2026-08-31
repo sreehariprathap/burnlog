@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import useSWR from 'swr';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { PlusIcon } from 'lucide-react';
+import { PlusIcon, Inbox, Lightbulb } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
 import { TaskLogBottomNav } from '@/components/TaskLogBottomNav';
 import { Card, CardContent } from '@/components/ui/card';
@@ -200,7 +200,11 @@ export default function PlanPage() {
           {isLoading ? (
             <Skeleton className="h-32 w-full" />
           ) : inboxTasks.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nothing in your inbox. Dump a task above.</p>
+            <div className="flex flex-col items-center gap-1 rounded-xl border border-dashed p-6 text-center">
+              <Inbox className="h-5 w-5 text-muted-foreground" />
+              <p className="text-sm font-semibold">Your inbox is empty</p>
+              <p className="text-xs text-muted-foreground">Dump a task above and triage it into a lane.</p>
+            </div>
           ) : (
             inboxTasks.map((task) => {
               const priority = PRIORITIES.find((p) => p.id === task.priority);
@@ -236,7 +240,11 @@ export default function PlanPage() {
           {ideasLoading ? (
             <Skeleton className="h-32 w-full" />
           ) : ideas.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No ideas yet. Capture one above.</p>
+            <div className="flex flex-col items-center gap-1 rounded-xl border border-dashed p-6 text-center">
+              <Lightbulb className="h-5 w-5 text-muted-foreground" />
+              <p className="text-sm font-semibold">No ideas yet</p>
+              <p className="text-xs text-muted-foreground">Capture an idea above and turn it into a plan.</p>
+            </div>
           ) : (
             ideas.map((idea) => (
               <IdeaCard

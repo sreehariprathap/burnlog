@@ -6,6 +6,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { TopBar } from '@/components/TopBar';
 import { TaskLogBottomNav } from '@/components/TaskLogBottomNav';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Target } from 'lucide-react';
 import type { TaskGoalRow } from '@/lib/tasklog/types';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { AddGoalForm } from './_components/AddGoalForm';
@@ -42,7 +43,11 @@ export default function GoalsPage() {
         {isLoading ? (
           <Skeleton className="h-40 w-full" />
         ) : goals.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No goals yet. Add one above.</p>
+          <div className="flex flex-col items-center gap-1 rounded-xl border border-dashed p-6 text-center">
+            <Target className="h-5 w-5 text-muted-foreground" />
+            <p className="text-sm font-semibold">No goals yet</p>
+            <p className="text-xs text-muted-foreground">Add a goal above to start breaking it into tasks.</p>
+          </div>
         ) : (
           goals.map((goal) => <GoalCard key={goal.id} goal={goal} />)
         )}

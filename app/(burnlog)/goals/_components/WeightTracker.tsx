@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Scale } from 'lucide-react';
 
 type WeightEntry = {
   id: string;
@@ -243,7 +244,7 @@ export function WeightTracker({ userId }: WeightTrackerProps) {
               </div>
             </form>
 
-            {entries.length > 0 && (
+            {entries.length > 0 ? (
               <div className="mt-4">
                 <h3 className="font-medium mb-2">Recent Entries</h3>
                 <div className="max-h-40 overflow-y-auto space-y-1">
@@ -254,6 +255,12 @@ export function WeightTracker({ userId }: WeightTrackerProps) {
                     </div>
                   ))}
                 </div>
+              </div>
+            ) : (
+              <div className="mt-4 flex flex-col items-center gap-1 rounded-xl border border-dashed p-6 text-center">
+                <Scale className="h-6 w-6 text-muted-foreground" />
+                <p className="text-sm font-semibold">No weigh-ins yet</p>
+                <p className="text-xs text-muted-foreground">Record your weight above to start tracking your progress.</p>
               </div>
             )}
           </>

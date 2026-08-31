@@ -1,5 +1,5 @@
 // lib/appMode.ts
-export type AppId = 'burnlog' | 'moneylog' | 'tasklog' | 'homelog' | 'sociallog' | 'shoppinglog';
+export type AppId = 'logbook' | 'burnlog' | 'moneylog' | 'tasklog' | 'homelog' | 'sociallog' | 'shoppinglog';
 
 export interface AppMeta {
   id: AppId;
@@ -10,6 +10,13 @@ export interface AppMeta {
 }
 
 export const APPS: Record<AppId, AppMeta> = {
+  logbook: {
+    id: 'logbook',
+    name: 'Logbook',
+    tagline: 'Your day, across every log',
+    home: '/logbook',
+    themeClass: 'app-logbook',
+  },
   burnlog: {
     id: 'burnlog',
     name: 'BurnLog',
@@ -62,7 +69,15 @@ function isBrowser(): boolean {
 }
 
 function isAppId(val: string | null): val is AppId {
-  return val === 'burnlog' || val === 'moneylog' || val === 'tasklog' || val === 'homelog' || val === 'sociallog' || val === 'shoppinglog';
+  return (
+    val === 'logbook' ||
+    val === 'burnlog' ||
+    val === 'moneylog' ||
+    val === 'tasklog' ||
+    val === 'homelog' ||
+    val === 'sociallog' ||
+    val === 'shoppinglog'
+  );
 }
 
 function safeGet(key: string): string | null {
@@ -110,7 +125,7 @@ export function nsRemove(app: AppId, key: string): void {
 
 export function getDefaultApp(): AppId {
   const val = safeGet(DEFAULT_APP_KEY);
-  return isAppId(val) ? val : 'burnlog';
+  return isAppId(val) ? val : 'logbook';
 }
 
 export function setDefaultApp(app: AppId): void {
@@ -119,7 +134,7 @@ export function setDefaultApp(app: AppId): void {
 
 export function getActiveApp(): AppId {
   const val = safeGet(ACTIVE_APP_KEY);
-  return isAppId(val) ? val : 'burnlog';
+  return isAppId(val) ? val : 'logbook';
 }
 
 export function setActiveApp(app: AppId): void {

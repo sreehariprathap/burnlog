@@ -7,6 +7,7 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { CalendarDays, CalendarRange, Calendar } from 'lucide-react';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { TopBar } from '@/components/TopBar';
 import { MoneyLogBottomNav } from '@/components/MoneyLogBottomNav';
 import { SmoothTabs, type TabItem } from '@/components/kokonutui/smooth-tabs';
@@ -55,9 +56,32 @@ function PeriodSlide({
   const data = useFinanceData(profileId, period, refreshKey);
   const periodLabel = formatPeriodLabel(period, getPeriodRange(period));
 
+  if (data.loading) {
+    return (
+      <div className="flex flex-col gap-4">
+        <Card>
+          <CardContent className="pt-6 flex flex-col items-center gap-4">
+            <Skeleton className="h-40 w-40 rounded-full" />
+            <div className="w-full grid grid-cols-2 gap-4">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6 grid grid-cols-3 gap-2">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4">
-      {!hasAnyData && !data.loading && <GetStartedCard />}
+      {!hasAnyData && <GetStartedCard />}
       <Card>
         <CardContent className="pt-6">
           <DualRingCard

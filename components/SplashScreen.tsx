@@ -27,6 +27,19 @@ const SPLASH_CONTENT: Record<
     darkCoreColor: string;
   }
 > = {
+  logbook: {
+    label: 'Loading Logbook',
+    text: 'logbook',
+    tagline: 'Your day, across every log',
+    darkTextColor: '#A5B4FC',
+    lightTextColor: '#3730A3',
+    darkTaglineClass: 'text-indigo-200/70',
+    lightTaglineClass: 'text-indigo-900/60',
+    lightColors: ['#A5B4FC', '#818CF8', '#6366F1', '#4338CA'],
+    lightBackgroundFill: '#EEF0FC',
+    darkEdgeColor: '129,140,248',
+    darkCoreColor: '67,56,202',
+  },
   burnlog: {
     label: 'Loading burnlog',
     text: 'burnlog',
@@ -111,7 +124,7 @@ export default function SplashScreen() {
   const [mounted, setMounted] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const [isDark, setIsDark] = useState(false);
-  const [appId, setAppId] = useState<AppId>('burnlog');
+  const [appId, setAppId] = useState<AppId>('logbook');
 
   useEffect(() => {
     // Only show once per browser session (first load)

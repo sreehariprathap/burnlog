@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Calendar, BarChart, CheckCircle, FileText, X } from 'lucide-react';
+import { Calendar, BarChart, CheckCircle, FileText, X, Dumbbell } from 'lucide-react';
 
 type WorkoutHistoryProps = {
   onClose: () => void;
@@ -366,8 +366,10 @@ export function WorkoutHistory({ onClose }: WorkoutHistoryProps) {
 
     if (recentWorkouts.length === 0) {
       return (
-        <div className="text-center py-8">
-          <p className="text-muted-foreground">No workout history yet</p>
+        <div className="flex flex-col items-center gap-1 rounded-xl border border-dashed p-8 text-center">
+          <Dumbbell className="h-6 w-6 text-muted-foreground" />
+          <p className="text-sm font-semibold">No workout history yet</p>
+          <p className="text-xs text-muted-foreground">Complete a session to see it show up here.</p>
         </div>
       );
     }

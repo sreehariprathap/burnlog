@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Flame } from 'lucide-react';
 
 type CalorieBurnEntry = {
   id: string;
@@ -278,7 +279,7 @@ export function CalorieTracker({ userId }: CalorieTrackerProps) {
               </Button>
             </form>
 
-            {entries.length > 0 && (
+            {entries.length > 0 ? (
               <div className="mt-4">
                 <h3 className="font-medium mb-2">Recent Activities</h3>
                 <div className="max-h-40 overflow-y-auto space-y-1">
@@ -293,6 +294,12 @@ export function CalorieTracker({ userId }: CalorieTrackerProps) {
                     </div>
                   ))}
                 </div>
+              </div>
+            ) : (
+              <div className="mt-4 flex flex-col items-center gap-1 rounded-xl border border-dashed p-6 text-center">
+                <Flame className="h-6 w-6 text-muted-foreground" />
+                <p className="text-sm font-semibold">No activity logged yet</p>
+                <p className="text-xs text-muted-foreground">Log a workout above to start tracking calories burned.</p>
               </div>
             )}
           </>

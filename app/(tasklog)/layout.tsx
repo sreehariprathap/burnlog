@@ -6,6 +6,7 @@ import { setActiveApp } from '@/lib/appMode';
 
 export default function TaskLogLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
+    document.documentElement.classList.remove('app-logbook');
     document.documentElement.classList.remove('app-moneylog');
     document.documentElement.classList.remove('app-homelog');
     document.documentElement.classList.remove('app-sociallog');

@@ -56,13 +56,13 @@ async function main() {
   assert(nsGet('burnlog', 'foo') === null, 'nsRemove deletes the key');
 
   // getDefaultApp fallback + set
-  assert(getDefaultApp() === 'burnlog', 'getDefaultApp falls back to burnlog when unset');
+  assert(getDefaultApp() === 'logbook', 'getDefaultApp falls back to logbook when unset');
   setDefaultApp('moneylog');
   assert(getDefaultApp() === 'moneylog', 'setDefaultApp persists');
   assert((window as any).localStorage.getItem(DEFAULT_APP_KEY) === 'moneylog', 'default app key is app:defaultApp');
 
   // getActiveApp fallback + set
-  assert(getActiveApp() === 'burnlog', 'getActiveApp falls back to burnlog when unset');
+  assert(getActiveApp() === 'logbook', 'getActiveApp falls back to logbook when unset');
   setActiveApp('moneylog');
   assert(getActiveApp() === 'moneylog', 'setActiveApp persists');
   assert((window as any).localStorage.getItem(ACTIVE_APP_KEY) === 'moneylog', 'active app key is app:activeApp');

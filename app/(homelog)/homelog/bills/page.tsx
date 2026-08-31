@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Receipt } from 'lucide-react';
 import { useHouseholdMe } from '@/lib/homelog/useHouseholdMe';
 
 interface ExpenseSplitInfo {
@@ -263,7 +264,11 @@ export default function BillsPage() {
               </CardHeader>
               <CardContent className="space-y-2">
                 {expenses.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No expenses logged yet.</p>
+                  <div className="flex flex-col items-center gap-1 rounded-xl border border-dashed p-6 text-center">
+                    <Receipt className="h-5 w-5 text-muted-foreground" />
+                    <p className="text-sm font-semibold">No expenses logged yet</p>
+                    <p className="text-xs text-muted-foreground">Add an expense above to start splitting bills.</p>
+                  </div>
                 ) : (
                   expenses.map((expense) => (
                     <div key={expense.id} className="rounded-md border p-3">

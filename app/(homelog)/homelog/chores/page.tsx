@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ListTodo } from 'lucide-react';
 import { useHouseholdMe } from '@/lib/homelog/useHouseholdMe';
 
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -215,7 +216,11 @@ export default function ChoresPage() {
         {loading ? (
           <Skeleton className="h-40 w-full" />
         ) : !chores || chores.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No chores yet. Add one above.</p>
+          <div className="flex flex-col items-center gap-1 rounded-xl border border-dashed p-6 text-center">
+            <ListTodo className="h-5 w-5 text-muted-foreground" />
+            <p className="text-sm font-semibold">No chores yet</p>
+            <p className="text-xs text-muted-foreground">Add a chore above to start sharing the load.</p>
+          </div>
         ) : (
           chores.map((chore) => (
             <Card key={chore.id}>

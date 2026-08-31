@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import useSWR from 'swr';
-import { MinusIcon, PlusIcon } from 'lucide-react';
+import { MinusIcon, PlusIcon, Package, ShoppingCart } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
 import { HomeLogBottomNav } from '@/components/HomeLogBottomNav';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -212,7 +212,11 @@ export default function InventoryPage() {
               </Card>
 
               {!items || items.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No items yet. Add one above.</p>
+                <div className="flex flex-col items-center gap-1 rounded-xl border border-dashed p-6 text-center">
+                  <Package className="h-5 w-5 text-muted-foreground" />
+                  <p className="text-sm font-semibold">No items yet</p>
+                  <p className="text-xs text-muted-foreground">Add an item above to start tracking your inventory.</p>
+                </div>
               ) : (
                 items.map((item) => (
                   <Card key={item.id}>
@@ -254,7 +258,11 @@ export default function InventoryPage() {
               </form>
 
               {!shoppingItems || shoppingItems.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Shopping list is empty.</p>
+                <div className="flex flex-col items-center gap-1 rounded-xl border border-dashed p-6 text-center">
+                  <ShoppingCart className="h-5 w-5 text-muted-foreground" />
+                  <p className="text-sm font-semibold">Shopping list is empty</p>
+                  <p className="text-xs text-muted-foreground">Add something above when you're running low.</p>
+                </div>
               ) : (
                 shoppingItems.map((item) => (
                   <Card key={item.id}>

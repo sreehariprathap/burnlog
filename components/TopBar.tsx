@@ -10,6 +10,7 @@ import { TaskLogMark } from './TaskLogMark';
 import { HomeLogMark } from './HomeLogMark';
 import { SocialLogMark } from './SocialLogMark';
 import { ShoppingLogMark } from './ShoppingLogMark';
+import { LogbookMark } from './LogbookMark';
 import Image from 'next/image';
 import { AppId, getActiveApp } from '@/lib/appMode';
 
@@ -21,7 +22,7 @@ interface TopBarProps {
 
 export function TopBar({ title, onClose, actions }: TopBarProps) {
   const [switcherOpen, setSwitcherOpen] = useState(false);
-  const [activeApp, setActiveAppState] = useState<AppId>('burnlog');
+  const [activeApp, setActiveAppState] = useState<AppId>('logbook');
 
   useEffect(() => {
     setActiveAppState(getActiveApp());
@@ -39,7 +40,9 @@ export function TopBar({ title, onClose, actions }: TopBarProps) {
           aria-label="Switch app"
           className="flex items-center justify-center"
         >
-          {activeApp === 'moneylog' ? (
+          {activeApp === 'logbook' ? (
+            <LogbookMark size={20} />
+          ) : activeApp === 'moneylog' ? (
             <MoneyLogMark size={20} />
           ) : activeApp === 'tasklog' ? (
             <TaskLogMark size={20} />

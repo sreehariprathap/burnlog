@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import useSWR from 'swr';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { CheckIcon, FlameIcon } from 'lucide-react';
+import { CheckIcon, FlameIcon, ListChecks } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
 import { TaskLogBottomNav } from '@/components/TaskLogBottomNav';
 import { Card, CardContent } from '@/components/ui/card';
@@ -138,7 +138,11 @@ export default function TaskLogDashboardPage() {
             <div className="space-y-2">
               <p className="text-sm font-semibold text-muted-foreground">Today</p>
               {dueToday.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Nothing planned for today yet.</p>
+                <div className="flex flex-col items-center gap-1 rounded-xl border border-dashed p-6 text-center">
+                  <ListChecks className="h-5 w-5 text-muted-foreground" />
+                  <p className="text-sm font-semibold">Nothing planned for today</p>
+                  <p className="text-xs text-muted-foreground">Add a task or plan your day to get started.</p>
+                </div>
               ) : (
                 dueToday.map((task) => <TodayTaskRow key={task.id} task={task} onToggle={() => handleToggle(task)} />)
               )}

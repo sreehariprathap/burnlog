@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Utensils } from 'lucide-react';
 import { FoodScanner } from './FoodScanner';
 
 type FoodIntakeEntry = {
@@ -377,7 +378,7 @@ export function FoodIntakeTracker({ userId }: FoodIntakeTrackerProps) {
               </Button>
             </form>
 
-            {entries.length > 0 && (
+            {entries.length > 0 ? (
               <div className="mt-4">
                 <h3 className="font-medium mb-2">Recent Meals</h3>
                 <div className="max-h-40 overflow-y-auto space-y-1">
@@ -392,6 +393,12 @@ export function FoodIntakeTracker({ userId }: FoodIntakeTrackerProps) {
                     </div>
                   ))}
                 </div>
+              </div>
+            ) : (
+              <div className="mt-4 flex flex-col items-center gap-1 rounded-xl border border-dashed p-6 text-center">
+                <Utensils className="h-6 w-6 text-muted-foreground" />
+                <p className="text-sm font-semibold">No meals logged yet</p>
+                <p className="text-xs text-muted-foreground">Log a meal above or scan your food to start tracking.</p>
               </div>
             )}
           </>

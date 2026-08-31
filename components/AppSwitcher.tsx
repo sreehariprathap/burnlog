@@ -9,6 +9,7 @@ import { TaskLogMark } from '@/components/TaskLogMark';
 import { HomeLogMark } from '@/components/HomeLogMark';
 import { SocialLogMark } from '@/components/SocialLogMark';
 import { ShoppingLogMark } from '@/components/ShoppingLogMark';
+import { LogbookMark } from '@/components/LogbookMark';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { Card, CardContent } from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
@@ -22,8 +23,8 @@ interface AppSwitcherProps {
 
 export function AppSwitcher({ open, onOpenChange }: AppSwitcherProps) {
   const { switchTo } = useAppSwitch();
-  const [activeApp, setActiveAppState] = useState<AppId>('burnlog');
-  const [defaultApp, setDefaultAppState] = useState<AppId>('burnlog');
+  const [activeApp, setActiveAppState] = useState<AppId>('logbook');
+  const [defaultApp, setDefaultAppState] = useState<AppId>('logbook');
 
   useEffect(() => {
     if (!open) return;
@@ -64,7 +65,9 @@ export function AppSwitcher({ open, onOpenChange }: AppSwitcherProps) {
               >
                 <CardContent className="flex items-center justify-between gap-4 py-4">
                   <div className="flex items-center gap-3">
-                    {app.id === 'moneylog' ? (
+                    {app.id === 'logbook' ? (
+                      <LogbookMark size={24} />
+                    ) : app.id === 'moneylog' ? (
                       <MoneyLogMark size={24} />
                     ) : app.id === 'tasklog' ? (
                       <TaskLogMark size={24} />

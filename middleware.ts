@@ -30,7 +30,7 @@ export async function middleware(request: NextRequest) {
 
   // If authenticated and on login or signup (but not profile setup), redirect to dashboard
   if (user && ['/login', '/signup'].includes(pathname)) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    return NextResponse.redirect(new URL('/logbook', request.url));
   }
 
   // If authenticated and trying to access protected routes
