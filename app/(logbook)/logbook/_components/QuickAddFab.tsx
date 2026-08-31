@@ -11,6 +11,7 @@ import {
   ListChecks,
   Wallet,
   Moon,
+  Sparkles,
   ChevronLeft,
   Loader2,
   type LucideIcon,
@@ -25,6 +26,7 @@ import { LogWorkoutModal } from '@/app/(burnlog)/dashboard/_components/quick-log
 import { LogStepsModal } from '@/app/(burnlog)/dashboard/_components/quick-log/LogStepsModal';
 import { WalkTrackerModal } from '@/app/(burnlog)/dashboard/_components/quick-log/WalkTrackerModal';
 import { LogTransactionModal } from '@/app/(moneylog)/moneylog/_components/LogTransactionModal';
+import type { TaskCategory, TaskPriority } from '@/lib/tasklog/types';
 
 type QuickAddOption = 'meal' | 'workout' | 'steps' | 'walk' | 'task' | 'expense' | 'sleep';
 
@@ -33,21 +35,54 @@ interface QuickAddFabProps {
   onSaved: () => void;
 }
 
-const OPTIONS: { id: QuickAddOption; label: string; app: string; icon: LucideIcon; color: string; available: boolean }[] = [
-  { id: 'meal', label: 'Log Meal', app: 'burnlog', icon: Flame, color: '#F97316', available: true },
-  { id: 'workout', label: 'Log Workout', app: 'burnlog', icon: Dumbbell, color: '#F97316', available: true },
-  { id: 'steps', label: 'Log Steps', app: 'burnlog', icon: Footprints, color: '#F97316', available: true },
-  { id: 'walk', label: 'Track Walk', app: 'burnlog', icon: Route, color: '#F97316', available: true },
-  { id: 'task', label: 'Complete Task', app: 'tasklog', icon: ListChecks, color: '#3B82F6', available: true },
-  { id: 'expense', label: 'Log Expense', app: 'moneylog', icon: Wallet, color: '#22C55E', available: true },
-  { id: 'sleep', label: 'Log Sleep', app: 'lifelog', icon: Moon, color: '#8B5CF6', available: false },
+const OPTIONS: { id: QuickAddOption; label: string; app: string; icon: LucideIcon; color: string; available: boolean; ai: boolean }[] = [
+  { id: 'meal', label: 'Log Meal', app: 'burnlog', icon: Flame, color: '#F97316', available: true, ai: true },
+  { id: 'workout', label: 'Log Workout', app: 'burnlog', icon: Dumbbell, color: '#F97316', available: true, ai: true },
+  { id: 'steps', label: 'Log Steps', app: 'burnlog', icon: Footprints, color: '#F97316', available: true, ai: false },
+  { id: 'walk', label: 'Track Walk', app: 'burnlog', icon: Route, color: '#F97316', available: true, ai: false },
+  { id: 'task', label: 'Complete Task', app: 'tasklog', icon: ListChecks, color: '#3B82F6', available: true, ai: true },
+  { id: 'expense', label: 'Log Expense', app: 'moneylog', icon: Wallet, color: '#22C55E', available: true, ai: true },
+  { id: 'sleep', label: 'Log Sleep', app: 'lifelog', icon: Moon, color: '#8B5CF6', available: false, ai: false },
 ];
+
+const TASK_CATEGORIES: readonly TaskCategory[] = ['life', 'work'];
+const TASK_PRIORITIES: readonly TaskPriority[] = ['low', 'medium', 'high'];
 
 function TaskForm({ profileId, onSaved, onCancel }: { profileId: string; onSaved: () => void; onCancel: () => void }) {
   const supabase = createClientComponentClient();
   const [title, setTitle] = useState('');
+  const [category, setCategory] = useState<TaskCategory>('life');
+  const [priority, setPriority] = useState<TaskPriority>('medium');
+  const [suggesting, setSuggesting] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const handleSuggest = async () => {
+    setError(null);
+    if (!title.trim()) {
+      setError('Enter a task title first');
+      return;
+    }
+    setSuggesting(true);
+    try {
+      const res = await fetch('/api/ai/categorize-task', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: title.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        setError(data.error ?? 'Failed to suggest category. Pick manually.');
+        return;
+      }
+      setCategory(data.category as TaskCategory);
+      setPriority(data.priority as TaskPriority);
+    } catch {
+      setError('Network error. Pick category/priority manually.');
+    } finally {
+      setSuggesting(false);
+    }
+  };
 
   const handleSave = async () => {
     setError(null);
@@ -56,7 +91,7 @@ function TaskForm({ profileId, onSaved, onCancel }: { profileId: string; onSaved
     setSaving(true);
     const { error: insertError } = await supabase
       .from('tasklog_tasks')
-      .insert([{ profileId, title: title.trim(), completedAt: new Date().toISOString() }]);
+      .insert([{ profileId, title: title.trim(), category, priority, completedAt: new Date().toISOString() }]);
     setSaving(false);
     if (insertError) return setError(insertError.message);
     onSaved();
@@ -66,9 +101,30 @@ function TaskForm({ profileId, onSaved, onCancel }: { profileId: string; onSaved
     <div className="space-y-3">
       <div className="space-y-1.5">
         <Label>What did you finish?</Label>
-        <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Send project update" />
+        <div className="flex gap-2">
+          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Send project update" />
+          <Button type="button" variant="outline" onClick={handleSuggest} disabled={suggesting} aria-label="Suggest category and priority with AI">
+            {suggesting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+          </Button>
+        </div>
       </div>
-      <p className="text-xs text-muted-foreground">Logs it straight to done — no need to plan it first.</p>
+      <div className="grid grid-cols-2 gap-2">
+        {TASK_CATEGORIES.map((c) => (
+          <Button key={c} type="button" size="sm" variant={category === c ? 'default' : 'outline'} onClick={() => setCategory(c)} className="capitalize">
+            {c}
+          </Button>
+        ))}
+      </div>
+      <div className="grid grid-cols-3 gap-2">
+        {TASK_PRIORITIES.map((p) => (
+          <Button key={p} type="button" size="sm" variant={priority === p ? 'default' : 'outline'} onClick={() => setPriority(p)} className="capitalize">
+            {p}
+          </Button>
+        ))}
+      </div>
+      <p className="text-xs text-muted-foreground">
+        Logs it straight to done — no need to plan it first. Tap the sparkle to suggest category/priority from the title.
+      </p>
       {error && <p className="text-xs text-destructive">{error}</p>}
       <div className="flex gap-2 pt-1">
         <Button variant="outline" className="flex-1" onClick={onCancel}>Back</Button>
@@ -125,10 +181,6 @@ export function QuickAddFab({ profileId, onSaved }: QuickAddFabProps) {
 
   const selectedOption = OPTIONS.find((o) => o.id === selected);
 
-  // The real BurnLog/MoneyLog modals (meal, workout, steps, walk, expense)
-  // each render their own <Drawer open>, so once one is selected we stop
-  // rendering the picker's <Drawer> and mount the modal directly — nesting
-  // two open drawers would double the overlay/backdrop.
   if (selected === 'meal') {
     return <LogCaloriesModal profileId={profileId} onClose={() => setSelected(null)} onSaved={handleSaved} />;
   }
@@ -181,10 +233,16 @@ export function QuickAddFab({ profileId, onSaved }: QuickAddFabProps) {
                       className="flex flex-col items-center gap-2 rounded-xl border p-4 text-center transition-transform active:scale-[0.98]"
                     >
                       <span
-                        className="flex h-10 w-10 items-center justify-center rounded-full"
+                        className="relative flex h-10 w-10 items-center justify-center rounded-full"
                         style={{ backgroundColor: `${opt.color}1a` }}
                       >
                         <Icon className="h-5 w-5" style={{ color: opt.color }} />
+                        {opt.ai && (
+                          <Sparkles
+                            aria-label="AI-assisted"
+                            className="absolute -top-1 -right-1 h-3.5 w-3.5 rounded-full bg-background p-0.5 text-primary"
+                          />
+                        )}
                       </span>
                       <span className="text-sm font-medium">{opt.label}</span>
                       {!opt.available && <span className="text-[10px] text-muted-foreground">Coming soon</span>}
