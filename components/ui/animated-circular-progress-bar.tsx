@@ -7,6 +7,7 @@ interface AnimatedCircularProgressBarProps {
   gaugePrimaryColor: string
   gaugeSecondaryColor: string
   className?: string
+  showValue?: boolean
 }
 
 export function AnimatedCircularProgressBar({
@@ -16,6 +17,7 @@ export function AnimatedCircularProgressBar({
   gaugePrimaryColor,
   gaugeSecondaryColor,
   className,
+  showValue = true,
 }: AnimatedCircularProgressBarProps) {
   const circumference = 2 * Math.PI * 45
   const percentPx = circumference / 100
@@ -97,12 +99,14 @@ export function AnimatedCircularProgressBar({
           }
         />
       </svg>
-      <span
-        data-current-value={currentPercent}
-        className="animate-in fade-in absolute inset-0 m-auto size-fit delay-(--delay) duration-(--transition-length) ease-linear"
-      >
-        {currentPercent}
-      </span>
+      {showValue && (
+        <span
+          data-current-value={currentPercent}
+          className="animate-in fade-in absolute inset-0 m-auto size-fit delay-(--delay) duration-(--transition-length) ease-linear"
+        >
+          {currentPercent}
+        </span>
+      )}
     </div>
   )
 }
