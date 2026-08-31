@@ -18,7 +18,6 @@ import { TopBar } from '@/components/TopBar';
 import { BottomNav } from '@/components/BottomNav';
 import { MoneyLogBottomNav } from '@/components/MoneyLogBottomNav';
 import { SocialLogBottomNav } from '@/components/SocialLogBottomNav';
-import { SocialLogSettingsCard } from './_components/SocialLogSettingsCard';
 import { sendRealTestNotification } from '@/lib/pushNotification';
 import { Switch } from '@/components/ui/switch';
 import { APPS, AppId, getActiveApp, getDefaultApp, setDefaultApp } from '@/lib/appMode';
@@ -402,12 +401,6 @@ export default function ProfilePage() {
                     </Button>
                   </CardContent>
                 </Card>
-              </div>
-            )}
-
-            {activeApp === 'sociallog' && (
-              <div className="mt-6">
-                <SocialLogSettingsCard />
               </div>
             )}
 
