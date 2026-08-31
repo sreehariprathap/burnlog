@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { CalendarClockIcon, TargetIcon, ChartLineIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MoneyLogMark } from '@/components/MoneyLogMark';
-import { MoneyLogProfileMenu } from '@/components/MoneyLogProfileMenu';
+import { ConfigMenu } from '@/components/ConfigMenu';
 
 const tabs = [
   { href: '/moneylog', label: 'Home', Icon: null },
@@ -17,7 +17,7 @@ const tabs = [
 
 export function MoneyLogBottomNav() {
   const pathname = usePathname();
-  const isProfileActive = pathname === '/profile' || pathname.startsWith('/profile/');
+  const isConfigActive = pathname === '/moneylog/config' || pathname.startsWith('/moneylog/config/');
 
   return (
     <nav
@@ -44,7 +44,7 @@ export function MoneyLogBottomNav() {
           </Link>
         );
       })}
-      <MoneyLogProfileMenu isActive={isProfileActive} />
+      <ConfigMenu href="/moneylog/config" isActive={isConfigActive} navId="moneylog-bottom-nav-active" />
     </nav>
   );
 }
