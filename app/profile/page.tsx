@@ -7,7 +7,6 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2, Info, AlertTriangle, Bell, Settings, Cpu } from 'lucide-react';
 import { OnboardingPageTogglesModal } from './_components/OnboardingPageTogglesModal';
@@ -15,12 +14,10 @@ import { ProfileAvatar } from './_components/ProfileAvatar';
 import { AiModelSettingsModal } from './_components/AiModelSettingsModal';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { TopBar } from '@/components/TopBar';
-import { BottomNav } from '@/components/BottomNav';
-import { MoneyLogBottomNav } from '@/components/MoneyLogBottomNav';
-import { SocialLogBottomNav } from '@/components/SocialLogBottomNav';
+import { LogbookBottomNav } from '@/components/LogbookBottomNav';
 import { sendRealTestNotification } from '@/lib/pushNotification';
 import { Switch } from '@/components/ui/switch';
-import { APPS, AppId, getActiveApp, getDefaultApp, setDefaultApp } from '@/lib/appMode';
+import { APPS, AppId, getDefaultApp, setDefaultApp } from '@/lib/appMode';
 import { useToast } from '@/components/ui/use-toast';
 
 // Client Component — no static <Metadata> export; page title stays the
@@ -42,7 +39,6 @@ export default function ProfilePage() {
   const [showAiModelSettings, setShowAiModelSettings] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [defaultApp, setDefaultAppState] = useState<AppId>('burnlog');
-  const [activeApp, setActiveAppState] = useState<AppId>('burnlog');
   const [usernameInput, setUsernameInput] = useState('');
   const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle');
   const [savingUsername, setSavingUsername] = useState(false);
@@ -50,7 +46,6 @@ export default function ProfilePage() {
 
   useEffect(() => {
     setDefaultAppState(getDefaultApp());
-    setActiveAppState(getActiveApp());
   }, []);
 
   function handleSetDefaultApp(app: AppId) {
@@ -418,13 +413,7 @@ export default function ProfilePage() {
       </main>
       <OnboardingPageTogglesModal open={showPageToggles} onOpenChange={setShowPageToggles} />
       <AiModelSettingsModal open={showAiModelSettings} onOpenChange={setShowAiModelSettings} />
-      {activeApp === 'moneylog' ? (
-        <MoneyLogBottomNav />
-      ) : activeApp === 'sociallog' ? (
-        <SocialLogBottomNav />
-      ) : (
-        <BottomNav />
-      )}
+      <LogbookBottomNav />
     </div>
   );
 }
