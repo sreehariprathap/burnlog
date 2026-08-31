@@ -88,6 +88,7 @@ model Profile {
   shopOrdersAsBuyer       ShopOrder[] @relation("ShopOrderBuyer")
   shopOrdersAsSeller      ShopOrder[] @relation("ShopOrderSeller")
   shopReviews             ShopReview[]
+  MydayBlock              MydayBlock[]
 
   @@map("profiles")
 }
@@ -594,6 +595,26 @@ model Task {
   createdAt       DateTime  @default(now())
 
   @@map("tasklog_tasks")
+}
+
+/// a single time-boxed item on a user's day plan — either typed in
+/// directly, or created from an unscheduled cross-app item (planned
+/// workout, task due today, bill due) via source/sourceId
+model MydayBlock {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile   Profile  @relation(fields: [profileId], references: [id])
+  profileId String   @db.Uuid
+  date      DateTime @db.Date
+  title     String
+  notes     String?
+  startTime String // 'HH:mm'
+  endTime   String // 'HH:mm'
+  source    String   @default("manual") // 'manual' | 'burnlog' | 'tasklog' | 'moneylog'
+  sourceId  String?  @db.Uuid // links back to the originating row for actual-status lookup
+  completed Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("myday_blocks")
 }
 
 /// a raw idea captured before it's broken into tasks

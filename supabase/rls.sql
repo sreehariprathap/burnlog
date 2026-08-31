@@ -60,7 +60,8 @@ begin
     'scheduled_reminders',
     'task_goals',
     'tasklog_tasks',
-    'tasklog_ideas'
+    'tasklog_ideas',
+    'myday_blocks'
   ]
   loop
     execute format('alter table %I enable row level security', t);
