@@ -7,7 +7,7 @@ import { motion } from 'motion/react';
 import { KanbanSquareIcon, InboxIcon, TargetIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TaskLogMark } from '@/components/TaskLogMark';
-import { TaskLogProfileMenu } from '@/components/TaskLogProfileMenu';
+import { ConfigMenu } from '@/components/ConfigMenu';
 
 const tabs = [
   { href: '/tasklog', label: 'Home', Icon: null },
@@ -18,7 +18,7 @@ const tabs = [
 
 export function TaskLogBottomNav() {
   const pathname = usePathname();
-  const isProfileActive = pathname === '/profile' || pathname.startsWith('/profile/');
+  const isConfigActive = pathname === '/tasklog/config' || pathname.startsWith('/tasklog/config/');
 
   return (
     <nav
@@ -53,7 +53,7 @@ export function TaskLogBottomNav() {
           </Link>
         );
       })}
-      <TaskLogProfileMenu isActive={isProfileActive} />
+      <ConfigMenu href="/tasklog/config" isActive={isConfigActive} navId="tasklog-bottom-nav-active" />
     </nav>
   );
 }
