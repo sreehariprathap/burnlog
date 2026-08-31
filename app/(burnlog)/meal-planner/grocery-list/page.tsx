@@ -1,10 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
-import { Loader2 } from 'lucide-react';
+import { Loader2, RefreshCw, ShoppingCart } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/ui/use-toast';
 
 type GroceryListRow = {
   items: Record<string, string[]>;
@@ -16,9 +18,11 @@ export default function GroceryListPage() {
   const router = useRouter();
   const [row, setRow] = useState<GroceryListRow | null>(null);
   const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  useEffect(() => {
-    (async () => {
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         router.replace('/login');
@@ -29,15 +33,27 @@ export default function GroceryListPage() {
         setLoading(false);
         return;
       }
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('grocery_lists')
         .select('items, estimatedBudget')
         .eq('profileId', profile.id)
         .maybeSingle();
+      if (error) throw error;
       setRow(data as GroceryListRow | null);
+    } catch (err) {
+      toast({
+        title: 'Could not load grocery list',
+        description: err instanceof Error ? err.message : 'Please try again.',
+        variant: 'destructive',
+      });
+    } finally {
       setLoading(false);
-    })();
-  }, [supabase, router]);
+    }
+  }, [supabase, router, toast]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   if (loading) {
     return (
@@ -49,18 +65,32 @@ export default function GroceryListPage() {
 
   if (!row) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
-        <p className="text-sm text-muted-foreground">No grocery list yet — run the Meal Planner first.</p>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-3 p-4 text-center">
+        <ShoppingCart className="h-10 w-10 text-muted-foreground" aria-hidden="true" />
+        <p className="text-sm font-semibold">No grocery list yet</p>
+        <p className="text-sm text-muted-foreground">Run the Meal Planner to generate your first grocery list.</p>
+        <Button onClick={() => router.push('/meal-planner')}>Start Meal Planner</Button>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
       <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto">
-        <CardHeader>
-          <CardTitle>🧾 Your grocery list</CardTitle>
-          {row.estimatedBudget && <p className="text-sm text-muted-foreground">Estimated budget: {row.estimatedBudget}</p>}
+        <CardHeader className="flex flex-row items-center justify-between">
+          <div>
+            <CardTitle>🧾 Your grocery list</CardTitle>
+            {row.estimatedBudget && <p className="text-sm text-muted-foreground">Estimated budget: {row.estimatedBudget}</p>}
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Refresh grocery list"
+            disabled={loading}
+            onClick={() => load()}
+          >
+            <RefreshCw className={loading ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} />
+          </Button>
         </CardHeader>
         <CardContent className="space-y-4">
           {Object.entries(row.items).map(([category, items]) => (

@@ -3,6 +3,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { motion } from 'motion/react';
 import { KanbanSquareIcon, InboxIcon, TargetIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TaskLogMark } from '@/components/TaskLogMark';
@@ -30,11 +31,19 @@ export function TaskLogBottomNav() {
           <Link
             key={href}
             href={href}
+            aria-current={isActive ? 'page' : undefined}
             className={cn(
               'relative flex flex-col items-center rounded-full px-3 py-2 text-xs transition-colors',
               isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
             )}
           >
+            {isActive && (
+              <motion.span
+                layoutId="tasklog-bottom-nav-active"
+                className="absolute inset-0 rounded-full bg-primary/10"
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              />
+            )}
             {Icon ? (
               <Icon className="relative z-10 mb-0.5 h-5 w-5" />
             ) : (

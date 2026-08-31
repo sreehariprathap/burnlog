@@ -1,15 +1,18 @@
 // app/(sociallog)/sociallog/messages/[threadId]/page.tsx
 'use client';
+// Client Component — page metadata isn't applicable here (see layout.tsx for shared app metadata).
 
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { formatDistanceToNowStrict } from 'date-fns';
 import { ArrowLeft, Loader2, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { apiFetch } from '@/lib/apiFetch';
+import { useToast } from '@/components/ui/use-toast';
+import { formatRelative } from '@/lib/format';
 
 type Message = { id: string; body: string; senderId: string; createdAt: string };
 
@@ -19,6 +22,7 @@ export default function SocialLogThreadPage() {
   const threadId = params.threadId;
   const supabase = createClientComponentClient();
   const { profile } = useCurrentProfile();
+  const { toast } = useToast();
 
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
@@ -75,6 +79,8 @@ export default function SocialLogThreadPage() {
       const created: Message = await res.json();
       setMessages((prev) => (prev.some((m) => m.id === created.id) ? prev : [...prev, created]));
       setText('');
+    } else {
+      toast({ title: 'Failed to send message', variant: 'destructive' });
     }
     setSending(false);
   };
@@ -96,7 +102,7 @@ export default function SocialLogThreadPage() {
               <div className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm ${isMine ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
                 <p className="whitespace-pre-wrap">{m.body}</p>
                 <p className="mt-0.5 text-[10px] opacity-70">
-                  {formatDistanceToNowStrict(new Date(m.createdAt), { addSuffix: true })}
+                  {formatRelative(m.createdAt)}
                 </p>
               </div>
             </div>
@@ -105,7 +111,12 @@ export default function SocialLogThreadPage() {
         <div ref={bottomRef} />
       </div>
       <div className="flex items-center gap-2 border-t p-4">
+        <Label htmlFor="thread-message" className="sr-only">
+          Message
+        </Label>
         <Input
+          id="thread-message"
+          autoFocus
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Message…"
@@ -113,8 +124,8 @@ export default function SocialLogThreadPage() {
             if (e.key === 'Enter') handleSend();
           }}
         />
-        <Button size="icon" onClick={handleSend} disabled={sending || !text.trim()}>
-          <Send className="size-4" />
+        <Button size="icon" aria-label="Send message" onClick={handleSend} disabled={sending || !text.trim()}>
+          {sending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
         </Button>
       </div>
     </div>

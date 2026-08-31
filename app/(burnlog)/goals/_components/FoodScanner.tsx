@@ -172,6 +172,7 @@ export function FoodScanner({ onResult, onClose }: FoodScannerProps) {
               <img src={preview} alt="Food preview" className="w-full h-48 object-cover rounded-xl" />
               <button
                 onClick={reset}
+                aria-label="Remove photo"
                 className="absolute top-2 right-2 bg-black/60 rounded-full p-1 text-white"
               >
                 <X className="h-4 w-4" />

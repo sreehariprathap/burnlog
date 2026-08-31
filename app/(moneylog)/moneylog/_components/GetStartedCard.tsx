@@ -11,7 +11,8 @@ export function GetStartedCard() {
       <CardHeader>
         <CardTitle>Onboard to MoneyLog</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-3">
+      <CardContent className="space-y-3 text-center">
+        <div className="text-4xl" aria-hidden="true">💰</div>
         <p className="text-sm text-muted-foreground">
           Add your income sources and recurring expenses to start tracking your budget.
         </p>

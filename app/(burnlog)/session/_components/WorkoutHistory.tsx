@@ -2,13 +2,15 @@
 // app/session/_components/WorkoutHistory.tsx
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Calendar, BarChart, CheckCircle, FileText, X, Dumbbell } from 'lucide-react';
+import { Calendar, BarChart, CheckCircle, FileText, X, Dumbbell, RefreshCw } from 'lucide-react';
+import { formatDurationHours, formatRelative } from '@/lib/format';
+import { useToast } from '@/components/ui/use-toast';
 
 type WorkoutHistoryProps = {
   onClose: () => void;
@@ -203,9 +205,10 @@ export function WorkoutHistory({ onClose }: WorkoutHistoryProps) {
   });
   const [selectedBodyPart, setSelectedBodyPart] = useState('Push');
   const [recentWorkouts, setRecentWorkouts] = useState<any[]>([]);
+  const { toast } = useToast();
 
-  useEffect(() => {
-    async function fetchWorkoutData() {
+  const fetchWorkoutData = useCallback(async () => {
+      setLoading(true);
       try {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
@@ -296,13 +299,20 @@ export function WorkoutHistory({ onClose }: WorkoutHistoryProps) {
         }
       } catch (error) {
         console.error('Error fetching workout data:', error);
+        toast({
+          title: 'Could not load workout history',
+          description: error instanceof Error ? error.message : 'Please try again.',
+          variant: 'destructive',
+        });
       } finally {
         setLoading(false);
       }
-    }
+  }, [supabase, toast]);
 
+  useEffect(() => {
     fetchWorkoutData();
-  }, [supabase]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const renderStats = () => {
     if (loading) {
@@ -382,7 +392,7 @@ export function WorkoutHistory({ onClose }: WorkoutHistoryProps) {
               <div className="flex justify-between items-center">
                 <div>
                   <div className="font-medium">{workout.sessionData.bodyPart}</div>
-                  <div className="text-sm text-muted-foreground">{new Date(workout.date).toLocaleDateString()}</div>
+                  <div className="text-sm text-muted-foreground">{formatRelative(workout.date)}</div>
                 </div>
                 <div className="flex items-center">
                   {workout.sessionData.completed ? (
@@ -394,7 +404,7 @@ export function WorkoutHistory({ onClose }: WorkoutHistoryProps) {
               </div>
               {workout.sessionData.duration && (
                 <div className="text-sm mt-2">
-                  Duration: {workout.sessionData.duration} minutes
+                  Duration: {formatDurationHours(workout.sessionData.duration / 60)}
                 </div>
               )}
               {workout.sessionData.notes && (
@@ -437,7 +447,7 @@ export function WorkoutHistory({ onClose }: WorkoutHistoryProps) {
             <CardContent>
               <div className="space-y-2">
                 {workout.exercises.map((exercise, j) => (
-                  <div key={j} className="flex justify-between items-center py-2 border-b border-gray-100 last:border-0">
+                  <div key={j} className="flex justify-between items-center py-2 border-b border-border last:border-0">
                     <div>
                       <div className="font-medium">{exercise.name}</div>
                     </div>
@@ -458,9 +468,20 @@ export function WorkoutHistory({ onClose }: WorkoutHistoryProps) {
     <div className="p-4">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-2xl font-bold">Workout Tracker</h2>
-        <Button variant="ghost" size="sm" onClick={onClose}>
-          <X/>
-        </Button>
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            aria-label="Refresh workout history"
+            disabled={loading}
+            onClick={() => fetchWorkoutData()}
+          >
+            <RefreshCw className={loading ? 'animate-spin' : undefined} />
+          </Button>
+          <Button variant="ghost" size="sm" aria-label="Close workout history" onClick={onClose}>
+            <X/>
+          </Button>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">

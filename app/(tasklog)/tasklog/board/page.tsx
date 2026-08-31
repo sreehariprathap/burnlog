@@ -1,10 +1,11 @@
 // app/(tasklog)/tasklog/board/page.tsx
+// Client Component — no static `metadata` export possible here.
 'use client';
 
 import { useState } from 'react';
 import useSWR from 'swr';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { PlusIcon } from 'lucide-react';
+import { PlusIcon, RefreshCwIcon } from 'lucide-react';
 import {
   DndContext,
   type DragEndEvent,
@@ -18,7 +19,9 @@ import { TopBar } from '@/components/TopBar';
 import { TaskLogBottomNav } from '@/components/TaskLogBottomNav';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/components/ui/use-toast';
 import { LANES, type TaskLane, type TaskRow } from '@/lib/tasklog/types';
 import { markTaskComplete } from '@/lib/tasklog/completeTask';
 import { useCurrentProfile, refreshCurrentProfile } from '@/lib/useCurrentProfile';
@@ -39,9 +42,12 @@ function toStreakProfile(profileId: string, profile: Record<string, unknown>): S
 export default function BoardPage() {
   const supabase = createClientComponentClient();
   const { profile } = useCurrentProfile();
+  const { toast } = useToast();
   const [detailTask, setDetailTask] = useState<TaskRow | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [addingTask, setAddingTask] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
 
@@ -122,57 +128,132 @@ export default function BoardPage() {
     await persistLanePositions(destLane, newDestTasks);
 
     if (destLane === 'done' && profile) {
-      await markTaskComplete(supabase, { id: movedTask.id, goalId: movedTask.goalId, title: movedTask.title }, toStreakProfile(profile.id, profile), true);
-      await refreshCurrentProfile();
+      try {
+        await markTaskComplete(supabase, { id: movedTask.id, goalId: movedTask.goalId, title: movedTask.title }, toStreakProfile(profile.id, profile), true);
+        await refreshCurrentProfile();
+        toast({ title: 'Task completed', description: `"${movedTask.title}" marked as done.` });
+      } catch (err) {
+        toast({
+          title: 'Failed to complete task',
+          description: err instanceof Error ? err.message : 'Something went wrong.',
+          variant: 'destructive',
+        });
+      }
     }
   }
 
   async function handleAddTask(e: React.FormEvent) {
     e.preventDefault();
     if (!newTaskTitle.trim() || !profile) return;
-    const todoTasks = tasksInLane('todo');
-    const { data, error } = await supabase
-      .from('tasklog_tasks')
-      .insert([{
-        profileId: profile.id,
-        title: newTaskTitle.trim(),
-        category: 'work',
-        priority: 'medium',
-        lane: 'todo',
-        position: todoTasks.length,
-      }])
-      .select()
-      .single();
-    if (!error && data) {
-      await setTasksOptimistic([...tasks, data as TaskRow]);
-      setNewTaskTitle('');
+    setAddingTask(true);
+    try {
+      const todoTasks = tasksInLane('todo');
+      const { data, error } = await supabase
+        .from('tasklog_tasks')
+        .insert([{
+          profileId: profile.id,
+          title: newTaskTitle.trim(),
+          category: 'work',
+          priority: 'medium',
+          lane: 'todo',
+          position: todoTasks.length,
+        }])
+        .select()
+        .single();
+      if (error) throw error;
+      if (data) {
+        await setTasksOptimistic([...tasks, data as TaskRow]);
+        setNewTaskTitle('');
+        toast({ title: 'Task added' });
+      }
+    } catch (err) {
+      toast({
+        title: 'Failed to add task',
+        description: err instanceof Error ? err.message : 'Something went wrong.',
+        variant: 'destructive',
+      });
+    } finally {
+      setAddingTask(false);
     }
   }
 
   async function handleSaveTask(id: string, updates: Partial<TaskRow>) {
     const wasCompleted = tasks.find((t) => t.id === id)?.completedAt;
-    const { data, error } = await supabase.from('tasklog_tasks').update(updates).eq('id', id).select().single();
-    if (error || !data) return;
-    const updated = data as TaskRow;
-    await setTasksOptimistic(tasks.map((t) => (t.id === id ? updated : t)));
-    if (!wasCompleted && updated.completedAt && profile) {
-      await markTaskComplete(supabase, { id: updated.id, goalId: updated.goalId, title: updated.title }, toStreakProfile(profile.id, profile), true);
-      await refreshCurrentProfile();
+    try {
+      const { data, error } = await supabase.from('tasklog_tasks').update(updates).eq('id', id).select().single();
+      if (error || !data) throw error ?? new Error('Task not found');
+      const updated = data as TaskRow;
+      await setTasksOptimistic(tasks.map((t) => (t.id === id ? updated : t)));
+      if (!wasCompleted && updated.completedAt && profile) {
+        await markTaskComplete(supabase, { id: updated.id, goalId: updated.goalId, title: updated.title }, toStreakProfile(profile.id, profile), true);
+        await refreshCurrentProfile();
+        toast({ title: 'Task completed', description: `"${updated.title}" marked as done.` });
+      } else {
+        toast({ title: 'Task updated' });
+      }
+    } catch (err) {
+      toast({
+        title: 'Failed to save task',
+        description: err instanceof Error ? err.message : 'Something went wrong.',
+        variant: 'destructive',
+      });
     }
   }
 
   async function handleDeleteTask(id: string) {
-    await supabase.from('tasklog_tasks').delete().eq('id', id);
-    await setTasksOptimistic(tasks.filter((t) => t.id !== id));
+    try {
+      const { error } = await supabase.from('tasklog_tasks').delete().eq('id', id);
+      if (error) throw error;
+      await setTasksOptimistic(tasks.filter((t) => t.id !== id));
+      toast({ title: 'Task deleted' });
+    } catch (err) {
+      toast({
+        title: 'Failed to delete task',
+        description: err instanceof Error ? err.message : 'Something went wrong.',
+        variant: 'destructive',
+      });
+    }
+  }
+
+  async function handleManualRefresh() {
+    setRefreshing(true);
+    try {
+      await mutateTasks();
+    } finally {
+      setRefreshing(false);
+    }
   }
 
   return (
     <div className="pb-24">
-      <TopBar title="Board" />
+      <TopBar
+        title="Board"
+        actions={
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label="Refresh board"
+            onClick={handleManualRefresh}
+            disabled={refreshing}
+          >
+            <RefreshCwIcon className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+          </Button>
+        }
+      />
       <form onSubmit={handleAddTask} className="flex gap-2 px-4 py-3">
-        <Input value={newTaskTitle} onChange={(e) => setNewTaskTitle(e.target.value)} placeholder="Quick add to To Do…" />
-        <Button type="submit" size="icon" aria-label="Add task">
-          <PlusIcon className="h-4 w-4" />
+        <Label htmlFor="board-quick-add" className="sr-only">Quick add task</Label>
+        <Input
+          id="board-quick-add"
+          value={newTaskTitle}
+          onChange={(e) => setNewTaskTitle(e.target.value)}
+          placeholder="Quick add to To Do…"
+          autoComplete="off"
+          autoFocus
+          disabled={addingTask}
+        />
+        <Button type="submit" size="icon" aria-label="Add task" disabled={addingTask || !newTaskTitle.trim()}>
+          {addingTask ? <RefreshCwIcon className="h-4 w-4 animate-spin" /> : <PlusIcon className="h-4 w-4" />}
         </Button>
       </form>
       {isLoading ? (

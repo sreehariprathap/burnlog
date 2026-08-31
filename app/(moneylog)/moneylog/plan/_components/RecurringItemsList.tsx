@@ -1,10 +1,12 @@
 // app/(moneylog)/moneylog/plan/_components/RecurringItemsList.tsx
 'use client';
 
+import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Loader2 } from 'lucide-react';
 import { categoryLabel } from '@/lib/financeCategories';
+import { formatCurrency } from '@/lib/format';
 import type { PlanRecurringItem } from '../page';
 
 const WEEKDAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -38,12 +40,23 @@ function frequencyLabel(item: PlanRecurringItem): string {
 
 interface RecurringItemsListProps {
   items: PlanRecurringItem[];
-  onDelete: (id: string) => void;
+  onDelete: (id: string) => Promise<void> | void;
 }
 
 export function RecurringItemsList({ items, onDelete }: RecurringItemsListProps) {
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const income = items.filter((item) => item.type === 'income');
   const expense = items.filter((item) => item.type === 'expense');
+
+  async function handleDeleteClick(item: PlanRecurringItem) {
+    if (!window.confirm(`Delete "${item.label}"? This can't be undone.`)) return;
+    setDeletingId(item.id);
+    try {
+      await onDelete(item.id);
+    } finally {
+      setDeletingId(null);
+    }
+  }
 
   function renderGroup(title: string, group: PlanRecurringItem[]) {
     if (group.length === 0) return null;
@@ -62,9 +75,19 @@ export function RecurringItemsList({ items, onDelete }: RecurringItemsListProps)
                 </p>
               </div>
               <div className="flex items-center gap-3">
-                <span className="font-semibold">{item.amount.toLocaleString()}</span>
-                <Button variant="ghost" size="icon" onClick={() => onDelete(item.id)} aria-label={`Delete ${item.label}`}>
-                  <Trash2 className="h-4 w-4" />
+                <span className="font-semibold">{formatCurrency(item.amount)}</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleDeleteClick(item)}
+                  disabled={deletingId === item.id}
+                  aria-label={`Delete ${item.label}`}
+                >
+                  {deletingId === item.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
             </div>
@@ -80,7 +103,8 @@ export function RecurringItemsList({ items, onDelete }: RecurringItemsListProps)
         <CardHeader>
           <CardTitle>No recurring items yet</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="text-center space-y-2">
+          <div className="text-4xl" aria-hidden="true">🔁</div>
           <p className="text-sm text-muted-foreground">Add your income sources and recurring expenses below.</p>
         </CardContent>
       </Card>

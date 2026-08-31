@@ -1,13 +1,15 @@
 // app/(shoppinglog)/shoppinglog/page.tsx
 'use client';
+// Client Component — page metadata isn't applicable here (see layout.tsx for shared app metadata).
 
 import { useEffect, useState } from 'react';
 import useSWR from 'swr';
 import Link from 'next/link';
-import { Heart, Loader2 } from 'lucide-react';
+import { Heart, Loader2, RefreshCw, SearchX } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
 import { ShoppingLogBottomNav } from '@/components/ShoppingLogBottomNav';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/lib/apiFetch';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
@@ -40,7 +42,7 @@ export default function ShoppingLogBrowsePage() {
   if (categorySlug) params.set('categorySlug', categorySlug);
   if (condition !== 'all') params.set('condition', condition);
 
-  const { data: listingData, isLoading } = useSWR<{ listings: ListingSummary[] }>(
+  const { data: listingData, isLoading, mutate } = useSWR<{ listings: ListingSummary[] }>(
     `/api/shoppinglog/listings?${params.toString()}`,
     fetcher
   );
@@ -50,16 +52,30 @@ export default function ShoppingLogBrowsePage() {
       <TopBar
         title="ShoppingLog"
         actions={
-          <Link href="/shoppinglog/favorites">
-            <Button variant="ghost" size="icon" aria-label="Favorites">
-              <Heart className="size-5" />
+          <div className="flex items-center gap-1">
+            <Button type="button" variant="ghost" size="icon" aria-label="Refresh" onClick={() => mutate()}>
+              <RefreshCw className="size-4" />
             </Button>
-          </Link>
+            <Link href="/shoppinglog/favorites">
+              <Button variant="ghost" size="icon" aria-label="Favorites">
+                <Heart className="size-5" />
+              </Button>
+            </Link>
+          </div>
         }
       />
       {profile && <CrossAppSnapshot currentApp="shoppinglog" profileId={profile.id} />}
       <main className="flex-1 container mx-auto max-w-4xl space-y-4 p-4 pb-24">
-        <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search listings…" />
+        <Label htmlFor="listing-search" className="sr-only">
+          Search listings
+        </Label>
+        <Input
+          id="listing-search"
+          autoComplete="off"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search listings…"
+        />
 
         <CategoryChips categories={categoryData?.categories ?? []} selected={categorySlug} onSelect={setCategorySlug} />
 
@@ -69,6 +85,7 @@ export default function ShoppingLogBrowsePage() {
               key={c}
               type="button"
               onClick={() => setCondition(c)}
+              aria-pressed={condition === c}
               className={
                 condition === c
                   ? 'rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground'
@@ -82,7 +99,11 @@ export default function ShoppingLogBrowsePage() {
 
         {isLoading && <Loader2 className="h-6 w-6 animate-spin" />}
         {!isLoading && (listingData?.listings.length ?? 0) === 0 && (
-          <p className="py-8 text-center text-sm text-muted-foreground">No listings match yet.</p>
+          <div className="flex flex-col items-center gap-2 py-12 text-center">
+            <SearchX className="size-8 text-muted-foreground" />
+            <p className="text-sm font-medium">No listings match yet</p>
+            <p className="text-xs text-muted-foreground">Try a different search or category.</p>
+          </div>
         )}
 
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">

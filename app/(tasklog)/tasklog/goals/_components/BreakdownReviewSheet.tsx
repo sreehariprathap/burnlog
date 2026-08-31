@@ -6,6 +6,8 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter } from '
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/components/ui/use-toast';
 import type { TaskCategory, TaskPriority } from '@/lib/tasklog/types';
 
 export interface BreakdownSuggestion {
@@ -23,6 +25,7 @@ interface BreakdownReviewSheetProps {
 }
 
 export function BreakdownReviewSheet({ open, onOpenChange, suggestions, onConfirm }: BreakdownReviewSheetProps) {
+  const { toast } = useToast();
   const [items, setItems] = useState<(BreakdownSuggestion & { selected: boolean })[]>([]);
   const [saving, setSaving] = useState(false);
 
@@ -50,6 +53,12 @@ export function BreakdownReviewSheet({ open, onOpenChange, suggestions, onConfir
           suggestedDueDate: item.suggestedDueDate,
         }));
       await onConfirm(selected);
+    } catch (err) {
+      toast({
+        title: 'Failed to add tasks',
+        description: err instanceof Error ? err.message : 'Something went wrong.',
+        variant: 'destructive',
+      });
     } finally {
       setSaving(false);
     }
@@ -66,8 +75,20 @@ export function BreakdownReviewSheet({ open, onOpenChange, suggestions, onConfir
         <div className="flex max-h-96 flex-col gap-2 overflow-y-auto px-4">
           {items.map((item, index) => (
             <div key={index} className="flex items-center gap-2 rounded-md border p-2">
-              <Checkbox checked={item.selected} onCheckedChange={() => toggleSelected(index)} />
-              <Input value={item.title} onChange={(e) => updateTitle(index, e.target.value)} className="h-8 flex-1" />
+              <Checkbox
+                checked={item.selected}
+                onCheckedChange={() => toggleSelected(index)}
+                aria-label={`Include task "${item.title}"`}
+              />
+              <Label htmlFor={`breakdown-title-${index}`} className="sr-only">Task title</Label>
+              <Input
+                id={`breakdown-title-${index}`}
+                value={item.title}
+                onChange={(e) => updateTitle(index, e.target.value)}
+                className="h-8 flex-1"
+                autoComplete="off"
+                autoFocus={index === 0}
+              />
               <span className="text-xs capitalize text-muted-foreground">{item.priority}</span>
             </div>
           ))}

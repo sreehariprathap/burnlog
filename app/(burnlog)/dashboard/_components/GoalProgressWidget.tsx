@@ -3,6 +3,7 @@
 import { Target } from 'lucide-react';
 import { AnimatedCircularProgressBar } from '@/components/ui/animated-circular-progress-bar';
 import { NeonGradientCard } from '@/components/ui/neon-gradient-card';
+import { Skeleton } from '@/components/ui/skeleton';
 
 type Goal = {
   id: string;
@@ -30,8 +31,7 @@ export function GoalProgressWidget({
   },
   loading = false,
 }: GoalProgressWidgetProps) {
-  // If no goal or loading, show placeholder
-  if (loading || !goal) {
+  if (loading) {
     return (
       <NeonGradientCard
         className="col-span-4"
@@ -43,9 +43,31 @@ export function GoalProgressWidget({
           <span className="font-semibold">Goal Progress</span>
           <Target className="w-5 h-5 text-amber-500" />
         </div>
-        <div className="mt-4 text-sm text-muted-foreground">
-          {loading ? 'Loading goal data…' : 'Set a goal to track your progress'}
+        <div className="mt-4 flex items-center gap-5">
+          <Skeleton className="size-24 shrink-0 rounded-full" />
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-3 w-2/3" />
+          </div>
         </div>
+      </NeonGradientCard>
+    );
+  }
+
+  if (!goal) {
+    return (
+      <NeonGradientCard
+        className="col-span-4"
+        borderSize={2}
+        borderRadius={16}
+        neonColors={NEON}
+      >
+        <div className="flex items-center justify-between">
+          <span className="font-semibold">Goal Progress</span>
+          <Target className="w-5 h-5 text-amber-500" />
+        </div>
+        <div className="mt-4 text-sm text-muted-foreground">Set a goal to track your progress</div>
       </NeonGradientCard>
     );
   }

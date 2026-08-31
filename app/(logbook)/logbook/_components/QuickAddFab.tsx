@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import { useToast } from '@/components/ui/use-toast';
 import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '@/lib/financeCategories';
 
 type QuickAddOption = 'meal' | 'task' | 'expense' | 'sleep';
@@ -203,9 +204,17 @@ function SleepComingSoon({ onCancel }: { onCancel: () => void }) {
   );
 }
 
+const SAVED_MESSAGES: Record<QuickAddOption, string> = {
+  meal: 'Meal logged',
+  task: 'Task marked done',
+  expense: 'Expense logged',
+  sleep: 'Sleep logged',
+};
+
 export function QuickAddFab({ profileId, onSaved }: QuickAddFabProps) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState<QuickAddOption | null>(null);
+  const { toast } = useToast();
 
   const close = () => {
     setOpen(false);
@@ -213,6 +222,9 @@ export function QuickAddFab({ profileId, onSaved }: QuickAddFabProps) {
   };
 
   const handleSaved = () => {
+    if (selected) {
+      toast({ description: SAVED_MESSAGES[selected] });
+    }
     onSaved();
     close();
   };

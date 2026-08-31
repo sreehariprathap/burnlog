@@ -10,6 +10,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '@/lib/financeCategories';
 import { ReceiptScanner } from './ReceiptScanner';
+import { useToast } from '@/components/ui/use-toast';
 
 type LogTransactionModalProps = {
   profileId: string;
@@ -21,6 +22,7 @@ type TransactionType = 'income' | 'expense';
 
 export function LogTransactionModal({ profileId, onClose, onSaved }: LogTransactionModalProps) {
   const supabase = createClientComponentClient();
+  const { toast } = useToast();
   const [tab, setTab] = useState<'manual' | 'photo'>('manual');
   const [showScanner, setShowScanner] = useState(false);
   const [type, setType] = useState<TransactionType>('expense');
@@ -29,7 +31,9 @@ export function LogTransactionModal({ profileId, onClose, onSaved }: LogTransact
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [notes, setNotes] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [labelError, setLabelError] = useState<string | null>(null);
+  const [amountError, setAmountError] = useState<string | null>(null);
+  const [categoryError, setCategoryError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   const categories = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
@@ -50,16 +54,26 @@ export function LogTransactionModal({ profileId, onClose, onSaved }: LogTransact
     setTab('manual');
   };
 
-  const handleSave = async () => {
-    setError(null);
+  const handleSave = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    setLabelError(null);
+    setAmountError(null);
+    setCategoryError(null);
+
+    let hasError = false;
     if (!label.trim()) {
-      setError('Please enter a label');
-      return;
+      setLabelError('Please enter a label');
+      hasError = true;
     }
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
-      setError('Please enter a valid amount');
-      return;
+      setAmountError('Please enter a valid amount');
+      hasError = true;
     }
+    if (!category) {
+      setCategoryError('Please choose a category');
+      hasError = true;
+    }
+    if (hasError) return;
 
     setSaving(true);
     try {
@@ -76,9 +90,11 @@ export function LogTransactionModal({ profileId, onClose, onSaved }: LogTransact
       ]);
 
       if (insertError) throw insertError;
+      toast({ title: 'Transaction saved' });
       onSaved();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save transaction');
+      const message = err instanceof Error ? err.message : 'Failed to save transaction';
+      toast({ title: 'Failed to save transaction', description: message, variant: 'destructive' });
     } finally {
       setSaving(false);
     }
@@ -94,14 +110,14 @@ export function LogTransactionModal({ profileId, onClose, onSaved }: LogTransact
         <DrawerHeader>
           <DrawerTitle>Log Transaction</DrawerTitle>
         </DrawerHeader>
-        <div className="px-4 pb-6 space-y-4 overflow-y-auto">
+        <form className="px-4 pb-6 space-y-4 overflow-y-auto" onSubmit={handleSave}>
           <Tabs value={tab} onValueChange={(v) => setTab(v as 'manual' | 'photo')}>
             <TabsList className="grid grid-cols-2">
               <TabsTrigger value="manual">Manual</TabsTrigger>
               <TabsTrigger value="photo">Scan Receipt</TabsTrigger>
             </TabsList>
             <TabsContent value="photo" className="pt-3">
-              <Button className="w-full gap-2" onClick={() => setShowScanner(true)}>
+              <Button type="button" className="w-full gap-2" onClick={() => setShowScanner(true)}>
                 <Receipt className="h-4 w-4" />
                 Scan Receipt Photo
               </Button>
@@ -140,16 +156,34 @@ export function LogTransactionModal({ profileId, onClose, onSaved }: LogTransact
                       <option key={c.value} value={c.value}>{c.label}</option>
                     ))}
                   </select>
+                  {categoryError && <p className="text-sm text-red-500">{categoryError}</p>}
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="amount">Amount</Label>
-                  <Input id="amount" type="number" step="0.01" placeholder="0.00" value={amount} onChange={(e) => setAmount(e.target.value)} />
+                  <Input
+                    id="amount"
+                    type="number"
+                    inputMode="decimal"
+                    step="0.01"
+                    autoFocus
+                    placeholder="0.00"
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                  />
+                  {amountError && <p className="text-sm text-red-500">{amountError}</p>}
                 </div>
               </div>
 
               <div className="space-y-1">
                 <Label htmlFor="label">Label</Label>
-                <Input id="label" placeholder="e.g. Whole Foods" value={label} onChange={(e) => setLabel(e.target.value)} />
+                <Input
+                  id="label"
+                  placeholder="e.g. Whole Foods"
+                  autoComplete="off"
+                  value={label}
+                  onChange={(e) => setLabel(e.target.value)}
+                />
+                {labelError && <p className="text-sm text-red-500">{labelError}</p>}
               </div>
 
               <div className="space-y-1">
@@ -159,17 +193,21 @@ export function LogTransactionModal({ profileId, onClose, onSaved }: LogTransact
 
               <div className="space-y-1">
                 <Label htmlFor="notes">Notes (optional)</Label>
-                <Input id="notes" placeholder="Any details" value={notes} onChange={(e) => setNotes(e.target.value)} />
+                <Input
+                  id="notes"
+                  placeholder="Any details"
+                  autoComplete="off"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                />
               </div>
             </TabsContent>
           </Tabs>
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
-
-          <Button onClick={handleSave} disabled={saving} className="w-full">
+          <Button type="submit" disabled={saving} className="w-full">
             {saving ? 'Saving...' : 'Save'}
           </Button>
-        </div>
+        </form>
       </DrawerContent>
     </Drawer>
   );

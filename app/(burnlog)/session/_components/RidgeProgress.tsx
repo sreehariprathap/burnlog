@@ -48,6 +48,8 @@ export function RidgeProgress({ weeks, onSelectWeek }: RidgeProgressProps) {
               fill={p.complete ? 'var(--primary)' : i === currentIndex ? 'var(--chart-3)' : 'var(--muted)'}
               onClick={() => onSelectWeek?.(p.weekIndex)}
               className={onSelectWeek ? 'cursor-pointer' : undefined}
+              role={onSelectWeek ? 'button' : undefined}
+              aria-label={onSelectWeek ? `Week ${p.weekIndex}${p.complete ? ' (complete)' : ''}` : undefined}
             />
           ))}
         </svg>

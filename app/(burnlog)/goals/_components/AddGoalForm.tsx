@@ -8,6 +8,7 @@ import { Goal } from '../page';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Loader } from 'lucide-react';
 import { GOAL_TYPES } from '@/lib/goalTypes';
+import { useToast } from '@/components/ui/use-toast';
 
 type AddGoalFormProps = {
   onGoalAdded: (goal: Goal) => void;
@@ -21,7 +22,8 @@ export function AddGoalForm({ onGoalAdded, userId }: AddGoalFormProps) {
   const [error, setError] = useState('');
 
   const supabase = createClientComponentClient();
-  
+  const { toast } = useToast();
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,14 +65,17 @@ export function AddGoalForm({ onGoalAdded, userId }: AddGoalFormProps) {
       if (data && data.length > 0) {
         // Notify parent component
         onGoalAdded(data[0] as Goal);
-        
+        toast({ title: 'Goal added', description: 'Your fitness goal was saved.' });
+
         // Reset form
         setGoalType('weight_loss');
         setTargetValue('');
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      const message = err instanceof Error ? err.message : 'An error occurred';
+      setError(message);
       console.error('Error adding goal:', err);
+      toast({ title: 'Failed to add goal', description: message, variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -99,6 +104,7 @@ export function AddGoalForm({ onGoalAdded, userId }: AddGoalFormProps) {
         <Input
           id="targetValue"
           type="number"
+          inputMode="decimal"
           placeholder="Enter target value"
           value={targetValue}
           onChange={(e) => setTargetValue(e.target.value)}

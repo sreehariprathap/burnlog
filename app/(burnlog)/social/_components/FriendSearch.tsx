@@ -5,6 +5,8 @@ import { Loader2, UserPlus } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/components/ui/use-toast';
 
 type SearchResult = { id: string; username: string; firstName: string; level: number };
 
@@ -19,6 +21,7 @@ export function FriendSearch({ onRequestSent }: FriendSearchProps) {
   const [sendingUsername, setSendingUsername] = useState<string | null>(null);
   const [sentUsernames, setSentUsernames] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const handleSearch = async (q: string) => {
     setQuery(q);
@@ -36,8 +39,8 @@ export function FriendSearch({ onRequestSent }: FriendSearchProps) {
         return;
       }
       setResults(data.results ?? []);
-    } catch {
-      setError('Network error');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Network error');
     } finally {
       setSearching(false);
     }
@@ -54,13 +57,18 @@ export function FriendSearch({ onRequestSent }: FriendSearchProps) {
       });
       const data = await res.json();
       if (!res.ok || data.error) {
-        setError(data.error ?? 'Failed to send request');
+        const message = data.error ?? 'Failed to send request';
+        setError(message);
+        toast({ title: 'Could not send request', description: message, variant: 'destructive' });
         return;
       }
       setSentUsernames((prev) => new Set(prev).add(username));
+      toast({ title: 'Friend request sent', description: `Request sent to @${username}` });
       onRequestSent();
-    } catch {
-      setError('Network error');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Network error';
+      setError(message);
+      toast({ title: 'Could not send request', description: message, variant: 'destructive' });
     } finally {
       setSendingUsername(null);
     }
@@ -72,10 +80,15 @@ export function FriendSearch({ onRequestSent }: FriendSearchProps) {
         <CardTitle>Find Friends</CardTitle>
       </CardHeader>
       <CardContent className="space-y-3">
+        <Label htmlFor="friend-search-input" className="sr-only">
+          Search by username
+        </Label>
         <Input
+          id="friend-search-input"
           value={query}
           onChange={(e) => handleSearch(e.target.value)}
           placeholder="Search by username"
+          autoComplete="off"
         />
         {searching && <Loader2 className="h-4 w-4 animate-spin" />}
         {error && <p className="text-sm text-red-500">{error}</p>}

@@ -1,20 +1,29 @@
 'use client';
 
+import { useState } from 'react';
 import useSWR from 'swr';
+import { RefreshCw } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
 import { LogbookBottomNav } from '@/components/LogbookBottomNav';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
+import { useToast } from '@/components/ui/use-toast';
+import { cn } from '@/lib/utils';
 import { DayScoreRing } from '@/components/logbook/DayScoreRing';
 import { LogCardsGrid } from '@/components/logbook/LogCardsGrid';
 import { StreakBadge } from '@/components/logbook/StreakBadge';
 import { MorningBrief } from '@/components/logbook/MorningBrief';
 import { ActivityTimeline } from '@/components/logbook/ActivityTimeline';
+import { CorrelationInsight } from '@/components/logbook/CorrelationInsight';
 import { StreakCalendar } from './_components/StreakCalendar';
 import { WeeklySummary } from './_components/WeeklySummary';
 import { QuickAddFab } from './_components/QuickAddFab';
 import type { LogbookToday } from '@/lib/logbook/today';
+
+// Client Component — page metadata (title) is set via the root layout's
+// default; add a Metadata export here if this is ever converted to a
+// Server Component wrapper.
 
 async function fetchLogbookToday(): Promise<LogbookToday> {
   const res = await fetch('/api/logbook/today');
@@ -25,12 +34,42 @@ async function fetchLogbookToday(): Promise<LogbookToday> {
 export default function LogbookPage() {
   const { profile, loading: profileLoading } = useCurrentProfile();
   const { data, isLoading, error, mutate } = useSWR(profile ? 'logbook-today' : null, fetchLogbookToday);
+  const { toast } = useToast();
+  const [refreshing, setRefreshing] = useState(false);
 
   const loading = profileLoading || isLoading;
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await mutate();
+    } catch (err) {
+      toast({
+        title: 'Refresh failed',
+        description: err instanceof Error ? err.message : 'Could not refresh the logbook.',
+        variant: 'destructive',
+      });
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background pb-28">
-      <TopBar title="Logbook" />
+      <TopBar
+        title="Logbook"
+        actions={
+          <button
+            type="button"
+            onClick={handleRefresh}
+            disabled={loading || refreshing}
+            aria-label="Refresh logbook"
+            className="flex items-center justify-center disabled:opacity-50"
+          >
+            <RefreshCw className={cn('h-5 w-5', refreshing && 'animate-spin')} />
+          </button>
+        }
+      />
 
       <div className="mx-auto flex max-w-lg flex-col gap-5 p-4">
         {loading && (
@@ -47,21 +86,22 @@ export default function LogbookPage() {
 
         {!loading && error && (
           <Card>
-            <CardContent className="p-6 text-center text-sm text-muted-foreground">
-              Couldn&apos;t load today&apos;s logbook. Try refreshing.
+            <CardContent className="flex flex-col items-center gap-3 p-6 text-center text-sm text-muted-foreground">
+              <p>Couldn&apos;t load today&apos;s logbook.</p>
+              <button
+                type="button"
+                onClick={handleRefresh}
+                className="font-medium text-primary hover:underline"
+              >
+                Try again
+              </button>
             </CardContent>
           </Card>
         )}
 
         {!loading && data && (
           <>
-            <MorningBrief
-              yesterdayScore={data.yesterdayScore}
-              insight={data.insight}
-              burnTarget={data.cards.find((c) => c.app === 'burnlog')?.target ?? 0}
-              taskTarget={data.cards.find((c) => c.app === 'tasklog')?.target ?? 0}
-              budgetTarget={data.cards.find((c) => c.app === 'moneylog')?.target ?? 0}
-            />
+            <MorningBrief />
 
             <Card>
               <CardContent className="pt-6">
@@ -70,6 +110,8 @@ export default function LogbookPage() {
             </Card>
 
             <LogCardsGrid cards={data.cards} />
+
+            <CorrelationInsight />
 
             <StreakBadge streak={data.streak} streakApps={data.streakApps} />
 

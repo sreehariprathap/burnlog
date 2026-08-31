@@ -19,6 +19,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { expandRecurringInRange } from '@/lib/financePeriods';
 import type { RecurringItemRow, FinanceLineItem } from '@/lib/financePeriods';
 import { categoryLabel } from '@/lib/financeCategories';
+import { formatCurrency } from '@/lib/format';
 import { SmoothTabs, type TabItem } from '@/components/kokonutui/smooth-tabs';
 import { MotionCarousel } from '@/components/kokonutui/motion-carousel';
 import { LayoutGrid, TrendingUp, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
@@ -91,19 +92,19 @@ export default function FinanceInsightsClient({ recurringItems, transactions }: 
       <Card>
         <CardContent className="pt-4">
           <p className="text-xs text-muted-foreground">Income</p>
-          <p className="font-semibold">{totalIncome.toLocaleString()}</p>
+          <p className="font-semibold">{formatCurrency(totalIncome)}</p>
         </CardContent>
       </Card>
       <Card>
         <CardContent className="pt-4">
           <p className="text-xs text-muted-foreground">Expense</p>
-          <p className="font-semibold">{totalExpense.toLocaleString()}</p>
+          <p className="font-semibold">{formatCurrency(totalExpense)}</p>
         </CardContent>
       </Card>
       <Card>
         <CardContent className="pt-4">
           <p className="text-xs text-muted-foreground">Net</p>
-          <p className="font-semibold">{net.toLocaleString()}</p>
+          <p className="font-semibold">{formatCurrency(net)}</p>
         </CardContent>
       </Card>
       <Card>
@@ -126,7 +127,7 @@ export default function FinanceInsightsClient({ recurringItems, transactions }: 
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
             <YAxis />
-            <Tooltip />
+            <Tooltip formatter={(value: number) => formatCurrency(value)} />
             <Legend />
             <Line type="monotone" dataKey="income" stroke="#22C55E" />
             <Line type="monotone" dataKey="expense" stroke="#EF4444" />
@@ -148,7 +149,7 @@ export default function FinanceInsightsClient({ recurringItems, transactions }: 
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="category" tick={{ fontSize: 10 }} interval={0} angle={-30} textAnchor="end" height={60} />
             <YAxis />
-            <Tooltip />
+            <Tooltip formatter={(value: number) => formatCurrency(value)} />
             <Bar dataKey="amount" fill="#EF4444" />
           </BarChart>
         </ResponsiveContainer>
@@ -167,7 +168,7 @@ export default function FinanceInsightsClient({ recurringItems, transactions }: 
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="category" tick={{ fontSize: 10 }} interval={0} angle={-30} textAnchor="end" height={60} />
             <YAxis />
-            <Tooltip />
+            <Tooltip formatter={(value: number) => formatCurrency(value)} />
             <Bar dataKey="amount" fill="#22C55E" />
           </BarChart>
         </ResponsiveContainer>

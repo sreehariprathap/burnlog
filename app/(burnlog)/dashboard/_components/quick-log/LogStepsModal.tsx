@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import { useToast } from '@/components/ui/use-toast';
 
 type LogStepsModalProps = {
   profileId: string;
@@ -15,6 +16,7 @@ type LogStepsModalProps = {
 
 export function LogStepsModal({ profileId, onClose, onSaved }: LogStepsModalProps) {
   const supabase = createClientComponentClient();
+  const { toast } = useToast();
   const [steps, setSteps] = useState('');
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);
   const [saving, setSaving] = useState(false);
@@ -37,9 +39,12 @@ export function LogStepsModal({ profileId, onClose, onSaved }: LogStepsModalProp
         },
       ]);
       if (insertError) throw insertError;
+      toast({ title: 'Steps logged', description: `${steps} steps saved.` });
       onSaved();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save steps');
+      const message = err instanceof Error ? err.message : 'Failed to save steps';
+      setError(message);
+      toast({ title: 'Failed to save steps', description: message, variant: 'destructive' });
     } finally {
       setSaving(false);
     }
@@ -54,7 +59,7 @@ export function LogStepsModal({ profileId, onClose, onSaved }: LogStepsModalProp
         <div className="px-4 pb-6 space-y-4">
           <div className="space-y-1">
             <Label htmlFor="steps">Steps</Label>
-            <Input id="steps" type="number" placeholder="e.g. 8000" value={steps} onChange={(e) => setSteps(e.target.value)} />
+            <Input id="steps" type="number" inputMode="numeric" autoFocus placeholder="e.g. 8000" value={steps} onChange={(e) => setSteps(e.target.value)} />
           </div>
 
           <div className="space-y-1">

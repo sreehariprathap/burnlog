@@ -16,6 +16,7 @@ import { ShoppingDayStep } from './ShoppingDayStep';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { AiLoading } from '@/components/kokonutui/ai-loading';
+import { useToast } from '@/components/ui/use-toast';
 import type { LifestyleAnswers, MealPlannerWizardAnswers, MealCandidate, MealGridCell } from '@/lib/ai/types';
 
 export type WizardStep = 'loading' | 'store' | 'household' | 'preferences' | 'appliances' | 'generating-candidates' | 'selecting' | 'grid' | 'finalizing' | 'grocery' | 'shopping' | 'done';
@@ -34,6 +35,7 @@ export function MealPlannerFlow() {
   const [grid, setGrid] = useState<MealGridCell[]>([]);
   const [groceryList, setGroceryList] = useState<Record<string, string[]> | null>(null);
   const [estimatedBudget, setEstimatedBudget] = useState('');
+  const { toast } = useToast();
 
   useEffect(() => {
     (async () => {
@@ -80,18 +82,22 @@ export function MealPlannerFlow() {
         });
         const data = await res.json();
         if (!res.ok || data.error) {
-          setError(data.error ?? 'Failed to generate meal ideas. Please try again.');
+          const message = data.error ?? 'Failed to generate meal ideas. Please try again.';
+          setError(message);
+          toast({ title: 'Could not generate meal ideas', description: message, variant: 'destructive' });
           setStep('appliances');
           return;
         }
         setCandidates(data.candidates as MealCandidate[]);
         setStep('selecting');
-      } catch {
-        setError('Network error. Please try again.');
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Network error. Please try again.';
+        setError(message);
+        toast({ title: 'Could not generate meal ideas', description: message, variant: 'destructive' });
         setStep('appliances');
       }
     })();
-  }, [step, answers]);
+  }, [step, answers, toast]);
 
   useEffect(() => {
     if (step !== 'finalizing') return;
@@ -105,19 +111,23 @@ export function MealPlannerFlow() {
         });
         const data = await res.json();
         if (!res.ok || data.error) {
-          setError(data.error ?? 'Failed to finalize your plan. Please try again.');
+          const message = data.error ?? 'Failed to finalize your plan. Please try again.';
+          setError(message);
+          toast({ title: 'Could not finalize your plan', description: message, variant: 'destructive' });
           setStep('grid');
           return;
         }
         setGroceryList(data.groceryList);
         setEstimatedBudget(data.estimatedBudget ?? '');
         setStep('grocery');
-      } catch {
-        setError('Network error. Please try again.');
+      } catch (err) {
+        const message = err instanceof Error ? err.message : 'Network error. Please try again.';
+        setError(message);
+        toast({ title: 'Could not finalize your plan', description: message, variant: 'destructive' });
         setStep('grid');
       }
     })();
-  }, [step, grid, answers]);
+  }, [step, grid, answers, toast]);
 
   if (step === 'loading' || !profileId) {
     return (
@@ -128,7 +138,7 @@ export function MealPlannerFlow() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
       {error && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 rounded-lg p-3 z-10">
           {error}

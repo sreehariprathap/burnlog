@@ -10,6 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 import type { LifestyleAnswers } from '@/lib/ai/types';
+import { useToast } from '@/components/ui/use-toast';
 
 type OutdoorCardioLoggerProps = {
   lifestyle?: LifestyleAnswers | null;
@@ -46,6 +47,7 @@ export function OutdoorCardioLogger({ lifestyle, onEnd }: OutdoorCardioLoggerPro
   const [caloriesBurned, setCaloriesBurned] = useState('');
   const [estimating, setEstimating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const toggleExtra = (key: string) =>
     setExtras((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -78,12 +80,16 @@ export function OutdoorCardioLogger({ lifestyle, onEnd }: OutdoorCardioLoggerPro
       });
       const data = await res.json();
       if (!res.ok || data.error) {
-        setError(data.error ?? 'Failed to estimate calories. Enter manually.');
+        const message = data.error ?? 'Failed to estimate calories. Enter manually.';
+        setError(message);
+        toast({ title: 'Estimate failed', description: message, variant: 'destructive' });
         return;
       }
       setCaloriesBurned(String(data.caloriesBurned));
-    } catch {
-      setError('Network error. Enter calories manually.');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Network error. Enter calories manually.';
+      setError(message);
+      toast({ title: 'Estimate failed', description: message, variant: 'destructive' });
     } finally {
       setEstimating(false);
     }
@@ -101,9 +107,9 @@ export function OutdoorCardioLogger({ lifestyle, onEnd }: OutdoorCardioLoggerPro
         </CardHeader>
         <CardContent className="space-y-5">
           <div className="space-y-2">
-            <Label>Activity</Label>
+            <Label id="outdoor-activity-label">Activity</Label>
             <Select value={activityType} onValueChange={setActivityType}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger aria-labelledby="outdoor-activity-label"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {activities.map((a) => (
                   <SelectItem key={a} value={a}>{a}</SelectItem>
@@ -114,19 +120,26 @@ export function OutdoorCardioLogger({ lifestyle, onEnd }: OutdoorCardioLoggerPro
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Duration (minutes)</Label>
+              <Label htmlFor="outdoor-duration">Duration (minutes)</Label>
               <Input
+                id="outdoor-duration"
                 type="number"
+                inputMode="numeric"
                 min={1}
                 value={durationMinutes}
                 onChange={(e) => setDurationMinutes(Number(e.target.value))}
                 placeholder="e.g. 30"
               />
+              {durationMinutes <= 0 && (
+                <p className="text-xs text-destructive">Enter a duration to continue.</p>
+              )}
             </div>
             <div className="space-y-2">
-              <Label>Distance (km) — optional</Label>
+              <Label htmlFor="outdoor-distance">Distance (km) — optional</Label>
               <Input
+                id="outdoor-distance"
                 type="number"
+                inputMode="decimal"
                 min={0}
                 step={0.1}
                 value={distanceKm || ''}
@@ -149,8 +162,9 @@ export function OutdoorCardioLogger({ lifestyle, onEnd }: OutdoorCardioLoggerPro
           </div>
 
           <div className="space-y-2">
-            <Label>Notes (optional)</Label>
+            <Label htmlFor="outdoor-notes">Notes (optional)</Label>
             <textarea
+              id="outdoor-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               className="w-full p-2 border rounded-md h-16 text-sm"
@@ -165,10 +179,12 @@ export function OutdoorCardioLogger({ lifestyle, onEnd }: OutdoorCardioLoggerPro
           )}
 
           <div className="space-y-2">
-            <Label>Calories burned</Label>
+            <Label htmlFor="outdoor-calories">Calories burned</Label>
             <div className="flex gap-2">
               <Input
+                id="outdoor-calories"
                 type="number"
+                inputMode="numeric"
                 placeholder="Calories"
                 value={caloriesBurned}
                 onChange={(e) => setCaloriesBurned(e.target.value)}
@@ -177,6 +193,9 @@ export function OutdoorCardioLogger({ lifestyle, onEnd }: OutdoorCardioLoggerPro
                 {estimating ? <Loader2 className="h-4 w-4 animate-spin" /> : 'AI'}
               </Button>
             </div>
+            {(!caloriesBurned || isNaN(Number(caloriesBurned))) && (
+              <p className="text-xs text-destructive">Enter calories burned, or use AI to estimate.</p>
+            )}
           </div>
 
           {error && <p className="text-sm text-red-500">{error}</p>}

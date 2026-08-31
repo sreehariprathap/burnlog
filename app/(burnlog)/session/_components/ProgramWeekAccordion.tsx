@@ -7,6 +7,7 @@ import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/components/ui/use-toast';
 
 export type ProgramWeekRow = {
   id: string;
@@ -29,6 +30,7 @@ export function ProgramWeekAccordion({ week, onWeekUpdated, onMilestone }: Progr
   const supabase = createClientComponentClient();
   const [open, setOpen] = useState(false);
   const checkedCount = week.checklist.filter((item) => item.checked).length;
+  const { toast } = useToast();
 
   const handleToggle = async (itemIndex: number, checked: boolean) => {
     const newChecklist = week.checklist.map((item, i) => (i === itemIndex ? { ...item, checked } : item));
@@ -43,6 +45,12 @@ export function ProgramWeekAccordion({ week, onWeekUpdated, onMilestone }: Progr
     if (!error) {
       onWeekUpdated({ ...week, checklist: newChecklist, milestoneAwarded: week.milestoneAwarded || allChecked });
       if (justCompleted) onMilestone(week.title);
+    } else {
+      toast({
+        title: 'Could not update checklist',
+        description: error.message,
+        variant: 'destructive',
+      });
     }
   };
 

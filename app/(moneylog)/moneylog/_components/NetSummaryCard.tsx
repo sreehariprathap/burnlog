@@ -4,6 +4,7 @@
 import { TrendingUp, TrendingDown, Scale } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { formatCurrency } from '@/lib/format';
 
 interface NetSummaryCardProps {
   income: number;
@@ -26,19 +27,19 @@ export function NetSummaryCard({ income, expense }: NetSummaryCardProps) {
             <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
             Income
           </span>
-          <p className="font-semibold tabular-nums">{income.toLocaleString()}</p>
+          <p className="font-semibold tabular-nums">{formatCurrency(income)}</p>
         </div>
         <div className="flex flex-col items-center gap-0.5">
           <span className="flex items-center gap-1 text-xs text-muted-foreground">
             <TrendingDown className="h-3.5 w-3.5 text-rose-500" />
             Expense
           </span>
-          <p className="font-semibold tabular-nums">{expense.toLocaleString()}</p>
+          <p className="font-semibold tabular-nums">{formatCurrency(expense)}</p>
         </div>
         <div className="flex flex-col items-center gap-0.5">
           <span className="text-xs text-muted-foreground">Net</span>
           <p className={cn('font-semibold tabular-nums', net >= 0 ? 'text-emerald-500' : 'text-destructive')}>
-            {net.toLocaleString()}
+            {formatCurrency(net)}
           </p>
         </div>
       </CardContent>

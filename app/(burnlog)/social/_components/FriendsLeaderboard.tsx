@@ -1,12 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Loader2, Trophy, UserMinus } from 'lucide-react';
+import { Loader2, RefreshCw, Trophy, UserMinus } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/components/ui/use-toast';
 
 type Metric = 'xp' | 'streak' | 'weekly';
 
@@ -50,6 +52,8 @@ export function FriendsLeaderboard({ refreshKey }: FriendsLeaderboardProps) {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [loading, setLoading] = useState(true);
   const [removingId, setRemovingId] = useState<string | null>(null);
+  const [manualRefreshKey, setManualRefreshKey] = useState(0);
+  const { toast } = useToast();
 
   useEffect(() => {
     let cancelled = false;
@@ -66,6 +70,14 @@ export function FriendsLeaderboard({ refreshKey }: FriendsLeaderboardProps) {
           setEntries(leaderboardData.entries ?? []);
           setFriends(friendsData.friends ?? []);
         }
+      } catch (err) {
+        if (!cancelled) {
+          toast({
+            title: 'Could not load leaderboard',
+            description: err instanceof Error ? err.message : 'Network error',
+            variant: 'destructive',
+          });
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -73,14 +85,26 @@ export function FriendsLeaderboard({ refreshKey }: FriendsLeaderboardProps) {
     return () => {
       cancelled = true;
     };
-  }, [metric, refreshKey]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [metric, refreshKey, manualRefreshKey]);
 
-  const handleUnfriend = async (friendshipId: string) => {
+  const handleManualRefresh = () => setManualRefreshKey((k) => k + 1);
+
+  const handleUnfriend = async (friendshipId: string, name: string) => {
+    if (!window.confirm(`Remove ${name} from your friends?`)) return;
     setRemovingId(friendshipId);
     try {
-      await fetch(`/api/social/friends/${friendshipId}`, { method: 'DELETE' });
+      const res = await fetch(`/api/social/friends/${friendshipId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to remove friend');
       setEntries((prev) => prev.filter((e) => e.isSelf || friends.find((f) => f.friendshipId === friendshipId)?.profileId !== e.profileId));
       setFriends((prev) => prev.filter((f) => f.friendshipId !== friendshipId));
+      toast({ title: 'Friend removed', description: `${name} has been removed from your friends.` });
+    } catch (err) {
+      toast({
+        title: 'Could not remove friend',
+        description: err instanceof Error ? err.message : 'Something went wrong',
+        variant: 'destructive',
+      });
     } finally {
       setRemovingId(null);
     }
@@ -90,16 +114,37 @@ export function FriendsLeaderboard({ refreshKey }: FriendsLeaderboardProps) {
 
   return (
     <Card>
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center justify-between">
         <CardTitle className="flex items-center gap-2">
           <Trophy className="h-5 w-5" /> Leaderboard
         </CardTitle>
+        <Button
+          size="icon"
+          variant="ghost"
+          aria-label="Refresh leaderboard"
+          disabled={loading}
+          onClick={handleManualRefresh}
+        >
+          <RefreshCw className={cn('h-4 w-4', loading && 'animate-spin')} />
+        </Button>
       </CardHeader>
       <CardContent className="space-y-3">
         {hasNoFriends ? (
-          <p className="text-sm text-muted-foreground">
-            No friends yet — search above to add someone.
-          </p>
+          <div className="flex flex-col items-center gap-2 py-6 text-center">
+            <span className="text-3xl" role="img" aria-label="Waving hand">👋</span>
+            <p className="text-sm text-muted-foreground">
+              No friends yet. Search for someone to add your first friend and start competing.
+            </p>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() =>
+                document.getElementById('friend-search-input')?.focus({ preventScroll: false })
+              }
+            >
+              Find friends
+            </Button>
+          </div>
         ) : (
           <Tabs value={metric} onValueChange={(v) => setMetric(v as Metric)}>
             <TabsList className="grid grid-cols-3">
@@ -109,7 +154,21 @@ export function FriendsLeaderboard({ refreshKey }: FriendsLeaderboardProps) {
             </TabsList>
             <TabsContent value={metric} className="space-y-2 pt-3">
               {loading ? (
-                <Loader2 className="h-5 w-5 animate-spin mx-auto" />
+                <div className="space-y-2">
+                  {[0, 1, 2].map((i) => (
+                    <div key={i} className="flex items-center justify-between rounded-md p-2">
+                      <div className="flex items-center gap-3">
+                        <Skeleton className="h-4 w-4" />
+                        <Skeleton className="h-8 w-8 rounded-full" />
+                        <div className="space-y-1.5">
+                          <Skeleton className="h-3.5 w-20" />
+                          <Skeleton className="h-3 w-14" />
+                        </div>
+                      </div>
+                      <Skeleton className="h-4 w-12" />
+                    </div>
+                  ))}
+                </div>
               ) : (
                 entries.map((e) => {
                   const friend = friends.find((f) => f.profileId === e.profileId);
@@ -138,8 +197,9 @@ export function FriendsLeaderboard({ refreshKey }: FriendsLeaderboardProps) {
                           <Button
                             size="icon"
                             variant="ghost"
+                            aria-label={`Remove ${e.firstName} from friends`}
                             disabled={removingId === friend.friendshipId}
-                            onClick={() => handleUnfriend(friend.friendshipId)}
+                            onClick={() => handleUnfriend(friend.friendshipId, e.firstName)}
                           >
                             {removingId === friend.friendshipId ? (
                               <Loader2 className="h-4 w-4 animate-spin" />

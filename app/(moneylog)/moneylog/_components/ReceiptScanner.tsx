@@ -5,6 +5,7 @@ import { Camera, Upload, Loader2, CheckCircle, AlertTriangle, X, Receipt } from 
 import { Button } from '@/components/ui/button';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { categoryLabel } from '@/lib/financeCategories';
+import { formatCurrency } from '@/lib/format';
 
 type ScanResult = {
   merchant: string;
@@ -179,7 +180,7 @@ export function ReceiptScanner({ onResult, onClose }: ReceiptScannerProps) {
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Amount</span>
-                    <span className="font-semibold">{result.amount.toLocaleString()}</span>
+                    <span className="font-semibold">{formatCurrency(result.amount)}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-muted-foreground">Category</span>

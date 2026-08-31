@@ -25,6 +25,8 @@ export function TaskDetailSheet({ task, open, onOpenChange, onSave, onDelete }: 
   const [priority, setPriority] = useState<TaskPriority>('medium');
   const [dueDate, setDueDate] = useState('');
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [titleError, setTitleError] = useState('');
 
   useEffect(() => {
     if (!task) return;
@@ -33,16 +35,22 @@ export function TaskDetailSheet({ task, open, onOpenChange, onSave, onDelete }: 
     setCategory(task.category);
     setPriority(task.priority);
     setDueDate(task.dueDate ?? '');
+    setTitleError('');
   }, [task]);
 
   if (!task) return null;
 
   async function handleSave() {
     if (!task) return;
+    if (!title.trim()) {
+      setTitleError('Title is required');
+      return;
+    }
+    setTitleError('');
     setSaving(true);
     try {
       await onSave(task.id, {
-        title: title.trim() || task.title,
+        title: title.trim(),
         notes: notes.trim() || null,
         category,
         priority,
@@ -70,12 +78,13 @@ export function TaskDetailSheet({ task, open, onOpenChange, onSave, onDelete }: 
 
   async function handleDelete() {
     if (!task) return;
-    setSaving(true);
+    if (!window.confirm(`Delete "${task.title}"? This cannot be undone.`)) return;
+    setDeleting(true);
     try {
       await onDelete(task.id);
       onOpenChange(false);
     } finally {
-      setSaving(false);
+      setDeleting(false);
     }
   }
 
@@ -85,20 +94,40 @@ export function TaskDetailSheet({ task, open, onOpenChange, onSave, onDelete }: 
         <DialogHeader>
           <DialogTitle>Edit task</DialogTitle>
         </DialogHeader>
-        <div className="space-y-3">
+        <form
+          className="space-y-3"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSave();
+          }}
+        >
           <div className="space-y-1.5">
-            <Label>Title</Label>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} />
+            <Label htmlFor="task-detail-title">Title</Label>
+            <Input
+              id="task-detail-title"
+              value={title}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                if (titleError) setTitleError('');
+              }}
+              autoComplete="off"
+              autoFocus
+              aria-invalid={!!titleError}
+              aria-describedby={titleError ? 'task-detail-title-error' : undefined}
+            />
+            {titleError && (
+              <p id="task-detail-title-error" className="text-sm text-destructive">{titleError}</p>
+            )}
           </div>
           <div className="space-y-1.5">
-            <Label>Notes</Label>
-            <Textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
+            <Label htmlFor="task-detail-notes">Notes</Label>
+            <Textarea id="task-detail-notes" value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
-              <Label>Category</Label>
+              <Label htmlFor="task-detail-category">Category</Label>
               <Select value={category} onValueChange={(v) => setCategory(v as TaskCategory)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger id="task-detail-category"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="life">Life</SelectItem>
                   <SelectItem value="work">Work</SelectItem>
@@ -106,9 +135,9 @@ export function TaskDetailSheet({ task, open, onOpenChange, onSave, onDelete }: 
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label>Priority</Label>
+              <Label htmlFor="task-detail-priority">Priority</Label>
               <Select value={priority} onValueChange={(v) => setPriority(v as TaskPriority)}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectTrigger id="task-detail-priority"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {PRIORITIES.map((p) => (
                     <SelectItem key={p.id} value={p.id}>{p.label}</SelectItem>
@@ -118,19 +147,19 @@ export function TaskDetailSheet({ task, open, onOpenChange, onSave, onDelete }: 
             </div>
           </div>
           <div className="space-y-1.5">
-            <Label>Due date</Label>
-            <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+            <Label htmlFor="task-detail-due-date">Due date</Label>
+            <Input id="task-detail-due-date" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
           </div>
-        </div>
+        </form>
         <DialogFooter className="flex-row justify-between gap-2 sm:justify-between">
-          <Button type="button" variant="destructive" onClick={handleDelete} disabled={saving}>
-            Delete
+          <Button type="button" variant="destructive" onClick={handleDelete} disabled={saving || deleting}>
+            {deleting ? 'Deleting…' : 'Delete'}
           </Button>
           <div className="flex gap-2">
-            <Button type="button" variant="outline" onClick={handleToggleComplete} disabled={saving}>
+            <Button type="button" variant="outline" onClick={handleToggleComplete} disabled={saving || deleting}>
               {task.completedAt ? 'Mark incomplete' : 'Mark complete'}
             </Button>
-            <Button type="button" onClick={handleSave} disabled={saving}>
+            <Button type="button" onClick={handleSave} disabled={saving || deleting}>
               {saving ? 'Saving…' : 'Save'}
             </Button>
           </div>

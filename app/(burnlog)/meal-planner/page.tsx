@@ -1,7 +1,12 @@
 // app/(burnlog)/meal-planner/page.tsx
 import { Suspense } from 'react';
+import type { Metadata } from 'next';
 import { Loader2 } from 'lucide-react';
 import { MealPlannerFlow } from './_components/MealPlannerFlow';
+
+export const metadata: Metadata = {
+  title: 'Meal Planner - burnlog',
+};
 
 export default function MealPlannerPage() {
   return (

@@ -5,6 +5,7 @@ import { Flame, ListChecks, Wallet, Moon, TrendingUp, TrendingDown, Minus, type 
 import { Card } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { formatCurrency } from '@/lib/format';
 import type { LogbookWeekly, WeeklyMetric } from '@/lib/logbook/weekly';
 
 async function fetchWeekly(): Promise<LogbookWeekly> {
@@ -21,7 +22,7 @@ const METRIC_META: Record<WeeklyMetric['app'], { icon: LucideIcon; color: string
 };
 
 function formatMetricValue(metric: WeeklyMetric, value: number): string {
-  if (metric.app === 'moneylog') return `₹${Math.round(value).toLocaleString()}`;
+  if (metric.app === 'moneylog') return formatCurrency(Math.round(value));
   return `${Math.round(value).toLocaleString()} ${metric.unit}`;
 }
 

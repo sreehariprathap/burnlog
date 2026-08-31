@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/ui/use-toast';
 import type { TaskGoalRow, TaskRow } from '@/lib/tasklog/types';
 import { BreakdownReviewSheet, type BreakdownSuggestion } from './BreakdownReviewSheet';
 
@@ -14,6 +15,7 @@ interface GoalCardProps {
 
 export function GoalCard({ goal }: GoalCardProps) {
   const supabase = createClientComponentClient();
+  const { toast } = useToast();
   const [linkedTasks, setLinkedTasks] = useState<TaskRow[]>([]);
   const [generating, setGenerating] = useState(false);
   const [suggestions, setSuggestions] = useState<BreakdownSuggestion[]>([]);
@@ -48,27 +50,39 @@ export function GoalCard({ goal }: GoalCardProps) {
       setSuggestions(body.tasks);
       setReviewOpen(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to generate tasks');
+      const message = err instanceof Error ? err.message : 'Failed to generate tasks';
+      setError(message);
+      toast({ title: 'Failed to generate tasks', description: message, variant: 'destructive' });
     } finally {
       setGenerating(false);
     }
   }
 
   async function handleConfirm(selected: BreakdownSuggestion[]) {
-    if (selected.length > 0) {
-      await supabase.from('tasklog_tasks').insert(
-        selected.map((s) => ({
-          profileId: goal.profileId,
-          goalId: goal.id,
-          title: s.title,
-          category: s.category,
-          priority: s.priority,
-          dueDate: s.suggestedDueDate || null,
-        }))
-      );
+    try {
+      if (selected.length > 0) {
+        const { error: insertError } = await supabase.from('tasklog_tasks').insert(
+          selected.map((s) => ({
+            profileId: goal.profileId,
+            goalId: goal.id,
+            title: s.title,
+            category: s.category,
+            priority: s.priority,
+            dueDate: s.suggestedDueDate || null,
+          }))
+        );
+        if (insertError) throw insertError;
+        toast({ title: `${selected.length} task${selected.length === 1 ? '' : 's'} added to goal` });
+      }
+      setReviewOpen(false);
+      await fetchLinkedTasks();
+    } catch (err) {
+      toast({
+        title: 'Failed to add tasks',
+        description: err instanceof Error ? err.message : 'Something went wrong.',
+        variant: 'destructive',
+      });
     }
-    setReviewOpen(false);
-    await fetchLinkedTasks();
   }
 
   return (

@@ -9,12 +9,14 @@ import { IncomeSourcesStep } from './IncomeSourcesStep';
 import { FixedExpensesStep } from './FixedExpensesStep';
 import { ReviewStep } from './ReviewStep';
 import type { RecurringItemDraft } from '@/lib/recurringItemDraft';
+import { useToast } from '@/components/ui/use-toast';
 
 type Step = 'welcome' | 'income' | 'expenses' | 'review';
 
 export function MoneyLogOnboardingFlow() {
   const router = useRouter();
   const supabase = createClientComponentClient();
+  const { toast } = useToast();
   const [step, setStep] = useState<Step>('welcome');
   const [incomeRows, setIncomeRows] = useState<RecurringItemDraft[]>([]);
   const [expenseRows, setExpenseRows] = useState<RecurringItemDraft[]>([]);
@@ -44,9 +46,12 @@ export function MoneyLogOnboardingFlow() {
         if (insertError) throw insertError;
       }
 
+      toast({ title: 'Setup complete' });
       router.replace('/moneylog');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save');
+      const message = err instanceof Error ? err.message : 'Failed to save';
+      setError(message);
+      toast({ title: 'Failed to save setup', description: message, variant: 'destructive' });
       setSaving(false);
     }
   }

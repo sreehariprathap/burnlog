@@ -1,3 +1,5 @@
+// NOTE: this is a Client Component ('use client'), so `export const metadata` can't live here —
+// it would need a Server Component wrapper (e.g. a server layout.tsx) to set the page <title>.
 'use client';
 
 import { useState } from 'react';

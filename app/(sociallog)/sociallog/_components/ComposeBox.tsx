@@ -5,10 +5,12 @@ import { useRef, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Image as ImageIcon, X, Loader2 } from 'lucide-react';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { apiFetch } from '@/lib/apiFetch';
+import { useToast } from '@/components/ui/use-toast';
 
 const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 25 * 1024 * 1024;
@@ -16,6 +18,7 @@ const MAX_VIDEO_BYTES = 25 * 1024 * 1024;
 export function ComposeBox({ onPosted }: { onPosted: () => void }) {
   const supabase = createClientComponentClient();
   const { profile } = useCurrentProfile();
+  const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [text, setText] = useState('');
   const [file, setFile] = useState<File | null>(null);
@@ -80,6 +83,7 @@ export function ComposeBox({ onPosted }: { onPosted: () => void }) {
       setText('');
       clearFile();
       onPosted();
+      toast({ title: 'Posted' });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to post');
     } finally {
@@ -90,7 +94,11 @@ export function ComposeBox({ onPosted }: { onPosted: () => void }) {
   return (
     <Card>
       <CardContent className="space-y-2 pt-4">
+        <Label htmlFor="compose-text" className="sr-only">
+          What&apos;s happening?
+        </Label>
         <Textarea
+          id="compose-text"
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="What's happening? Use #topics to tag it."
@@ -116,7 +124,13 @@ export function ComposeBox({ onPosted }: { onPosted: () => void }) {
         )}
         {error && <p className="text-xs text-red-500">{error}</p>}
         <div className="flex items-center justify-between">
-          <Button variant="outline" size="icon" onClick={() => fileInputRef.current?.click()} disabled={posting}>
+          <Button
+            variant="outline"
+            size="icon"
+            aria-label="Attach photo or video"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={posting}
+          >
             <ImageIcon className="size-4" />
           </Button>
           <input

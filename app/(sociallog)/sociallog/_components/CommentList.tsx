@@ -3,12 +3,13 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import { formatDistanceToNowStrict } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Loader2 } from 'lucide-react';
 import { apiFetch } from '@/lib/apiFetch';
+import { formatRelative } from '@/lib/format';
 
 type Comment = {
   id: string;
@@ -31,8 +32,14 @@ export function CommentList({ postId }: { postId: string }) {
   const [text, setText] = useState('');
   const [posting, setPosting] = useState(false);
 
+  const [error, setError] = useState<string | null>(null);
+
   const handlePost = async () => {
-    if (!text.trim()) return;
+    if (!text.trim()) {
+      setError('Write something before replying');
+      return;
+    }
+    setError(null);
     setPosting(true);
     const res = await apiFetch(`/api/sociallog/posts/${postId}/comments`, {
       method: 'POST',
@@ -60,25 +67,32 @@ export function CommentList({ postId }: { postId: string }) {
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold">@{c.author.username}</span>
               <span className="text-[10px] text-muted-foreground">
-                {formatDistanceToNowStrict(new Date(c.createdAt), { addSuffix: true })}
+                {formatRelative(c.createdAt)}
               </span>
             </div>
             <p className="text-sm">{c.body}</p>
           </div>
         </div>
       ))}
-      <div className="flex gap-2">
-        <Input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Write a comment…"
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') handlePost();
-          }}
-        />
-        <Button size="sm" onClick={handlePost} disabled={posting || !text.trim()}>
-          Reply
-        </Button>
+      <div className="space-y-1">
+        <div className="flex gap-2">
+          <Label htmlFor={`comment-${postId}`} className="sr-only">
+            Write a comment
+          </Label>
+          <Input
+            id={`comment-${postId}`}
+            value={text}
+            onChange={(e) => setText(e.target.value)}
+            placeholder="Write a comment…"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') handlePost();
+            }}
+          />
+          <Button size="sm" onClick={handlePost} disabled={posting || !text.trim()}>
+            {posting ? <Loader2 className="size-4 animate-spin" /> : 'Reply'}
+          </Button>
+        </div>
+        {error && <p className="text-xs text-destructive">{error}</p>}
       </div>
     </div>
   );

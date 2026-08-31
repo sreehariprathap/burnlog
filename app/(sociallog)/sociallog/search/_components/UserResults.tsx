@@ -5,8 +5,9 @@ import { useState } from 'react';
 import useSWR from 'swr';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Search, UserX } from 'lucide-react';
 import { apiFetch } from '@/lib/apiFetch';
+import { useToast } from '@/components/ui/use-toast';
 
 type UserResult = { id: string; username: string; firstName: string; avatarUrl: string | null; isFollowing: boolean };
 
@@ -19,19 +20,26 @@ async function fetcher(url: string) {
 function FollowButton({ userId, initialFollowing }: { userId: string; initialFollowing: boolean }) {
   const [following, setFollowing] = useState(initialFollowing);
   const [busy, setBusy] = useState(false);
+  const { toast } = useToast();
 
   const toggle = async () => {
     setBusy(true);
     if (following) {
       const res = await apiFetch(`/api/sociallog/follow/${userId}`, { method: 'DELETE' });
-      if (res.ok) setFollowing(false);
+      if (res.ok) {
+        setFollowing(false);
+        toast({ title: 'Unfollowed' });
+      }
     } else {
       const res = await apiFetch('/api/sociallog/follow', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ followingId: userId }),
       });
-      if (res.ok) setFollowing(true);
+      if (res.ok) {
+        setFollowing(true);
+        toast({ title: 'Followed' });
+      }
     }
     setBusy(false);
   };
@@ -50,11 +58,21 @@ export function UserResults({ query }: { query: string }) {
   );
 
   if (query.trim().length < 2) {
-    return <p className="py-8 text-center text-sm text-muted-foreground">Type at least 2 characters to search users.</p>;
+    return (
+      <div className="flex flex-col items-center gap-2 py-12 text-center">
+        <Search className="size-8 text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">Type at least 2 characters to search users.</p>
+      </div>
+    );
   }
   if (isLoading) return <Loader2 className="h-6 w-6 animate-spin" />;
   if ((data?.results.length ?? 0) === 0) {
-    return <p className="py-8 text-center text-sm text-muted-foreground">No users found.</p>;
+    return (
+      <div className="flex flex-col items-center gap-2 py-12 text-center">
+        <UserX className="size-8 text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">No users found.</p>
+      </div>
+    );
   }
 
   return (

@@ -1,16 +1,19 @@
 // app/(shoppinglog)/shoppinglog/cart/page.tsx
 'use client';
+// Client Component — page metadata isn't applicable here (see layout.tsx for shared app metadata).
 
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
-import { Loader2, Trash2, ShoppingBag } from 'lucide-react';
+import { Loader2, Trash2, ShoppingBag, RefreshCw, ShoppingCart } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
 import { ShoppingLogBottomNav } from '@/components/ShoppingLogBottomNav';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/lib/apiFetch';
+import { useToast } from '@/components/ui/use-toast';
+import { formatCurrency } from '@/lib/format';
 
 type CartItem = {
   cartItemId: string;
@@ -34,12 +37,20 @@ async function fetcher(url: string) {
 
 export default function CartPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const { data, isLoading, mutate } = useSWR<{ items: CartItem[] }>('/api/shoppinglog/cart', fetcher);
   const [checkingOut, setCheckingOut] = useState(false);
+  const [removingId, setRemovingId] = useState<string | null>(null);
 
   const remove = async (listingId: string) => {
-    await apiFetch(`/api/shoppinglog/cart/${listingId}`, { method: 'DELETE' });
-    mutate();
+    if (!window.confirm('Remove this item from your cart?')) return;
+    setRemovingId(listingId);
+    const res = await apiFetch(`/api/shoppinglog/cart/${listingId}`, { method: 'DELETE' });
+    if (res.ok) {
+      toast({ title: 'Removed from cart' });
+      mutate();
+    }
+    setRemovingId(null);
   };
 
   const items = data?.items ?? [];
@@ -56,6 +67,7 @@ export default function CartPage() {
     const res = await apiFetch('/api/shoppinglog/checkout', { method: 'POST' });
     if (res.ok) {
       await mutate();
+      toast({ title: 'Order placed' });
       router.push('/shoppinglog/orders');
     }
     setCheckingOut(false);
@@ -66,15 +78,27 @@ export default function CartPage() {
       <TopBar
         title="Cart"
         actions={
-          <Link href="/shoppinglog/orders">
-            <Button variant="ghost" size="sm">My Orders</Button>
-          </Link>
+          <div className="flex items-center gap-1">
+            <Button type="button" variant="ghost" size="icon" aria-label="Refresh" onClick={() => mutate()}>
+              <RefreshCw className="size-4" />
+            </Button>
+            <Link href="/shoppinglog/orders">
+              <Button variant="ghost" size="sm">My Orders</Button>
+            </Link>
+          </div>
         }
       />
       <main className="flex-1 container mx-auto max-w-2xl space-y-4 p-4 pb-32">
         {isLoading && <Loader2 className="h-6 w-6 animate-spin" />}
         {!isLoading && items.length === 0 && (
-          <p className="py-8 text-center text-sm text-muted-foreground">Your cart is empty.</p>
+          <div className="flex flex-col items-center gap-2 py-12 text-center">
+            <ShoppingCart className="size-8 text-muted-foreground" />
+            <p className="text-sm font-medium">Your cart is empty</p>
+            <p className="text-xs text-muted-foreground">Browse listings and add something you like.</p>
+            <Link href="/shoppinglog">
+              <Button size="sm" className="mt-2">Browse listings</Button>
+            </Link>
+          </div>
         )}
 
         {Object.entries(grouped).map(([sellerUsername, sellerItems]) => (
@@ -86,20 +110,21 @@ export default function CartPage() {
                   <div className="size-16 shrink-0 overflow-hidden rounded-md bg-muted">
                     {item.listing.coverImageUrl ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={item.listing.coverImageUrl} alt="" className="h-full w-full object-cover" />
+                      <img src={item.listing.coverImageUrl} alt={item.listing.title} className="h-full w-full object-cover" />
                     ) : null}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="line-clamp-1 text-sm font-medium">{item.listing.title}</p>
                     <p className="text-sm text-muted-foreground">
-                      ${item.listing.price.toFixed(2)} × {item.quantity}
+                      {formatCurrency(item.listing.price)} × {item.quantity}
                     </p>
                   </div>
                   <button
                     type="button"
                     onClick={() => remove(item.listing.id)}
                     aria-label="Remove from cart"
-                    className="text-muted-foreground hover:text-destructive"
+                    disabled={removingId === item.listing.id}
+                    className="text-muted-foreground hover:text-destructive disabled:opacity-50"
                   >
                     <Trash2 className="size-4" />
                   </button>
@@ -114,7 +139,7 @@ export default function CartPage() {
         <div className="fixed bottom-20 left-1/2 z-30 w-full max-w-2xl -translate-x-1/2 px-4">
           <Card>
             <CardContent className="flex items-center justify-between p-3">
-              <span className="text-sm font-semibold">Total: ${total.toFixed(2)}</span>
+              <span className="text-sm font-semibold">Total: {formatCurrency(total)}</span>
               <Button onClick={checkout} disabled={checkingOut}>
                 <ShoppingBag className="mr-2 size-4" />
                 {checkingOut ? 'Processing…' : 'Checkout'}

@@ -4,10 +4,11 @@
 import { useState } from 'react';
 import useSWR from 'swr';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { CalendarDays, CalendarRange, Calendar } from 'lucide-react';
+import { CalendarDays, CalendarRange, Calendar, RefreshCw } from 'lucide-react';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import { TopBar } from '@/components/TopBar';
 import { MoneyLogBottomNav } from '@/components/MoneyLogBottomNav';
 import { SmoothTabs, type TabItem } from '@/components/kokonutui/smooth-tabs';
@@ -98,12 +99,14 @@ function PeriodSlide({
   );
 }
 
+// Client Component — cannot export `metadata`; page title is set via TopBar above.
 export default function MoneyLogHomePage() {
   const supabase = createClientComponentClient();
   const { profile } = useCurrentProfile();
   const profileId = profile?.id ?? null;
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
 
   const { data: hasAnyData, mutate: refreshHasAnyData } = useSWR(
     profileId ? ['moneylog-has-any-data', profileId] : null,
@@ -117,9 +120,32 @@ export default function MoneyLogHomePage() {
     { fallbackData: true }
   );
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      setRefreshKey((k) => k + 1);
+      await refreshHasAnyData();
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   return (
     <div className="pb-24">
-      <TopBar title="MoneyLog" />
+      <TopBar
+        title="MoneyLog"
+        actions={
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleRefresh}
+            disabled={refreshing}
+            aria-label="Refresh"
+          >
+            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+          </Button>
+        }
+      />
       {profileId && (
         <div className="px-4 pt-2">
           <CrossAppSnapshot currentApp="moneylog" profileId={profileId} />

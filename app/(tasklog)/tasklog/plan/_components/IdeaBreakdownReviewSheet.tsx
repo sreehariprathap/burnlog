@@ -6,6 +6,8 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter } from '
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/components/ui/use-toast';
 import type { IdeaRow, TaskCategory, TaskPriority } from '@/lib/tasklog/types';
 
 export interface BreakdownSuggestion {
@@ -23,6 +25,7 @@ interface IdeaBreakdownReviewSheetProps {
 }
 
 export function IdeaBreakdownReviewSheet({ open, onOpenChange, idea, onConfirm }: IdeaBreakdownReviewSheetProps) {
+  const { toast } = useToast();
   const [plan, setPlan] = useState('');
   const [items, setItems] = useState<(BreakdownSuggestion & { selected: boolean })[]>([]);
   const [loading, setLoading] = useState(false);
@@ -52,7 +55,11 @@ export function IdeaBreakdownReviewSheet({ open, onOpenChange, idea, onConfirm }
         setItems((body.tasks as BreakdownSuggestion[]).map((s) => ({ ...s, selected: true })));
       })
       .catch((err) => {
-        if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to generate plan');
+        if (!cancelled) {
+          const message = err instanceof Error ? err.message : 'Failed to generate plan';
+          setError(message);
+          toast({ title: 'Failed to generate plan', description: message, variant: 'destructive' });
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -82,6 +89,12 @@ export function IdeaBreakdownReviewSheet({ open, onOpenChange, idea, onConfirm }
           suggestedDueDate: item.suggestedDueDate,
         }));
       await onConfirm(plan, selected);
+    } catch (err) {
+      toast({
+        title: 'Failed to save plan',
+        description: err instanceof Error ? err.message : 'Something went wrong.',
+        variant: 'destructive',
+      });
     } finally {
       setSaving(false);
     }
@@ -102,8 +115,20 @@ export function IdeaBreakdownReviewSheet({ open, onOpenChange, idea, onConfirm }
           {!loading &&
             items.map((item, index) => (
               <div key={index} className="flex items-center gap-2 rounded-md border p-2">
-                <Checkbox checked={item.selected} onCheckedChange={() => toggleSelected(index)} />
-                <Input value={item.title} onChange={(e) => updateTitle(index, e.target.value)} className="h-8 flex-1" />
+                <Checkbox
+                  checked={item.selected}
+                  onCheckedChange={() => toggleSelected(index)}
+                  aria-label={`Include task "${item.title}"`}
+                />
+                <Label htmlFor={`idea-breakdown-title-${index}`} className="sr-only">Task title</Label>
+                <Input
+                  id={`idea-breakdown-title-${index}`}
+                  value={item.title}
+                  onChange={(e) => updateTitle(index, e.target.value)}
+                  className="h-8 flex-1"
+                  autoComplete="off"
+                  autoFocus={index === 0}
+                />
                 <span className="text-xs capitalize text-muted-foreground">{item.priority}</span>
               </div>
             ))}

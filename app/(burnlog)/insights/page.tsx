@@ -1,10 +1,16 @@
 // app/insights/page.tsx
+import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
 import InsightsClient from './_components/InsightsClient';
+import { RefreshInsightsButton } from './_components/RefreshInsightsButton';
 import { TopBar } from '@/components/TopBar';
 import { BottomNav } from '@/components/BottomNav';
+
+export const metadata: Metadata = {
+  title: 'Insights - burnlog',
+};
 
 export default async function InsightsPage() {
   const supabase = createServerComponentClient({ cookies });
@@ -76,7 +82,7 @@ export default async function InsightsPage() {
   // 4) Render
   return (
     <div className="flex flex-col h-screen">
-      <TopBar title="Insights" />
+      <TopBar title="Insights" actions={<RefreshInsightsButton />} />
       <main className="flex-1 overflow-auto px-4 pb-16">
         <InsightsClient
           weightEntries={weightEntries || []}

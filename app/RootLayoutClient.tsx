@@ -13,6 +13,8 @@ import PWAUpdateNotification from "@/components/PWAUpdateNotification";
 import SplashScreen from "@/components/SplashScreen";
 import { AppSwitchProvider } from "@/lib/appSwitchContext";
 import { SwitchLoader } from "@/components/SwitchLoader";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { OfflineBanner } from "@/components/OfflineBanner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -66,7 +68,8 @@ export default function RootLayoutClient({
             <SessionContextProvider supabaseClient={supabaseClient}>
               <AppSwitchProvider>
                 <SplashScreen />
-                {children}
+                <OfflineBanner />
+                <ErrorBoundary>{children}</ErrorBoundary>
                 <SwitchLoader />
                 <Toaster />
                 <PWAInstall />

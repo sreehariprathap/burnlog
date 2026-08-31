@@ -39,9 +39,9 @@ export function StoreStep({ initialAnswers, onContinue }: StoreStepProps) {
       </CardHeader>
       <CardContent className="space-y-5">
         <div className="space-y-2">
-          <Label>Grocery store</Label>
+          <Label id="store-label">Grocery store</Label>
           <Select value={store} onValueChange={setStore}>
-            <SelectTrigger>
+            <SelectTrigger aria-labelledby="store-label">
               <SelectValue placeholder="Choose a store…" />
             </SelectTrigger>
             <SelectContent className="max-h-64">
@@ -55,8 +55,9 @@ export function StoreStep({ initialAnswers, onContinue }: StoreStepProps) {
 
         {isManual && (
           <div className="space-y-2">
-            <Label>What ingredients do you already have?</Label>
+            <Label htmlFor="pantry-text">What ingredients do you already have?</Label>
             <Textarea
+              id="pantry-text"
               value={pantryText}
               onChange={(e) => setPantryText(e.target.value)}
               placeholder={'One item per line, e.g.\nRice\nChicken breast\nOnions'}

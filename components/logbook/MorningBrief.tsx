@@ -2,68 +2,51 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { X, Sunrise } from 'lucide-react';
-import { nsGet, nsSet } from '@/lib/appMode';
+import Link from 'next/link';
+import { X, Sunrise, ChevronRight } from 'lucide-react';
+import { dismissMorningBriefToday, isBeforeNoon, isMorningBriefDismissedToday } from '@/lib/logbook/morningDismiss';
 
-const DISMISS_KEY = 'morningBriefDismissedDate';
-
-function todayKey(): string {
-  return new Date().toISOString().slice(0, 10);
-}
-
-interface MorningBriefProps {
-  yesterdayScore: number | null;
-  insight: string;
-  burnTarget: number;
-  taskTarget: number;
-  budgetTarget: number;
-}
-
-export function MorningBrief({ yesterdayScore, insight, burnTarget, taskTarget, budgetTarget }: MorningBriefProps) {
+export function MorningBrief() {
   const [dismissed, setDismissed] = useState(true);
-  const [isBeforeNoon, setIsBeforeNoon] = useState(false);
+  const [beforeNoon, setBeforeNoon] = useState(false);
 
   useEffect(() => {
-    setIsBeforeNoon(new Date().getHours() < 12);
-    setDismissed(nsGet('logbook', DISMISS_KEY) === todayKey());
+    setBeforeNoon(isBeforeNoon());
+    setDismissed(isMorningBriefDismissedToday());
   }, []);
 
   function handleDismiss() {
-    nsSet('logbook', DISMISS_KEY, todayKey());
+    dismissMorningBriefToday();
     setDismissed(true);
   }
 
-  if (dismissed || !isBeforeNoon) {
+  if (dismissed || !beforeNoon) {
     return null;
   }
 
   return (
-    <div className="relative overflow-hidden rounded-2xl border bg-gradient-to-br from-primary/15 via-primary/5 to-transparent p-4">
+    <Link
+      href="/logbook/morning"
+      className="relative flex items-center gap-3 overflow-hidden rounded-2xl border bg-gradient-to-br from-primary/15 via-primary/5 to-transparent p-4 transition-colors hover:from-primary/20"
+    >
+      <Sunrise className="h-5 w-5 shrink-0 text-primary" />
+      <div className="flex-1">
+        <p className="text-sm font-semibold">Your morning brief is ready</p>
+        <p className="text-xs text-muted-foreground">Yesterday&apos;s score, today&apos;s targets, and an insight</p>
+      </div>
+      <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" />
       <button
         type="button"
-        onClick={handleDismiss}
+        onClick={(e) => {
+          e.preventDefault();
+          e.stopPropagation();
+          handleDismiss();
+        }}
         aria-label="Dismiss morning brief"
-        className="absolute right-3 top-3 text-muted-foreground hover:text-foreground"
+        className="absolute right-2 top-2 rounded-full p-1 text-muted-foreground hover:text-foreground"
       >
-        <X className="h-4 w-4" />
+        <X className="h-3.5 w-3.5" />
       </button>
-      <div className="flex items-start gap-3 pr-6">
-        <Sunrise className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
-        <div className="flex flex-col gap-1.5">
-          <p className="text-sm font-semibold">Morning brief</p>
-          <p className="text-sm text-muted-foreground">
-            {yesterdayScore !== null
-              ? `Yesterday's day score was ${yesterdayScore}. `
-              : "No day score for yesterday yet. "}
-            {insight}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            Today&apos;s targets: {burnTarget.toLocaleString()} kcal burned
-            {taskTarget > 0 ? `, ${taskTarget} task${taskTarget === 1 ? '' : 's'}` : ''}
-            {budgetTarget > 0 ? `, ₹${Math.round(budgetTarget).toLocaleString()} budget` : ''}.
-          </p>
-        </div>
-      </div>
-    </div>
+    </Link>
   );
 }

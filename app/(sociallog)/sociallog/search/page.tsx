@@ -1,10 +1,12 @@
 // app/(sociallog)/sociallog/search/page.tsx
 'use client';
+// Client Component — page metadata isn't applicable here (see layout.tsx for shared app metadata).
 
 import { useState } from 'react';
 import { TopBar } from '@/components/TopBar';
 import { SocialLogBottomNav } from '@/components/SocialLogBottomNav';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { UserResults } from './_components/UserResults';
 import { TopicResults } from './_components/TopicResults';
@@ -27,11 +29,19 @@ export default function SocialLogSearchPage() {
         </Tabs>
 
         {tab !== 'reels' && (
-          <Input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={tab === 'users' ? 'Search by username…' : 'Search topics…'}
-          />
+          <>
+            <Label htmlFor="social-search" className="sr-only">
+              {tab === 'users' ? 'Search by username' : 'Search topics'}
+            </Label>
+            <Input
+              id="social-search"
+              autoFocus
+              autoComplete="off"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={tab === 'users' ? 'Search by username…' : 'Search topics…'}
+            />
+          </>
         )}
 
         {tab === 'users' && <UserResults query={query} />}

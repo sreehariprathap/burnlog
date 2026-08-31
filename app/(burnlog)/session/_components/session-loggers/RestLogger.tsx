@@ -24,13 +24,21 @@ export function RestLogger({ onEnd }: RestLoggerProps) {
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex flex-col gap-2">
-            <Label>Sleep Hours</Label>
+            <Label htmlFor="rest-sleep">Sleep Hours</Label>
             <Input
+              id="rest-sleep"
               type="number"
+              inputMode="decimal"
+              min={0}
+              max={24}
               value={sleep}
               onChange={e => setSleep(Number(e.target.value))}
               placeholder="e.g. 8"
+              autoFocus
             />
+            {sleep < 7 && (
+              <p className="text-xs text-destructive">Aim for at least 7 hours of sleep.</p>
+            )}
           </div>
           <label className="flex items-center space-x-2">
             <Checkbox

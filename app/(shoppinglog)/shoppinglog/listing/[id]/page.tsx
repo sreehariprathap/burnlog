@@ -1,19 +1,22 @@
 // app/(shoppinglog)/shoppinglog/listing/[id]/page.tsx
 'use client';
+// Client Component — page metadata isn't applicable here (see layout.tsx for shared app metadata).
 
 import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import useSWR from 'swr';
-import { formatDistanceToNowStrict } from 'date-fns';
-import { Heart, Star, ShoppingCart, Loader2 } from 'lucide-react';
+import { Heart, Star, ShoppingCart, Loader2, RefreshCw } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
 import { ShoppingLogBottomNav } from '@/components/ShoppingLogBottomNav';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { apiFetch } from '@/lib/apiFetch';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/components/ui/use-toast';
+import { formatCurrency, formatRelative } from '@/lib/format';
 
 type ListingDetail = {
   id: string;
@@ -43,6 +46,7 @@ async function fetcher(url: string) {
 export default function ListingDetailPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
+  const { toast } = useToast();
   const { data: listing, isLoading, mutate } = useSWR<ListingDetail>(`/api/shoppinglog/listings/${params.id}`, fetcher);
 
   const [imageIndex, setImageIndex] = useState(0);
@@ -66,14 +70,18 @@ export default function ListingDetailPage() {
 
   const toggleFavorite = async () => {
     setFavBusy(true);
+    let res: Response;
     if (listing.isFavorited) {
-      await apiFetch(`/api/shoppinglog/favorites/${listing.id}`, { method: 'DELETE' });
+      res = await apiFetch(`/api/shoppinglog/favorites/${listing.id}`, { method: 'DELETE' });
     } else {
-      await apiFetch('/api/shoppinglog/favorites', {
+      res = await apiFetch('/api/shoppinglog/favorites', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ listingId: listing.id }),
       });
+    }
+    if (res.ok) {
+      toast({ title: listing.isFavorited ? 'Removed from favorites' : 'Added to favorites' });
     }
     await mutate();
     setFavBusy(false);
@@ -86,7 +94,10 @@ export default function ListingDetailPage() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ listingId: listing.id, quantity: 1 }),
     });
-    if (res.ok) router.push('/shoppinglog/cart');
+    if (res.ok) {
+      toast({ title: 'Added to cart' });
+      router.push('/shoppinglog/cart');
+    }
     setAddingToCart(false);
   };
 
@@ -100,6 +111,7 @@ export default function ListingDetailPage() {
     if (res.ok) {
       setReviewBody('');
       await mutate();
+      toast({ title: 'Review submitted' });
     }
     setSubmittingReview(false);
   };
@@ -112,18 +124,29 @@ export default function ListingDetailPage() {
         title={listing.title}
         onClose={() => router.back()}
         actions={
-          !listing.isOwn && (
-            <Button variant="ghost" size="icon" onClick={toggleFavorite} disabled={favBusy} aria-label="Favorite">
-              <Heart className={cn('size-5', listing.isFavorited && 'fill-current text-primary')} />
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="icon" aria-label="Refresh" onClick={() => mutate()}>
+              <RefreshCw className="size-4" />
             </Button>
-          )
+            {!listing.isOwn && (
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={toggleFavorite}
+                disabled={favBusy}
+                aria-label={listing.isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+              >
+                <Heart className={cn('size-5', listing.isFavorited && 'fill-current text-primary')} />
+              </Button>
+            )}
+          </div>
         }
       />
       <main className="flex-1 container mx-auto max-w-2xl space-y-4 p-4 pb-24">
         <div className="aspect-square overflow-hidden rounded-lg bg-muted">
           {listing.images.length > 0 ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={listing.images[imageIndex]} alt="" className="h-full w-full object-cover" />
+            <img src={listing.images[imageIndex]} alt={listing.title} className="h-full w-full object-cover" />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground">No photos</div>
           )}
@@ -136,6 +159,7 @@ export default function ListingDetailPage() {
                 type="button"
                 onClick={() => setImageIndex(i)}
                 className={cn('h-16 w-16 shrink-0 overflow-hidden rounded-md border-2', i === imageIndex ? 'border-primary' : 'border-transparent')}
+                aria-label={`Show photo ${i + 1}`}
               >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={url} alt="" className="h-full w-full object-cover" />
@@ -146,7 +170,7 @@ export default function ListingDetailPage() {
 
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-2xl font-bold">${listing.price.toFixed(2)}</p>
+            <p className="text-2xl font-bold">{formatCurrency(listing.price)}</p>
             <p className="text-sm text-muted-foreground">
               {listing.condition === 'new' ? 'New' : 'Used'} · {listing.category?.name}
             </p>
@@ -205,7 +229,7 @@ export default function ListingDetailPage() {
                     {r.rating}
                   </span>
                   <span className="text-[10px] text-muted-foreground">
-                    {formatDistanceToNowStrict(new Date(r.createdAt), { addSuffix: true })}
+                    {formatRelative(r.createdAt)}
                   </span>
                 </div>
                 {r.body && <p className="text-sm">{r.body}</p>}
@@ -224,9 +248,17 @@ export default function ListingDetailPage() {
                   </button>
                 ))}
               </div>
-              <Textarea value={reviewBody} onChange={(e) => setReviewBody(e.target.value)} placeholder="Optional review text" />
+              <Label htmlFor="review-body" className="sr-only">
+                Review text
+              </Label>
+              <Textarea
+                id="review-body"
+                value={reviewBody}
+                onChange={(e) => setReviewBody(e.target.value)}
+                placeholder="Optional review text"
+              />
               <Button size="sm" onClick={submitReview} disabled={submittingReview}>
-                Submit review
+                {submittingReview ? 'Submitting…' : 'Submit review'}
               </Button>
             </div>
           )}

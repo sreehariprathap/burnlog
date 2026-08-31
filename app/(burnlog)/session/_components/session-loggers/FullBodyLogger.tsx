@@ -52,6 +52,11 @@ export function FullBodyLogger({ userEquipment, onEnd }: FullBodyLoggerProps) {
           )}
         </CardHeader>
         <CardContent className="space-y-8">
+          {groups.length === 0 && (
+            <p className="text-muted-foreground text-sm">
+              No exercises found for your current equipment. Try adding equipment in your profile settings.
+            </p>
+          )}
           {groups.map((group, i) => (
             <div key={group} className="mb-6">
               <Label className="font-semibold text-lg mb-2 flex items-center gap-2">
@@ -59,7 +64,7 @@ export function FullBodyLogger({ userEquipment, onEnd }: FullBodyLoggerProps) {
               </Label>
               <div className="grid grid-cols-2 gap-4 mt-2">
                 {exercisesByGroup[group].map((ex) => (
-                  <label key={ex} className="flex items-center space-x-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded">
+                  <label key={ex} className="flex items-center space-x-3 p-2 hover:bg-accent rounded">
                     <Checkbox
                       checked={checks[group]?.[ex] ?? false}
                       onCheckedChange={(val) =>

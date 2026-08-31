@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Scale } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 
 type WeightEntry = {
   id: string;
@@ -22,12 +23,14 @@ type WeightTrackerProps = {
 
 export function WeightTracker({ userId }: WeightTrackerProps) {
   const supabase = createClientComponentClient();
+  const { toast } = useToast();
   const [entries, setEntries] = useState<WeightEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [weight, setWeight] = useState('');
   const [notes, setNotes] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     if (userId) {
       fetchWeightEntries();
@@ -75,6 +78,7 @@ export function WeightTracker({ userId }: WeightTrackerProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     setSubmitting(true);
 
     try {
@@ -125,12 +129,16 @@ export function WeightTracker({ userId }: WeightTrackerProps) {
       if (data) {
         // Refresh the list
         fetchWeightEntries();
+        toast({ title: 'Weight logged', description: `${weightValue} kg recorded.` });
         // Reset form
         setWeight('');
         setNotes('');
       }
     } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to log weight';
       console.error('Error adding weight entry:', err);
+      setError(message);
+      toast({ title: 'Failed to log weight', description: message, variant: 'destructive' });
     } finally {
       setSubmitting(false);
     }
@@ -221,6 +229,7 @@ export function WeightTracker({ userId }: WeightTrackerProps) {
                   <Input
                     id="weight"
                     type="number"
+                    inputMode="decimal"
                     step="0.1"
                     placeholder="Your weight"
                     value={weight}
@@ -229,7 +238,7 @@ export function WeightTracker({ userId }: WeightTrackerProps) {
                     className="flex-1"
                   />
                   <Button type="submit" disabled={submitting || !weight}>
-                    Save
+                    {submitting ? 'Saving...' : 'Save'}
                   </Button>
                 </div>
               </div>
@@ -237,11 +246,14 @@ export function WeightTracker({ userId }: WeightTrackerProps) {
                 <Label htmlFor="notes">Notes (optional)</Label>
                 <Input
                   id="notes"
+                  autoComplete="off"
                   placeholder="Any notes about this measurement"
                   value={notes}
                   onChange={(e) => setNotes(e.target.value)}
                 />
               </div>
+
+              {error && <p className="text-sm text-red-500">{error}</p>}
             </form>
 
             {entries.length > 0 ? (

@@ -9,9 +9,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { AddFinancialGoalForm } from './_components/AddFinancialGoalForm';
 import { FinancialGoalsList } from './_components/FinancialGoalsList';
 import type { FinancialGoalRow } from '@/lib/financeGoalProgress';
+import { useToast } from '@/components/ui/use-toast';
 
+// Client Component — cannot export `metadata`; page title is set via TopBar below.
 export default function FinancialGoalsPage() {
   const supabase = createClientComponentClient();
+  const { toast } = useToast();
   const [profileId, setProfileId] = useState<string | null>(null);
   const [goals, setGoals] = useState<FinancialGoalRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -19,15 +22,18 @@ export default function FinancialGoalsPage() {
   const fetchGoals = useCallback(
     async (id: string) => {
       setLoading(true);
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('financial_goals')
         .select('*')
         .eq('profileId', id)
         .order('createdAt', { ascending: false });
+      if (error) {
+        toast({ title: 'Failed to load goals', description: error.message, variant: 'destructive' });
+      }
       setGoals((data as FinancialGoalRow[]) || []);
       setLoading(false);
     },
-    [supabase]
+    [supabase, toast]
   );
 
   useEffect(() => {

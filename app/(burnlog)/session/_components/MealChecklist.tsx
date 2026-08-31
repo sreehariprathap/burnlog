@@ -9,6 +9,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { RefreshCw, UtensilsCrossed, Sparkles, Clock, Sunrise, Sun, Moon, Apple } from 'lucide-react';
 import { AiLoading } from '@/components/kokonutui/ai-loading';
 import { toLocalDateString } from '@/lib/date';
+import { formatCalories } from '@/lib/format';
+import { useToast } from '@/components/ui/use-toast';
 
 type MealEntry = {
   id: string;
@@ -49,6 +51,7 @@ export function MealChecklist({ profileId, dayOfWeek, selectedDate }: MealCheckl
   const [loading, setLoading] = useState(true);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const fetchEntries = useCallback(async () => {
     setLoading(true);
@@ -99,6 +102,7 @@ export function MealChecklist({ profileId, dayOfWeek, selectedDate }: MealCheckl
         console.error('Check-in save failed:', upsertError);
         setCheckedIn((prev) => ({ ...prev, [mealType]: false }));
         setError('Failed to save. Please try again.');
+        toast({ title: 'Failed to save', description: upsertError.message, variant: 'destructive' });
       }
     } else {
       const { error: deleteError } = await supabase
@@ -111,6 +115,7 @@ export function MealChecklist({ profileId, dayOfWeek, selectedDate }: MealCheckl
         console.error('Check-in remove failed:', deleteError);
         setCheckedIn((prev) => ({ ...prev, [mealType]: true }));
         setError('Failed to save. Please try again.');
+        toast({ title: 'Failed to save', description: deleteError.message, variant: 'destructive' });
       }
     }
   }
@@ -122,12 +127,17 @@ export function MealChecklist({ profileId, dayOfWeek, selectedDate }: MealCheckl
       const res = await fetch('/api/ai/meal-plan', { method: 'POST' });
       const data = await res.json();
       if (!res.ok || data.error) {
-        setError(data.error ?? 'Failed to generate meal plan. Please try again.');
+        const message = data.error ?? 'Failed to generate meal plan. Please try again.';
+        setError(message);
+        toast({ title: 'Meal plan generation failed', description: message, variant: 'destructive' });
         return;
       }
       await fetchEntries();
-    } catch {
-      setError('Network error. Please try again.');
+      toast({ title: 'Meal plan ready', description: 'Your 7-day meal plan has been generated.' });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Network error. Please try again.';
+      setError(message);
+      toast({ title: 'Meal plan generation failed', description: message, variant: 'destructive' });
     } finally {
       setGenerating(false);
     }
@@ -229,7 +239,7 @@ export function MealChecklist({ profileId, dayOfWeek, selectedDate }: MealCheckl
               )}
               {(meal.calories || meal.protein || meal.carbs || meal.fat) && (
                 <div className="flex gap-3 text-[10px] mt-1">
-                  {meal.calories ? <span className="text-orange-500 font-medium">{meal.calories} kcal</span> : null}
+                  {meal.calories ? <span className="text-orange-500 font-medium">{formatCalories(meal.calories)}</span> : null}
                   {meal.protein ? <span className="text-blue-500">P: {meal.protein}g</span> : null}
                   {meal.carbs ? <span className="text-green-500">C: {meal.carbs}g</span> : null}
                   {meal.fat ? <span className="text-red-500">F: {meal.fat}g</span> : null}

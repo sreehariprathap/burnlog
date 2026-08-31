@@ -1,6 +1,8 @@
 // app/(shoppinglog)/shoppinglog/sell/[id]/page.tsx
 'use client';
+// Client Component — page metadata isn't applicable here (see layout.tsx for shared app metadata).
 
+import { useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { Loader2 } from 'lucide-react';
@@ -8,6 +10,7 @@ import { TopBar } from '@/components/TopBar';
 import { ShoppingLogBottomNav } from '@/components/ShoppingLogBottomNav';
 import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/lib/apiFetch';
+import { useToast } from '@/components/ui/use-toast';
 import { ListingForm, type ListingFormValues } from '../../_components/ListingForm';
 import type { Category } from '../../_components/CategoryChips';
 
@@ -33,6 +36,8 @@ async function fetcher(url: string) {
 export default function EditListingPage() {
   const router = useRouter();
   const params = useParams<{ id: string }>();
+  const { toast } = useToast();
+  const [changingStatus, setChangingStatus] = useState<string | null>(null);
   const { data: categoryData } = useSWR<{ categories: Category[] }>('/api/shoppinglog/categories', fetcher);
   const { data: listing, isLoading, mutate } = useSWR<ListingDetail>(`/api/shoppinglog/listings/${params.id}`, fetcher);
 
@@ -50,16 +55,25 @@ export default function EditListingPage() {
         images: values.images,
       }),
     });
-    if (res.ok) router.push(`/shoppinglog/listing/${params.id}`);
+    if (res.ok) {
+      toast({ title: 'Listing updated' });
+      router.push(`/shoppinglog/listing/${params.id}`);
+    }
   };
 
   const setStatus = async (status: 'active' | 'sold' | 'removed') => {
+    if (status === 'removed' && !window.confirm('Remove this listing? Buyers will no longer be able to see it.')) return;
+    setChangingStatus(status);
     const res = await apiFetch(`/api/shoppinglog/listings/${params.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
     });
-    if (res.ok) mutate();
+    if (res.ok) {
+      toast({ title: 'Listing updated' });
+      mutate();
+    }
+    setChangingStatus(null);
   };
 
   if (isLoading || !listing) {
@@ -104,17 +118,32 @@ export default function EditListingPage() {
         />
         <div className="flex gap-2">
           {listing.status !== 'removed' ? (
-            <Button variant="outline" className="flex-1" onClick={() => setStatus('removed')}>
-              Remove listing
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => setStatus('removed')}
+              disabled={changingStatus !== null}
+            >
+              {changingStatus === 'removed' ? 'Removing…' : 'Remove listing'}
             </Button>
           ) : (
-            <Button variant="outline" className="flex-1" onClick={() => setStatus('active')}>
-              Relist
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => setStatus('active')}
+              disabled={changingStatus !== null}
+            >
+              {changingStatus === 'active' ? 'Relisting…' : 'Relist'}
             </Button>
           )}
           {listing.status === 'active' && (
-            <Button variant="outline" className="flex-1" onClick={() => setStatus('sold')}>
-              Mark as sold
+            <Button
+              variant="outline"
+              className="flex-1"
+              onClick={() => setStatus('sold')}
+              disabled={changingStatus !== null}
+            >
+              {changingStatus === 'sold' ? 'Saving…' : 'Mark as sold'}
             </Button>
           )}
         </div>

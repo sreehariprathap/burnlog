@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { ChevronLeft, ChevronRight, Flame, Moon, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { toLocalDateString, isSameLocalDay } from '@/lib/date';
@@ -179,7 +180,11 @@ export function PlanMonthCalendar({ profileId, currentStreak, selectedDate, onSe
         </CardHeader>
         <CardContent>
           {loading ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">Loading…</p>
+            <div className="grid grid-cols-7 gap-1">
+              {Array.from({ length: 35 }).map((_, i) => (
+                <Skeleton key={i} className="aspect-square w-full rounded-lg" />
+              ))}
+            </div>
           ) : (
             <div className="grid grid-cols-7 gap-1">
               {cells.map((cell) => (
