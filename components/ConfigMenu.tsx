@@ -1,11 +1,10 @@
-// components/ShoppingLogProfileMenu.tsx
 'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { motion } from 'motion/react';
-import { UserIcon, LogOut } from 'lucide-react';
+import { Settings, LogOut } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -15,11 +14,13 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 
-type ShoppingLogProfileMenuProps = {
+type ConfigMenuProps = {
+  href: string;
   isActive: boolean;
+  navId: string;
 };
 
-export function ShoppingLogProfileMenu({ isActive }: ShoppingLogProfileMenuProps) {
+export function ConfigMenu({ href, isActive, navId }: ConfigMenuProps) {
   const router = useRouter();
   const supabase = createClientComponentClient();
   const [loggingOut, setLoggingOut] = useState(false);
@@ -46,19 +47,19 @@ export function ShoppingLogProfileMenu({ isActive }: ShoppingLogProfileMenuProps
         >
           {isActive && (
             <motion.span
-              layoutId="shoppinglog-bottom-nav-active"
+              layoutId={navId}
               className="absolute inset-0 rounded-full bg-primary/10"
               transition={{ type: 'spring', stiffness: 400, damping: 30 }}
             />
           )}
-          <UserIcon className="relative z-10 mb-0.5 h-5 w-5" />
-          <span className="relative z-10">Profile</span>
+          <Settings className="relative z-10 mb-0.5 h-5 w-5" />
+          <span className="relative z-10">Config</span>
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent side="top" align="center">
-        <DropdownMenuItem onClick={() => router.push('/profile')}>
-          <UserIcon className="size-4" />
-          Profile
+        <DropdownMenuItem onClick={() => router.push(href)}>
+          <Settings className="size-4" />
+          Config
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
