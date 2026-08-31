@@ -1,4 +1,6 @@
 'use client';
+// Note: this page is a Client Component ("use client"), so a `metadata` export
+// isn't possible here — it would need a server wrapper to set the page title.
 
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,7 +16,8 @@ import { TopBar } from '@/components/TopBar';
 import { BottomNav } from '@/components/BottomNav';
 import { MotionCarousel } from '@/components/kokonutui/motion-carousel';
 import { SmoothTabs, type TabItem } from '@/components/kokonutui/smooth-tabs';
-import { Target, Scale, Flame, Utensils, HeartPulse } from 'lucide-react';
+import { Target, Scale, Flame, Utensils, HeartPulse, RefreshCw } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 
 export type Goal = {
   id: string;
@@ -35,10 +38,22 @@ const goalTabs: TabItem[] = [
 
 
 export default function GoalsPage() {
+  const { toast } = useToast();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    if (!userId) return;
+    setRefreshing(true);
+    try {
+      await fetchGoals(userId);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   useEffect(() => {
     const getUser = async () => {
@@ -84,6 +99,11 @@ export default function GoalsPage() {
       }
     } catch (error) {
       console.error('Error fetching goals:', error);
+      toast({
+        title: 'Failed to load goals',
+        description: error instanceof Error ? error.message : 'Please try again.',
+        variant: 'destructive',
+      });
     } finally {
       setLoading(false);
     }
@@ -95,7 +115,19 @@ export default function GoalsPage() {
 
   return (
     <div className="pb-16">
-      <TopBar title="Fitness Goals" />
+      <TopBar
+        title="Fitness Goals"
+        actions={
+          <button
+            onClick={handleRefresh}
+            aria-label="Refresh goals"
+            disabled={refreshing || !userId}
+            className="disabled:opacity-50"
+          >
+            <RefreshCw className={`h-5 w-5 ${refreshing ? 'animate-spin' : ''}`} />
+          </button>
+        }
+      />
       {!loading && (
         <div className="sticky top-14 z-10 border-b bg-background/80 px-4 py-2 backdrop-blur">
           <SmoothTabs items={goalTabs} selectedIndex={selectedIndex} onSelect={setSelectedIndex} />
@@ -125,9 +157,10 @@ export default function GoalsPage() {
                   <CardHeader>
                     <CardTitle>No Goals Set</CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <p className="text-muted-foreground mb-4">
-                      You haven&apos;t set any fitness goals yet. Start by adding your first goal.
+                  <CardContent className="flex flex-col items-center gap-1 text-center py-4">
+                    <span className="text-3xl" aria-hidden="true">🎯</span>
+                    <p className="text-muted-foreground">
+                      You haven&apos;t set any fitness goals yet. Start by adding your first goal below.
                     </p>
                   </CardContent>
                 </Card>

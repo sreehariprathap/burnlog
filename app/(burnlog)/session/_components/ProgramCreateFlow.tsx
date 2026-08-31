@@ -6,8 +6,10 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { Loader2, Mountain } from 'lucide-react';
 import type { GeneratedProgram } from '@/lib/ai/program';
+import { useToast } from '@/components/ui/use-toast';
 
 type ProgramCreateFlowProps = {
   profileId: string;
@@ -27,6 +29,7 @@ export function ProgramCreateFlow({ profileId, onCreated }: ProgramCreateFlowPro
   // weeks (see final review). `saving` state alone doesn't close that
   // same-tick window; this ref does.
   const savingRef = useRef(false);
+  const { toast } = useToast();
 
   const handleGenerate = async () => {
     setGenerating(true);
@@ -41,7 +44,9 @@ export function ProgramCreateFlow({ profileId, onCreated }: ProgramCreateFlowPro
       if (!res.ok) throw new Error(data.error || 'Failed to generate program');
       setGenerated(data.program as GeneratedProgram);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to generate program');
+      const message = err instanceof Error ? err.message : 'Failed to generate program';
+      setError(message);
+      toast({ title: 'Generation failed', description: message, variant: 'destructive' });
     } finally {
       setGenerating(false);
     }
@@ -95,9 +100,12 @@ export function ProgramCreateFlow({ profileId, onCreated }: ProgramCreateFlowPro
       const { error: weeksError } = await supabase.from('program_weeks').insert(weekRows);
       if (weeksError) throw weeksError;
 
+      toast({ title: 'Program created', description: `${generated.title} has been saved.` });
       onCreated();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save program');
+      const message = err instanceof Error ? err.message : 'Failed to save program';
+      setError(message);
+      toast({ title: 'Save failed', description: message, variant: 'destructive' });
     } finally {
       savingRef.current = false;
       setSaving(false);
@@ -160,12 +168,22 @@ export function ProgramCreateFlow({ profileId, onCreated }: ProgramCreateFlowPro
             Paste a multi-week transformation plan (from an AI chat, a coach, or your own notes) and it&apos;ll be
             structured into a trackable program with weekly checklists.
           </p>
+          <Label htmlFor="program-plan-text" className="sr-only">
+            Paste your plan
+          </Label>
           <Textarea
+            id="program-plan-text"
             value={pastedPlanText}
             onChange={(e) => setPastedPlanText(e.target.value)}
             placeholder="Paste your plan here..."
             rows={8}
+            autoFocus
           />
+          {pastedPlanText.trim().length > 0 && pastedPlanText.trim().length < 20 && (
+            <p className="text-sm text-destructive">
+              Paste at least 20 characters so we have enough detail to work with.
+            </p>
+          )}
           {error && <p className="text-sm text-destructive">{error}</p>}
           <Button onClick={handleGenerate} disabled={generating || pastedPlanText.trim().length < 20}>
             {generating ? <Loader2 className="size-4 animate-spin" /> : 'Generate Program'}

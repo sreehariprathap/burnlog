@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import { useToast } from '@/components/ui/use-toast';
 
 type WalkTrackerModalProps = {
   profileId: string;
@@ -33,6 +34,7 @@ function hasMotionPermissionApi(ctor: unknown): ctor is MotionPermissionCtor {
 
 export function WalkTrackerModal({ profileId, onClose, onSaved }: WalkTrackerModalProps) {
   const supabase = createClientComponentClient();
+  const { toast } = useToast();
   const [tracking, setTracking] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
   const [steps, setSteps] = useState(0);
@@ -121,9 +123,12 @@ export function WalkTrackerModal({ profileId, onClose, onSaved }: WalkTrackerMod
       if (stepsResult.error) throw stepsResult.error;
       if (burnResult.error) throw burnResult.error;
 
+      toast({ title: 'Walk logged', description: `${steps} steps, ${caloriesBurned} kcal burned.` });
       onSaved();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save walk');
+      const message = err instanceof Error ? err.message : 'Failed to save walk';
+      setError(message);
+      toast({ title: 'Failed to save walk', description: message, variant: 'destructive' });
     } finally {
       setSaving(false);
     }
@@ -164,6 +169,7 @@ export function WalkTrackerModal({ profileId, onClose, onSaved }: WalkTrackerMod
                 <Input
                   id="steps"
                   type="number"
+                  inputMode="numeric"
                   value={steps}
                   onChange={(e) => setSteps(Math.max(0, Number(e.target.value) || 0))}
                 />

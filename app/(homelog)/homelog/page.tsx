@@ -1,8 +1,10 @@
 // app/(homelog)/homelog/page.tsx
 'use client';
+// Client Component — page metadata isn't applicable here (see layout.tsx for shared app metadata).
 
 import { useState } from 'react';
 import useSWR from 'swr';
+import { RefreshCw } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
 import { HomeLogBottomNav } from '@/components/HomeLogBottomNav';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -11,6 +13,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useHouseholdMe } from '@/lib/homelog/useHouseholdMe';
+import { useCurrentProfile } from '@/lib/useCurrentProfile';
+import { CrossAppSnapshot } from '@/components/CrossAppSnapshot';
+import { useToast } from '@/components/ui/use-toast';
 
 interface PendingInvite {
   id: string;
@@ -27,7 +32,9 @@ async function fetchPendingInvites(): Promise<PendingInvite[]> {
 }
 
 export default function HomeLogPage() {
+  const { toast } = useToast();
   const { household, members, myRole, isLoading, refresh } = useHouseholdMe();
+  const { profile } = useCurrentProfile();
   const { data: pendingInvites, mutate: mutateInvites } = useSWR(
     !isLoading && !household ? 'homelog-invites' : null,
     fetchPendingInvites
@@ -44,6 +51,8 @@ export default function HomeLogPage() {
 
   const [confirmingLeave, setConfirmingLeave] = useState(false);
   const [leaving, setLeaving] = useState(false);
+  const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
+  const [respondingId, setRespondingId] = useState<string | null>(null);
 
   async function handleCreateHousehold(e: React.FormEvent) {
     e.preventDefault();
@@ -63,17 +72,33 @@ export default function HomeLogPage() {
       if (!res.ok) throw new Error(body.error || 'Failed to create household');
       setHouseholdName('');
       await refresh();
+      toast({ title: 'Household created' });
     } catch (err) {
-      setCreateError(err instanceof Error ? err.message : 'Failed to create household');
+      const message = err instanceof Error ? err.message : 'Failed to create household';
+      setCreateError(message);
+      toast({ title: 'Failed to create household', description: message, variant: 'destructive' });
     } finally {
       setCreating(false);
     }
   }
 
   async function handleRespondToInvite(inviteId: string, action: 'accept' | 'decline') {
-    await fetch(`/api/homelog/invites/${inviteId}/${action}`, { method: 'POST' });
-    await mutateInvites();
-    await refresh();
+    setRespondingId(inviteId);
+    try {
+      const res = await fetch(`/api/homelog/invites/${inviteId}/${action}`, { method: 'POST' });
+      if (!res.ok) throw new Error('Failed to update invite');
+      await mutateInvites();
+      await refresh();
+      toast({ title: action === 'accept' ? 'Invite accepted' : 'Invite declined' });
+    } catch (err) {
+      toast({
+        title: 'Failed to update invite',
+        description: err instanceof Error ? err.message : 'Please try again',
+        variant: 'destructive',
+      });
+    } finally {
+      setRespondingId(null);
+    }
   }
 
   async function handleInvite(e: React.FormEvent) {
@@ -95,8 +120,11 @@ export default function HomeLogPage() {
       if (!res.ok) throw new Error(body.error || 'Failed to send invite');
       setInviteSuccess(`Invite sent to @${inviteUsername.trim()}`);
       setInviteUsername('');
+      toast({ title: 'Invite sent' });
     } catch (err) {
-      setInviteError(err instanceof Error ? err.message : 'Failed to send invite');
+      const message = err instanceof Error ? err.message : 'Failed to send invite';
+      setInviteError(message);
+      toast({ title: 'Failed to send invite', description: message, variant: 'destructive' });
     } finally {
       setInviting(false);
     }
@@ -106,9 +134,17 @@ export default function HomeLogPage() {
     if (!household) return;
     setLeaving(true);
     try {
-      await fetch(`/api/homelog/households/${household.id}/leave`, { method: 'POST' });
+      const res = await fetch(`/api/homelog/households/${household.id}/leave`, { method: 'POST' });
+      if (!res.ok) throw new Error('Failed to leave household');
       setConfirmingLeave(false);
       await refresh();
+      toast({ title: 'Left household' });
+    } catch (err) {
+      toast({
+        title: 'Failed to leave household',
+        description: err instanceof Error ? err.message : 'Please try again',
+        variant: 'destructive',
+      });
     } finally {
       setLeaving(false);
     }
@@ -116,13 +152,35 @@ export default function HomeLogPage() {
 
   async function handleRemoveMember(profileId: string) {
     if (!household) return;
-    await fetch(`/api/homelog/households/${household.id}/members/${profileId}`, { method: 'DELETE' });
-    await refresh();
+    if (!window.confirm('Remove this member from the household?')) return;
+    setRemovingMemberId(profileId);
+    try {
+      const res = await fetch(`/api/homelog/households/${household.id}/members/${profileId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to remove member');
+      await refresh();
+      toast({ title: 'Member removed' });
+    } catch (err) {
+      toast({
+        title: 'Failed to remove member',
+        description: err instanceof Error ? err.message : 'Please try again',
+        variant: 'destructive',
+      });
+    } finally {
+      setRemovingMemberId(null);
+    }
   }
 
   return (
     <div className="pb-24">
-      <TopBar title="HomeLog" />
+      <TopBar
+        title="HomeLog"
+        actions={
+          <Button type="button" variant="ghost" size="icon" aria-label="Refresh" onClick={() => refresh()}>
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        }
+      />
+      {profile && <CrossAppSnapshot currentApp="homelog" profileId={profile.id} />}
       <div className="flex flex-col gap-4 px-4 py-4">
         {isLoading ? (
           <Skeleton className="h-40 w-full" />
@@ -135,8 +193,11 @@ export default function HomeLogPage() {
               <CardContent>
                 <form onSubmit={handleCreateHousehold} className="space-y-3">
                   <div className="space-y-1.5">
-                    <Label>Household name</Label>
+                    <Label htmlFor="household-name">Household name</Label>
                     <Input
+                      id="household-name"
+                      autoFocus
+                      autoComplete="off"
                       value={householdName}
                       onChange={(e) => setHouseholdName(e.target.value)}
                       placeholder="e.g. The Smith House"
@@ -163,16 +224,22 @@ export default function HomeLogPage() {
                         <p className="text-xs text-muted-foreground">Invited by @{invite.invitedByUsername}</p>
                       </div>
                       <div className="flex gap-2">
-                        <Button type="button" size="sm" onClick={() => handleRespondToInvite(invite.id, 'accept')}>
-                          Accept
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => handleRespondToInvite(invite.id, 'accept')}
+                          disabled={respondingId === invite.id}
+                        >
+                          {respondingId === invite.id ? 'Saving…' : 'Accept'}
                         </Button>
                         <Button
                           type="button"
                           size="sm"
                           variant="outline"
                           onClick={() => handleRespondToInvite(invite.id, 'decline')}
+                          disabled={respondingId === invite.id}
                         >
-                          Decline
+                          {respondingId === invite.id ? 'Saving…' : 'Decline'}
                         </Button>
                       </div>
                     </div>
@@ -202,8 +269,9 @@ export default function HomeLogPage() {
                           size="sm"
                           variant="ghost"
                           onClick={() => handleRemoveMember(member.profileId)}
+                          disabled={removingMemberId === member.profileId}
                         >
-                          Remove
+                          {removingMemberId === member.profileId ? 'Removing…' : 'Remove'}
                         </Button>
                       )}
                     </div>
@@ -218,7 +286,12 @@ export default function HomeLogPage() {
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleInvite} className="flex gap-2">
+                  <Label htmlFor="invite-username" className="sr-only">
+                    Username to invite
+                  </Label>
                   <Input
+                    id="invite-username"
+                    autoComplete="username"
                     value={inviteUsername}
                     onChange={(e) => setInviteUsername(e.target.value)}
                     placeholder="username"

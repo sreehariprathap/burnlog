@@ -11,6 +11,7 @@ import { categoryLabel } from '@/lib/financeCategories';
 import { computeGoalProgress, type FinancialGoalRow } from '@/lib/financeGoalProgress';
 import { expandRecurringInRange } from '@/lib/financePeriods';
 import type { RecurringItemRow, FinanceLineItem } from '@/lib/financePeriods';
+import { formatCurrency } from '@/lib/format';
 
 interface FinancialGoalsListProps {
   goals: FinancialGoalRow[];
@@ -46,8 +47,9 @@ export function FinancialGoalsList({ goals, profileId }: FinancialGoalsListProps
         <CardHeader>
           <CardTitle>No financial goals yet</CardTitle>
         </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">Add your first goal below.</p>
+        <CardContent className="text-center space-y-2">
+          <div className="text-4xl" aria-hidden="true">🎯</div>
+          <p className="text-sm text-muted-foreground">Add your first goal below to start tracking progress.</p>
         </CardContent>
       </Card>
     );
@@ -94,7 +96,7 @@ export function FinancialGoalsList({ goals, profileId }: FinancialGoalsListProps
                 <p className="text-sm text-muted-foreground">{goalTypeLabel(goal.goalType)}</p>
                 {goal.category && <p className="text-xs text-muted-foreground">{categoryLabel(goal.category)}</p>}
                 <p className="font-semibold">
-                  {progress.current.toLocaleString()} / {progress.target.toLocaleString()}
+                  {formatCurrency(progress.current)} / {formatCurrency(progress.target)}
                 </p>
               </div>
             </CardContent>

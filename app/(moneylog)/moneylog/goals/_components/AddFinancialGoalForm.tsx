@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { FINANCIAL_GOAL_TYPES } from '@/lib/financialGoalTypes';
 import { EXPENSE_CATEGORIES } from '@/lib/financeCategories';
 import type { FinancialGoalRow } from '@/lib/financeGoalProgress';
+import { useToast } from '@/components/ui/use-toast';
 
 interface AddFinancialGoalFormProps {
   profileId: string;
@@ -19,6 +20,7 @@ interface AddFinancialGoalFormProps {
 
 export function AddFinancialGoalForm({ profileId, onGoalAdded }: AddFinancialGoalFormProps) {
   const supabase = createClientComponentClient();
+  const { toast } = useToast();
   const [goalType, setGoalType] = useState<string>(FINANCIAL_GOAL_TYPES[0].value);
   const [label, setLabel] = useState('');
   const [targetValue, setTargetValue] = useState('');
@@ -63,11 +65,14 @@ export function AddFinancialGoalForm({ profileId, onGoalAdded }: AddFinancialGoa
       if (insertError) throw insertError;
 
       onGoalAdded(data as FinancialGoalRow);
+      toast({ title: 'Goal added' });
       setLabel('');
       setTargetValue('');
       setTargetDate('');
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add goal');
+      const message = err instanceof Error ? err.message : 'Failed to add goal';
+      setError(message);
+      toast({ title: 'Failed to add goal', description: message, variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -97,14 +102,22 @@ export function AddFinancialGoalForm({ profileId, onGoalAdded }: AddFinancialGoa
           </div>
 
           <div className="space-y-1.5">
-            <Label>Label</Label>
-            <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. Emergency Fund" />
+            <Label htmlFor="goal-label">Label</Label>
+            <Input
+              id="goal-label"
+              autoComplete="off"
+              value={label}
+              onChange={(e) => setLabel(e.target.value)}
+              placeholder="e.g. Emergency Fund"
+            />
           </div>
 
           <div className="space-y-1.5">
-            <Label>Target amount</Label>
+            <Label htmlFor="goal-target">Target amount</Label>
             <Input
+              id="goal-target"
               type="number"
+              inputMode="decimal"
               min="0"
               step="0.01"
               value={targetValue}
@@ -133,8 +146,8 @@ export function AddFinancialGoalForm({ profileId, onGoalAdded }: AddFinancialGoa
 
           {needsDate && (
             <div className="space-y-1.5">
-              <Label>Target date (optional)</Label>
-              <Input type="date" value={targetDate} onChange={(e) => setTargetDate(e.target.value)} />
+              <Label htmlFor="goal-target-date">Target date (optional)</Label>
+              <Input id="goal-target-date" type="date" value={targetDate} onChange={(e) => setTargetDate(e.target.value)} />
             </div>
           )}
 

@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import { computeLevel } from '@/lib/leveling';
 import { AchievementOverlay } from '@/components/AchievementOverlay';
 import { RidgeProgress } from './RidgeProgress';
@@ -81,7 +82,19 @@ export function ProgramView({ profileId }: { profileId: string }) {
   };
 
   if (loading) {
-    return <div className="p-4 text-sm text-muted-foreground">Loading…</div>;
+    return (
+      <div className="flex flex-col gap-3 p-4">
+        <Card>
+          <CardContent className="flex flex-col items-center gap-3 pt-6">
+            <Skeleton className="h-6 w-1/2" />
+            <Skeleton className="h-3 w-3/4" />
+            <Skeleton className="h-16 w-full rounded-lg" />
+          </CardContent>
+        </Card>
+        <Skeleton className="h-20 w-full rounded-xl" />
+        <Skeleton className="h-20 w-full rounded-xl" />
+      </div>
+    );
   }
 
   if (!program) {

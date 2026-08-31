@@ -1,5 +1,6 @@
 // app/(homelog)/homelog/chores/page.tsx
 'use client';
+// Client Component — page metadata isn't applicable here (see layout.tsx for shared app metadata).
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -12,7 +13,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ListTodo, RefreshCw } from 'lucide-react';
 import { useHouseholdMe } from '@/lib/homelog/useHouseholdMe';
+import { useToast } from '@/components/ui/use-toast';
 
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const MONTHS = [
@@ -42,6 +45,7 @@ async function fetchChores(): Promise<ChoreInfo[]> {
 }
 
 export default function ChoresPage() {
+  const { toast } = useToast();
   const { household, isLoading: householdLoading } = useHouseholdMe();
   const {
     data: chores,
@@ -58,6 +62,8 @@ export default function ChoresPage() {
   const [dueDate, setDueDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
+  const [completingId, setCompletingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const loading = householdLoading || choresLoading;
 
@@ -87,21 +93,51 @@ export default function ChoresPage() {
       if (!res.ok) throw new Error(body.error || 'Failed to create chore');
       setTitle('');
       await refresh();
+      toast({ title: 'Chore added' });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to create chore');
+      const message = err instanceof Error ? err.message : 'Failed to create chore';
+      setError(message);
+      toast({ title: 'Failed to add chore', description: message, variant: 'destructive' });
     } finally {
       setCreating(false);
     }
   }
 
   async function handleComplete(instanceId: string) {
-    await fetch(`/api/homelog/chores/instances/${instanceId}/complete`, { method: 'POST' });
-    await refresh();
+    setCompletingId(instanceId);
+    try {
+      const res = await fetch(`/api/homelog/chores/instances/${instanceId}/complete`, { method: 'POST' });
+      if (!res.ok) throw new Error('Failed to mark chore as done');
+      await refresh();
+      toast({ title: 'Chore marked as done' });
+    } catch (err) {
+      toast({
+        title: 'Failed to update chore',
+        description: err instanceof Error ? err.message : 'Please try again',
+        variant: 'destructive',
+      });
+    } finally {
+      setCompletingId(null);
+    }
   }
 
   async function handleDelete(choreId: string) {
-    await fetch(`/api/homelog/chores/${choreId}`, { method: 'DELETE' });
-    await refresh();
+    if (!window.confirm('Delete this chore? This cannot be undone.')) return;
+    setDeletingId(choreId);
+    try {
+      const res = await fetch(`/api/homelog/chores/${choreId}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete chore');
+      await refresh();
+      toast({ title: 'Chore deleted' });
+    } catch (err) {
+      toast({
+        title: 'Failed to delete chore',
+        description: err instanceof Error ? err.message : 'Please try again',
+        variant: 'destructive',
+      });
+    } finally {
+      setDeletingId(null);
+    }
   }
 
   if (!householdLoading && !household) {
@@ -121,7 +157,14 @@ export default function ChoresPage() {
 
   return (
     <div className="pb-24">
-      <TopBar title="Chores" />
+      <TopBar
+        title="Chores"
+        actions={
+          <Button type="button" variant="ghost" size="icon" aria-label="Refresh" onClick={() => refresh()}>
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        }
+      />
       <div className="flex flex-col gap-4 px-4 py-4">
         <Card>
           <CardHeader>
@@ -130,14 +173,21 @@ export default function ChoresPage() {
           <CardContent>
             <form onSubmit={handleCreate} className="space-y-3">
               <div className="space-y-1.5">
-                <Label>Title</Label>
-                <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Take out trash" />
+                <Label htmlFor="chore-title">Title</Label>
+                <Input
+                  id="chore-title"
+                  autoFocus
+                  autoComplete="off"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="e.g. Take out trash"
+                />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">
-                  <Label>Category</Label>
+                  <Label htmlFor="chore-category">Category</Label>
                   <Select value={category} onValueChange={setCategory}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger id="chore-category"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="cleaning">Cleaning</SelectItem>
                       <SelectItem value="maintenance">Maintenance</SelectItem>
@@ -146,9 +196,9 @@ export default function ChoresPage() {
                   </Select>
                 </div>
                 <div className="space-y-1.5">
-                  <Label>Frequency</Label>
+                  <Label htmlFor="chore-frequency">Frequency</Label>
                   <Select value={frequency} onValueChange={setFrequency}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger id="chore-frequency"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="once">Once</SelectItem>
                       <SelectItem value="weekly">Weekly</SelectItem>
@@ -161,9 +211,9 @@ export default function ChoresPage() {
 
               {frequency === 'weekly' && (
                 <div className="space-y-1.5">
-                  <Label>Day of week</Label>
+                  <Label htmlFor="chore-day-of-week">Day of week</Label>
                   <Select value={dayOfWeek} onValueChange={setDayOfWeek}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectTrigger id="chore-day-of-week"><SelectValue /></SelectTrigger>
                     <SelectContent>
                       {WEEKDAYS.map((day, index) => (
                         <SelectItem key={day} value={String(index)}>{day}</SelectItem>
@@ -176,9 +226,11 @@ export default function ChoresPage() {
               {(frequency === 'monthly' || frequency === 'yearly') && (
                 <div className="grid grid-cols-2 gap-3">
                   <div className="space-y-1.5">
-                    <Label>Day of month</Label>
+                    <Label htmlFor="chore-day-of-month">Day of month</Label>
                     <Input
+                      id="chore-day-of-month"
                       type="number"
+                      inputMode="numeric"
                       min="1"
                       max="31"
                       value={dayOfMonth}
@@ -187,9 +239,9 @@ export default function ChoresPage() {
                   </div>
                   {frequency === 'yearly' && (
                     <div className="space-y-1.5">
-                      <Label>Month</Label>
+                      <Label htmlFor="chore-month">Month</Label>
                       <Select value={monthOfYear} onValueChange={setMonthOfYear}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectTrigger id="chore-month"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           {MONTHS.map((month, index) => (
                             <SelectItem key={month} value={String(index + 1)}>{month}</SelectItem>
@@ -202,8 +254,8 @@ export default function ChoresPage() {
               )}
 
               <div className="space-y-1.5">
-                <Label>First due date</Label>
-                <Input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+                <Label htmlFor="chore-due-date">First due date</Label>
+                <Input id="chore-due-date" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
               </div>
 
               {error && <p className="text-sm text-destructive">{error}</p>}
@@ -215,7 +267,11 @@ export default function ChoresPage() {
         {loading ? (
           <Skeleton className="h-40 w-full" />
         ) : !chores || chores.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No chores yet. Add one above.</p>
+          <div className="flex flex-col items-center gap-1 rounded-xl border border-dashed p-6 text-center">
+            <ListTodo className="h-5 w-5 text-muted-foreground" />
+            <p className="text-sm font-semibold">No chores yet</p>
+            <p className="text-xs text-muted-foreground">Add a chore above to start sharing the load.</p>
+          </div>
         ) : (
           chores.map((chore) => (
             <Card key={chore.id}>
@@ -230,12 +286,23 @@ export default function ChoresPage() {
                 </div>
                 <div className="flex gap-2">
                   {chore.instance && (
-                    <Button type="button" size="sm" onClick={() => handleComplete(chore.instance!.id)}>
-                      Done
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => handleComplete(chore.instance!.id)}
+                      disabled={completingId === chore.instance.id}
+                    >
+                      {completingId === chore.instance.id ? 'Saving…' : 'Done'}
                     </Button>
                   )}
-                  <Button type="button" size="sm" variant="ghost" onClick={() => handleDelete(chore.id)}>
-                    Delete
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => handleDelete(chore.id)}
+                    disabled={deletingId === chore.id}
+                  >
+                    {deletingId === chore.id ? 'Deleting…' : 'Delete'}
                   </Button>
                 </div>
               </CardContent>

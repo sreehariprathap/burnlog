@@ -2,7 +2,6 @@
 'use client';
 
 import { useState } from 'react';
-import { formatDistanceToNowStrict } from 'date-fns';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,6 +9,7 @@ import { ArrowBigUp, ArrowBigDown, MessageCircle, Sparkles } from 'lucide-react'
 import { cn } from '@/lib/utils';
 import { CommentList } from './CommentList';
 import { apiFetch } from '@/lib/apiFetch';
+import { formatRelative } from '@/lib/format';
 
 export type FeedPost = {
   id: string;
@@ -99,7 +99,7 @@ export function PostCard({ post, currentProfileId }: { post: FeedPost; currentPr
                 )}
               </div>
               <span className="text-xs text-muted-foreground">
-                {formatDistanceToNowStrict(new Date(post.createdAt), { addSuffix: true })}
+                {formatRelative(post.createdAt)}
               </span>
             </div>
           </div>
@@ -114,7 +114,11 @@ export function PostCard({ post, currentProfileId }: { post: FeedPost; currentPr
 
         {post.mediaUrl && post.mediaType === 'image' && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={post.mediaUrl} alt="" className="mt-3 max-h-96 w-full rounded-lg object-cover" />
+          <img
+            src={post.mediaUrl}
+            alt={post.body ? post.body.slice(0, 120) : `Photo posted by @${post.author.username}`}
+            className="mt-3 max-h-96 w-full rounded-lg object-cover"
+          />
         )}
         {post.mediaUrl && post.mediaType === 'video' && (
           <video src={post.mediaUrl} controls className="mt-3 max-h-96 w-full rounded-lg" />

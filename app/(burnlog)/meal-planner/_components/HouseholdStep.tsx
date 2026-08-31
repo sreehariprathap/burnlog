@@ -26,12 +26,15 @@ export function HouseholdStep({ initialAnswers, onContinue }: HouseholdStepProps
       </CardHeader>
       <CardContent className="space-y-5">
         <div className="space-y-2">
-          <Label>Number of people</Label>
+          <Label htmlFor="household-size">Number of people</Label>
           <Input
+            id="household-size"
             type="number"
+            inputMode="numeric"
             min={1}
             value={householdSize}
             onChange={(e) => setHouseholdSize(Math.max(1, Number(e.target.value) || 1))}
+            autoFocus
           />
         </div>
 

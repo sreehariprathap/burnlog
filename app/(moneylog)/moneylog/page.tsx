@@ -4,9 +4,11 @@
 import { useState } from 'react';
 import useSWR from 'swr';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { CalendarDays, CalendarRange, Calendar } from 'lucide-react';
+import { CalendarDays, CalendarRange, Calendar, RefreshCw } from 'lucide-react';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import { TopBar } from '@/components/TopBar';
 import { MoneyLogBottomNav } from '@/components/MoneyLogBottomNav';
 import { SmoothTabs, type TabItem } from '@/components/kokonutui/smooth-tabs';
@@ -55,9 +57,32 @@ function PeriodSlide({
   const data = useFinanceData(profileId, period, refreshKey);
   const periodLabel = formatPeriodLabel(period, getPeriodRange(period));
 
+  if (data.loading) {
+    return (
+      <div className="flex flex-col gap-4">
+        <Card>
+          <CardContent className="pt-6 flex flex-col items-center gap-4">
+            <Skeleton className="h-40 w-40 rounded-full" />
+            <div className="w-full grid grid-cols-2 gap-4">
+              <Skeleton className="h-4 w-full" />
+              <Skeleton className="h-4 w-full" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6 grid grid-cols-3 gap-2">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4">
-      {!hasAnyData && !data.loading && <GetStartedCard />}
+      {!hasAnyData && <GetStartedCard />}
       <Card>
         <CardContent className="pt-6">
           <DualRingCard
@@ -74,12 +99,14 @@ function PeriodSlide({
   );
 }
 
+// Client Component — cannot export `metadata`; page title is set via TopBar above.
 export default function MoneyLogHomePage() {
   const supabase = createClientComponentClient();
   const { profile } = useCurrentProfile();
   const profileId = profile?.id ?? null;
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [refreshing, setRefreshing] = useState(false);
 
   const { data: hasAnyData, mutate: refreshHasAnyData } = useSWR(
     profileId ? ['moneylog-has-any-data', profileId] : null,
@@ -93,9 +120,32 @@ export default function MoneyLogHomePage() {
     { fallbackData: true }
   );
 
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      setRefreshKey((k) => k + 1);
+      await refreshHasAnyData();
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   return (
     <div className="pb-24">
-      <TopBar title="MoneyLog" />
+      <TopBar
+        title="MoneyLog"
+        actions={
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={handleRefresh}
+            disabled={refreshing}
+            aria-label="Refresh"
+          >
+            <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+          </Button>
+        }
+      />
       {profileId && (
         <div className="px-4 pt-2">
           <CrossAppSnapshot currentApp="moneylog" profileId={profileId} />

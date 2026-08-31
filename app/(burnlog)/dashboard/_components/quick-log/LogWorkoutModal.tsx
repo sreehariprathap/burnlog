@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { COMMON_ACTIVITIES, formatWorkoutNotes } from '@/lib/workoutActivities';
+import { useToast } from '@/components/ui/use-toast';
 
 type LogWorkoutModalProps = {
   profileId: string;
@@ -17,6 +18,7 @@ type LogWorkoutModalProps = {
 
 export function LogWorkoutModal({ profileId, onClose, onSaved }: LogWorkoutModalProps) {
   const supabase = createClientComponentClient();
+  const { toast } = useToast();
   const [activityType, setActivityType] = useState<string>(COMMON_ACTIVITIES[0]);
   const [duration, setDuration] = useState('');
   const [distanceKm, setDistanceKm] = useState('');
@@ -90,9 +92,12 @@ export function LogWorkoutModal({ profileId, onClose, onSaved }: LogWorkoutModal
         },
       ]);
       if (insertError) throw insertError;
+      toast({ title: 'Workout logged', description: `${activityType} — ${caloriesBurned} kcal burned.` });
       onSaved();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save workout');
+      const message = err instanceof Error ? err.message : 'Failed to save workout';
+      setError(message);
+      toast({ title: 'Failed to save workout', description: message, variant: 'destructive' });
     } finally {
       setSaving(false);
     }
@@ -122,13 +127,14 @@ export function LogWorkoutModal({ profileId, onClose, onSaved }: LogWorkoutModal
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1">
               <Label htmlFor="duration">Duration (mins)</Label>
-              <Input id="duration" type="number" placeholder="Minutes" value={duration} onChange={(e) => setDuration(e.target.value)} />
+              <Input id="duration" type="number" inputMode="numeric" autoFocus placeholder="Minutes" value={duration} onChange={(e) => setDuration(e.target.value)} />
             </div>
             <div className="space-y-1">
               <Label htmlFor="distanceKm">Distance (km) — optional</Label>
               <Input
                 id="distanceKm"
                 type="number"
+                inputMode="decimal"
                 step="0.1"
                 placeholder="e.g. 5.2"
                 value={distanceKm}
@@ -156,6 +162,7 @@ export function LogWorkoutModal({ profileId, onClose, onSaved }: LogWorkoutModal
               <Input
                 id="caloriesBurned"
                 type="number"
+                inputMode="numeric"
                 placeholder="Calories"
                 value={caloriesBurned}
                 onChange={(e) => setCaloriesBurned(e.target.value)}

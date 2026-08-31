@@ -157,6 +157,11 @@ export function CompletionTracker({ plan, exerciseLog, onComplete }: CompletionT
       onComplete();
     } catch (error) {
       console.error('Unexpected error:', error);
+      toast({
+        title: "Something went wrong",
+        description: error instanceof Error ? error.message : "Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsSubmitting(false);
     }

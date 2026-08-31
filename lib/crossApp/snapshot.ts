@@ -8,6 +8,9 @@ export interface CrossAppSnapshot {
   moneylogWeeklyNet: number | null; // null = no MoneyLog usage signal at all
   tasklogStreak: number | null; // null = no TaskLog usage signal at all
   tasklogDueToday: number; // always a number — "0 due today" is meaningful
+  homelogChoresDueToday: number; // always a number — "0 due today" (or no household) is meaningful
+  sociallogUnreadCount: number | null; // null = never sent/received a message
+  shoppinglogCartCount: number | null; // null = never added a cart item or placed an order
 }
 
 async function resolveBurnlogStreak(supabase: SupabaseClient, profileId: string, currentStreak: number): Promise<number | null> {
@@ -69,6 +72,70 @@ async function resolveTasklogDueToday(supabase: SupabaseClient, profileId: strin
   return count ?? 0;
 }
 
+async function resolveHomelogChoresDueToday(supabase: SupabaseClient, profileId: string): Promise<number> {
+  const { data: membership } = await supabase
+    .from('household_members')
+    .select('householdId')
+    .eq('profileId', profileId)
+    .maybeSingle();
+  if (!membership) return 0;
+
+  const today = todayDateString();
+  const { data: chores } = await supabase
+    .from('household_chores')
+    .select('id')
+    .eq('householdId', membership.householdId);
+  const choreIds = (chores ?? []).map((c) => c.id);
+  if (choreIds.length === 0) return 0;
+
+  const { count } = await supabase
+    .from('household_chore_instances')
+    .select('id', { count: 'exact', head: true })
+    .in('choreId', choreIds)
+    .eq('dueDate', today)
+    .is('completedAt', null);
+  return count ?? 0;
+}
+
+async function resolveSociallogUnreadCount(supabase: SupabaseClient, profileId: string): Promise<number | null> {
+  const { data: threads } = await supabase
+    .from('social_message_threads')
+    .select('id')
+    .or(`participantAId.eq.${profileId},participantBId.eq.${profileId}`);
+  const threadIds = (threads ?? []).map((t) => t.id);
+  if (threadIds.length === 0) return null;
+
+  const { count: unreadCount } = await supabase
+    .from('social_messages')
+    .select('id', { count: 'exact', head: true })
+    .in('threadId', threadIds)
+    .neq('senderId', profileId)
+    .is('readAt', null);
+
+  if ((unreadCount ?? 0) > 0) return unreadCount;
+
+  // Unread count is 0: distinguish "caught up" (has sent/received messages) from "never used" (thread exists but no messages exchanged)
+  const { count: anyMessageCount } = await supabase
+    .from('social_messages')
+    .select('id', { count: 'exact', head: true })
+    .in('threadId', threadIds);
+  return (anyMessageCount ?? 0) > 0 ? 0 : null;
+}
+
+async function resolveShoppinglogCartCount(supabase: SupabaseClient, profileId: string): Promise<number | null> {
+  const { count: cartCount } = await supabase
+    .from('shop_cart_items')
+    .select('id', { count: 'exact', head: true })
+    .eq('profileId', profileId);
+  if (cartCount && cartCount > 0) return cartCount;
+
+  const { count: everOrdered } = await supabase
+    .from('shop_orders')
+    .select('id', { count: 'exact', head: true })
+    .eq('buyerId', profileId);
+  return everOrdered && everOrdered > 0 ? 0 : null;
+}
+
 export async function getCrossAppSnapshot(supabase: SupabaseClient, profileId: string): Promise<CrossAppSnapshot> {
   const { data: profileRow } = await supabase
     .from('profiles')
@@ -76,12 +143,31 @@ export async function getCrossAppSnapshot(supabase: SupabaseClient, profileId: s
     .eq('id', profileId)
     .single();
 
-  const [burnlogStreak, tasklogStreak, moneylogWeeklyNet, tasklogDueToday] = await Promise.all([
+  const [
+    burnlogStreak,
+    tasklogStreak,
+    moneylogWeeklyNet,
+    tasklogDueToday,
+    homelogChoresDueToday,
+    sociallogUnreadCount,
+    shoppinglogCartCount,
+  ] = await Promise.all([
     resolveBurnlogStreak(supabase, profileId, profileRow?.currentStreak ?? 0).catch(() => null),
     resolveTasklogStreak(supabase, profileId, profileRow?.taskLogCurrentStreak ?? 0).catch(() => null),
     resolveMoneylogWeeklyNet(supabase, profileId).catch(() => null),
     resolveTasklogDueToday(supabase, profileId).catch(() => 0),
+    resolveHomelogChoresDueToday(supabase, profileId).catch(() => 0),
+    resolveSociallogUnreadCount(supabase, profileId).catch(() => null),
+    resolveShoppinglogCartCount(supabase, profileId).catch(() => null),
   ]);
 
-  return { burnlogStreak, moneylogWeeklyNet, tasklogStreak, tasklogDueToday };
+  return {
+    burnlogStreak,
+    moneylogWeeklyNet,
+    tasklogStreak,
+    tasklogDueToday,
+    homelogChoresDueToday,
+    sociallogUnreadCount,
+    shoppinglogCartCount,
+  };
 }

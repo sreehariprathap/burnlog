@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Trash2 } from 'lucide-react';
 import { RecurringItemForm } from '@/components/moneylog/RecurringItemForm';
 import { categoryLabel } from '@/lib/financeCategories';
+import { formatCurrency } from '@/lib/format';
 import type { RecurringItemDraft } from '@/lib/recurringItemDraft';
 
 interface FixedExpensesStepProps {
@@ -31,7 +32,7 @@ export function FixedExpensesStep({ rows, onAdd, onRemove, onContinue, onSkip }:
                   {row.label} ({categoryLabel(row.category)})
                 </span>
                 <div className="flex items-center gap-2">
-                  <span className="font-semibold">{row.amount}</span>
+                  <span className="font-semibold">{formatCurrency(row.amount)}</span>
                   <Button variant="ghost" size="icon" onClick={() => onRemove(index)} aria-label={`Remove ${row.label}`}>
                     <Trash2 className="h-4 w-4" />
                   </Button>

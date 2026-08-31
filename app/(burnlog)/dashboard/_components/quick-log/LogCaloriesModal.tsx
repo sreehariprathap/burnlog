@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { FoodScanner } from '@/app/(burnlog)/goals/_components/FoodScanner';
+import { useToast } from '@/components/ui/use-toast';
 
 const MEAL_TYPES = [
   { value: 'breakfast', label: 'Breakfast' },
@@ -25,6 +26,7 @@ type LogCaloriesModalProps = {
 
 export function LogCaloriesModal({ profileId, onClose, onSaved }: LogCaloriesModalProps) {
   const supabase = createClientComponentClient();
+  const { toast } = useToast();
   const [tab, setTab] = useState<'manual' | 'describe' | 'photo'>('manual');
   const [showScanner, setShowScanner] = useState(false);
   const [mealType, setMealType] = useState('lunch');
@@ -118,9 +120,12 @@ export function LogCaloriesModal({ profileId, onClose, onSaved }: LogCaloriesMod
       ]);
 
       if (insertError) throw insertError;
+      toast({ title: 'Calories logged', description: `${foodName} — ${calories} kcal saved.` });
       onSaved();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save entry');
+      const message = err instanceof Error ? err.message : 'Failed to save entry';
+      setError(message);
+      toast({ title: 'Failed to save entry', description: message, variant: 'destructive' });
     } finally {
       setSaving(false);
     }
@@ -186,25 +191,25 @@ export function LogCaloriesModal({ profileId, onClose, onSaved }: LogCaloriesMod
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="calories">Calories</Label>
-                  <Input id="calories" type="number" placeholder="Calories" value={calories} onChange={(e) => setCalories(e.target.value)} />
+                  <Input id="calories" type="number" inputMode="numeric" placeholder="Calories" value={calories} onChange={(e) => setCalories(e.target.value)} />
                 </div>
               </div>
               <div className="space-y-1">
                 <Label htmlFor="foodName">Food Name</Label>
-                <Input id="foodName" placeholder="What did you eat?" value={foodName} onChange={(e) => setFoodName(e.target.value)} />
+                <Input id="foodName" autoFocus autoComplete="off" placeholder="What did you eat?" value={foodName} onChange={(e) => setFoodName(e.target.value)} />
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <div className="space-y-1">
                   <Label htmlFor="protein">Protein (g)</Label>
-                  <Input id="protein" type="number" step="0.1" value={protein} onChange={(e) => setProtein(e.target.value)} />
+                  <Input id="protein" type="number" inputMode="decimal" step="0.1" value={protein} onChange={(e) => setProtein(e.target.value)} />
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="carbs">Carbs (g)</Label>
-                  <Input id="carbs" type="number" step="0.1" value={carbs} onChange={(e) => setCarbs(e.target.value)} />
+                  <Input id="carbs" type="number" inputMode="decimal" step="0.1" value={carbs} onChange={(e) => setCarbs(e.target.value)} />
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="fat">Fat (g)</Label>
-                  <Input id="fat" type="number" step="0.1" value={fat} onChange={(e) => setFat(e.target.value)} />
+                  <Input id="fat" type="number" inputMode="decimal" step="0.1" value={fat} onChange={(e) => setFat(e.target.value)} />
                 </div>
               </div>
               {itemsNote && <p className="text-xs text-muted-foreground">Items: {itemsNote}</p>}

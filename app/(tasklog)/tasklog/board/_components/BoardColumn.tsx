@@ -12,12 +12,17 @@ interface BoardColumnProps {
 
 export function BoardColumn({ lane, children }: BoardColumnProps) {
   const { setNodeRef } = useDroppable({ id: lane.id });
+  const isEmpty = Array.isArray(children) ? children.length === 0 : !children;
 
   return (
     <div className="flex w-64 shrink-0 flex-col gap-2 rounded-lg bg-muted/40 p-2">
       <p className="px-1 text-sm font-semibold text-muted-foreground">{lane.label}</p>
       <div ref={setNodeRef} className="flex min-h-24 flex-col gap-2">
-        {children}
+        {isEmpty ? (
+          <p className="px-1 py-4 text-center text-xs text-muted-foreground">Drop tasks here</p>
+        ) : (
+          children
+        )}
       </div>
     </div>
   );

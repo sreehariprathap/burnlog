@@ -136,6 +136,74 @@
   --sidebar-ring: oklch(0.76 0.16 60); /* #FF9E4F - Primary */
 }
 
+.app-logbook {
+  --background: #f6f7fb;
+  --foreground: oklch(0.3 0.04 260);
+  --card: #f6f7fb;
+  --card-foreground: oklch(0.3 0.04 260);
+  --popover: #f6f7fb;
+  --popover-foreground: oklch(0.3 0.04 260);
+  --primary: oklch(0.47 0.16 265);
+  --primary-foreground: #f6f7fb;
+  --secondary: oklch(0.4 0.09 260);
+  --secondary-foreground: #f6f7fb;
+  --muted: oklch(0.91 0.02 260);
+  --muted-foreground: oklch(0.45 0.04 260);
+  --accent: oklch(0.85 0.06 265);
+  --accent-foreground: oklch(0.3 0.04 260);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.87 0.02 260);
+  --input: oklch(0.87 0.02 260);
+  --ring: oklch(0.47 0.16 265);
+  --chart-1: oklch(0.47 0.16 265);
+  --chart-2: oklch(0.6 0.14 20);
+  --chart-3: oklch(0.65 0.15 165);
+  --chart-4: oklch(0.7 0.16 60);
+  --chart-5: oklch(0.45 0.04 260);
+  --sidebar: #f6f7fb;
+  --sidebar-foreground: oklch(0.3 0.04 260);
+  --sidebar-primary: oklch(0.47 0.16 265);
+  --sidebar-primary-foreground: #f6f7fb;
+  --sidebar-accent: oklch(0.85 0.06 265);
+  --sidebar-accent-foreground: oklch(0.3 0.04 260);
+  --sidebar-border: oklch(0.87 0.02 260);
+  --sidebar-ring: oklch(0.47 0.16 265);
+}
+
+.app-logbook.dark {
+  --background: oklch(0.19 0.03 260);
+  --foreground: #f5f6fa;
+  --card: oklch(0.24 0.035 260);
+  --card-foreground: #f5f6fa;
+  --popover: oklch(0.24 0.035 260);
+  --popover-foreground: #f5f6fa;
+  --primary: oklch(0.68 0.15 265);
+  --primary-foreground: oklch(0.19 0.03 260);
+  --secondary: oklch(0.45 0.1 260);
+  --secondary-foreground: #f5f6fa;
+  --muted: oklch(0.28 0.03 260);
+  --muted-foreground: oklch(0.72 0.03 260);
+  --accent: oklch(0.35 0.08 265);
+  --accent-foreground: #f5f6fa;
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 12%);
+  --input: oklch(1 0 0 / 18%);
+  --ring: oklch(0.68 0.15 265);
+  --chart-1: oklch(0.68 0.15 265);
+  --chart-2: oklch(0.7 0.14 20);
+  --chart-3: oklch(0.7 0.13 165);
+  --chart-4: oklch(0.78 0.15 60);
+  --chart-5: oklch(0.72 0.03 260);
+  --sidebar: oklch(0.24 0.035 260);
+  --sidebar-foreground: #f5f6fa;
+  --sidebar-primary: oklch(0.68 0.15 265);
+  --sidebar-primary-foreground: oklch(0.19 0.03 260);
+  --sidebar-accent: oklch(0.35 0.08 265);
+  --sidebar-accent-foreground: #f5f6fa;
+  --sidebar-border: oklch(1 0 0 / 12%);
+  --sidebar-ring: oklch(0.68 0.15 265);
+}
+
 .app-moneylog {
   --background: #f4faf9;
   --foreground: oklch(0.28 0.05 200);

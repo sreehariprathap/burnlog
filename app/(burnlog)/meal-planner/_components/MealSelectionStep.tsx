@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import type { MealCandidate, MealPlannerWizardAnswers } from '@/lib/ai/types';
+import { formatCalories } from '@/lib/format';
 
 const MEAL_LABEL: Record<string, string> = {
   breakfast: '🌅 Breakfast',
@@ -40,6 +41,13 @@ export function MealSelectionStep({ candidates, cookMode, mealsPerDay, onContinu
         </p>
       </CardHeader>
       <CardContent className="space-y-3">
+        {candidates.length === 0 && (
+          <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed p-8 text-center">
+            <span className="text-3xl" role="img" aria-label="Shrug">🤷</span>
+            <p className="text-sm font-semibold">No meal ideas generated</p>
+            <p className="text-xs text-muted-foreground">Go back and adjust your preferences, then try again.</p>
+          </div>
+        )}
         {candidates.map((c) => {
           const isSelected = selectedIds.includes(c.id);
           return (
@@ -60,7 +68,7 @@ export function MealSelectionStep({ candidates, cookMode, mealsPerDay, onContinu
               <p className="font-medium text-sm mt-1">{c.name}</p>
               <p className="text-xs text-muted-foreground">{c.description}</p>
               <div className="flex gap-3 text-[10px] mt-1">
-                <span className="text-orange-500 font-medium">{c.calories} kcal</span>
+                <span className="text-orange-500 font-medium">{formatCalories(c.calories)}</span>
                 <span className="text-blue-500">P: {c.protein}g</span>
                 <span className="text-green-500">C: {c.carbs}g</span>
                 <span className="text-red-500">F: {c.fat}g</span>

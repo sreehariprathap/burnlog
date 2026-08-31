@@ -5,6 +5,7 @@ import { useState } from 'react';
 import useSWR from 'swr';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Loader2 } from 'lucide-react';
 import { apiFetch } from '@/lib/apiFetch';
@@ -57,7 +58,17 @@ export function NewMessageDialog({
         <DialogHeader>
           <DialogTitle>New message</DialogTitle>
         </DialogHeader>
-        <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by username…" autoFocus />
+        <Label htmlFor="new-message-search" className="sr-only">
+          Search by username
+        </Label>
+        <Input
+          id="new-message-search"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search by username…"
+          autoFocus
+          autoComplete="off"
+        />
         {error && <p className="text-xs text-red-500">{error}</p>}
         {isLoading && <Loader2 className="h-5 w-5 animate-spin" />}
         <div className="max-h-72 space-y-1 overflow-y-auto">

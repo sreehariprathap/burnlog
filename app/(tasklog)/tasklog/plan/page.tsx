@@ -1,18 +1,21 @@
 // app/(tasklog)/tasklog/plan/page.tsx
+// Client Component — no static `metadata` export possible here.
 'use client';
 
 import { useState } from 'react';
 import useSWR from 'swr';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { PlusIcon } from 'lucide-react';
+import { PlusIcon, Inbox, Lightbulb, RefreshCwIcon } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
 import { TaskLogBottomNav } from '@/components/TaskLogBottomNav';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { useToast } from '@/components/ui/use-toast';
 import { LANES, PRIORITIES, type IdeaRow, type TaskLane, type TaskRow } from '@/lib/tasklog/types';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { AddIdeaForm } from './_components/AddIdeaForm';
@@ -22,8 +25,12 @@ import { IdeaBreakdownReviewSheet, type BreakdownSuggestion } from './_component
 export default function PlanPage() {
   const supabase = createClientComponentClient();
   const { profile } = useCurrentProfile();
+  const { toast } = useToast();
   const [quickAddText, setQuickAddText] = useState('');
   const [parsing, setParsing] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
+  const [deletingIdeaId, setDeletingIdeaId] = useState<string | null>(null);
 
   const {
     data: inboxData,
@@ -72,9 +79,17 @@ export default function PlanPage() {
         .insert([{ profileId: profile.id, title, dueDate, priority, category: 'work' }])
         .select()
         .single();
-      if (!error && data) {
+      if (error) throw error;
+      if (data) {
         await mutateInbox([data as TaskRow, ...inboxTasks], { revalidate: false });
+        toast({ title: 'Task added to inbox' });
       }
+    } catch (err) {
+      toast({
+        title: 'Failed to add task',
+        description: err instanceof Error ? err.message : 'Something went wrong.',
+        variant: 'destructive',
+      });
     } finally {
       setParsing(false);
     }
@@ -83,21 +98,44 @@ export default function PlanPage() {
   async function handleTriage(taskId: string, lane: TaskLane) {
     const task = inboxTasks.find((t) => t.id === taskId);
     if (!task) return;
-    const { data: laneTasks } = await supabase
-      .from('tasklog_tasks')
-      .select('id')
-      .eq('profileId', task.profileId)
-      .eq('lane', lane);
-    const position = laneTasks?.length ?? 0;
-    const { error } = await supabase.from('tasklog_tasks').update({ lane, position }).eq('id', taskId);
-    if (!error) {
+    try {
+      const { data: laneTasks } = await supabase
+        .from('tasklog_tasks')
+        .select('id')
+        .eq('profileId', task.profileId)
+        .eq('lane', lane);
+      const position = laneTasks?.length ?? 0;
+      const { error } = await supabase.from('tasklog_tasks').update({ lane, position }).eq('id', taskId);
+      if (error) throw error;
       await mutateInbox(inboxTasks.filter((t) => t.id !== taskId), { revalidate: false });
+      const laneLabel = LANES.find((l) => l.id === lane)?.label ?? lane;
+      toast({ title: `Moved to ${laneLabel}` });
+    } catch (err) {
+      toast({
+        title: 'Failed to move task',
+        description: err instanceof Error ? err.message : 'Something went wrong.',
+        variant: 'destructive',
+      });
     }
   }
 
-  async function handleDelete(taskId: string) {
-    await supabase.from('tasklog_tasks').delete().eq('id', taskId);
-    await mutateInbox(inboxTasks.filter((t) => t.id !== taskId), { revalidate: false });
+  async function handleDelete(taskId: string, title: string) {
+    if (!window.confirm(`Delete "${title}"? This cannot be undone.`)) return;
+    setDeletingTaskId(taskId);
+    try {
+      const { error } = await supabase.from('tasklog_tasks').delete().eq('id', taskId);
+      if (error) throw error;
+      await mutateInbox(inboxTasks.filter((t) => t.id !== taskId), { revalidate: false });
+      toast({ title: 'Task deleted' });
+    } catch (err) {
+      toast({
+        title: 'Failed to delete task',
+        description: err instanceof Error ? err.message : 'Something went wrong.',
+        variant: 'destructive',
+      });
+    } finally {
+      setDeletingTaskId(null);
+    }
   }
 
   const {
@@ -137,8 +175,23 @@ export default function PlanPage() {
   }
 
   async function handleDeleteIdea(ideaId: string) {
-    await supabase.from('tasklog_ideas').delete().eq('id', ideaId);
-    await mutateIdeas(ideas.filter((i) => i.id !== ideaId), { revalidate: false });
+    const idea = ideas.find((i) => i.id === ideaId);
+    if (!window.confirm(`Delete "${idea?.title ?? 'this idea'}"? This cannot be undone.`)) return;
+    setDeletingIdeaId(ideaId);
+    try {
+      const { error } = await supabase.from('tasklog_ideas').delete().eq('id', ideaId);
+      if (error) throw error;
+      await mutateIdeas(ideas.filter((i) => i.id !== ideaId), { revalidate: false });
+      toast({ title: 'Idea deleted' });
+    } catch (err) {
+      toast({
+        title: 'Failed to delete idea',
+        description: err instanceof Error ? err.message : 'Something went wrong.',
+        variant: 'destructive',
+      });
+    } finally {
+      setDeletingIdeaId(null);
+    }
   }
 
   const [breakdownIdea, setBreakdownIdea] = useState<IdeaRow | null>(null);
@@ -151,35 +204,69 @@ export default function PlanPage() {
 
   async function handleConfirmBreakdown(plan: string, selected: BreakdownSuggestion[]) {
     if (!breakdownIdea || !profile) return;
-    const { data: updatedIdea, error: updateError } = await supabase
-      .from('tasklog_ideas')
-      .update({ plan })
-      .eq('id', breakdownIdea.id)
-      .select()
-      .single();
-    if (!updateError && updatedIdea) {
-      await mutateIdeas(ideas.map((i) => (i.id === breakdownIdea.id ? (updatedIdea as IdeaRow) : i)), { revalidate: false });
+    try {
+      const { data: updatedIdea, error: updateError } = await supabase
+        .from('tasklog_ideas')
+        .update({ plan })
+        .eq('id', breakdownIdea.id)
+        .select()
+        .single();
+      if (updateError) throw updateError;
+      if (updatedIdea) {
+        await mutateIdeas(ideas.map((i) => (i.id === breakdownIdea.id ? (updatedIdea as IdeaRow) : i)), { revalidate: false });
+      }
+      if (selected.length > 0) {
+        const { error: insertError } = await supabase.from('tasklog_tasks').insert(
+          selected.map((t) => ({
+            profileId: profile.id,
+            ideaId: breakdownIdea.id,
+            title: t.title,
+            category: t.category,
+            priority: t.priority,
+            dueDate: t.suggestedDueDate || null,
+          }))
+        );
+        if (insertError) throw insertError;
+        await mutateInbox();
+        await mutateIdeaTaskCounts();
+      }
+      setBreakdownOpen(false);
+      toast({ title: 'Plan saved', description: `${selected.length} task${selected.length === 1 ? '' : 's'} added.` });
+    } catch (err) {
+      toast({
+        title: 'Failed to save plan',
+        description: err instanceof Error ? err.message : 'Something went wrong.',
+        variant: 'destructive',
+      });
     }
-    if (selected.length > 0) {
-      await supabase.from('tasklog_tasks').insert(
-        selected.map((t) => ({
-          profileId: profile.id,
-          ideaId: breakdownIdea.id,
-          title: t.title,
-          category: t.category,
-          priority: t.priority,
-          dueDate: t.suggestedDueDate || null,
-        }))
-      );
-      await mutateInbox();
-      await mutateIdeaTaskCounts();
+  }
+
+  async function handleManualRefresh() {
+    setRefreshing(true);
+    try {
+      await Promise.all([mutateInbox(), mutateIdeas(), mutateIdeaTaskCounts()]);
+    } finally {
+      setRefreshing(false);
     }
-    setBreakdownOpen(false);
   }
 
   return (
     <div className="pb-24">
-      <TopBar title="Plan" />
+      <TopBar
+        title="Plan"
+        actions={
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label="Refresh plan"
+            onClick={handleManualRefresh}
+            disabled={refreshing}
+          >
+            <RefreshCwIcon className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+          </Button>
+        }
+      />
       <Tabs defaultValue="tasks" className="px-4 pt-3">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="tasks">Tasks</TabsTrigger>
@@ -187,20 +274,28 @@ export default function PlanPage() {
         </TabsList>
         <TabsContent value="tasks" className="flex flex-col gap-3 pt-3">
           <form onSubmit={handleQuickAdd} className="flex gap-2">
+            <Label htmlFor="plan-quick-add" className="sr-only">Dump a task</Label>
             <Input
+              id="plan-quick-add"
               value={quickAddText}
               onChange={(e) => setQuickAddText(e.target.value)}
               placeholder='Dump a task… e.g. "call mom tomorrow high priority"'
               disabled={parsing}
+              autoComplete="off"
+              autoFocus
             />
-            <Button type="submit" size="icon" aria-label="Add to Plan" disabled={parsing}>
-              <PlusIcon className="h-4 w-4" />
+            <Button type="submit" size="icon" aria-label="Add to Plan" disabled={parsing || !quickAddText.trim()}>
+              {parsing ? <RefreshCwIcon className="h-4 w-4 animate-spin" /> : <PlusIcon className="h-4 w-4" />}
             </Button>
           </form>
           {isLoading ? (
             <Skeleton className="h-32 w-full" />
           ) : inboxTasks.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nothing in your inbox. Dump a task above.</p>
+            <div className="flex flex-col items-center gap-1 rounded-xl border border-dashed p-6 text-center">
+              <Inbox className="h-5 w-5 text-muted-foreground" />
+              <p className="text-sm font-semibold">Your inbox is empty</p>
+              <p className="text-xs text-muted-foreground">Dump a task above and triage it into a lane.</p>
+            </div>
           ) : (
             inboxTasks.map((task) => {
               const priority = PRIORITIES.find((p) => p.id === task.priority);
@@ -208,21 +303,29 @@ export default function PlanPage() {
                 <Card key={task.id}>
                   <CardContent className="flex flex-col gap-2 p-3">
                     <div className="flex items-center gap-2">
-                      <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: priority?.color }} />
+                      <span className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: priority?.color }} aria-hidden="true" />
                       <p className="text-sm font-medium">{task.title}</p>
                     </div>
                     {task.dueDate && <p className="text-xs text-muted-foreground">Due {task.dueDate}</p>}
                     <div className="flex items-center gap-2">
+                      <Label htmlFor={`lane-select-${task.id}`} className="sr-only">Move &quot;{task.title}&quot; to lane</Label>
                       <Select onValueChange={(lane) => handleTriage(task.id, lane as TaskLane)}>
-                        <SelectTrigger className="h-8 w-40 text-xs"><SelectValue placeholder="Move to lane…" /></SelectTrigger>
+                        <SelectTrigger id={`lane-select-${task.id}`} className="h-8 w-40 text-xs"><SelectValue placeholder="Move to lane…" /></SelectTrigger>
                         <SelectContent>
                           {LANES.map((lane) => (
                             <SelectItem key={lane.id} value={lane.id}>{lane.label}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
-                      <Button type="button" variant="ghost" size="sm" onClick={() => handleDelete(task.id)}>
-                        Delete
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        aria-label={`Delete task "${task.title}"`}
+                        onClick={() => handleDelete(task.id, task.title)}
+                        disabled={deletingTaskId === task.id}
+                      >
+                        {deletingTaskId === task.id ? 'Deleting…' : 'Delete'}
                       </Button>
                     </div>
                   </CardContent>
@@ -236,7 +339,11 @@ export default function PlanPage() {
           {ideasLoading ? (
             <Skeleton className="h-32 w-full" />
           ) : ideas.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No ideas yet. Capture one above.</p>
+            <div className="flex flex-col items-center gap-1 rounded-xl border border-dashed p-6 text-center">
+              <Lightbulb className="h-5 w-5 text-muted-foreground" />
+              <p className="text-sm font-semibold">No ideas yet</p>
+              <p className="text-xs text-muted-foreground">Capture an idea above and turn it into a plan.</p>
+            </div>
           ) : (
             ideas.map((idea) => (
               <IdeaCard
@@ -245,6 +352,7 @@ export default function PlanPage() {
                 taskCount={ideaTaskCounts.get(idea.id) ?? 0}
                 onGeneratePlan={handleGeneratePlan}
                 onDelete={handleDeleteIdea}
+                deleting={deletingIdeaId === idea.id}
               />
             ))
           )}

@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { HeartPulse } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
 
 type StaminaEntry = {
   id: string;
@@ -33,6 +35,7 @@ const ACTIVITY_TYPES = [
 
 export function StaminaTracker({ userId }: StaminaTrackerProps) {
   const supabase = createClientComponentClient();
+  const { toast } = useToast();
   const [entries, setEntries] = useState<StaminaEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [activityType, setActivityType] = useState('running');
@@ -40,7 +43,8 @@ export function StaminaTracker({ userId }: StaminaTrackerProps) {
   const [duration, setDuration] = useState('');
   const [avgHeartRate, setAvgHeartRate] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     if (userId) {
       fetchStaminaEntries();
@@ -88,6 +92,7 @@ export function StaminaTracker({ userId }: StaminaTrackerProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     setSubmitting(true);
 
     try {
@@ -127,13 +132,17 @@ export function StaminaTracker({ userId }: StaminaTrackerProps) {
       if (data) {
         // Refresh the list
         fetchStaminaEntries();
+        toast({ title: 'Session logged', description: `${activityType} session recorded.` });
         // Reset form
         setDistance('');
         setDuration('');
         setAvgHeartRate('');
       }
     } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to log session';
       console.error('Error adding stamina entry:', err);
+      setError(message);
+      toast({ title: 'Failed to log session', description: message, variant: 'destructive' });
     } finally {
       setSubmitting(false);
     }
@@ -295,30 +304,33 @@ export function StaminaTracker({ userId }: StaminaTrackerProps) {
                   <Input
                     id="distance"
                     type="number"
+                    inputMode="decimal"
                     step="0.1"
                     placeholder="Distance"
                     value={distance}
                     onChange={(e) => setDistance(e.target.value)}
                   />
                 </div>
-                
+
                 <div className="space-y-1">
                   <Label htmlFor="duration">Duration (min)</Label>
                   <Input
                     id="duration"
                     type="number"
+                    inputMode="numeric"
                     placeholder="Minutes"
                     value={duration}
                     onChange={(e) => setDuration(e.target.value)}
                     required
                   />
                 </div>
-                
+
                 <div className="space-y-1">
                   <Label htmlFor="heartRate">Heart Rate (bpm)</Label>
                   <Input
                     id="heartRate"
                     type="number"
+                    inputMode="numeric"
                     placeholder="Avg BPM"
                     value={avgHeartRate}
                     onChange={(e) => setAvgHeartRate(e.target.value)}
@@ -326,12 +338,14 @@ export function StaminaTracker({ userId }: StaminaTrackerProps) {
                 </div>
               </div>
 
+              {error && <p className="text-sm text-red-500">{error}</p>}
+
               <Button type="submit" className="w-full" disabled={submitting}>
                 {submitting ? 'Saving...' : 'Log Stamina Session'}
               </Button>
             </form>
 
-            {entries.length > 0 && (
+            {entries.length > 0 ? (
               <div className="mt-4">
                 <h3 className="font-medium mb-2">Recent Sessions</h3>
                 <div className="max-h-40 overflow-y-auto space-y-1">
@@ -347,6 +361,12 @@ export function StaminaTracker({ userId }: StaminaTrackerProps) {
                     </div>
                   ))}
                 </div>
+              </div>
+            ) : (
+              <div className="mt-4 flex flex-col items-center gap-1 rounded-xl border border-dashed p-6 text-center">
+                <HeartPulse className="h-6 w-6 text-muted-foreground" />
+                <p className="text-sm font-semibold">No stamina sessions yet</p>
+                <p className="text-xs text-muted-foreground">Log a session above to start tracking your endurance.</p>
               </div>
             )}
           </>

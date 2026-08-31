@@ -91,9 +91,9 @@ export function RecurringItemForm({ lockedType, onSubmit, submitLabel = 'Add' }:
       )}
 
       <div className="space-y-1.5">
-        <Label>Category</Label>
+        <Label htmlFor="recurring-category">Category</Label>
         <Select value={category} onValueChange={setCategory}>
-          <SelectTrigger>
+          <SelectTrigger id="recurring-category">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -107,19 +107,35 @@ export function RecurringItemForm({ lockedType, onSubmit, submitLabel = 'Add' }:
       </div>
 
       <div className="space-y-1.5">
-        <Label>Label</Label>
-        <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. Rent" />
+        <Label htmlFor="recurring-label">Label</Label>
+        <Input
+          id="recurring-label"
+          value={label}
+          onChange={(e) => setLabel(e.target.value)}
+          placeholder="e.g. Rent"
+          autoComplete="off"
+          autoFocus
+        />
       </div>
 
       <div className="space-y-1.5">
-        <Label>Amount</Label>
-        <Input type="number" min="0" step="0.01" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0.00" />
+        <Label htmlFor="recurring-amount">Amount</Label>
+        <Input
+          id="recurring-amount"
+          type="number"
+          inputMode="decimal"
+          min="0"
+          step="0.01"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          placeholder="0.00"
+        />
       </div>
 
       <div className="space-y-1.5">
-        <Label>Frequency</Label>
+        <Label htmlFor="recurring-frequency">Frequency</Label>
         <Select value={frequency} onValueChange={(v) => setFrequency(v as typeof frequency)}>
-          <SelectTrigger>
+          <SelectTrigger id="recurring-frequency">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -132,9 +148,9 @@ export function RecurringItemForm({ lockedType, onSubmit, submitLabel = 'Add' }:
 
       {frequency === 'weekly' && (
         <div className="space-y-1.5">
-          <Label>Day of week</Label>
+          <Label htmlFor="recurring-day-of-week">Day of week</Label>
           <Select value={dayOfWeek} onValueChange={setDayOfWeek}>
-            <SelectTrigger>
+            <SelectTrigger id="recurring-day-of-week">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -150,16 +166,24 @@ export function RecurringItemForm({ lockedType, onSubmit, submitLabel = 'Add' }:
 
       {(frequency === 'monthly' || frequency === 'yearly') && (
         <div className="space-y-1.5">
-          <Label>Day of month</Label>
-          <Input type="number" min="1" max="31" value={dayOfMonth} onChange={(e) => setDayOfMonth(e.target.value)} />
+          <Label htmlFor="recurring-day-of-month">Day of month</Label>
+          <Input
+            id="recurring-day-of-month"
+            type="number"
+            inputMode="numeric"
+            min="1"
+            max="31"
+            value={dayOfMonth}
+            onChange={(e) => setDayOfMonth(e.target.value)}
+          />
         </div>
       )}
 
       {frequency === 'yearly' && (
         <div className="space-y-1.5">
-          <Label>Month</Label>
+          <Label htmlFor="recurring-month">Month</Label>
           <Select value={monthOfYear} onValueChange={setMonthOfYear}>
-            <SelectTrigger>
+            <SelectTrigger id="recurring-month">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

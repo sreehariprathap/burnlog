@@ -21,7 +21,12 @@ export function TopicResults({ query }: { query: string }) {
 
   if (isLoading) return <Loader2 className="h-6 w-6 animate-spin" />;
   if ((data?.results.length ?? 0) === 0) {
-    return <p className="py-8 text-center text-sm text-muted-foreground">No topics found.</p>;
+    return (
+      <div className="flex flex-col items-center gap-2 py-12 text-center">
+        <Hash className="size-8 text-muted-foreground" />
+        <p className="text-sm text-muted-foreground">No topics found.</p>
+      </div>
+    );
   }
 
   return (

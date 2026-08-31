@@ -1,4 +1,6 @@
 // app/sessions/page.tsx
+// NOTE: this is a Client Component ('use client'), so `export const metadata` can't live here —
+// it would need a Server Component wrapper (e.g. a server layout.tsx) to set the page <title>.
 'use client';
 import { useState, useEffect, useCallback } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
@@ -152,8 +154,11 @@ export default function SessionsPage() {
         },
         { onConflict: 'profileId,dayOfWeek' }
       );
-    if (error) console.error('Plan save failed:', error);
-    else fetchPlan();
+    if (error) {
+      console.error('Plan save failed:', error);
+      throw error;
+    }
+    fetchPlan();
   };
 
   // 5️⃣ Session logger

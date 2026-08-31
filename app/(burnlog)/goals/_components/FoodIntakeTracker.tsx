@@ -7,7 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Utensils } from 'lucide-react';
 import { FoodScanner } from './FoodScanner';
+import { useToast } from '@/components/ui/use-toast';
+import { formatCalories } from '@/lib/format';
 
 type FoodIntakeEntry = {
   id: string;
@@ -33,6 +36,7 @@ const MEAL_TYPES = [
 
 export function FoodIntakeTracker({ userId }: FoodIntakeTrackerProps) {
   const supabase = createClientComponentClient();
+  const { toast } = useToast();
   const [entries, setEntries] = useState<FoodIntakeEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [mealType, setMealType] = useState('breakfast');
@@ -43,7 +47,8 @@ export function FoodIntakeTracker({ userId }: FoodIntakeTrackerProps) {
   const [fat, setFat] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [showScanner, setShowScanner] = useState(false);
-  
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     if (userId) {
       fetchFoodEntries();
@@ -91,6 +96,7 @@ export function FoodIntakeTracker({ userId }: FoodIntakeTrackerProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     setSubmitting(true);
 
     try {
@@ -136,6 +142,7 @@ export function FoodIntakeTracker({ userId }: FoodIntakeTrackerProps) {
       if (data) {
         // Refresh the list
         fetchFoodEntries();
+        toast({ title: 'Meal logged', description: `${foodName} — ${calories} kcal saved.` });
         // Reset form
         setFoodName('');
         setCalories('');
@@ -144,7 +151,10 @@ export function FoodIntakeTracker({ userId }: FoodIntakeTrackerProps) {
         setFat('');
       }
     } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to log meal';
       console.error('Error adding food entry:', err);
+      setError(message);
+      toast({ title: 'Failed to log meal', description: message, variant: 'destructive' });
     } finally {
       setSubmitting(false);
     }
@@ -278,7 +288,7 @@ export function FoodIntakeTracker({ userId }: FoodIntakeTrackerProps) {
             <div className="flex justify-between items-center mb-4">
               <div>
                 <p className="text-sm text-muted-foreground">Today&apos;s Calories</p>
-                <p className="text-2xl font-bold">{todayStats.calories} kcal</p>
+                <p className="text-2xl font-bold">{formatCalories(todayStats.calories)}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Macros (g)</p>
@@ -315,6 +325,7 @@ export function FoodIntakeTracker({ userId }: FoodIntakeTrackerProps) {
                   <Input
                     id="calories"
                     type="number"
+                    inputMode="numeric"
                     placeholder="Calories"
                     value={calories}
                     onChange={(e) => setCalories(e.target.value)}
@@ -322,48 +333,52 @@ export function FoodIntakeTracker({ userId }: FoodIntakeTrackerProps) {
                   />
                 </div>
               </div>
-              
+
               <div className="space-y-1">
                 <Label htmlFor="foodName">Food Name</Label>
                 <Input
                   id="foodName"
+                  autoComplete="off"
                   placeholder="What did you eat?"
                   value={foodName}
                   onChange={(e) => setFoodName(e.target.value)}
                   required
                 />
               </div>
-              
+
               <div className="grid grid-cols-3 gap-2">
                 <div className="space-y-1">
                   <Label htmlFor="protein">Protein (g)</Label>
                   <Input
                     id="protein"
                     type="number"
+                    inputMode="decimal"
                     step="0.1"
                     placeholder="Protein"
                     value={protein}
                     onChange={(e) => setProtein(e.target.value)}
                   />
                 </div>
-                
+
                 <div className="space-y-1">
                   <Label htmlFor="carbs">Carbs (g)</Label>
                   <Input
                     id="carbs"
                     type="number"
+                    inputMode="decimal"
                     step="0.1"
                     placeholder="Carbs"
                     value={carbs}
                     onChange={(e) => setCarbs(e.target.value)}
                   />
                 </div>
-                
+
                 <div className="space-y-1">
                   <Label htmlFor="fat">Fat (g)</Label>
                   <Input
                     id="fat"
                     type="number"
+                    inputMode="decimal"
                     step="0.1"
                     placeholder="Fat"
                     value={fat}
@@ -372,12 +387,14 @@ export function FoodIntakeTracker({ userId }: FoodIntakeTrackerProps) {
                 </div>
               </div>
 
+              {error && <p className="text-sm text-red-500">{error}</p>}
+
               <Button type="submit" className="w-full" disabled={submitting}>
                 {submitting ? 'Saving...' : 'Log Food'}
               </Button>
             </form>
 
-            {entries.length > 0 && (
+            {entries.length > 0 ? (
               <div className="mt-4">
                 <h3 className="font-medium mb-2">Recent Meals</h3>
                 <div className="max-h-40 overflow-y-auto space-y-1">
@@ -387,11 +404,17 @@ export function FoodIntakeTracker({ userId }: FoodIntakeTrackerProps) {
                         {new Date(entry.date).toLocaleDateString()} - {entry.mealType}: {entry.foodName}
                       </span>
                       <span className="font-medium">
-                        {entry.calories} kcal
+                        {formatCalories(entry.calories)}
                       </span>
                     </div>
                   ))}
                 </div>
+              </div>
+            ) : (
+              <div className="mt-4 flex flex-col items-center gap-1 rounded-xl border border-dashed p-6 text-center">
+                <Utensils className="h-6 w-6 text-muted-foreground" />
+                <p className="text-sm font-semibold">No meals logged yet</p>
+                <p className="text-xs text-muted-foreground">Log a meal above or scan your food to start tracking.</p>
               </div>
             )}
           </>

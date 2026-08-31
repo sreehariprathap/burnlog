@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/components/ui/use-toast';
 import { IDEA_CATEGORIES, type IdeaCategory, type IdeaRow } from '@/lib/tasklog/types';
 
 interface AddIdeaFormProps {
@@ -17,6 +18,7 @@ interface AddIdeaFormProps {
 
 export function AddIdeaForm({ profileId, onIdeaAdded }: AddIdeaFormProps) {
   const supabase = createClientComponentClient();
+  const { toast } = useToast();
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<IdeaCategory>('idea');
   const [loading, setLoading] = useState(false);
@@ -39,8 +41,11 @@ export function AddIdeaForm({ profileId, onIdeaAdded }: AddIdeaFormProps) {
       if (insertError) throw insertError;
       onIdeaAdded(data as IdeaRow);
       setTitle('');
+      toast({ title: 'Idea captured' });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add idea');
+      const message = err instanceof Error ? err.message : 'Failed to add idea';
+      setError(message);
+      toast({ title: 'Failed to add idea', description: message, variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -54,13 +59,25 @@ export function AddIdeaForm({ profileId, onIdeaAdded }: AddIdeaFormProps) {
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-3">
           <div className="space-y-1.5">
-            <Label>Title</Label>
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Subscription box for plant care" />
+            <Label htmlFor="idea-title">Title</Label>
+            <Input
+              id="idea-title"
+              value={title}
+              onChange={(e) => {
+                setTitle(e.target.value);
+                if (error) setError('');
+              }}
+              placeholder="e.g. Subscription box for plant care"
+              autoComplete="off"
+              autoFocus
+              aria-invalid={!!error}
+              aria-describedby={error ? 'idea-title-error' : undefined}
+            />
           </div>
           <div className="space-y-1.5">
-            <Label>Category</Label>
+            <Label htmlFor="idea-category">Category</Label>
             <Select value={category} onValueChange={(v) => setCategory(v as IdeaCategory)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger id="idea-category"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {IDEA_CATEGORIES.map((c) => (
                   <SelectItem key={c.id} value={c.id}>{c.label}</SelectItem>
@@ -68,7 +85,7 @@ export function AddIdeaForm({ profileId, onIdeaAdded }: AddIdeaFormProps) {
               </SelectContent>
             </Select>
           </div>
-          {error && <p className="text-sm text-destructive">{error}</p>}
+          {error && <p id="idea-title-error" className="text-sm text-destructive">{error}</p>}
           <Button type="submit" disabled={loading}>{loading ? 'Adding…' : 'Add idea'}</Button>
         </form>
       </CardContent>

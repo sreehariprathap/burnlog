@@ -1,0 +1,152 @@
+'use client';
+
+import { useEffect, useMemo, useRef } from 'react';
+import useSWR from 'swr';
+import { CalendarDays } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { cn } from '@/lib/utils';
+import type { LogbookCalendar, LogbookCalendarDay } from '@/lib/logbook/calendar';
+
+async function fetchCalendar(): Promise<LogbookCalendar> {
+  const res = await fetch('/api/logbook/calendar');
+  if (!res.ok) throw new Error('Failed to load streak calendar');
+  return res.json();
+}
+
+const LEVEL_CLASSES: Record<0 | 1 | 2, string> = {
+  0: 'bg-muted',
+  1: 'bg-green-300 dark:bg-green-800',
+  2: 'bg-green-500 dark:bg-green-500',
+};
+
+const WEEKDAY_LABELS = ['', 'Mon', '', 'Wed', '', 'Fri', ''];
+const MONTH_NAMES = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
+function todayKey(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+}
+
+function formatTooltipDate(dateStr: string): string {
+  const d = new Date(`${dateStr}T00:00:00`);
+  return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+export function StreakCalendar() {
+  const { data, isLoading, error } = useSWR('logbook-calendar', fetchCalendar);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const today = todayKey();
+
+  const weeks = useMemo(() => {
+    if (!data || data.days.length === 0) return [];
+    const firstDow = new Date(`${data.days[0].date}T00:00:00`).getDay();
+    const padded: (LogbookCalendarDay | null)[] = [...Array(firstDow).fill(null), ...data.days];
+    const cols: (LogbookCalendarDay | null)[][] = [];
+    for (let i = 0; i < padded.length; i += 7) {
+      cols.push(padded.slice(i, i + 7));
+    }
+    return cols;
+  }, [data]);
+
+  const monthLabels = useMemo(() => {
+    let lastMonth = -1;
+    return weeks.map((week) => {
+      const firstRealDay = week.find((d) => d !== null);
+      if (!firstRealDay) return '';
+      const month = new Date(`${firstRealDay.date}T00:00:00`).getMonth();
+      if (month === lastMonth) return '';
+      lastMonth = month;
+      return MONTH_NAMES[month];
+    });
+  }, [weeks]);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollLeft = scrollRef.current.scrollWidth;
+    }
+  }, [weeks]);
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="p-4">
+          <Skeleton className="mb-3 h-4 w-32" />
+          <Skeleton className="h-24 w-full rounded-lg" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error || !data) {
+    return null;
+  }
+
+  if (data.activeApps.length === 0) {
+    return (
+      <Card>
+        <CardContent className="flex flex-col items-center gap-2 p-6 text-center">
+          <CalendarDays className="h-6 w-6 text-muted-foreground" />
+          <p className="text-sm font-medium">No streak yet</p>
+          <p className="text-xs text-muted-foreground">
+            Log something in any app to start building your streak calendar.
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card>
+      <CardContent className="p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="text-sm font-semibold">Streak calendar</h2>
+          <div className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <span>Less</span>
+            {([0, 1, 2] as const).map((level) => (
+              <span key={level} className={`h-2.5 w-2.5 rounded-sm ${LEVEL_CLASSES[level]}`} />
+            ))}
+            <span>More</span>
+          </div>
+        </div>
+
+        <div ref={scrollRef} className="flex gap-1 overflow-x-auto pb-1">
+          <div className="flex shrink-0 flex-col gap-1 pr-1 pt-4">
+            {WEEKDAY_LABELS.map((label, i) => (
+              <span key={i} className="h-2.5 text-[9px] leading-none text-muted-foreground">
+                {label}
+              </span>
+            ))}
+          </div>
+
+          {weeks.map((week, wi) => (
+            <div key={wi} className="flex shrink-0 flex-col gap-1">
+              <span className="block h-3 text-[9px] leading-none whitespace-nowrap text-muted-foreground">
+                {monthLabels[wi]}
+              </span>
+              {week.map((day, di) => (
+                <div
+                  key={di}
+                  title={
+                    day
+                      ? `${formatTooltipDate(day.date)} — ${day.apps.length ? day.apps.join(', ') : 'nothing logged'}`
+                      : undefined
+                  }
+                  className={cn(
+                    'h-2.5 w-2.5 rounded-sm',
+                    day ? LEVEL_CLASSES[day.level] : 'bg-transparent',
+                    day?.date === today && 'ring-1 ring-primary ring-offset-1 ring-offset-card'
+                  )}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+
+        <p className="mt-2 text-[11px] text-muted-foreground">
+          Full green = every app you use was logged that day.
+        </p>
+      </CardContent>
+    </Card>
+  );
+}

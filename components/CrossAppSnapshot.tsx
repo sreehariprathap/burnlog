@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { FlameIcon, ListChecksIcon, WalletIcon } from 'lucide-react';
+import { FlameIcon, ListChecksIcon, WalletIcon, HomeIcon, MessageCircleIcon, ShoppingCartIcon } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { AppId } from '@/lib/appMode';
@@ -49,6 +49,30 @@ function buildChips(currentApp: AppId, data: SnapshotData): Chip[] {
     });
   }
 
+  if (currentApp !== 'homelog' && data.homelogChoresDueToday > 0) {
+    chips.push({
+      app: 'homelog',
+      icon: <HomeIcon className="h-4 w-4 text-purple-500" />,
+      label: `${data.homelogChoresDueToday} chores due`,
+    });
+  }
+
+  if (currentApp !== 'sociallog' && data.sociallogUnreadCount !== null) {
+    chips.push({
+      app: 'sociallog',
+      icon: <MessageCircleIcon className="h-4 w-4 text-pink-500" />,
+      label: `${data.sociallogUnreadCount} unread`,
+    });
+  }
+
+  if (currentApp !== 'shoppinglog' && data.shoppinglogCartCount !== null) {
+    chips.push({
+      app: 'shoppinglog',
+      icon: <ShoppingCartIcon className="h-4 w-4 text-[#f18701]" />,
+      label: `${data.shoppinglogCartCount} in cart`,
+    });
+  }
+
   return chips;
 }
 
@@ -78,13 +102,13 @@ export function CrossAppSnapshot({ currentApp, profileId }: CrossAppSnapshotProp
 
   return (
     <Card>
-      <CardContent className="flex items-center gap-2 p-3">
+      <CardContent className="flex flex-wrap items-center gap-2 p-3">
         {chips.map((chip) => (
           <button
             key={chip.app}
             type="button"
             onClick={() => switchTo(chip.app)}
-            className="flex flex-1 items-center gap-2 rounded-md border p-2 text-left transition-colors hover:bg-accent"
+            className="flex items-center gap-2 rounded-md border p-2 text-left transition-colors hover:bg-accent"
           >
             {chip.icon}
             <span className="text-xs font-medium">{chip.label}</span>

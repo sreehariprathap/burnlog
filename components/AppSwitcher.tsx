@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { motion } from 'motion/react';
 import { Star } from 'lucide-react';
+import { LogbookMark } from '@/components/LogbookMark';
 import { MoneyLogMark } from '@/components/MoneyLogMark';
 import { TaskLogMark } from '@/components/TaskLogMark';
 import { HomeLogMark } from '@/components/HomeLogMark';
@@ -23,6 +24,8 @@ const LONG_PRESS_MS = 500;
 
 function AppIcon({ id, size }: { id: AppId; size: number }) {
   switch (id) {
+    case 'logbook':
+      return <LogbookMark size={size} />;
     case 'moneylog':
       return <MoneyLogMark size={size} />;
     case 'tasklog':
@@ -40,8 +43,8 @@ function AppIcon({ id, size }: { id: AppId; size: number }) {
 
 export function AppSwitcher({ open, onOpenChange }: AppSwitcherProps) {
   const { switchTo } = useAppSwitch();
-  const [activeApp, setActiveAppState] = useState<AppId>('burnlog');
-  const [defaultApp, setDefaultAppState] = useState<AppId>('burnlog');
+  const [activeApp, setActiveAppState] = useState<AppId>('logbook');
+  const [defaultApp, setDefaultAppState] = useState<AppId>('logbook');
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressFired = useRef(false);
 

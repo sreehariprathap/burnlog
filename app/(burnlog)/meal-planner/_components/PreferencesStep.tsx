@@ -30,13 +30,16 @@ export function PreferencesStep({ initialAnswers, onContinue }: PreferencesStepP
       </CardHeader>
       <CardContent className="space-y-5">
         <div className="space-y-2">
-          <Label>Meals per day</Label>
+          <Label htmlFor="meals-per-day">Meals per day</Label>
           <Input
+            id="meals-per-day"
             type="number"
+            inputMode="numeric"
             min={1}
             max={4}
             value={mealsPerDay}
             onChange={(e) => setMealsPerDay(Math.min(4, Math.max(1, Number(e.target.value) || 3)))}
+            autoFocus
           />
         </div>
 

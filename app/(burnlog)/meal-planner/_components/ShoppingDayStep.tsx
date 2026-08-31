@@ -7,18 +7,26 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { useToast } from '@/components/ui/use-toast';
 
 type ShoppingDayStepProps = {
   profileId: string;
   onDone: () => void;
 };
 
+function todayLocalDateString(): string {
+  const now = new Date();
+  const offset = now.getTimezoneOffset();
+  return new Date(now.getTime() - offset * 60000).toISOString().slice(0, 10);
+}
+
 export function ShoppingDayStep({ profileId, onDone }: ShoppingDayStepProps) {
   const supabase = createClientComponentClient();
-  const [date, setDate] = useState('');
+  const [date, setDate] = useState(todayLocalDateString());
   const [time, setTime] = useState('18:00');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   const handleSave = async () => {
     if (!date) {
@@ -38,8 +46,10 @@ export function ShoppingDayStep({ profileId, onDone }: ShoppingDayStepProps) {
     setSaving(false);
     if (insertError) {
       setError('Failed to schedule your reminder. Please try again.');
+      toast({ title: 'Could not schedule reminder', description: insertError.message, variant: 'destructive' });
       return;
     }
+    toast({ title: 'Reminder scheduled', description: 'We’ll remind you when it’s time to shop.' });
     onDone();
   };
 
@@ -56,12 +66,12 @@ export function ShoppingDayStep({ profileId, onDone }: ShoppingDayStepProps) {
           </div>
         )}
         <div className="space-y-2">
-          <Label>Date</Label>
-          <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
+          <Label htmlFor="shopping-date">Date</Label>
+          <Input id="shopping-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} autoFocus />
         </div>
         <div className="space-y-2">
-          <Label>Time</Label>
-          <Input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+          <Label htmlFor="shopping-time">Time</Label>
+          <Input id="shopping-time" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
         </div>
         <div className="flex justify-end pt-2">
           <Button onClick={handleSave} disabled={saving}>

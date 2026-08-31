@@ -60,8 +60,8 @@ export function BMIWidget({ height, weight }: BMIWidgetProps) {
         </div>
         
         {/* BMI Scale */}
-        <div className="relative h-3 w-full bg-gray-200 rounded-full mt-6">
-          <div className="absolute flex w-full justify-between px-1 -top-5 text-[10px] text-gray-500">
+        <div className="relative h-3 w-full bg-muted rounded-full mt-6">
+          <div className="absolute flex w-full justify-between px-1 -top-5 text-[10px] text-muted-foreground">
             <span>15</span>
             <span>20</span>
             <span>25</span>
@@ -79,7 +79,7 @@ export function BMIWidget({ height, weight }: BMIWidgetProps) {
           
           {/* Indicator */}
           <div 
-            className="absolute h-5 w-2 bg-gray-800 rounded-full -top-1" 
+            className="absolute h-5 w-2 bg-foreground rounded-full -top-1"
             style={{ left: `calc(${position}% - 2px)` }}
           ></div>
         </div>

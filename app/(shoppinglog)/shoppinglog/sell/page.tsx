@@ -1,14 +1,16 @@
 // app/(shoppinglog)/shoppinglog/sell/page.tsx
 'use client';
+// Client Component — page metadata isn't applicable here (see layout.tsx for shared app metadata).
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
-import { Loader2, Package } from 'lucide-react';
+import { Loader2, Package, RefreshCw } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
 import { ShoppingLogBottomNav } from '@/components/ShoppingLogBottomNav';
 import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/lib/apiFetch';
+import { useToast } from '@/components/ui/use-toast';
 import { ListingForm, type ListingFormValues } from '../_components/ListingForm';
 import { ListingCard, type ListingSummary } from '../_components/ListingCard';
 import type { Category } from '../_components/CategoryChips';
@@ -21,6 +23,7 @@ async function fetcher(url: string) {
 
 export default function SellPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const { data: categoryData } = useSWR<{ categories: Category[] }>('/api/shoppinglog/categories', fetcher);
   const { data: myListingsData, mutate } = useSWR<{ listings: ListingSummary[] }>('/api/shoppinglog/listings?mine=1', fetcher);
 
@@ -41,6 +44,7 @@ export default function SellPage() {
     if (res.ok) {
       const created = await res.json();
       mutate();
+      toast({ title: 'Listing created' });
       router.push(`/shoppinglog/listing/${created.id}`);
     }
   };
@@ -50,9 +54,14 @@ export default function SellPage() {
       <TopBar
         title="Sell"
         actions={
-          <Link href="/shoppinglog/orders">
-            <Button variant="ghost" size="sm">My Orders</Button>
-          </Link>
+          <div className="flex items-center gap-1">
+            <Button type="button" variant="ghost" size="icon" aria-label="Refresh" onClick={() => mutate()}>
+              <RefreshCw className="size-4" />
+            </Button>
+            <Link href="/shoppinglog/orders">
+              <Button variant="ghost" size="sm">My Orders</Button>
+            </Link>
+          </div>
         }
       />
       <main className="flex-1 container mx-auto max-w-2xl space-y-6 p-4 pb-24">
@@ -65,7 +74,11 @@ export default function SellPage() {
           </h2>
           {!myListingsData && <Loader2 className="h-5 w-5 animate-spin" />}
           {myListingsData && myListingsData.listings.length === 0 && (
-            <p className="text-sm text-muted-foreground">Nothing listed yet.</p>
+            <div className="flex flex-col items-center gap-2 py-8 text-center">
+              <Package className="size-8 text-muted-foreground" />
+              <p className="text-sm font-medium">Nothing listed yet</p>
+              <p className="text-xs text-muted-foreground">Fill out the form above to list your first item.</p>
+            </div>
           )}
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {(myListingsData?.listings ?? []).map((listing) => (

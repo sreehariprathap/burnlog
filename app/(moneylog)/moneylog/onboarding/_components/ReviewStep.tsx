@@ -4,6 +4,7 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { categoryLabel } from '@/lib/financeCategories';
+import { formatCurrency } from '@/lib/format';
 import type { RecurringItemDraft } from '@/lib/recurringItemDraft';
 
 interface ReviewStepProps {
@@ -37,7 +38,7 @@ export function ReviewStep({ incomeRows, expenseRows, saving, error, onConfirm, 
                       <span>
                         {row.label} ({categoryLabel(row.category)})
                       </span>
-                      <span className="font-medium">{row.amount}</span>
+                      <span className="font-medium">{formatCurrency(row.amount)}</span>
                     </li>
                   ))}
                 </ul>
@@ -52,7 +53,7 @@ export function ReviewStep({ incomeRows, expenseRows, saving, error, onConfirm, 
                       <span>
                         {row.label} ({categoryLabel(row.category)})
                       </span>
-                      <span className="font-medium">{row.amount}</span>
+                      <span className="font-medium">{formatCurrency(row.amount)}</span>
                     </li>
                   ))}
                 </ul>

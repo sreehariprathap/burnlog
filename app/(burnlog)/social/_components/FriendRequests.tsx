@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { Loader2, Check, X } from 'lucide-react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/ui/use-toast';
 
 type IncomingRequest = {
   id: string;
@@ -22,6 +23,7 @@ export function FriendRequests({ refreshKey, onChanged }: FriendRequestsProps) {
   const [loading, setLoading] = useState(true);
   const [actingId, setActingId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   useEffect(() => {
     let cancelled = false;
@@ -47,13 +49,20 @@ export function FriendRequests({ refreshKey, onChanged }: FriendRequestsProps) {
       const res = await fetch(`/api/social/requests/${id}/${action}`, { method: 'POST' });
       const data = await res.json();
       if (!res.ok || data.error) {
-        setError(data.error ?? 'Failed to update request');
+        const message = data.error ?? 'Failed to update request';
+        setError(message);
+        toast({ title: 'Request failed', description: message, variant: 'destructive' });
         return;
       }
       setRequests((prev) => prev.filter((r) => r.id !== id));
+      toast({
+        title: action === 'accept' ? 'Friend request accepted' : 'Friend request declined',
+      });
       onChanged();
-    } catch {
-      setError('Network error');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Network error';
+      setError(message);
+      toast({ title: 'Request failed', description: message, variant: 'destructive' });
     } finally {
       setActingId(null);
     }
@@ -76,10 +85,21 @@ export function FriendRequests({ refreshKey, onChanged }: FriendRequestsProps) {
               <p className="text-xs text-muted-foreground">@{r.requesterUsername} · Level {r.requesterLevel}</p>
             </div>
             <div className="flex gap-2">
-              <Button size="sm" disabled={actingId === r.id} onClick={() => respond(r.id, 'accept')}>
+              <Button
+                size="sm"
+                aria-label={`Accept friend request from ${r.requesterFirstName}`}
+                disabled={actingId === r.id}
+                onClick={() => respond(r.id, 'accept')}
+              >
                 {actingId === r.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
               </Button>
-              <Button size="sm" variant="outline" disabled={actingId === r.id} onClick={() => respond(r.id, 'decline')}>
+              <Button
+                size="sm"
+                variant="outline"
+                aria-label={`Decline friend request from ${r.requesterFirstName}`}
+                disabled={actingId === r.id}
+                onClick={() => respond(r.id, 'decline')}
+              >
                 <X className="h-4 w-4" />
               </Button>
             </div>

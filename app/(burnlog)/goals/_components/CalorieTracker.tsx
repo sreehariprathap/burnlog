@@ -7,6 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Flame } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
+import { formatCalories } from '@/lib/format';
 
 type CalorieBurnEntry = {
   id: string;
@@ -33,13 +36,15 @@ const ACTIVITY_TYPES = [
 
 export function CalorieTracker({ userId }: CalorieTrackerProps) {
   const supabase = createClientComponentClient();
+  const { toast } = useToast();
   const [entries, setEntries] = useState<CalorieBurnEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [activityType, setActivityType] = useState('running');
   const [duration, setDuration] = useState('');
   const [caloriesBurned, setCaloriesBurned] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
     if (userId) {
       fetchCalorieEntries();
@@ -87,13 +92,14 @@ export function CalorieTracker({ userId }: CalorieTrackerProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     setSubmitting(true);
 
     try {
       if (!duration || isNaN(Number(duration))) {
         throw new Error('Please enter a valid duration');
       }
-      
+
       if (!caloriesBurned || isNaN(Number(caloriesBurned))) {
         throw new Error('Please enter a valid calorie amount');
       }
@@ -129,12 +135,16 @@ export function CalorieTracker({ userId }: CalorieTrackerProps) {
       if (data) {
         // Refresh the list
         fetchCalorieEntries();
+        toast({ title: 'Activity logged', description: `${caloriesBurned} kcal burned recorded.` });
         // Reset form
         setDuration('');
         setCaloriesBurned('');
       }
     } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to log activity';
       console.error('Error adding calorie entry:', err);
+      setError(message);
+      toast({ title: 'Failed to log activity', description: message, variant: 'destructive' });
     } finally {
       setSubmitting(false);
     }
@@ -220,7 +230,7 @@ export function CalorieTracker({ userId }: CalorieTrackerProps) {
             <div className="flex justify-between items-center mb-4">
               <div>
                 <p className="text-sm text-muted-foreground">Total Calories Burned</p>
-                <p className="text-2xl font-bold">{getTotalCalories()} kcal</p>
+                <p className="text-2xl font-bold">{formatCalories(getTotalCalories())}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Total Duration</p>
@@ -253,18 +263,20 @@ export function CalorieTracker({ userId }: CalorieTrackerProps) {
                   <Input
                     id="duration"
                     type="number"
+                    inputMode="numeric"
                     placeholder="Minutes"
                     value={duration}
                     onChange={(e) => setDuration(e.target.value)}
                     required
                   />
                 </div>
-                
+
                 <div className="space-y-1">
                   <Label htmlFor="calories">Calories</Label>
                   <Input
                     id="calories"
                     type="number"
+                    inputMode="numeric"
                     placeholder="Calories burned"
                     value={caloriesBurned}
                     onChange={(e) => setCaloriesBurned(e.target.value)}
@@ -273,12 +285,14 @@ export function CalorieTracker({ userId }: CalorieTrackerProps) {
                 </div>
               </div>
 
+              {error && <p className="text-sm text-red-500">{error}</p>}
+
               <Button type="submit" className="w-full" disabled={submitting}>
                 {submitting ? 'Saving...' : 'Log Activity'}
               </Button>
             </form>
 
-            {entries.length > 0 && (
+            {entries.length > 0 ? (
               <div className="mt-4">
                 <h3 className="font-medium mb-2">Recent Activities</h3>
                 <div className="max-h-40 overflow-y-auto space-y-1">
@@ -288,11 +302,17 @@ export function CalorieTracker({ userId }: CalorieTrackerProps) {
                         {new Date(entry.date).toLocaleDateString()} - {entry.activityType}
                       </span>
                       <span className="font-medium">
-                        {entry.caloriesBurned} kcal ({entry.duration} min)
+                        {formatCalories(entry.caloriesBurned)} ({entry.duration} min)
                       </span>
                     </div>
                   ))}
                 </div>
+              </div>
+            ) : (
+              <div className="mt-4 flex flex-col items-center gap-1 rounded-xl border border-dashed p-6 text-center">
+                <Flame className="h-6 w-6 text-muted-foreground" />
+                <p className="text-sm font-semibold">No activity logged yet</p>
+                <p className="text-xs text-muted-foreground">Log a workout above to start tracking calories burned.</p>
               </div>
             )}
           </>

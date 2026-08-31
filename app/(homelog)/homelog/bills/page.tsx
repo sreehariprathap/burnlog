@@ -1,5 +1,6 @@
 // app/(homelog)/homelog/bills/page.tsx
 'use client';
+// Client Component — page metadata isn't applicable here (see layout.tsx for shared app metadata).
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -12,7 +13,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Receipt, RefreshCw } from 'lucide-react';
 import { useHouseholdMe } from '@/lib/homelog/useHouseholdMe';
+import { useToast } from '@/components/ui/use-toast';
+import { formatCurrency } from '@/lib/format';
 
 interface ExpenseSplitInfo {
   profileId: string;
@@ -52,6 +56,7 @@ async function fetchBalances(): Promise<BalanceInfo[]> {
 }
 
 export default function BillsPage() {
+  const { toast } = useToast();
   const { household, members, myProfileId, isLoading: householdLoading } = useHouseholdMe();
   const hasHousehold = !householdLoading && !!household;
 
@@ -76,6 +81,7 @@ export default function BillsPage() {
   const [shares, setShares] = useState<Record<string, string>>({});
   const [creating, setCreating] = useState(false);
   const [error, setError] = useState('');
+  const [settlingId, setSettlingId] = useState<string | null>(null);
 
   function updateShare(profileId: string, value: string) {
     setShares((prev) => ({ ...prev, [profileId]: value }));
@@ -114,20 +120,39 @@ export default function BillsPage() {
       setShares({});
       await refreshExpenses();
       await refreshBalances();
+      toast({ title: 'Expense added' });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to add expense');
+      const message = err instanceof Error ? err.message : 'Failed to add expense';
+      setError(message);
+      toast({ title: 'Failed to add expense', description: message, variant: 'destructive' });
     } finally {
       setCreating(false);
     }
   }
 
   async function handleSettle(toProfileId: string, amount: number) {
-    await fetch('/api/homelog/settlements', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ toProfileId, amount }),
-    });
-    await refreshBalances();
+    setSettlingId(toProfileId);
+    try {
+      const res = await fetch('/api/homelog/settlements', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ toProfileId, amount }),
+      });
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.error || 'Failed to settle up');
+      }
+      await refreshBalances();
+      toast({ title: 'Settled up' });
+    } catch (err) {
+      toast({
+        title: 'Failed to settle up',
+        description: err instanceof Error ? err.message : 'Please try again',
+        variant: 'destructive',
+      });
+    } finally {
+      setSettlingId(null);
+    }
   }
 
   if (!householdLoading && !household) {
@@ -147,7 +172,23 @@ export default function BillsPage() {
 
   return (
     <div className="pb-24">
-      <TopBar title="Bills" />
+      <TopBar
+        title="Bills"
+        actions={
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label="Refresh"
+            onClick={() => {
+              refreshExpenses();
+              refreshBalances();
+            }}
+          >
+            <RefreshCw className="h-4 w-4" />
+          </Button>
+        }
+      />
       <div className="flex flex-col gap-4 px-4 py-4">
         {loading ? (
           <Skeleton className="h-40 w-full" />
@@ -178,12 +219,17 @@ export default function BillsPage() {
                     <div key={b.key} className="flex items-center justify-between rounded-md border p-3">
                       <p className="text-sm">
                         {b.iOwe
-                          ? `You owe ${b.otherName} $${b.amount.toFixed(2)}`
-                          : `${b.otherName} owes you $${b.amount.toFixed(2)}`}
+                          ? `You owe ${b.otherName} ${formatCurrency(b.amount)}`
+                          : `${b.otherName} owes you ${formatCurrency(b.amount)}`}
                       </p>
                       {b.iOwe && (
-                        <Button type="button" size="sm" onClick={() => handleSettle(b.otherId, b.amount)}>
-                          Settle up
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => handleSettle(b.otherId, b.amount)}
+                          disabled={settlingId === b.otherId}
+                        >
+                          {settlingId === b.otherId ? 'Settling…' : 'Settle up'}
                         </Button>
                       )}
                     </div>
@@ -199,14 +245,21 @@ export default function BillsPage() {
               <CardContent>
                 <form onSubmit={handleCreateExpense} className="space-y-3">
                   <div className="space-y-1.5">
-                    <Label>Label</Label>
-                    <Input value={label} onChange={(e) => setLabel(e.target.value)} placeholder="e.g. Dinner" />
+                    <Label htmlFor="expense-label">Label</Label>
+                    <Input
+                      id="expense-label"
+                      autoFocus
+                      autoComplete="off"
+                      value={label}
+                      onChange={(e) => setLabel(e.target.value)}
+                      placeholder="e.g. Dinner"
+                    />
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="space-y-1.5">
-                      <Label>Category</Label>
+                      <Label htmlFor="expense-category">Category</Label>
                       <Select value={category} onValueChange={setCategory}>
-                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectTrigger id="expense-category"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="rent">Rent</SelectItem>
                           <SelectItem value="utilities">Utilities</SelectItem>
@@ -216,9 +269,11 @@ export default function BillsPage() {
                       </Select>
                     </div>
                     <div className="space-y-1.5">
-                      <Label>Total amount</Label>
+                      <Label htmlFor="expense-total">Total amount</Label>
                       <Input
+                        id="expense-total"
                         type="number"
+                        inputMode="decimal"
                         min="0"
                         step="0.01"
                         value={totalAmount}
@@ -232,9 +287,13 @@ export default function BillsPage() {
                     <div className="space-y-2">
                       {members.map((member) => (
                         <div key={member.profileId} className="flex items-center gap-2">
-                          <span className="w-24 text-sm">{member.firstName}</span>
+                          <Label htmlFor={`share-${member.profileId}`} className="w-24 text-sm font-normal">
+                            {member.firstName}
+                          </Label>
                           <Input
+                            id={`share-${member.profileId}`}
                             type="number"
+                            inputMode="decimal"
                             min="0"
                             step="0.01"
                             value={shares[member.profileId] ?? ''}
@@ -245,7 +304,7 @@ export default function BillsPage() {
                       ))}
                     </div>
                     <p className={`text-xs ${sharesValid ? 'text-muted-foreground' : 'text-destructive'}`}>
-                      Shares total ${shareSum.toFixed(2)} of ${totalNum.toFixed(2)}
+                      Shares total {formatCurrency(shareSum)} of {formatCurrency(totalNum)}
                     </p>
                   </div>
 
@@ -263,13 +322,17 @@ export default function BillsPage() {
               </CardHeader>
               <CardContent className="space-y-2">
                 {expenses.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No expenses logged yet.</p>
+                  <div className="flex flex-col items-center gap-1 rounded-xl border border-dashed p-6 text-center">
+                    <Receipt className="h-5 w-5 text-muted-foreground" />
+                    <p className="text-sm font-semibold">No expenses logged yet</p>
+                    <p className="text-xs text-muted-foreground">Add an expense above to start splitting bills.</p>
+                  </div>
                 ) : (
                   expenses.map((expense) => (
                     <div key={expense.id} className="rounded-md border p-3">
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-medium">{expense.label}</p>
-                        <p className="text-sm font-medium">${expense.totalAmount.toFixed(2)}</p>
+                        <p className="text-sm font-medium">{formatCurrency(expense.totalAmount)}</p>
                       </div>
                       <p className="text-xs text-muted-foreground capitalize">
                         {expense.category} · paid by {expense.paidByName}

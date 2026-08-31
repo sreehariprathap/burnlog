@@ -8,6 +8,7 @@ import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Loader2, Info, AlertTriangle, Sparkles, Bell, Flame, Settings, Cpu, GlassWater } from 'lucide-react';
 import { OnboardingPageTogglesModal } from './_components/OnboardingPageTogglesModal';
 import { ProfileAvatar } from './_components/ProfileAvatar';
@@ -24,10 +25,15 @@ import { sendRealTestNotification } from '@/lib/pushNotification';
 import { Switch } from '@/components/ui/switch';
 import { APPS, AppId, getActiveApp, getDefaultApp, setDefaultApp } from '@/lib/appMode';
 import { MEAL_PREP_REMINDER_TITLE } from '@/lib/ai/types';
+import { useToast } from '@/components/ui/use-toast';
+
+// Client Component — no static <Metadata> export; page title stays the
+// default set by the root layout.
 
 export default function ProfilePage() {
   const supabase = createClientComponentClient();
   const router = useRouter();
+  const { toast } = useToast();
 
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -148,21 +154,28 @@ export default function ProfilePage() {
       .update({ username: usernameInput })
       .eq('id', profile.id);
     if (error) {
-      setUsernameSaveError(error.code === '23505' ? 'That username was just taken — try another.' : error.message);
+      const message = error.code === '23505' ? 'That username was just taken — try another.' : error.message;
+      setUsernameSaveError(message);
+      toast({ title: 'Could not save username', description: message, variant: 'destructive' });
     } else {
       setProfile((prev: any) => ({ ...prev, username: usernameInput }));
       setUsernameStatus('idle');
+      toast({ description: 'Username saved' });
     }
     setSavingUsername(false);
   };
 
   const handleSendTestPush = async () => {
     setTestSending(true);
-    const result = await sendRealTestNotification();
-    if (result.success) {
-      alert('Test push sent - check for a real notification on this device.');
-    } else {
-      alert(`Test push failed: ${result.error || 'Unknown error'}`);
+    try {
+      const result = await sendRealTestNotification();
+      if (result.success) {
+        toast({ description: 'Test push sent — check for a real notification on this device.' });
+      } else {
+        toast({ title: 'Test push failed', description: result.error || 'Unknown error', variant: 'destructive' });
+      }
+    } catch (e: any) {
+      toast({ title: 'Test push failed', description: e?.message || 'Unknown error', variant: 'destructive' });
     }
     setTestSending(false);
   };
@@ -175,6 +188,9 @@ export default function ProfilePage() {
       .eq('id', profile.id);
     if (!error) {
       setProfile((prev: any) => ({ ...prev, aiEnabled: false }));
+      toast({ description: 'AI insights disabled' });
+    } else {
+      toast({ title: 'Could not disable AI insights', description: error.message, variant: 'destructive' });
     }
     setDisablingAi(false);
   };
@@ -193,31 +209,42 @@ export default function ProfilePage() {
       .eq('id', profile.id);
     if (!error) {
       setProfile((prev: any) => ({ ...prev, [field]: safeValue }));
+    } else {
+      toast({ title: 'Could not save water setting', description: error.message, variant: 'destructive' });
     }
   };
 
   const handleMealPrepChange = async (dayOfWeek: number, time: string) => {
     if (!profile) return;
     const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    await supabase
-      .from('profiles')
-      .update({ mealPrepDayOfWeek: dayOfWeek, mealPrepTime: time, mealPrepTimezone: timezone })
-      .eq('id', profile.id);
-    await supabase
-      .from('scheduled_reminders')
-      .delete()
-      .eq('profileId', profile.id)
-      .eq('title', MEAL_PREP_REMINDER_TITLE);
-    await supabase.from('scheduled_reminders').insert({
-      profileId: profile.id,
-      title: MEAL_PREP_REMINDER_TITLE,
-      message: 'It\'s your meal-prep day — open the Meal Planner to plan this week.',
-      url: '/meal-planner',
-      dayOfWeek,
-      timeOfDay: time,
-      timezone,
-    });
-    setProfile((prev: any) => ({ ...prev, mealPrepDayOfWeek: dayOfWeek, mealPrepTime: time, mealPrepTimezone: timezone }));
+    try {
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ mealPrepDayOfWeek: dayOfWeek, mealPrepTime: time, mealPrepTimezone: timezone })
+        .eq('id', profile.id);
+      if (profileError) throw profileError;
+
+      await supabase
+        .from('scheduled_reminders')
+        .delete()
+        .eq('profileId', profile.id)
+        .eq('title', MEAL_PREP_REMINDER_TITLE);
+      const { error: reminderError } = await supabase.from('scheduled_reminders').insert({
+        profileId: profile.id,
+        title: MEAL_PREP_REMINDER_TITLE,
+        message: 'It\'s your meal-prep day — open the Meal Planner to plan this week.',
+        url: '/meal-planner',
+        dayOfWeek,
+        timeOfDay: time,
+        timezone,
+      });
+      if (reminderError) throw reminderError;
+
+      setProfile((prev: any) => ({ ...prev, mealPrepDayOfWeek: dayOfWeek, mealPrepTime: time, mealPrepTimezone: timezone }));
+      toast({ description: 'Meal-prep reminder saved' });
+    } catch (e: any) {
+      toast({ title: 'Could not save meal-prep reminder', description: e?.message || 'Unknown error', variant: 'destructive' });
+    }
   };
 
   const handleLogout = async () => {
@@ -315,7 +342,7 @@ export default function ProfilePage() {
                       <span className="flex items-center gap-1">
                         {value}
                         <Tooltip>
-                          <TooltipTrigger>
+                          <TooltipTrigger aria-label={`About ${label}`}>
                             <Info className="w-4 h-4 " />
                           </TooltipTrigger>
                           <TooltipContent>
@@ -334,11 +361,12 @@ export default function ProfilePage() {
                   <CardTitle>Username</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3">
-                  <p className="text-xs text-muted-foreground">
+                  <Label htmlFor="username" className="text-xs font-normal text-muted-foreground">
                     Friends find you by this username on the Social tab.
-                  </p>
+                  </Label>
                   <div className="flex gap-2">
                     <input
+                      id="username"
                       value={usernameInput}
                       onChange={(e) => setUsernameInput(e.target.value.toLowerCase())}
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background"
@@ -499,12 +527,12 @@ export default function ProfilePage() {
                   </CardHeader>
                   <CardContent className="space-y-4">
                     <div className="flex items-center justify-between">
-                      <span className="font-medium">Unit</span>
+                      <Label htmlFor="waterUnit" className="font-medium">Unit</Label>
                       <Select
                         value={profile.waterUnit}
                         onValueChange={(value) => handleWaterSettingChange('waterUnit', value)}
                       >
-                        <SelectTrigger className="w-32">
+                        <SelectTrigger id="waterUnit" className="w-32">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -514,8 +542,9 @@ export default function ProfilePage() {
                       </Select>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="font-medium">Glass size (ml)</span>
+                      <Label htmlFor="glassSizeMl" className="font-medium">Glass size (ml)</Label>
                       <input
+                        id="glassSizeMl"
                         type="number"
                         min={50}
                         max={1000}
@@ -525,8 +554,9 @@ export default function ProfilePage() {
                       />
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="font-medium">Daily goal (ml)</span>
+                      <Label htmlFor="waterGoalMl" className="font-medium">Daily goal (ml)</Label>
                       <input
+                        id="waterGoalMl"
                         type="number"
                         min={500}
                         max={10000}

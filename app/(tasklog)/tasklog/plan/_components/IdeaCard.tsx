@@ -10,9 +10,10 @@ interface IdeaCardProps {
   taskCount: number;
   onGeneratePlan: (idea: IdeaRow) => void;
   onDelete: (ideaId: string) => void;
+  deleting?: boolean;
 }
 
-export function IdeaCard({ idea, taskCount, onGeneratePlan, onDelete }: IdeaCardProps) {
+export function IdeaCard({ idea, taskCount, onGeneratePlan, onDelete, deleting }: IdeaCardProps) {
   const categoryLabel = IDEA_CATEGORIES.find((c) => c.id === idea.category)?.label ?? idea.category;
 
   return (
@@ -31,8 +32,15 @@ export function IdeaCard({ idea, taskCount, onGeneratePlan, onDelete }: IdeaCard
           <Button type="button" variant="secondary" size="sm" onClick={() => onGeneratePlan(idea)}>
             {idea.plan ? 'Regenerate plan' : 'Generate plan'}
           </Button>
-          <Button type="button" variant="ghost" size="sm" onClick={() => onDelete(idea.id)}>
-            Delete
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            aria-label={`Delete idea "${idea.title}"`}
+            onClick={() => onDelete(idea.id)}
+            disabled={deleting}
+          >
+            {deleting ? 'Deleting…' : 'Delete'}
           </Button>
         </div>
       </CardContent>

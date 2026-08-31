@@ -1,11 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
+// Note: this page is a Client Component ("use client"), so a `metadata` export
+// isn't possible here — it would need a server wrapper to set the page title.
 
 import { useEffect, useState } from 'react';
 import useSWR from 'swr';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
-import { Search, CalendarRange } from 'lucide-react';
+import { Search, CalendarRange, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { TopBar } from '@/components/TopBar';
 import { BottomNav } from '@/components/BottomNav';
@@ -39,13 +41,24 @@ export default function DashboardPage() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [quickLogTrigger, setQuickLogTrigger] = useState<'calories' | 'workout' | 'steps' | 'walk' | null>(null);
 
-  const { data: goals, isLoading: goalsLoading } = useSWR(
+  const { data: goals, isLoading: goalsLoading, mutate: mutateGoals } = useSWR(
     userProfile ? ['burnlog-fitness-goals', userProfile.id] : null,
     async () => {
       const { data } = await supabase.from('fitness_goals').select('*').eq('profileId', userProfile.id);
       return (data as FitnessGoal[]) || [];
     }
   );
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await mutateGoals();
+      setRefreshKey((k) => k + 1);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const loading = profileLoading || goalsLoading;
 
@@ -99,9 +112,19 @@ export default function DashboardPage() {
       <TopBar
         title="Dashboard"
         actions={
-          <button onClick={() => setSearchOpen(true)} aria-label="Search actions">
-            <Search className="h-5 w-5" />
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleRefresh}
+              aria-label="Refresh dashboard"
+              disabled={refreshing}
+              className="disabled:opacity-50"
+            >
+              <RefreshCw className={`h-5 w-5 ${refreshing ? 'animate-spin' : ''}`} />
+            </button>
+            <button onClick={() => setSearchOpen(true)} aria-label="Search actions">
+              <Search className="h-5 w-5" />
+            </button>
+          </div>
         }
       />
       <main className="p-4 mt-4 space-y-6">

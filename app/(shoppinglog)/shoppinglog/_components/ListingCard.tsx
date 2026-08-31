@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Star } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
+import { formatCurrency } from '@/lib/format';
 
 export type ListingSummary = {
   id: string;
@@ -23,7 +24,7 @@ export function ListingCard({ listing }: { listing: ListingSummary }) {
         <div className="relative aspect-square bg-muted">
           {listing.coverImageUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={listing.coverImageUrl} alt="" className="h-full w-full object-cover" />
+            <img src={listing.coverImageUrl} alt={listing.title} className="h-full w-full object-cover" />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
               No photo
@@ -45,7 +46,7 @@ export function ListingCard({ listing }: { listing: ListingSummary }) {
         </div>
         <CardContent className="space-y-1 p-3">
           <p className="line-clamp-1 text-sm font-medium">{listing.title}</p>
-          <p className="text-base font-semibold">${listing.price.toFixed(2)}</p>
+          <p className="text-base font-semibold">{formatCurrency(listing.price)}</p>
           <div className="flex items-center justify-between">
             <span className="text-xs text-muted-foreground">@{listing.seller?.username ?? 'unknown'}</span>
             {typeof listing.avgRating === 'number' && (

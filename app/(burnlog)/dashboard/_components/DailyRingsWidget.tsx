@@ -6,6 +6,7 @@ import { Flame, Utensils, Timer, Footprints } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { resolveTarget, getTodayRange } from '@/lib/dailyTargets';
+import { formatCalories } from '@/lib/format';
 import { AnimatedCircularProgressBar } from '@/components/ui/animated-circular-progress-bar';
 import { SmoothTabs, type TabItem } from '@/components/kokonutui/smooth-tabs';
 import { MotionCarousel } from '@/components/kokonutui/motion-carousel';
@@ -122,8 +123,17 @@ export function DailyRingsWidget({ profileId, refreshKey }: DailyRingsWidgetProp
         <div className="flex flex-col items-center gap-0.5 text-center">
           <span className="text-sm font-semibold">{ring.label}</span>
           <span className="text-sm">
-            <span className="font-medium tabular-nums">{current.toLocaleString()}</span>
-            <span className="text-muted-foreground"> / {target.toLocaleString()} {ring.unit}</span>
+            {ring.unit === 'kcal' ? (
+              <>
+                <span className="font-medium tabular-nums">{formatCalories(current)}</span>
+                <span className="text-muted-foreground"> / {formatCalories(target)}</span>
+              </>
+            ) : (
+              <>
+                <span className="font-medium tabular-nums">{current.toLocaleString()}</span>
+                <span className="text-muted-foreground"> / {target.toLocaleString()} {ring.unit}</span>
+              </>
+            )}
           </span>
         </div>
       </div>

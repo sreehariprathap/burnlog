@@ -1,15 +1,17 @@
 // app/(shoppinglog)/shoppinglog/orders/page.tsx
 'use client';
+// Client Component — page metadata isn't applicable here (see layout.tsx for shared app metadata).
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import { formatDistanceToNowStrict } from 'date-fns';
-import { Loader2 } from 'lucide-react';
+import { Loader2, RefreshCw, Package } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
 import { ShoppingLogBottomNav } from '@/components/ShoppingLogBottomNav';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { apiFetch } from '@/lib/apiFetch';
+import { formatCurrency, formatRelative } from '@/lib/format';
 
 type OrderItem = { id: string; title: string; price: number; quantity: number };
 type Order = {
@@ -36,20 +38,20 @@ function OrderCard({ order, counterpartLabel, counterpartUsername }: { order: Or
             {counterpartLabel} @{counterpartUsername}
           </span>
           <span className="text-xs text-muted-foreground">
-            {formatDistanceToNowStrict(new Date(order.createdAt), { addSuffix: true })}
+            {formatRelative(order.createdAt)}
           </span>
         </div>
         <ul className="space-y-1">
           {order.items.map((item) => (
             <li key={item.id} className="flex justify-between text-sm text-muted-foreground">
               <span>{item.title} × {item.quantity}</span>
-              <span>${(item.price * item.quantity).toFixed(2)}</span>
+              <span>{formatCurrency(item.price * item.quantity)}</span>
             </li>
           ))}
         </ul>
         <div className="flex justify-between border-t pt-2 text-sm font-semibold">
           <span>Total</span>
-          <span>${order.totalAmount.toFixed(2)}</span>
+          <span>{formatCurrency(order.totalAmount)}</span>
         </div>
       </CardContent>
     </Card>
@@ -58,11 +60,18 @@ function OrderCard({ order, counterpartLabel, counterpartUsername }: { order: Or
 
 export default function OrdersPage() {
   const [tab, setTab] = useState<'purchases' | 'sales'>('purchases');
-  const { data, isLoading } = useSWR<{ purchases: PurchaseOrder[]; sales: SaleOrder[] }>('/api/shoppinglog/orders', fetcher);
+  const { data, isLoading, mutate } = useSWR<{ purchases: PurchaseOrder[]; sales: SaleOrder[] }>('/api/shoppinglog/orders', fetcher);
 
   return (
     <div className="min-h-screen flex flex-col">
-      <TopBar title="Orders" />
+      <TopBar
+        title="Orders"
+        actions={
+          <Button type="button" variant="ghost" size="icon" aria-label="Refresh" onClick={() => mutate()}>
+            <RefreshCw className="size-4" />
+          </Button>
+        }
+      />
       <main className="flex-1 container mx-auto max-w-2xl space-y-4 p-4 pb-24">
         <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
           <TabsList className="w-full">
@@ -74,10 +83,18 @@ export default function OrdersPage() {
         {isLoading && <Loader2 className="h-6 w-6 animate-spin" />}
 
         {!isLoading && tab === 'purchases' && (data?.purchases.length ?? 0) === 0 && (
-          <p className="py-8 text-center text-sm text-muted-foreground">No purchases yet.</p>
+          <div className="flex flex-col items-center gap-2 py-12 text-center">
+            <Package className="size-8 text-muted-foreground" />
+            <p className="text-sm font-medium">No purchases yet</p>
+            <p className="text-xs text-muted-foreground">Items you buy will show up here.</p>
+          </div>
         )}
         {!isLoading && tab === 'sales' && (data?.sales.length ?? 0) === 0 && (
-          <p className="py-8 text-center text-sm text-muted-foreground">No sales yet.</p>
+          <div className="flex flex-col items-center gap-2 py-12 text-center">
+            <Package className="size-8 text-muted-foreground" />
+            <p className="text-sm font-medium">No sales yet</p>
+            <p className="text-xs text-muted-foreground">Items you sell will show up here.</p>
+          </div>
         )}
 
         {tab === 'purchases' &&

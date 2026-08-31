@@ -58,9 +58,9 @@ export function ActiveCommuteLogger({ commuteDetails, onEnd }: ActiveCommuteLogg
         </CardHeader>
         <CardContent className="space-y-5">
           <div className="space-y-2">
-            <Label>Commute mode</Label>
+            <Label id="commute-mode-label">Commute mode</Label>
             <Select value={mode} onValueChange={(v) => setMode(v as 'walk' | 'cycle')}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectTrigger aria-labelledby="commute-mode-label"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="walk">
                   <span className="flex items-center gap-2"><Footprints className="h-4 w-4" /> Walking</span>
@@ -94,23 +94,33 @@ export function ActiveCommuteLogger({ commuteDetails, onEnd }: ActiveCommuteLogg
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label>Distance per trip (km)</Label>
+              <Label htmlFor="commute-distance">Distance per trip (km)</Label>
               <Input
+                id="commute-distance"
                 type="number"
+                inputMode="decimal"
                 min={0.1}
                 step={0.1}
                 value={distanceKmPerTrip}
                 onChange={(e) => setDistanceKmPerTrip(Number(e.target.value))}
               />
+              {distanceKmPerTrip <= 0 && (
+                <p className="text-xs text-destructive">Distance must be greater than 0.</p>
+              )}
             </div>
             <div className="space-y-2">
-              <Label>Time per trip (min)</Label>
+              <Label htmlFor="commute-duration">Time per trip (min)</Label>
               <Input
+                id="commute-duration"
                 type="number"
+                inputMode="numeric"
                 min={1}
                 value={durationMinutesPerTrip}
                 onChange={(e) => setDurationMinutesPerTrip(Number(e.target.value))}
               />
+              {durationMinutesPerTrip <= 0 && (
+                <p className="text-xs text-destructive">Time must be greater than 0.</p>
+              )}
             </div>
           </div>
 
@@ -134,8 +144,9 @@ export function ActiveCommuteLogger({ commuteDetails, onEnd }: ActiveCommuteLogg
           </div>
 
           <div className="space-y-2">
-            <Label>Notes (optional)</Label>
+            <Label htmlFor="commute-notes">Notes (optional)</Label>
             <textarea
+              id="commute-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               className="w-full p-2 border rounded-md h-16 text-sm"

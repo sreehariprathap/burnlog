@@ -20,7 +20,13 @@ export function ReelsGrid() {
   if (isLoading) return <Loader2 className="h-6 w-6 animate-spin" />;
   const reels = data?.reels ?? [];
   if (reels.length === 0) {
-    return <p className="py-8 text-center text-sm text-muted-foreground">No reels yet — post a photo or video from the Dashboard.</p>;
+    return (
+      <div className="flex flex-col items-center gap-2 py-12 text-center">
+        <Play className="size-8 text-muted-foreground" />
+        <p className="text-sm font-medium">No reels yet</p>
+        <p className="text-xs text-muted-foreground">Post a photo or video from the Dashboard.</p>
+      </div>
+    );
   }
 
   return (
@@ -31,6 +37,7 @@ export function ReelsGrid() {
             key={r.id}
             type="button"
             onClick={() => setOpenIndex(i)}
+            aria-label={`Open reel by @${r.author.username}`}
             className="relative aspect-square overflow-hidden bg-muted"
           >
             {r.mediaType === 'video' ? (

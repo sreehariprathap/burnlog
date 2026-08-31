@@ -13,7 +13,9 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { format, parseISO, differenceInDays, addDays } from 'date-fns';
+import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { SmoothTabs, type TabItem } from '@/components/kokonutui/smooth-tabs';
 import { MotionCarousel } from '@/components/kokonutui/motion-carousel';
 import { Scale, Flame, Utensils, HeartPulse, TrendingUp, Zap, Repeat, BarChart3 } from 'lucide-react';
@@ -70,6 +72,13 @@ interface InsightsClientProps {
 }
 
 type MetricKey = 'weight' | 'calories' | 'food' | 'stamina';
+
+const METRIC_EMPTY_STATE: Record<MetricKey, { icon: string; message: string }> = {
+  weight: { icon: '⚖️', message: 'Log your weight to see trends here.' },
+  calories: { icon: '🔥', message: 'Log a workout to see calories burned over time.' },
+  food: { icon: '🍽️', message: 'Log a meal to see your calorie intake over time.' },
+  stamina: { icon: '💓', message: 'Log a stamina session to see your endurance trend.' },
+};
 
 // Data processing helper functions
 function fillMissingDates<T extends { date: string; [key: string]: any }>(
@@ -327,8 +336,12 @@ function MetricSlide({
                 </LineChart>
               </ResponsiveContainer>
             ) : (
-              <div className="flex items-center justify-center h-full text-sm text-muted-foreground">
-                No data available for this metric
+              <div className="flex flex-col items-center justify-center gap-2 h-full text-center px-4">
+                <span className="text-3xl" aria-hidden="true">{METRIC_EMPTY_STATE[metric].icon}</span>
+                <p className="text-sm text-muted-foreground">{METRIC_EMPTY_STATE[metric].message}</p>
+                <Button asChild size="sm" className="mt-1">
+                  <Link href="/goals">Log an entry</Link>
+                </Button>
               </div>
             )}
           </div>
