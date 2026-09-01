@@ -11,6 +11,7 @@ import { TaskLogMark } from '@/components/TaskLogMark';
 import { HomeLogMark } from '@/components/HomeLogMark';
 import { SocialLogMark } from '@/components/SocialLogMark';
 import { ShoppingLogMark } from '@/components/ShoppingLogMark';
+import { TravelLogMark } from '@/components/TravelLogMark';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { APPS, AppId, getActiveApp, getDefaultApp, setDefaultApp, getEnabledApps } from '@/lib/appMode';
 import { useAppSwitch } from '@/lib/appSwitchContext';
@@ -36,6 +37,8 @@ function AppIcon({ id, size }: { id: AppId; size: number }) {
       return <SocialLogMark size={size} />;
     case 'shoppinglog':
       return <ShoppingLogMark size={size} />;
+    case 'travellog':
+      return <TravelLogMark size={size} />;
     default:
       return <BurnLogMark size={size} />;
   }

@@ -118,6 +118,19 @@ const SPLASH_CONTENT: Record<
     darkEdgeColor: '251,146,60',
     darkCoreColor: '241,135,1',
   },
+  travellog: {
+    label: 'Loading TravelLog',
+    text: 'travellog',
+    tagline: "Track everywhere you've been",
+    darkTextColor: '#FBBF24',
+    lightTextColor: '#92400E',
+    darkTaglineClass: 'text-amber-200/70',
+    lightTaglineClass: 'text-amber-900/60',
+    lightColors: ['#FCD34D', '#FBBF24', '#D97706', '#92400E'],
+    lightBackgroundFill: '#FDF8F3',
+    darkEdgeColor: '251,191,36',
+    darkCoreColor: '146,64,14',
+  },
 };
 
 export default function SplashScreen() {
