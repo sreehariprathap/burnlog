@@ -7,6 +7,9 @@ interface CompletableTask {
   id: string;
   goalId: string | null;
   title?: string;
+  cost?: number | null;
+  costCategory?: string | null;
+  costLoggedAt?: string | null;
 }
 
 /**
@@ -45,5 +48,16 @@ export async function markTaskComplete(
     }).catch(() => {
       // Best-effort — a failed activity post must never block task completion.
     });
+
+    if (task.cost && task.cost > 0 && !task.costLoggedAt) {
+      await supabase.from('finance_transactions').insert({
+        profileId: profile.id,
+        type: 'expense',
+        category: task.costCategory ?? 'other_expense',
+        label: `TaskLog: ${task.title ?? 'Task'}`,
+        amount: task.cost,
+      });
+      await supabase.from('tasklog_tasks').update({ costLoggedAt: new Date().toISOString() }).eq('id', task.id);
+    }
   }
 }

@@ -129,7 +129,12 @@ export default function BoardPage() {
 
     if (destLane === 'done' && profile) {
       try {
-        await markTaskComplete(supabase, { id: movedTask.id, goalId: movedTask.goalId, title: movedTask.title }, toStreakProfile(profile.id, profile), true);
+        await markTaskComplete(
+          supabase,
+          { id: movedTask.id, goalId: movedTask.goalId, title: movedTask.title, cost: movedTask.cost, costCategory: movedTask.costCategory, costLoggedAt: movedTask.costLoggedAt },
+          toStreakProfile(profile.id, profile),
+          true
+        );
         await refreshCurrentProfile();
         toast({ title: 'Task completed', description: `"${movedTask.title}" marked as done.` });
       } catch (err) {
@@ -185,7 +190,12 @@ export default function BoardPage() {
       const updated = data as TaskRow;
       await setTasksOptimistic(tasks.map((t) => (t.id === id ? updated : t)));
       if (!wasCompleted && updated.completedAt && profile) {
-        await markTaskComplete(supabase, { id: updated.id, goalId: updated.goalId, title: updated.title }, toStreakProfile(profile.id, profile), true);
+        await markTaskComplete(
+          supabase,
+          { id: updated.id, goalId: updated.goalId, title: updated.title, cost: updated.cost, costCategory: updated.costCategory, costLoggedAt: updated.costLoggedAt },
+          toStreakProfile(profile.id, profile),
+          true
+        );
         await refreshCurrentProfile();
         toast({ title: 'Task completed', description: `"${updated.title}" marked as done.` });
       } else {
