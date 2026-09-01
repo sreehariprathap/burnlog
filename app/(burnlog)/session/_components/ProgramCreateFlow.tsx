@@ -2,7 +2,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -17,7 +17,7 @@ type ProgramCreateFlowProps = {
 };
 
 export function ProgramCreateFlow({ profileId, onCreated }: ProgramCreateFlowProps) {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const [pastedPlanText, setPastedPlanText] = useState('');
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);

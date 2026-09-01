@@ -3,7 +3,7 @@
 // it would need a Server Component wrapper (e.g. a server layout.tsx) to set the page <title>.
 'use client';
 import { useState, useEffect, useCallback } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 
 import { TopBar } from '@/components/TopBar';
 import { SessionLogger } from './_components/SessionLogger';
@@ -28,7 +28,7 @@ import { DailyRingsWidget } from '@/app/(burnlog)/dashboard/_components/DailyRin
 import { ProgramView } from './_components/ProgramView';
 
 export default function SessionsPage() {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const [day, setDay] = useState<number>(new Date().getDay());
   const [plan, setPlan] = useState<PlanDay | null>(null);
   const [logging, setLogging] = useState<boolean>(false);

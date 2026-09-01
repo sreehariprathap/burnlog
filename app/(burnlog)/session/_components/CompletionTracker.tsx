@@ -3,7 +3,7 @@
 
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { PlanDay } from './PlanCard';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -29,7 +29,7 @@ type CompletionTrackerProps = {
 };
 
 export function CompletionTracker({ plan, exerciseLog, onComplete }: CompletionTrackerProps) {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const { toast } = useToast();
   const [notes, setNotes] = useState<string>('');
   const [difficulty, setDifficulty] = useState<number>(3);

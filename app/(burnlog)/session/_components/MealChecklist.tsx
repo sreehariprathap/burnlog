@@ -2,7 +2,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -45,7 +45,7 @@ type MealChecklistProps = {
 };
 
 export function MealChecklist({ profileId, dayOfWeek, selectedDate }: MealChecklistProps) {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const [entries, setEntries] = useState<MealEntry[]>([]);
   const [checkedIn, setCheckedIn] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);

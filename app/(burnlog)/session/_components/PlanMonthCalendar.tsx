@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -60,7 +60,7 @@ function buildMonthGrid(displayMonth: Date): Date[] {
 }
 
 export function PlanMonthCalendar({ profileId, currentStreak, selectedDate, onSelectDate }: PlanMonthCalendarProps) {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const [displayMonth, setDisplayMonth] = useState<Date>(startOfMonth(new Date()));
   const [workoutPlans, setWorkoutPlans] = useState<{ dayOfWeek: number; bodyPart: string }[]>([]);
   const [completedDates, setCompletedDates] = useState<Set<string>>(new Set());

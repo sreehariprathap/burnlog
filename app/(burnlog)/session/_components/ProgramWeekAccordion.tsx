@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { ChevronDown } from 'lucide-react';
@@ -27,7 +27,7 @@ type ProgramWeekAccordionProps = {
 };
 
 export function ProgramWeekAccordion({ week, onWeekUpdated, onMilestone }: ProgramWeekAccordionProps) {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const [open, setOpen] = useState(false);
   const checkedCount = week.checklist.filter((item) => item.checked).length;
   const { toast } = useToast();

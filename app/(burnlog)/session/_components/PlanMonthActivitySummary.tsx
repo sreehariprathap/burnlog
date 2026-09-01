@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { resolveTarget } from '@/lib/dailyTargets';
 import { cn } from '@/lib/utils';
 
@@ -20,7 +20,7 @@ const BARS = [
 ];
 
 export function PlanMonthActivitySummary({ profileId, displayMonth }: PlanMonthActivitySummaryProps) {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const [totals, setTotals] = useState<Totals>({ burn: 0, eat: 0, steps: 0 });
   const [goals, setGoals] = useState<{ goalType: string; targetValue: number }[]>([]);
 

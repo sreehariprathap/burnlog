@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import {
   Plus,
   Flame,
@@ -49,7 +49,7 @@ const TASK_CATEGORIES: readonly TaskCategory[] = ['life', 'work'];
 const TASK_PRIORITIES: readonly TaskPriority[] = ['low', 'medium', 'high'];
 
 function TaskForm({ profileId, onSaved, onCancel }: { profileId: string; onSaved: () => void; onCancel: () => void }) {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<TaskCategory>('life');
   const [priority, setPriority] = useState<TaskPriority>('medium');

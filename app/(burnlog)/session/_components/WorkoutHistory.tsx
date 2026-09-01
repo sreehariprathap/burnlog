@@ -3,7 +3,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
@@ -193,7 +193,7 @@ const exampleWorkouts: Record<string, ExampleWorkout[]> = {
 };
 
 export function WorkoutHistory({ onClose }: WorkoutHistoryProps) {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const [activeTab, setActiveTab] = useState('stats');
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<WorkoutStats>({

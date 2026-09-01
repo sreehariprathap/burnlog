@@ -2,7 +2,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { computeLevel } from '@/lib/leveling';
@@ -25,7 +25,7 @@ type ProgramRow = {
 const PROGRAM_WEEK_BONUS_XP = 40;
 
 export function ProgramView({ profileId }: { profileId: string }) {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const [loading, setLoading] = useState(true);
   const [program, setProgram] = useState<ProgramRow | null>(null);
   const [weeks, setWeeks] = useState<ProgramWeekRow[]>([]);
