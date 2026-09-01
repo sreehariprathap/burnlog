@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import useSWR from 'swr';
 import { ChevronRight, Wallet } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { StatCard } from '@/components/ui/stat-card';
 import { apiFetch } from '@/lib/apiFetch';
 import { formatCurrency } from '@/lib/format';
 import { cn } from '@/lib/utils';
@@ -20,8 +20,8 @@ export function NetWorthCard() {
 
   return (
     <Link href="/moneylog/assets">
-      <Card>
-        <CardContent className="flex items-center justify-between p-4">
+      <StatCard>
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Wallet className="h-4 w-4 text-muted-foreground" />
             <div>
@@ -32,8 +32,8 @@ export function NetWorthCard() {
             </div>
           </div>
           <ChevronRight className="h-4 w-4 text-muted-foreground" />
-        </CardContent>
-      </Card>
+        </div>
+      </StatCard>
     </Link>
   );
 }

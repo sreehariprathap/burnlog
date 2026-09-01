@@ -14,6 +14,7 @@ import { MoneyLogBottomNav } from '@/components/MoneyLogBottomNav';
 import { SmoothTabs, type TabItem } from '@/components/kokonutui/smooth-tabs';
 import { MotionCarousel } from '@/components/kokonutui/motion-carousel';
 import { DualRingCard } from '@/components/kokonutui/dual-ring-card';
+import { StatCard } from '@/components/ui/stat-card';
 import { type RingSegment } from '@/components/kokonutui/segmented-ring-card';
 import { useFinanceData } from '@/lib/useFinanceData';
 import { categoryLabel } from '@/lib/financeCategories';
@@ -83,17 +84,15 @@ function PeriodSlide({
   return (
     <div className="flex flex-col gap-4">
       {!hasAnyData && <GetStartedCard />}
-      <Card>
-        <CardContent className="pt-6">
-          <DualRingCard
-            subtitle={periodLabel}
-            incomeSegments={toSegments(data.incomeByCategory, INCOME_RING_COLORS)}
-            incomeTotal={data.totalIncome}
-            expenseSegments={toSegments(data.expenseByCategory, EXPENSE_RING_COLORS)}
-            expenseTotal={data.totalExpense}
-          />
-        </CardContent>
-      </Card>
+      <StatCard>
+        <DualRingCard
+          subtitle={periodLabel}
+          incomeSegments={toSegments(data.incomeByCategory, INCOME_RING_COLORS)}
+          incomeTotal={data.totalIncome}
+          expenseSegments={toSegments(data.expenseByCategory, EXPENSE_RING_COLORS)}
+          expenseTotal={data.totalExpense}
+        />
+      </StatCard>
       <NetSummaryCard income={data.totalIncome} expense={data.totalExpense} />
       <NetWorthCard />
     </div>
