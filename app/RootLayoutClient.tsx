@@ -12,6 +12,7 @@ import { AppSwitchProvider } from "@/lib/appSwitchContext";
 import { PaymentProvider } from "@/lib/moneylog/paymentContext";
 import { SwitchLoader } from "@/components/SwitchLoader";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
+import { DevErrorWatcher } from "@/components/DevErrorWatcher";
 import { OfflineBanner } from "@/components/OfflineBanner";
 
 const geistSans = Geist({
@@ -66,6 +67,7 @@ export default function RootLayoutClient({
                 <SplashScreen />
                 <OfflineBanner />
                 <ErrorBoundary>{children}</ErrorBoundary>
+                <DevErrorWatcher />
                 <SwitchLoader />
                 <Toaster />
                 <PWAInstall />

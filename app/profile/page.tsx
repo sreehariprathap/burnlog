@@ -8,7 +8,7 @@ import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Loader2, Info, AlertTriangle, Bell, Settings, Cpu } from 'lucide-react';
+import { Loader2, Info, AlertTriangle, Bell, Settings, Cpu, Bug } from 'lucide-react';
 import { OnboardingPageTogglesModal } from './_components/OnboardingPageTogglesModal';
 import { ProfileAvatar } from './_components/ProfileAvatar';
 import { AiModelSettingsModal } from './_components/AiModelSettingsModal';
@@ -18,6 +18,7 @@ import { LogbookBottomNav } from '@/components/LogbookBottomNav';
 import { sendRealTestNotification } from '@/lib/pushNotification';
 import { Switch } from '@/components/ui/switch';
 import { APPS, AppId, getDefaultApp, setDefaultApp, setEnabledApps } from '@/lib/appMode';
+import { isDevErrorModeEnabled, setDevErrorModeEnabled } from '@/lib/devErrorMode';
 import { useToast } from '@/components/ui/use-toast';
 
 // Client Component — no static <Metadata> export; page title stays the
@@ -37,6 +38,11 @@ export default function ProfilePage() {
   const [testSending, setTestSending] = useState(false);
   const [showPageToggles, setShowPageToggles] = useState(false);
   const [showAiModelSettings, setShowAiModelSettings] = useState(false);
+  const [devErrorMode, setDevErrorMode] = useState(false);
+
+  useEffect(() => {
+    setDevErrorMode(isDevErrorModeEnabled());
+  }, []);
   const [userId, setUserId] = useState<string | null>(null);
   const [defaultApp, setDefaultAppState] = useState<AppId>('burnlog');
   const [usernameInput, setUsernameInput] = useState('');
@@ -439,6 +445,38 @@ export default function ProfilePage() {
                       <Cpu className="w-4 h-4 mr-2" />
                       Manage Models
                     </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {profile.isAdmin && (
+              <div className="mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Bug className="w-5 h-5 text-amber-500" />
+                      Developer Error Alerts
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium">Show error details in a modal</p>
+                        <p className="text-xs text-muted-foreground">
+                          Admin tool - on this device, pop up the full message and stack trace for
+                          any error (render errors, failed API calls, uncaught exceptions) instead
+                          of only logging to the console.
+                        </p>
+                      </div>
+                      <Switch
+                        checked={devErrorMode}
+                        onCheckedChange={(checked) => {
+                          setDevErrorMode(checked);
+                          setDevErrorModeEnabled(checked);
+                        }}
+                      />
+                    </div>
                   </CardContent>
                 </Card>
               </div>
