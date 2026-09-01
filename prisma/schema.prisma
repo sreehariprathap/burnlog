@@ -41,6 +41,7 @@ model Profile {
   taskLogLongestStreak     Int       @default(0)
   lastTaskLogStreakDate    DateTime? @db.Date
   currency                 String    @default("CAD")
+  country                  String?
 
   FitnessGoal    FitnessGoal[]
   Workout        Workout[]
