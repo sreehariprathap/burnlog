@@ -31,8 +31,9 @@ together in one page and one component tree.
 
 ## Non-goals (deferred to sub-project 2)
 
-- Building onboarding flows for MoneyLog/TaskLog/HomeLog/ShoppingLog
-  (only BurnLog has one today, via `/ai-setup`).
+- Building onboarding flows for TaskLog/HomeLog/ShoppingLog (only
+  BurnLog, via `/ai-setup`, and MoneyLog, via `/moneylog/onboarding`,
+  have one today).
 - Any schema/migration work — this slice is frontend restructuring
   only, reusing existing `profiles` table columns and existing
   per-app API routes as-is.
@@ -114,9 +115,10 @@ above), and drops the now-unused profile-menu import.
 
 **`AppConfigShell`** (`components/AppConfigShell.tsx`) — wraps each
 app's config page content. Props: `appName`, `onboardingHref?`
-(optional — only BurnLog passes `/ai-setup?returnTo=/dashboard/config`
-today), `exportData: () => Record<string, unknown>` (returns the
-current settings object to serialize). Renders:
+(optional — BurnLog passes `/ai-setup?returnTo=/dashboard/config`,
+MoneyLog passes `/moneylog/onboarding`, the rest omit it today),
+`exportData: () => Record<string, unknown>` (returns the current
+settings object to serialize). Renders:
 - Page header with `TopBar`.
 - The app's bespoke settings (children).
 - "Reonboard" button — only rendered when `onboardingHref` is passed.

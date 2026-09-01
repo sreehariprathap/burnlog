@@ -8,8 +8,7 @@ import {
   HomeIcon,
   DumbbellIcon,
   TargetIcon,
-  ChartLine,
-  UsersIcon
+  ChartLine
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ConfigMenu } from '@/components/ConfigMenu';
@@ -19,7 +18,6 @@ const tabs = [
   { href: '/session',   label: 'Plan', Icon: DumbbellIcon },
   { href: '/goals',     label: 'Goals', Icon: TargetIcon },
   { href: '/insights',  label: 'Insights', Icon: ChartLine },
-  { href: '/social',    label: 'Social', Icon: UsersIcon },
 ];
 
 export function BottomNav() {
