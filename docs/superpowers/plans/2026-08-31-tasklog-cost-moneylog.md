@@ -1,6 +1,6 @@
 # TaskLog Cost-Tagged Tasks → MoneyLog Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
 **Goal:** Let a TaskLog task carry an optional cost + MoneyLog category; when the task is completed, log it as a MoneyLog expense exactly once.
 
@@ -28,7 +28,7 @@
 **Interfaces:**
 - Produces: `TaskRow` now has `cost: number | null`, `costCategory: string | null`, `costLoggedAt: string | null`. Tasks 2 and 3 both consume these exact field names and types.
 
-- [ ] **Step 1: Update the Prisma schema**
+- [x] **Step 1: Update the Prisma schema**
 
 In `prisma/schema.prisma`, find the `Task` model (starts at line 577, ends with `@@map("tasklog_tasks")`). Add three fields right before the closing `@@map` line:
 
@@ -61,7 +61,7 @@ model Task {
 
 (Only the three new lines — `cost`, `costCategory`, `costLoggedAt` — and their placement before `@@map` are the actual change; everything else in the model is unchanged, shown here for exact placement context.)
 
-- [ ] **Step 2: Update `TaskRow`**
+- [x] **Step 2: Update `TaskRow`**
 
 In `lib/tasklog/types.ts`, add three fields to the `TaskRow` interface, after `createdAt`:
 
@@ -86,12 +86,12 @@ export interface TaskRow {
 }
 ```
 
-- [ ] **Step 3: Verify types compile**
+- [x] **Step 3: Verify types compile**
 
 Run: `npx tsc --noEmit`
 Expected: no new errors (existing code that constructs/destructures `TaskRow` objects without these fields still compiles, since they're all present as `| null` on read but nothing requires them on construction of a *literal* typed as `TaskRow` unless TypeScript's excess-property/missing-property checks apply — if `npx prisma generate` needs to run for the Prisma Client types to pick up the schema change, run it: `npx prisma generate`. If any `.insert([{ ... }])` call typed against a generated Prisma type now complains about missing fields, that's expected only if such a call constructs a full `Task` — none of the plan's existing insert sites do this for `tasklog_tasks`, so no other files should need changes here).
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add prisma/schema.prisma lib/tasklog/types.ts
@@ -110,7 +110,7 @@ git commit -m "feat(tasklog): add cost fields to Task schema and TaskRow type"
 - Consumes: `TaskRow.cost`, `TaskRow.costCategory` (Task 1).
 - Produces: `onSave`'s `updates` payload now includes `cost: number | null` and `costCategory: string | null` — Task 3's call sites don't consume this directly (they read from the *saved* `TaskRow`, not from this form), but Task 3's `handleSaveTask` completion-detection path does read the `updated` row returned from the database after this form's save, so the values must round-trip correctly.
 
-- [ ] **Step 1: Add state and the import**
+- [x] **Step 1: Add state and the import**
 
 In `app/(tasklog)/tasklog/board/_components/TaskDetailSheet.tsx`, add this import alongside the existing ones:
 
@@ -125,7 +125,7 @@ Add two new pieces of state alongside the existing `dueDate` state:
   const [costCategory, setCostCategory] = useState('');
 ```
 
-- [ ] **Step 2: Populate state from the task in the existing `useEffect`**
+- [x] **Step 2: Populate state from the task in the existing `useEffect`**
 
 Find this block:
 
@@ -155,7 +155,7 @@ Add two lines inside it:
   }, [task]);
 ```
 
-- [ ] **Step 3: Include cost fields in the save payload**
+- [x] **Step 3: Include cost fields in the save payload**
 
 Find `handleSave`:
 
@@ -202,7 +202,7 @@ Change the `onSave` call to include cost fields:
   }
 ```
 
-- [ ] **Step 4: Add the form fields**
+- [x] **Step 4: Add the form fields**
 
 Find the "Due date" field block (the last field before `</div>` closes the form body):
 
@@ -242,12 +242,12 @@ Add a new section right after it, still inside the same form-body `<div classNam
           )}
 ```
 
-- [ ] **Step 5: Verify types compile**
+- [x] **Step 5: Verify types compile**
 
 Run: `npx tsc --noEmit`
 Expected: no new errors.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add "app/(tasklog)/tasklog/board/_components/TaskDetailSheet.tsx"
@@ -267,7 +267,7 @@ git commit -m "feat(tasklog): add cost + expense category fields to task edit di
 - Consumes: `TaskRow.cost`, `TaskRow.costCategory`, `TaskRow.costLoggedAt` (Task 1).
 - Produces: nothing consumed by other tasks — this is the last task in the plan.
 
-- [ ] **Step 1: Extend `CompletableTask` and add the ledger-write logic**
+- [x] **Step 1: Extend `CompletableTask` and add the ledger-write logic**
 
 In `lib/tasklog/completeTask.ts`, change the interface:
 
@@ -332,7 +332,7 @@ export async function markTaskComplete(
 }
 ```
 
-- [ ] **Step 2: Update the dashboard call site**
+- [x] **Step 2: Update the dashboard call site**
 
 In `app/(tasklog)/tasklog/page.tsx`, find:
 
@@ -351,7 +351,7 @@ Change to:
     );
 ```
 
-- [ ] **Step 3: Update the board drag-to-done call site**
+- [x] **Step 3: Update the board drag-to-done call site**
 
 In `app/(tasklog)/tasklog/board/page.tsx`, find:
 
@@ -370,7 +370,7 @@ Change to:
       );
 ```
 
-- [ ] **Step 4: Update the board detail-sheet-save call site**
+- [x] **Step 4: Update the board detail-sheet-save call site**
 
 In the same file, find:
 
@@ -389,12 +389,12 @@ Change to:
       );
 ```
 
-- [ ] **Step 5: Verify types compile**
+- [x] **Step 5: Verify types compile**
 
 Run: `npx tsc --noEmit`
 Expected: no new errors.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add lib/tasklog/completeTask.ts "app/(tasklog)/tasklog/page.tsx" "app/(tasklog)/tasklog/board/page.tsx"
@@ -407,12 +407,12 @@ git commit -m "feat(tasklog): log MoneyLog expense on completion of a costed tas
 
 **Files:** None (verification-only task).
 
-- [ ] **Step 1: Type-check the whole project**
+- [x] **Step 1: Type-check the whole project**
 
 Run: `npx tsc --noEmit`
 Expected: no errors.
 
-- [ ] **Step 2: Manual verification**
+- [x] **Step 2: Manual verification**
 
 Run: `npm run dev`, then in the browser:
 1. Open a task's edit dialog, set cost to `25.50`, category "Groceries", save. Reopen the dialog and confirm the cost/category persisted.
@@ -421,4 +421,4 @@ Run: `npm run dev`, then in the browser:
 4. Complete a task with no cost set. Confirm no MoneyLog entry is created.
 5. Drag a costed task to the "Done" column on the board (not the checkbox or detail-sheet path) and confirm the ledger entry still fires exactly once.
 
-- [ ] **Step 3: No commit needed** (verification-only task; if any fix was required, commit that fix with an appropriate message before moving on).
+- [x] **Step 3: No commit needed** (verification-only task; if any fix was required, commit that fix with an appropriate message before moving on).

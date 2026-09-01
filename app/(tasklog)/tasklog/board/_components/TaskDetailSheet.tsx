@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { PRIORITIES, type TaskCategory, type TaskPriority, type TaskRow } from '@/lib/tasklog/types';
+import { EXPENSE_CATEGORIES } from '@/lib/financeCategories';
 
 interface TaskDetailSheetProps {
   task: TaskRow | null;
@@ -24,6 +25,8 @@ export function TaskDetailSheet({ task, open, onOpenChange, onSave, onDelete }: 
   const [category, setCategory] = useState<TaskCategory>('work');
   const [priority, setPriority] = useState<TaskPriority>('medium');
   const [dueDate, setDueDate] = useState('');
+  const [cost, setCost] = useState('');
+  const [costCategory, setCostCategory] = useState('');
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [titleError, setTitleError] = useState('');
@@ -35,6 +38,8 @@ export function TaskDetailSheet({ task, open, onOpenChange, onSave, onDelete }: 
     setCategory(task.category);
     setPriority(task.priority);
     setDueDate(task.dueDate ?? '');
+    setCost(task.cost != null ? String(task.cost) : '');
+    setCostCategory(task.costCategory ?? '');
     setTitleError('');
   }, [task]);
 
@@ -49,12 +54,15 @@ export function TaskDetailSheet({ task, open, onOpenChange, onSave, onDelete }: 
     setTitleError('');
     setSaving(true);
     try {
+      const parsedCost = cost.trim() ? Number(cost) : null;
       await onSave(task.id, {
         title: title.trim(),
         notes: notes.trim() || null,
         category,
         priority,
         dueDate: dueDate || null,
+        cost: parsedCost,
+        costCategory: parsedCost ? costCategory || 'other_expense' : null,
       });
       onOpenChange(false);
     } finally {
@@ -150,6 +158,30 @@ export function TaskDetailSheet({ task, open, onOpenChange, onSave, onDelete }: 
             <Label htmlFor="task-detail-due-date">Due date</Label>
             <Input id="task-detail-due-date" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
           </div>
+          <div className="space-y-1.5">
+            <Label>Cost (optional)</Label>
+            <Input
+              type="number"
+              min="0"
+              step="0.01"
+              placeholder="0.00"
+              value={cost}
+              onChange={(e) => setCost(e.target.value)}
+            />
+          </div>
+          {cost.trim() && Number(cost) > 0 && (
+            <div className="space-y-1.5">
+              <Label>Expense category</Label>
+              <Select value={costCategory} onValueChange={setCostCategory}>
+                <SelectTrigger><SelectValue placeholder="Choose a category" /></SelectTrigger>
+                <SelectContent>
+                  {EXPENSE_CATEGORIES.map((c) => (
+                    <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </form>
         <DialogFooter className="flex-row justify-between gap-2 sm:justify-between">
           <Button type="button" variant="destructive" onClick={handleDelete} disabled={saving || deleting}>

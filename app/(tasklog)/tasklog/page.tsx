@@ -90,7 +90,12 @@ export default function TaskLogDashboardPage() {
       { revalidate: false }
     );
     try {
-      await markTaskComplete(supabase, { id: task.id, goalId: task.goalId, title: task.title }, toStreakProfile(profile.id, profile), completed);
+      await markTaskComplete(
+        supabase,
+        { id: task.id, goalId: task.goalId, title: task.title, cost: task.cost, costCategory: task.costCategory, costLoggedAt: task.costLoggedAt },
+        toStreakProfile(profile.id, profile),
+        completed
+      );
       if (completed) {
         await refreshCurrentProfile();
         toast({ title: 'Task completed', description: `"${task.title}" marked as done.` });
