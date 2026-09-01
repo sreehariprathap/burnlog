@@ -60,13 +60,13 @@ const PERSONAS = [
 
 const POSTS = [
   { author: 0, kind: 'TEXT', body: 'New PR on deadlifts today. #fitness Consistency beats intensity, every time.', hoursAgo: 2 },
-  { author: 0, kind: 'CROSS_APP_ACTIVITY', body: 'Hit a 14-day workout streak 🔥', sourceApp: 'burnlog', sourceRefType: 'streak_milestone', hoursAgo: 20 },
+  { author: 0, kind: 'CROSS_APP_ACTIVITY', body: 'Hit a 14-day workout streak', sourceApp: 'burnlog', sourceRefType: 'streak_milestone', hoursAgo: 20 },
   { author: 1, kind: 'TEXT', body: 'Tip: timebox your inbox to 2x 20-minute blocks a day. #productivity', hoursAgo: 5 },
   { author: 1, kind: 'CROSS_APP_ACTIVITY', body: 'Completed "Ship SocialLog Foundation"', sourceApp: 'tasklog', sourceRefType: 'task_completed', hoursAgo: 1 },
   { author: 2, kind: 'TEXT', body: 'Chore rotation actually works if everyone can see the schedule. #homelog', hoursAgo: 30 },
   { author: 3, kind: 'TEXT', body: 'Zero-based budgeting month 3: still boring, still working. #money', hoursAgo: 10 },
   { author: 4, kind: 'TEXT', body: '18 miles this morning, legs are done. #fitness', hoursAgo: 3 },
-  { author: 4, kind: 'CROSS_APP_ACTIVITY', body: 'Hit a 7-day workout streak 🔥', sourceApp: 'burnlog', sourceRefType: 'streak_milestone', hoursAgo: 50 },
+  { author: 4, kind: 'CROSS_APP_ACTIVITY', body: 'Hit a 7-day workout streak', sourceApp: 'burnlog', sourceRefType: 'streak_milestone', hoursAgo: 50 },
   { author: 5, kind: 'TEXT', body: 'Refactored the onboarding flow, conversion should be better now. #productivity', hoursAgo: 8 },
   { author: 5, kind: 'TEXT', body: 'Anyone else use #topics to organize side-project notes?', hoursAgo: 40 },
 ]
@@ -248,7 +248,7 @@ async function main() {
       if (existingMessages === 0) {
         await prisma.socialMessage.createMany({
           data: [
-            { threadId: thread.id, senderId: welcomeFrom.id, body: 'Welcome to SocialLog! 👋' },
+            { threadId: thread.id, senderId: welcomeFrom.id, body: 'Welcome to SocialLog!' },
             { threadId: thread.id, senderId: welcomeFrom.id, body: 'Follow a few accounts and your feed will fill up fast.' },
           ],
         })

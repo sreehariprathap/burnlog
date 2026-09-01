@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import useSWR from 'swr';
 import { createClient } from '@/lib/supabase/client';
-import { CheckIcon, FlameIcon, RefreshCwIcon } from 'lucide-react';
+import { CheckIcon, FlameIcon, RefreshCwIcon, Cloud } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
 import { TaskLogBottomNav } from '@/components/TaskLogBottomNav';
 import { Card, CardContent } from '@/components/ui/card';
@@ -199,7 +199,7 @@ export default function TaskLogDashboardPage() {
               <p className="text-sm font-semibold text-muted-foreground">Today</p>
               {dueToday.length === 0 ? (
                 <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed p-6 text-center">
-                  <span className="text-2xl" aria-hidden="true">🌤️</span>
+                  <Cloud className="w-6 h-6 text-muted-foreground" aria-hidden="true" />
                   <p className="text-sm font-semibold">Nothing planned for today</p>
                   <p className="text-xs text-muted-foreground">Add a task or plan your day to get started.</p>
                   <Button type="button" variant="outline" size="sm" onClick={openPlanMyDay} className="mt-1">

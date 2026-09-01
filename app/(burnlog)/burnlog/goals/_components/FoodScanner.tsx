@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Camera, Upload, Loader2, CheckCircle, AlertTriangle, X } from 'lucide-react';
+import { Camera, Upload, Loader2, CheckCircle, AlertTriangle, X, Sunrise, Moon, Apple, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -26,10 +26,10 @@ type FoodScannerProps = {
 };
 
 const MEAL_TYPES = [
-  { value: 'breakfast', label: '🌅 Breakfast' },
+  { value: 'breakfast', label: <span className="flex items-center gap-2"><Sunrise className="w-4 h-4" />Breakfast</span> },
   { value: 'lunch', label: '☀️ Lunch' },
-  { value: 'dinner', label: '🌙 Dinner' },
-  { value: 'snack', label: '🍎 Snack' },
+  { value: 'dinner', label: <span className="flex items-center gap-2"><Moon className="w-4 h-4" />Dinner</span> },
+  { value: 'snack', label: <span className="flex items-center gap-2"><Apple className="w-4 h-4" />Snack</span> },
 ];
 
 const CONFIDENCE_COLORS = {
@@ -109,7 +109,7 @@ export function FoodScanner({ onResult, onClose }: FoodScannerProps) {
     <Drawer open onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DrawerContent>
         <DrawerHeader>
-          <DrawerTitle>📸 Scan Food</DrawerTitle>
+          <DrawerTitle className="flex items-center gap-2"><Camera className="w-5 h-5" />Scan Food</DrawerTitle>
           <p className="text-xs text-muted-foreground">AI analyses your meal and estimates calories &amp; macros</p>
         </DrawerHeader>
         <div className="px-4 pb-6 space-y-4 overflow-y-auto">
@@ -197,7 +197,7 @@ export function FoodScanner({ onResult, onClose }: FoodScannerProps) {
                   Analysing your meal…
                 </>
               ) : (
-                '🔍 Analyse Food'
+                <><Search className="h-4 w-4 mr-2" />Analyse Food</>
               )}
             </Button>
           )}
@@ -241,7 +241,7 @@ export function FoodScanner({ onResult, onClose }: FoodScannerProps) {
                   Re-scan
                 </Button>
                 <Button onClick={handleLog} className="w-full">
-                  Log This Meal ✅
+                  <CheckCircle className="h-4 w-4 mr-2" />Log This Meal
                 </Button>
               </div>
             </div>

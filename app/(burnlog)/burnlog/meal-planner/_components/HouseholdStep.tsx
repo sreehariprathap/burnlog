@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Users, UtensilsCrossed, Flame } from 'lucide-react';
 import type { MealPlannerWizardAnswers } from '@/lib/ai/types';
 
 type HouseholdStepProps = {
@@ -22,7 +23,7 @@ export function HouseholdStep({ initialAnswers, onContinue }: HouseholdStepProps
   return (
     <Card className="w-full max-w-lg">
       <CardHeader>
-        <CardTitle>👥 Who are you cooking for?</CardTitle>
+        <CardTitle className="flex items-center gap-2"><Users className="w-5 h-5" />Who are you cooking for?</CardTitle>
       </CardHeader>
       <CardContent className="space-y-5">
         <div className="space-y-2">
@@ -44,20 +45,20 @@ export function HouseholdStep({ initialAnswers, onContinue }: HouseholdStepProps
             <button
               type="button"
               onClick={() => setCookMode('weekly_batch')}
-              className={`text-left px-4 py-3 rounded-xl border text-sm transition-colors ${
+              className={`text-left px-4 py-3 rounded-xl border text-sm transition-colors flex items-center gap-2 ${
                 cookMode === 'weekly_batch' ? 'bg-primary text-primary-foreground border-primary' : 'border-border hover:bg-muted'
               }`}
             >
-              🍲 Batch cook once, eat all week
+              <UtensilsCrossed className="w-4 h-4 flex-shrink-0" />Batch cook once, eat all week
             </button>
             <button
               type="button"
               onClick={() => setCookMode('fresh_daily')}
-              className={`text-left px-4 py-3 rounded-xl border text-sm transition-colors ${
+              className={`text-left px-4 py-3 rounded-xl border text-sm transition-colors flex items-center gap-2 ${
                 cookMode === 'fresh_daily' ? 'bg-primary text-primary-foreground border-primary' : 'border-border hover:bg-muted'
               }`}
             >
-              🔥 Cook fresh at each meal
+              <Flame className="w-4 h-4 flex-shrink-0" />Cook fresh at each meal
             </button>
           </div>
         </div>

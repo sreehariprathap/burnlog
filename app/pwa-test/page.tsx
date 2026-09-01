@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { CheckCircle, XCircle, Smartphone, Wifi, Download, Bell, LucideIcon } from 'lucide-react';
+import { CheckCircle, XCircle, Smartphone, Wifi, Download, Bell, LucideIcon, PartyPopper } from 'lucide-react';
 
 export default function PWATest() {
   const [pwaStatus, setPwaStatus] = useState({
@@ -190,7 +190,7 @@ export default function PWATest() {
       </Card>
 
       <div className="mt-8 p-4 bg-blue-50 rounded-lg">
-        <h3 className="font-medium mb-2">🎉 Your app is PWA-ready!</h3>
+        <h3 className="font-medium mb-2 flex items-center gap-2"><PartyPopper className="w-5 h-5" />Your app is PWA-ready!</h3>
         <p className="text-sm text-gray-700">
           Users can now install your app on their devices, use it offline, and receive push notifications.
         </p>

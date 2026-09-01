@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { DollarSign, CreditCard, ShoppingCart, ChefHat, Knife, Package, Leaf } from 'lucide-react';
 import { GROCERY_STORES, type GroceryAnswers } from '@/lib/ai/types';
 
 type GroceryStepProps = {
@@ -22,15 +23,15 @@ const SHOPPING_FREQUENCIES = [
 ];
 
 const BUDGET_OPTIONS = [
-  { value: 'budget', label: '💰 Budget-friendly — keep costs low' },
-  { value: 'moderate', label: '💳 Moderate — reasonable quality at fair price' },
-  { value: 'flexible', label: '🛒 Flexible — willing to spend on quality' },
+  { value: 'budget', label: 'Budget-friendly — keep costs low', icon: DollarSign },
+  { value: 'moderate', label: 'Moderate — reasonable quality at fair price', icon: CreditCard },
+  { value: 'flexible', label: 'Flexible — willing to spend on quality', icon: ShoppingCart },
 ];
 
 const COOKING_SKILLS = [
-  { value: 'beginner', label: '🍳 Beginner — simple recipes, minimal prep' },
-  { value: 'intermediate', label: '👨‍🍳 Intermediate — comfortable in the kitchen' },
-  { value: 'advanced', label: '🔪 Advanced — enjoy complex techniques' },
+  { value: 'beginner', label: 'Beginner — simple recipes, minimal prep', icon: ChefHat },
+  { value: 'intermediate', label: 'Intermediate — comfortable in the kitchen', icon: ChefHat },
+  { value: 'advanced', label: 'Advanced — enjoy complex techniques', icon: Knife },
 ];
 
 export function GroceryStep({ onContinue, onSkip, initialAnswers }: GroceryStepProps) {
@@ -57,7 +58,7 @@ export function GroceryStep({ onContinue, onSkip, initialAnswers }: GroceryStepP
   return (
     <Card className="w-full max-w-lg">
       <CardHeader>
-        <CardTitle>🛒 Food & Grocery Preferences</CardTitle>
+        <CardTitle className="flex items-center gap-2"><ShoppingCart className="w-5 h-5" />Food & Grocery Preferences</CardTitle>
         <p className="text-sm text-muted-foreground">
           Help us build your perfect weekly meal plan and grocery list.
         </p>
@@ -100,10 +101,10 @@ export function GroceryStep({ onContinue, onSkip, initialAnswers }: GroceryStepP
               </button>
             ))}
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-xs text-muted-foreground flex items-center gap-1">
             {frequency === 'biweekly' || frequency === 'monthly' || frequency === 'as_needed'
-              ? '📦 We\'ll prioritise longer shelf-life ingredients.'
-              : '🥬 Fresh ingredients are fair game!'}
+              ? <><Package className="w-3 h-3" />We&apos;ll prioritise longer shelf-life ingredients.</>
+              : <><Leaf className="w-3 h-3" />Fresh ingredients are fair game!</>}
           </p>
         </div>
 
@@ -111,20 +112,24 @@ export function GroceryStep({ onContinue, onSkip, initialAnswers }: GroceryStepP
         <div className="space-y-2">
           <Label>Weekly food budget</Label>
           <div className="grid gap-2">
-            {BUDGET_OPTIONS.map((b) => (
-              <button
-                key={b.value}
-                type="button"
-                onClick={() => setBudget(b.value as GroceryAnswers['budget'])}
-                className={`text-left px-4 py-3 rounded-xl border text-sm transition-colors ${
-                  budget === b.value
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'border-border hover:bg-muted'
-                }`}
-              >
-                {b.label}
-              </button>
-            ))}
+            {BUDGET_OPTIONS.map((b) => {
+              const IconComponent = b.icon;
+              return (
+                <button
+                  key={b.value}
+                  type="button"
+                  onClick={() => setBudget(b.value as GroceryAnswers['budget'])}
+                  className={`text-left px-4 py-3 rounded-xl border text-sm transition-colors flex items-center gap-2 ${
+                    budget === b.value
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'border-border hover:bg-muted'
+                  }`}
+                >
+                  <IconComponent className="w-4 h-4 flex-shrink-0" />
+                  {b.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -132,20 +137,24 @@ export function GroceryStep({ onContinue, onSkip, initialAnswers }: GroceryStepP
         <div className="space-y-2">
           <Label>Cooking skill level</Label>
           <div className="grid gap-2">
-            {COOKING_SKILLS.map((c) => (
-              <button
-                key={c.value}
-                type="button"
-                onClick={() => setSkill(c.value as GroceryAnswers['cookingSkill'])}
-                className={`text-left px-4 py-3 rounded-xl border text-sm transition-colors ${
-                  skill === c.value
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'border-border hover:bg-muted'
-                }`}
-              >
-                {c.label}
-              </button>
-            ))}
+            {COOKING_SKILLS.map((c) => {
+              const IconComponent = c.icon;
+              return (
+                <button
+                  key={c.value}
+                  type="button"
+                  onClick={() => setSkill(c.value as GroceryAnswers['cookingSkill'])}
+                  className={`text-left px-4 py-3 rounded-xl border text-sm transition-colors flex items-center gap-2 ${
+                    skill === c.value
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'border-border hover:bg-muted'
+                  }`}
+                >
+                  <IconComponent className="w-4 h-4 flex-shrink-0" />
+                  {c.label}
+                </button>
+              );
+            })}
           </div>
         </div>
 

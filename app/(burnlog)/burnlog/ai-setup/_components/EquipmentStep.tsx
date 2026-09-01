@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dumbbell, Home, Zap, Tree, Shuffle } from 'lucide-react';
 import { EQUIPMENT_OPTIONS, type EquipmentAnswers, type HomeEnvironment } from '@/lib/ai/types';
 
 type EquipmentStepProps = {
@@ -56,11 +57,11 @@ export function EquipmentStep({ onContinue, onSkip }: EquipmentStepProps) {
           >
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
-              <SelectItem value="commercial_gym">🏋️ Commercial gym</SelectItem>
-              <SelectItem value="home_gym">🏠 Home (with some equipment)</SelectItem>
-              <SelectItem value="bodyweight_only">💪 Home (bodyweight only)</SelectItem>
-              <SelectItem value="outdoor">🌳 Outdoor (parks, tracks)</SelectItem>
-              <SelectItem value="mixed">🔀 Mixed / varies</SelectItem>
+              <SelectItem value="commercial_gym">Commercial gym</SelectItem>
+              <SelectItem value="home_gym">Home (with some equipment)</SelectItem>
+              <SelectItem value="bodyweight_only">Home (bodyweight only)</SelectItem>
+              <SelectItem value="outdoor">Outdoor (parks, tracks)</SelectItem>
+              <SelectItem value="mixed">Mixed / varies</SelectItem>
             </SelectContent>
           </Select>
         </div>

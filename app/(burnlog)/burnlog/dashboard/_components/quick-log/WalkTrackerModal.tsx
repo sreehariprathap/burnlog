@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { useToast } from '@/components/ui/use-toast';
+import { Footprints } from 'lucide-react';
 
 type WalkTrackerModalProps = {
   profileId: string;
@@ -143,7 +144,7 @@ export function WalkTrackerModal({ profileId, onClose, onSaved }: WalkTrackerMod
     <Drawer open onOpenChange={(isOpen) => !isOpen && onClose()}>
       <DrawerContent>
         <DrawerHeader>
-          <DrawerTitle>🚶 Walk Tracker</DrawerTitle>
+          <DrawerTitle className="flex items-center gap-2"><Footprints className="w-5 h-5" />Walk Tracker</DrawerTitle>
         </DrawerHeader>
         <div className="px-4 pb-6 space-y-5">
           {showIdleScreen ? (

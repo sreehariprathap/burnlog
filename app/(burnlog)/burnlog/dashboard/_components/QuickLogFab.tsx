@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, Utensils, Dumbbell, Footprints } from 'lucide-react';
 import { RadialMenu } from '@/components/kokonutui/radial-menu';
 import { LogCaloriesModal } from './quick-log/LogCaloriesModal';
 import { LogWorkoutModal } from './quick-log/LogWorkoutModal';
@@ -29,10 +29,10 @@ export function QuickLogFab({ profileId, onLogged, initialOpen }: QuickLogFabPro
   };
 
   const items = [
-    { key: 'calories', label: 'Calories', icon: <span className="text-lg">🍽️</span>, onSelect: () => { setMenuOpen(false); setOpen('calories'); } },
-    { key: 'workout', label: 'Workout', icon: <span className="text-lg">🏋️</span>, onSelect: () => { setMenuOpen(false); setOpen('workout'); } },
-    { key: 'steps', label: 'Steps', icon: <span className="text-lg">🚶</span>, onSelect: () => { setMenuOpen(false); setOpen('steps'); } },
-    { key: 'walk', label: 'Walk', icon: <span className="text-lg">🚶</span>, onSelect: () => { setMenuOpen(false); setOpen('walk'); } },
+    { key: 'calories', label: 'Calories', icon: <Utensils className="w-5 h-5" />, onSelect: () => { setMenuOpen(false); setOpen('calories'); } },
+    { key: 'workout', label: 'Workout', icon: <Dumbbell className="w-5 h-5" />, onSelect: () => { setMenuOpen(false); setOpen('workout'); } },
+    { key: 'steps', label: 'Steps', icon: <Footprints className="w-5 h-5" />, onSelect: () => { setMenuOpen(false); setOpen('steps'); } },
+    { key: 'walk', label: 'Walk', icon: <Footprints className="w-5 h-5" />, onSelect: () => { setMenuOpen(false); setOpen('walk'); } },
   ];
 
   return (

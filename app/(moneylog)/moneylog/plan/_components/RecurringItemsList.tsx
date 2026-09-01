@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Trash2, Loader2 } from 'lucide-react';
+import { Trash2, Loader2, RotateCw } from 'lucide-react';
 import { categoryLabel } from '@/lib/financeCategories';
 import { formatCurrency } from '@/lib/format';
 import type { PlanRecurringItem } from '../page';
@@ -104,7 +104,7 @@ export function RecurringItemsList({ items, onDelete }: RecurringItemsListProps)
           <CardTitle>No recurring items yet</CardTitle>
         </CardHeader>
         <CardContent className="text-center space-y-2">
-          <div className="text-4xl" aria-hidden="true">🔁</div>
+          <RotateCw className="w-10 h-10 mx-auto text-primary" aria-hidden="true" />
           <p className="text-sm text-muted-foreground">Add your income sources and recurring expenses below.</p>
         </CardContent>
       </Card>

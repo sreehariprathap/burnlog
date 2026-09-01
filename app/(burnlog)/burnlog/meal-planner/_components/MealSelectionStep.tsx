@@ -4,14 +4,22 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Sunrise, Moon, Apple, HelpCircle } from 'lucide-react';
 import type { MealCandidate, MealPlannerWizardAnswers } from '@/lib/ai/types';
 import { formatCalories } from '@/lib/format';
 
-const MEAL_LABEL: Record<string, string> = {
-  breakfast: '🌅 Breakfast',
-  lunch: '☀️ Lunch',
-  dinner: '🌙 Dinner',
-  snack: '🍎 Snack',
+const MEAL_LABEL: Record<string, string | React.ReactNode> = {
+  breakfast: 'Breakfast',
+  lunch: 'Lunch',
+  dinner: 'Dinner',
+  snack: 'Snack',
+};
+
+const MEAL_ICON: Record<string, React.ReactNode> = {
+  breakfast: <Sunrise className="w-4 h-4" />,
+  lunch: null,
+  dinner: <Moon className="w-4 h-4" />,
+  snack: <Apple className="w-4 h-4" />,
 };
 
 type MealSelectionStepProps = {
@@ -43,7 +51,7 @@ export function MealSelectionStep({ candidates, cookMode, mealsPerDay, onContinu
       <CardContent className="space-y-3">
         {candidates.length === 0 && (
           <div className="flex flex-col items-center gap-2 rounded-xl border border-dashed p-8 text-center">
-            <span className="text-3xl" role="img" aria-label="Shrug">🤷</span>
+            <HelpCircle className="w-8 h-8 text-muted-foreground" aria-hidden="true" />
             <p className="text-sm font-semibold">No meal ideas generated</p>
             <p className="text-xs text-muted-foreground">Go back and adjust your preferences, then try again.</p>
           </div>
@@ -60,10 +68,11 @@ export function MealSelectionStep({ candidates, cookMode, mealsPerDay, onContinu
               }`}
             >
               <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-1">
+                  {MEAL_ICON[c.mealType]}
                   {MEAL_LABEL[c.mealType] ?? c.mealType}
                 </span>
-                <span className="text-[10px] text-muted-foreground">⏱ {c.prepMinutes} min</span>
+                <span className="text-[10px] text-muted-foreground">{c.prepMinutes} min</span>
               </div>
               <p className="font-medium text-sm mt-1">{c.name}</p>
               <p className="text-xs text-muted-foreground">{c.description}</p>

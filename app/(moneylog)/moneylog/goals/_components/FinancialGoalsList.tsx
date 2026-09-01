@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { startOfMonth, endOfMonth } from 'date-fns';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { AnimatedCircularProgressBar } from '@/components/ui/animated-circular-progress-bar';
+import { Target } from 'lucide-react';
 import { FINANCIAL_GOAL_TYPES } from '@/lib/financialGoalTypes';
 import { categoryLabel } from '@/lib/financeCategories';
 import { computeGoalProgress, type FinancialGoalRow } from '@/lib/financeGoalProgress';
@@ -48,7 +49,7 @@ export function FinancialGoalsList({ goals, profileId }: FinancialGoalsListProps
           <CardTitle>No financial goals yet</CardTitle>
         </CardHeader>
         <CardContent className="text-center space-y-2">
-          <div className="text-4xl" aria-hidden="true">🎯</div>
+          <Target className="w-10 h-10 mx-auto text-primary" aria-hidden="true" />
           <p className="text-sm text-muted-foreground">Add your first goal below to start tracking progress.</p>
         </CardContent>
       </Card>

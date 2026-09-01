@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { ShoppingCart } from 'lucide-react';
 import { GROCERY_STORES, MANUAL_INGREDIENTS_OPTION, type MealPlannerWizardAnswers } from '@/lib/ai/types';
 
 type StoreStepProps = {
@@ -32,7 +33,7 @@ export function StoreStep({ initialAnswers, onContinue }: StoreStepProps) {
   return (
     <Card className="w-full max-w-lg">
       <CardHeader>
-        <CardTitle>🛒 Where are you shopping?</CardTitle>
+        <CardTitle className="flex items-center gap-2"><ShoppingCart className="w-5 h-5" />Where are you shopping?</CardTitle>
         <p className="text-sm text-muted-foreground">
           We&apos;ll build your meals and grocery list around this.
         </p>

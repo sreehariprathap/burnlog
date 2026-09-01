@@ -158,7 +158,7 @@ export default function GoalsPage() {
                     <CardTitle>No Goals Set</CardTitle>
                   </CardHeader>
                   <CardContent className="flex flex-col items-center gap-1 text-center py-4">
-                    <span className="text-3xl" aria-hidden="true">🎯</span>
+                    <Target className="w-8 h-8 text-primary" aria-hidden="true" />
                     <p className="text-muted-foreground">
                       You haven&apos;t set any fitness goals yet. Start by adding your first goal below.
                     </p>

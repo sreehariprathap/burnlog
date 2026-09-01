@@ -8,7 +8,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Sparkles, GlassWater, Flame } from 'lucide-react';
+import { Loader2, Sparkles, GlassWater, Flame, Utensils } from 'lucide-react';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AppConfigShell } from '@/components/AppConfigShell';
@@ -243,10 +243,10 @@ export default function BurnLogConfigPage() {
       </Card>
 
       <Card>
-        <CardHeader><CardTitle className="flex items-center gap-2">🍽️ Meal Planner</CardTitle></CardHeader>
+        <CardHeader><CardTitle className="flex items-center gap-2"><Utensils className="w-5 h-5" />Meal Planner</CardTitle></CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-3">
-            <p className="text-sm font-medium">🍽️ Meal-prep day</p>
+            <p className="text-sm font-medium flex items-center gap-2"><Utensils className="w-4 h-4" />Meal-prep day</p>
             <div className="grid grid-cols-2 gap-2">
               {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((label, value) => (
                 <button

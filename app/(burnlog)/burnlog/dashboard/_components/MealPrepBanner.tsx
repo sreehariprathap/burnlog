@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Utensils } from 'lucide-react';
 
 type MealPrepBannerProps = {
   mealPrepDayOfWeek: number | null;
@@ -30,7 +31,7 @@ export function MealPrepBanner({ mealPrepDayOfWeek, lastMealPlanGeneratedAt }: M
     <Card className="border-primary/40 bg-primary/5">
       <CardContent className="py-4 flex items-center justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold">🍽️ Time to plan this week&apos;s meals</p>
+          <p className="text-sm font-semibold flex items-center gap-2"><Utensils className="w-4 h-4" />Time to plan this week&apos;s meals</p>
           <p className="text-xs text-muted-foreground">Today&apos;s your meal-prep day.</p>
         </div>
         <Button asChild size="sm">

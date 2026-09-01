@@ -3,6 +3,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { ReceiptText } from 'lucide-react';
 
 type GroceryListStepProps = {
   groceryList: Record<string, string[]>;
@@ -14,7 +15,7 @@ export function GroceryListStep({ groceryList, estimatedBudget, onContinue }: Gr
   return (
     <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto">
       <CardHeader>
-        <CardTitle>🧾 Your grocery list</CardTitle>
+        <CardTitle className="flex items-center gap-2"><ReceiptText className="w-5 h-5" />Your grocery list</CardTitle>
         {estimatedBudget && <p className="text-sm text-muted-foreground">Estimated budget: {estimatedBudget}</p>}
       </CardHeader>
       <CardContent className="space-y-4">

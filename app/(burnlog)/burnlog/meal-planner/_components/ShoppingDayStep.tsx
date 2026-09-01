@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
+import { ShoppingCart, Calendar } from 'lucide-react';
 
 type ShoppingDayStepProps = {
   profileId: string;
@@ -38,7 +39,7 @@ export function ShoppingDayStep({ profileId, onDone }: ShoppingDayStepProps) {
     const remindAt = new Date(`${date}T${time}`);
     const { error: insertError } = await supabase.from('scheduled_reminders').insert({
       profileId,
-      title: 'Grocery run 🛒',
+      title: 'Grocery run',
       message: 'Your grocery list for this week is ready.',
       url: '/burnlog/meal-planner/grocery-list',
       remindAt: remindAt.toISOString(),
@@ -56,7 +57,7 @@ export function ShoppingDayStep({ profileId, onDone }: ShoppingDayStepProps) {
   return (
     <Card className="w-full max-w-lg">
       <CardHeader>
-        <CardTitle>🗓️ When are you shopping?</CardTitle>
+        <CardTitle className="flex items-center gap-2"><Calendar className="w-5 h-5" />When are you shopping?</CardTitle>
         <p className="text-sm text-muted-foreground">We&apos;ll remind you with your list.</p>
       </CardHeader>
       <CardContent className="space-y-5">

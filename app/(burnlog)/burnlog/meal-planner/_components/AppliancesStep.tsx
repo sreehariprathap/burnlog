@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
+import { ChefHat } from 'lucide-react';
 import { KITCHEN_APPLIANCES, type MealPlannerWizardAnswers } from '@/lib/ai/types';
 
 type AppliancesStepProps = {
@@ -24,7 +25,7 @@ export function AppliancesStep({ initialAnswers, onContinue }: AppliancesStepPro
   return (
     <Card className="w-full max-w-lg">
       <CardHeader>
-        <CardTitle>🍳 Cooking at home?</CardTitle>
+        <CardTitle className="flex items-center gap-2"><ChefHat className="w-5 h-5" />Cooking at home?</CardTitle>
       </CardHeader>
       <CardContent className="space-y-5">
         <div className="grid gap-2">

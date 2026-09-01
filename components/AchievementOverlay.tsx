@@ -12,7 +12,7 @@ type AchievementOverlayProps = {
   title: string;
   /** Supporting appreciation line. */
   message?: string;
-  /** Optional stat chips, e.g. ["+50 XP", "🔥 5 day streak"]. */
+  /** Optional stat chips, e.g. ["+50 XP", "5 day streak"]. */
   stats?: string[];
   onClose: () => void;
   /** Auto-dismiss after this many ms (0 disables). */

@@ -4,6 +4,7 @@
 import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Calendar } from 'lucide-react';
 import type { MealCandidate, MealGridCell, MealType } from '@/lib/ai/types';
 
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -69,7 +70,7 @@ export function WeekGridStep({ selected, mealsPerDay, onConfirm }: WeekGridStepP
   return (
     <Card className="w-full max-w-4xl max-h-[90vh] overflow-y-auto">
       <CardHeader>
-        <CardTitle>📅 Arrange your week</CardTitle>
+        <CardTitle className="flex items-center gap-2"><Calendar className="w-5 h-5" />Arrange your week</CardTitle>
         <p className="text-sm text-muted-foreground">Tap a meal, then tap another to swap them.</p>
       </CardHeader>
       <CardContent>

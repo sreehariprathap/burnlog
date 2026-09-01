@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { computeLevel } from '@/lib/leveling';
 import { AchievementOverlay } from '@/components/AchievementOverlay';
+import { Mountain } from 'lucide-react';
 import { RidgeProgress } from './RidgeProgress';
 import { ProgramWeekAccordion, type ProgramWeekRow } from './ProgramWeekAccordion';
 import { ProgramCreateFlow } from './ProgramCreateFlow';
@@ -75,8 +76,8 @@ export function ProgramView({ profileId }: { profileId: string }) {
     const { error } = await supabase.from('profiles').update({ xp: newXp, level: newLevel }).eq('id', profileId);
 
     if (!error) {
-      const stats = [`+${PROGRAM_WEEK_BONUS_XP} XP`, `🏔️ ${weekTitle} complete!`];
-      if (newLevel > profileRow.level) stats.push(`⭐ Level ${newLevel}!`);
+      const stats = [`+${PROGRAM_WEEK_BONUS_XP} XP`, `${weekTitle} complete!`];
+      if (newLevel > profileRow.level) stats.push(`Level ${newLevel}!`);
       setMilestone({ stats });
     }
   };

@@ -18,7 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { SmoothTabs, type TabItem } from '@/components/kokonutui/smooth-tabs';
 import { MotionCarousel } from '@/components/kokonutui/motion-carousel';
-import { Scale, Flame, Utensils, HeartPulse, TrendingUp, Zap, Repeat, BarChart3 } from 'lucide-react';
+import { Scale, Flame, Utensils, Heart, TrendingUp, Zap, Repeat, BarChart3 } from 'lucide-react';
 
 // Types
 interface WeightEntry {
@@ -73,11 +73,11 @@ interface InsightsClientProps {
 
 type MetricKey = 'weight' | 'calories' | 'food' | 'stamina';
 
-const METRIC_EMPTY_STATE: Record<MetricKey, { icon: string; message: string }> = {
-  weight: { icon: '⚖️', message: 'Log your weight to see trends here.' },
-  calories: { icon: '🔥', message: 'Log a workout to see calories burned over time.' },
-  food: { icon: '🍽️', message: 'Log a meal to see your calorie intake over time.' },
-  stamina: { icon: '💓', message: 'Log a stamina session to see your endurance trend.' },
+const METRIC_EMPTY_STATE: Record<MetricKey, { IconComponent: typeof Scale; message: string }> = {
+  weight: { IconComponent: Scale, message: 'Log your weight to see trends here.' },
+  calories: { IconComponent: Flame, message: 'Log a workout to see calories burned over time.' },
+  food: { IconComponent: Utensils, message: 'Log a meal to see your calorie intake over time.' },
+  stamina: { IconComponent: Heart, message: 'Log a stamina session to see your endurance trend.' },
 };
 
 // Data processing helper functions
@@ -337,7 +337,7 @@ function MetricSlide({
               </ResponsiveContainer>
             ) : (
               <div className="flex flex-col items-center justify-center gap-2 h-full text-center px-4">
-                <span className="text-3xl" aria-hidden="true">{METRIC_EMPTY_STATE[metric].icon}</span>
+                <METRIC_EMPTY_STATE[metric].IconComponent className="w-8 h-8 text-muted-foreground" aria-hidden="true" />
                 <p className="text-sm text-muted-foreground">{METRIC_EMPTY_STATE[metric].message}</p>
                 <Button asChild size="sm" className="mt-1">
                   <Link href="/burnlog/goals">Log an entry</Link>

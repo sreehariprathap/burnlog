@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Utensils } from 'lucide-react';
+import { Utensils, Camera } from 'lucide-react';
 import { FoodScanner } from './FoodScanner';
 import { useToast } from '@/components/ui/use-toast';
 import { formatCalories } from '@/lib/format';
@@ -273,7 +273,7 @@ export function FoodIntakeTracker({ userId }: FoodIntakeTrackerProps) {
             onClick={() => setShowScanner(true)}
             className="flex items-center gap-1.5 text-sm font-medium px-3 py-1.5 rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors"
           >
-            📸 Scan Food
+            <Camera className="w-4 h-4" />Scan Food
           </button>
         </div>
       </CardHeader>

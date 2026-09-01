@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, Flame, X } from 'lucide-react';
+import { Check, Flame, X, Calendar, PartyPopper } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { computeLevel } from '@/lib/leveling';
 import { computeConsistencyWeek, getWeekId, getWeekRange, WEEKLY_CONSISTENCY_BONUS_XP } from '@/lib/consistency';
@@ -88,8 +88,8 @@ export function ConsistencyTracker({
         .eq('id', profileId);
 
       if (!error) {
-        const stats = [`+${WEEKLY_CONSISTENCY_BONUS_XP} XP`, '🗓️ Full week!'];
-        if (newLevel > level) stats.push(`⭐ Level ${newLevel}!`);
+        const stats = [`+${WEEKLY_CONSISTENCY_BONUS_XP} XP`, 'Calendar Full week!'];
+        if (newLevel > level) stats.push(`Level ${newLevel}!`);
         setAchievement({ stats });
       }
     })();
@@ -127,9 +127,9 @@ export function ConsistencyTracker({
           ))}
         </div>
         {week && (
-          <p className="mt-3 text-sm text-muted-foreground">
-            {week.activeCount} of 7 days active this week
-            {week.isFullWeek && ' — full week! 🎉'}
+          <p className="mt-3 text-sm text-muted-foreground flex items-center gap-1">
+            <span>{week.activeCount} of 7 days active this week</span>
+            {week.isFullWeek && <><span>— full week!</span><PartyPopper className="w-4 h-4" /></>}
           </p>
         )}
       </CardContent>

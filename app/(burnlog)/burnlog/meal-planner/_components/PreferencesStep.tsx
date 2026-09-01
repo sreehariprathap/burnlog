@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Utensils, Sparkles } from 'lucide-react';
 import { CUISINE_STYLES, type MealPlannerWizardAnswers } from '@/lib/ai/types';
 
 type PreferencesStepProps = {
@@ -26,7 +27,7 @@ export function PreferencesStep({ initialAnswers, onContinue }: PreferencesStepP
   return (
     <Card className="w-full max-w-lg">
       <CardHeader>
-        <CardTitle>🍽️ What do you feel like eating?</CardTitle>
+        <CardTitle className="flex items-center gap-2"><Utensils className="w-5 h-5" />What do you feel like eating?</CardTitle>
       </CardHeader>
       <CardContent className="space-y-5">
         <div className="space-y-2">
@@ -45,7 +46,7 @@ export function PreferencesStep({ initialAnswers, onContinue }: PreferencesStepP
 
         <label className="flex items-center space-x-3 rounded-xl border p-3">
           <Checkbox checked={surpriseMe} onCheckedChange={(v) => setSurpriseMe(!!v)} />
-          <span className="text-sm">✨ Surprise me — no cuisine preference, just pick creatively</span>
+          <span className="text-sm flex items-center gap-2"><Sparkles className="w-4 h-4" />Surprise me — no cuisine preference, just pick creatively</span>
         </label>
 
         {!surpriseMe && (

@@ -87,7 +87,7 @@ export const GROCERY_STORES = [
 export const MANUAL_INGREDIENTS_OPTION = 'Manual — I already have ingredients';
 
 /** Identity key for the user's recurring meal-prep reminder in scheduled_reminders. */
-export const MEAL_PREP_REMINDER_TITLE = 'Time to plan your meals 🍽️';
+export const MEAL_PREP_REMINDER_TITLE = 'Time to plan your meals';
 
 export type GroceryAnswers = {
   preferredStore: string;

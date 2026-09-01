@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Utensils } from 'lucide-react';
 
 const DAYS = [
   { value: 0, label: 'Sunday' },
@@ -34,7 +35,7 @@ export function MealPrepStep({ onContinue, onSkip }: MealPrepStepProps) {
   return (
     <Card className="w-full max-w-lg">
       <CardHeader>
-        <CardTitle>🍽️ When do you meal-prep?</CardTitle>
+        <CardTitle className="flex items-center gap-2"><Utensils className="w-5 h-5" />When do you meal-prep?</CardTitle>
         <p className="text-sm text-muted-foreground">
           We&apos;ll remind you to plan your meals that day.
         </p>

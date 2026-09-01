@@ -4,7 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Loader2 } from 'lucide-react';
+import { Loader2, PartyPopper } from 'lucide-react';
 import { StoreStep } from './StoreStep';
 import { HouseholdStep } from './HouseholdStep';
 import { PreferencesStep } from './PreferencesStep';
@@ -231,7 +231,7 @@ export function MealPlannerFlow() {
       {step === 'done' && (
         <Card className="w-full max-w-md text-center">
           <CardContent className="pt-6 space-y-4">
-            <p className="text-lg font-medium">🎉 Your week is planned!</p>
+            <p className="text-lg font-medium flex items-center justify-center gap-2"><PartyPopper className="w-5 h-5" />Your week is planned!</p>
             <Button onClick={() => router.push('/burnlog/session')}>Go to Plan</Button>
           </CardContent>
         </Card>

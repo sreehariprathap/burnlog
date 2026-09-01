@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -168,7 +168,7 @@ export function LogCaloriesModal({ profileId, onClose, onSaved }: LogCaloriesMod
             </TabsContent>
             <TabsContent value="photo" className="pt-3">
               <Button className="w-full" onClick={() => setShowScanner(true)}>
-                📸 Scan Food Photo
+                <Camera className="w-4 h-4 mr-2" />Scan Food Photo
               </Button>
               <p className="text-xs text-muted-foreground mt-2">
                 Take or upload a photo — AI estimates calories and macros, then you can review and save below.

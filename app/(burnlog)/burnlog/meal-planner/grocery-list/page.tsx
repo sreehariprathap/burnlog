@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
-import { Loader2, RefreshCw, ShoppingCart } from 'lucide-react';
+import { Loader2, RefreshCw, ShoppingCart, ReceiptText } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
@@ -79,7 +79,7 @@ export default function GroceryListPage() {
       <Card className="w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <CardHeader className="flex flex-row items-center justify-between">
           <div>
-            <CardTitle>🧾 Your grocery list</CardTitle>
+            <CardTitle className="flex items-center gap-2"><ReceiptText className="w-5 h-5" />Your grocery list</CardTitle>
             {row.estimatedBudget && <p className="text-sm text-muted-foreground">Estimated budget: {row.estimatedBudget}</p>}
           </div>
           <Button
