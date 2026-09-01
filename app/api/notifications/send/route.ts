@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createClient } from '@/lib/supabase/server';
 import { sendPushToUser } from '@/lib/pushNotification/server';
 
 export async function POST(request: Request) {
@@ -8,7 +7,7 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { title, message, url } = body;
 
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
