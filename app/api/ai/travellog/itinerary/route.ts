@@ -48,7 +48,12 @@ export async function POST(request: Request) {
       response_format: { type: 'json_object' },
     });
 
-    const content = completion.choices?.[0]?.message?.content;
+    if (!completion.choices || completion.choices.length === 0) {
+      const providerError = (completion as unknown as { error?: { message?: string } }).error;
+      throw new Error(providerError?.message || 'AI provider returned no response choices');
+    }
+
+    const content = completion.choices[0]?.message?.content;
     if (!content) {
       return NextResponse.json({ error: 'AI returned no response' }, { status: 502 });
     }
