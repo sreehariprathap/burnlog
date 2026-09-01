@@ -11,8 +11,9 @@ import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { ComposeBox } from './_components/ComposeBox';
 import { FeedControls } from './_components/FeedControls';
 import { PostCard, type FeedPost } from './_components/PostCard';
-import { Loader2, RefreshCw, Sparkles } from 'lucide-react';
+import { Loader2, RefreshCw, Sparkles, Users, FileText } from 'lucide-react';
 import { apiFetch } from '@/lib/apiFetch';
+import { StatCard } from '@/components/ui/stat-card';
 
 async function fetcher(url: string) {
   const res = await apiFetch(url);
@@ -29,6 +30,10 @@ export default function SocialLogDashboardPage() {
     `/api/sociallog/posts?tab=${tab}&sort=${sort}`,
     fetcher
   );
+  const { data: stats } = useSWR<{ followers: number; posts: number }>(
+    profile ? '/api/sociallog/stats' : null,
+    fetcher
+  );
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -42,6 +47,14 @@ export default function SocialLogDashboardPage() {
       />
       <main className="flex-1 container mx-auto max-w-2xl space-y-4 p-4 pb-24">
         <ComposeBox onPosted={() => mutate()} />
+        <div className="grid grid-cols-2 gap-3">
+          <StatCard title="Followers" icon={Users}>
+            <p className="text-2xl font-bold">{stats?.followers ?? 0}</p>
+          </StatCard>
+          <StatCard title="Posts" icon={FileText}>
+            <p className="text-2xl font-bold">{stats?.posts ?? 0}</p>
+          </StatCard>
+        </div>
         <FeedControls tab={tab} sort={sort} onTabChange={setTab} onSortChange={setSort} />
         {isLoading && <Loader2 className="h-6 w-6 animate-spin" />}
         {!isLoading && (data?.posts.length ?? 0) === 0 && (
