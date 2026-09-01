@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createRouteHandlerClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createClient } from '@/lib/supabase/server';
 import { generateWorkoutPlan } from '@/lib/ai/openrouter';
 import type { LifestyleAnswers } from '@/lib/ai/types';
 import { getModel } from '@/lib/ai/modelConfig';
@@ -25,7 +24,7 @@ function isValidLifestyleAnswers(body: unknown): body is LifestyleAnswers {
 export async function POST(request: Request) {
   let model = 'unknown';
   try {
-    const supabase = createRouteHandlerClient({ cookies });
+    const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
