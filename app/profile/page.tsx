@@ -17,7 +17,7 @@ import { TopBar } from '@/components/TopBar';
 import { LogbookBottomNav } from '@/components/LogbookBottomNav';
 import { sendRealTestNotification } from '@/lib/pushNotification';
 import { Switch } from '@/components/ui/switch';
-import { APPS, AppId, getDefaultApp, setDefaultApp } from '@/lib/appMode';
+import { APPS, AppId, getDefaultApp, setDefaultApp, setEnabledApps } from '@/lib/appMode';
 import { useToast } from '@/components/ui/use-toast';
 
 // Client Component — no static <Metadata> export; page title stays the
@@ -53,6 +53,27 @@ export default function ProfilePage() {
     setDefaultAppState(app);
   }
 
+  const [addingApp, setAddingApp] = useState<AppId | null>(null);
+
+  async function handleAddApp(app: AppId) {
+    if (!profile) return;
+    setAddingApp(app);
+    const currentEnabled: AppId[] = profile.enabledApps ?? [];
+    const nextEnabled = [...currentEnabled, app];
+    const { error } = await supabase
+      .from('profiles')
+      .update({ enabledApps: nextEnabled })
+      .eq('id', profile.id);
+    if (error) {
+      toast({ title: 'Could not add app', description: error.message, variant: 'destructive' });
+      setAddingApp(null);
+      return;
+    }
+    setEnabledApps(nextEnabled);
+    setProfile((prev: any) => ({ ...prev, enabledApps: nextEnabled }));
+    router.push(`/onboarding/sequence?apps=${app}&step=0&returnTo=/profile`);
+  }
+
   useEffect(() => {
     (async () => {
       try {
@@ -76,7 +97,7 @@ export default function ProfilePage() {
         const userId = session.user.id;
         const { data, error: profErr } = await supabase
           .from('profiles')
-          .select('id,firstName,lastName,age,height,weight,activityLevel,isAdmin,avatarUrl,username')
+          .select('id,firstName,lastName,age,height,weight,activityLevel,isAdmin,avatarUrl,username,enabledApps')
           .eq('userId', userId)
           .single();
 
@@ -328,6 +349,30 @@ export default function ProfilePage() {
                       />
                     </div>
                   ))}
+                  {(() => {
+                    const enabled: AppId[] = profile.enabledApps ?? [];
+                    const notEnabled = Object.values(APPS).filter(
+                      (app) => app.id !== 'logbook' && !enabled.includes(app.id)
+                    );
+                    if (notEnabled.length === 0) return null;
+                    return (
+                      <div className="pt-3 border-t space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground">Add another app</p>
+                        {notEnabled.map((app) => (
+                          <Button
+                            key={app.id}
+                            variant="outline"
+                            className="w-full justify-start"
+                            disabled={addingApp === app.id}
+                            onClick={() => handleAddApp(app.id)}
+                          >
+                            {addingApp === app.id ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                            {app.name}
+                          </Button>
+                        ))}
+                      </div>
+                    );
+                  })()}
                 </CardContent>
               </Card>
 
