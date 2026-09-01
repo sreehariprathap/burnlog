@@ -7,7 +7,7 @@ import { useState } from 'react';
 import useSWR from 'swr';
 import { createClient } from '@/lib/supabase/client';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
-import { Search, CalendarRange, RefreshCw } from 'lucide-react';
+import { CalendarRange, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { TopBar } from '@/components/TopBar';
 import { BottomNav } from '@/components/BottomNav';
@@ -24,7 +24,6 @@ import { WaterIntakeTracker } from '@/components/kokonutui/water-intake-tracker'
 import { ConsistencyTracker } from './_components/ConsistencyTracker';
 import { CrossAppSnapshot } from '@/components/CrossAppSnapshot';
 import { QuickLogFab } from './_components/QuickLogFab';
-import { ActionSearchBar } from '@/components/kokonutui/action-search-bar';
 
 interface FitnessGoal {
   id: string;
@@ -36,8 +35,6 @@ export default function DashboardPage() {
   const supabase = createClient();
   const { profile: userProfile, loading: profileLoading } = useCurrentProfile() as { profile: any; loading: boolean };
   const [refreshKey, setRefreshKey] = useState(0);
-  const [searchOpen, setSearchOpen] = useState(false);
-  const [quickLogTrigger, setQuickLogTrigger] = useState<'calories' | 'workout' | 'steps' | 'walk' | null>(null);
 
   const { data: goals, isLoading: goalsLoading, mutate: mutateGoals } = useSWR(
     userProfile ? ['burnlog-fitness-goals', userProfile.id] : null,
@@ -84,9 +81,6 @@ export default function DashboardPage() {
               className="disabled:opacity-50"
             >
               <RefreshCw className={`h-5 w-5 ${refreshing ? 'animate-spin' : ''}`} />
-            </button>
-            <button onClick={() => setSearchOpen(true)} aria-label="Search actions">
-              <Search className="h-5 w-5" />
             </button>
           </div>
         }
@@ -224,22 +218,10 @@ export default function DashboardPage() {
         )}
       </main>
       {userProfile && (
-        <>
-          <QuickLogFab
-            profileId={userProfile.id}
-            onLogged={() => setRefreshKey((k) => k + 1)}
-            initialOpen={quickLogTrigger}
-          />
-          <ActionSearchBar
-            open={searchOpen}
-            onOpenChange={setSearchOpen}
-            isAdmin={!!userProfile?.isAdmin}
-            onQuickLog={(key) => {
-              setQuickLogTrigger(key);
-              setTimeout(() => setQuickLogTrigger(null), 0);
-            }}
-          />
-        </>
+        <QuickLogFab
+          profileId={userProfile.id}
+          onLogged={() => setRefreshKey((k) => k + 1)}
+        />
       )}
       <BottomNav />
     </div>
