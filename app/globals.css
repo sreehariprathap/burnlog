@@ -74,11 +74,11 @@
 :root {
   --radius: 0.625rem;
   /* Unified clean background across all apps; foreground/accents are app-themed */
-  --background: #f8f7f4;
+  --background: #f9f9f9;
   --foreground: oklch(0.33 0.074 30); /* #5B3228 - Dark */
-  --card: #f8f7f4;
+  --card: #f9f9f9;
   --card-foreground: oklch(0.33 0.074 30); /* #5B3228 - Dark */
-  --popover: #f8f7f4;
+  --popover: #f9f9f9;
   --popover-foreground: oklch(0.33 0.074 30); /* #5B3228 - Dark */
   --primary: oklch(0.76 0.16 60); /* #FF9E4F - Primary */
   --primary-foreground: #f8f9fa; /* Updated from #FFE584 */
@@ -114,13 +114,13 @@
 }
 
 .dark {
-  /* Dark theme colors - using updated light color */
-  --background: oklch(0.33 0.074 30); /* #5B3228 - Dark */
-  --foreground: #f8f9fa; /* Updated from #FFE584 */
-  --card: oklch(0.43 0.07 30); /* Lighter version of #5B3228 */
-  --card-foreground: #f8f9fa; /* Updated from #FFE584 */
-  --popover: oklch(0.43 0.07 30); /* Lighter version of #5B3228 */
-  --popover-foreground: #f8f9fa; /* Updated from #FFE584 */
+  /* Dark theme colors */
+  --background: #22223b;
+  --foreground: #f9f9f9;
+  --card: #2a2a42;
+  --card-foreground: #f9f9f9;
+  --popover: #2a2a42;
+  --popover-foreground: #f9f9f9;
   --primary: oklch(0.76 0.16 60); /* #FF9E4F - Primary */
   --primary-foreground: oklch(0.33 0.074 30); /* #5B3228 - Dark */
   --secondary: oklch(0.54 0.14 30); /* #B55233 - Secondary */
@@ -155,11 +155,11 @@
 }
 
 .app-logbook {
-  --background: #f8f7f4;
+  --background: #f9f9f9;
   --foreground: oklch(0.3 0.04 260);
-  --card: #f8f7f4;
+  --card: #f9f9f9;
   --card-foreground: oklch(0.3 0.04 260);
-  --popover: #f8f7f4;
+  --popover: #f9f9f9;
   --popover-foreground: oklch(0.3 0.04 260);
   --primary: oklch(0.47 0.16 265);
   --primary-foreground: #f6f7fb;
@@ -184,10 +184,10 @@
   --chart-3: oklch(0.65 0.15 165);
   --chart-4: oklch(0.7 0.16 60);
   --chart-5: oklch(0.45 0.04 260);
-  --sidebar: #f8f7f4;
+  --sidebar: #f9f9f9;
   --sidebar-foreground: oklch(0.3 0.04 260);
   --sidebar-primary: oklch(0.47 0.16 265);
-  --sidebar-primary-foreground: #f8f7f4;
+  --sidebar-primary-foreground: #f9f9f9;
   --sidebar-accent: oklch(0.85 0.06 265);
   --sidebar-accent-foreground: oklch(0.3 0.04 260);
   --sidebar-border: oklch(0.87 0.02 260);
@@ -195,11 +195,11 @@
 }
 
 .app-logbook.dark {
-  --background: oklch(0.19 0.03 260);
+  --background: #22223b;
   --foreground: #f5f6fa;
-  --card: oklch(0.24 0.035 260);
+  --card: #2a2a42;
   --card-foreground: #f5f6fa;
-  --popover: oklch(0.24 0.035 260);
+  --popover: #2a2a42;
   --popover-foreground: #f5f6fa;
   --primary: oklch(0.68 0.15 265);
   --primary-foreground: oklch(0.19 0.03 260);
@@ -224,7 +224,7 @@
   --chart-3: oklch(0.7 0.13 165);
   --chart-4: oklch(0.78 0.15 60);
   --chart-5: oklch(0.72 0.03 260);
-  --sidebar: oklch(0.24 0.035 260);
+  --sidebar: #2a2a42;
   --sidebar-foreground: #f5f6fa;
   --sidebar-primary: oklch(0.68 0.15 265);
   --sidebar-primary-foreground: oklch(0.19 0.03 260);
@@ -235,16 +235,16 @@
 }
 
 .app-moneylog {
-  --background: #f8f7f4;
+  --background: #f9f9f9;
   --foreground: oklch(0.28 0.05 200);
-  --card: #f8f7f4;
+  --card: #f9f9f9;
   --card-foreground: oklch(0.28 0.05 200);
-  --popover: #f8f7f4;
+  --popover: #f9f9f9;
   --popover-foreground: oklch(0.28 0.05 200);
   --primary: oklch(0.6 0.14 165);
-  --primary-foreground: #f8f7f4;
+  --primary-foreground: #f9f9f9;
   --secondary: oklch(0.45 0.1 200);
-  --secondary-foreground: #f8f7f4;
+  --secondary-foreground: #f9f9f9;
   --muted: oklch(0.9 0.04 170);
   --muted-foreground: oklch(0.4 0.06 200);
   --accent: oklch(0.82 0.08 175);
@@ -264,10 +264,10 @@
   --chart-3: oklch(0.45 0.1 200);
   --chart-4: oklch(0.82 0.08 175);
   --chart-5: oklch(0.4 0.06 200);
-  --sidebar: #f8f7f4;
+  --sidebar: #f9f9f9;
   --sidebar-foreground: oklch(0.28 0.05 200);
   --sidebar-primary: oklch(0.6 0.14 165);
-  --sidebar-primary-foreground: #f8f7f4;
+  --sidebar-primary-foreground: #f9f9f9;
   --sidebar-accent: oklch(0.82 0.08 175);
   --sidebar-accent-foreground: oklch(0.28 0.05 200);
   --sidebar-border: oklch(0.85 0.04 170);
@@ -275,11 +275,11 @@
 }
 
 .app-moneylog.dark {
-  --background: oklch(0.22 0.03 200);
+  --background: #22223b;
   --foreground: #f2fbf9;
-  --card: oklch(0.28 0.04 195);
+  --card: #2a2a42;
   --card-foreground: #f2fbf9;
-  --popover: oklch(0.28 0.04 195);
+  --popover: #2a2a42;
   --popover-foreground: #f2fbf9;
   --primary: oklch(0.65 0.14 165);
   --primary-foreground: oklch(0.2 0.03 200);
@@ -304,7 +304,7 @@
   --chart-3: oklch(0.45 0.1 200);
   --chart-4: oklch(0.38 0.08 180);
   --chart-5: oklch(0.75 0.05 175);
-  --sidebar: oklch(0.28 0.04 195);
+  --sidebar: #2a2a42;
   --sidebar-foreground: #f2fbf9;
   --sidebar-primary: oklch(0.65 0.14 165);
   --sidebar-primary-foreground: oklch(0.2 0.03 200);
@@ -315,16 +315,16 @@
 }
 
 .app-tasklog {
-  --background: #f8f7f4;
+  --background: #f9f9f9;
   --foreground: oklch(0.28 0.05 255);
-  --card: #f8f7f4;
+  --card: #f9f9f9;
   --card-foreground: oklch(0.28 0.05 255);
-  --popover: #f8f7f4;
+  --popover: #f9f9f9;
   --popover-foreground: oklch(0.28 0.05 255);
   --primary: oklch(0.55 0.18 255);
-  --primary-foreground: #f8f7f4;
+  --primary-foreground: #f9f9f9;
   --secondary: oklch(0.45 0.12 255);
-  --secondary-foreground: #f8f7f4;
+  --secondary-foreground: #f9f9f9;
   --muted: oklch(0.91 0.02 255);
   --muted-foreground: oklch(0.42 0.05 255);
   --accent: oklch(0.82 0.06 255);
@@ -347,7 +347,7 @@
   --sidebar: #f5f7fb;
   --sidebar-foreground: oklch(0.28 0.05 255);
   --sidebar-primary: oklch(0.55 0.18 255);
-  --sidebar-primary-foreground: #f8f7f4;
+  --sidebar-primary-foreground: #f9f9f9;
   --sidebar-accent: oklch(0.82 0.06 255);
   --sidebar-accent-foreground: oklch(0.28 0.05 255);
   --sidebar-border: oklch(0.86 0.03 255);
@@ -357,9 +357,9 @@
 .app-tasklog.dark {
   --background: oklch(0.22 0.03 255);
   --foreground: #f2f5fb;
-  --card: oklch(0.28 0.04 255);
+  --card: #2a2a42;
   --card-foreground: #f2f5fb;
-  --popover: oklch(0.28 0.04 255);
+  --popover: #2a2a42;
   --popover-foreground: #f2f5fb;
   --primary: oklch(0.65 0.16 255);
   --primary-foreground: oklch(0.2 0.03 255);
@@ -384,7 +384,7 @@
   --chart-3: oklch(0.5 0.12 255);
   --chart-4: oklch(0.4 0.08 255);
   --chart-5: oklch(0.75 0.04 255);
-  --sidebar: oklch(0.28 0.04 255);
+  --sidebar: #2a2a42;
   --sidebar-foreground: #f2f5fb;
   --sidebar-primary: oklch(0.65 0.16 255);
   --sidebar-primary-foreground: oklch(0.2 0.03 255);
@@ -395,14 +395,14 @@
 }
 
 .app-travellog {
-  --background: #f8f7f4;
+  --background: #f9f9f9;
   --foreground: oklch(0.18 0.02 30);
-  --card: #f8f7f4;
+  --card: #f9f9f9;
   --card-foreground: oklch(0.18 0.02 30);
-  --popover: #f8f7f4;
+  --popover: #f9f9f9;
   --popover-foreground: oklch(0.18 0.02 30);
   --primary: oklch(0.50 0.20 255);
-  --primary-foreground: #f8f7f4;
+  --primary-foreground: #f9f9f9;
   --secondary: oklch(0.70 0.12 60);
   --secondary-foreground: oklch(0.18 0.02 30);
   --muted: oklch(0.92 0.03 50);
@@ -427,7 +427,7 @@
   --sidebar: #f5efe0;
   --sidebar-foreground: oklch(0.18 0.02 30);
   --sidebar-primary: oklch(0.50 0.20 255);
-  --sidebar-primary-foreground: #f8f7f4;
+  --sidebar-primary-foreground: #f9f9f9;
   --sidebar-accent: oklch(0.40 0.08 40);
   --sidebar-accent-foreground: #f5efe0;
   --sidebar-border: oklch(0.88 0.04 60);
@@ -439,7 +439,7 @@
   --foreground: #f5efe0;
   --card: oklch(0.25 0.04 40);
   --card-foreground: #f5efe0;
-  --popover: oklch(0.25 0.04 40);
+  --popover: #2a2a42;
   --popover-foreground: #f5efe0;
   --primary: oklch(0.60 0.18 255);
   --primary-foreground: oklch(0.15 0.02 40);
@@ -464,7 +464,7 @@
   --chart-3: oklch(0.50 0.08 40);
   --chart-4: oklch(0.65 0.12 180);
   --chart-5: oklch(0.75 0.05 60);
-  --sidebar: oklch(0.25 0.04 40);
+  --sidebar: #2a2a42;
   --sidebar-foreground: #f5efe0;
   --sidebar-primary: oklch(0.60 0.18 255);
   --sidebar-primary-foreground: oklch(0.15 0.02 40);
@@ -475,16 +475,16 @@
 }
 
 .app-homelog {
-  --background: #f8f7f4;
+  --background: #f9f9f9;
   --foreground: oklch(0.32 0.05 302);
-  --card: #f8f7f4;
+  --card: #f9f9f9;
   --card-foreground: oklch(0.32 0.05 302);
-  --popover: #f8f7f4;
+  --popover: #f9f9f9;
   --popover-foreground: oklch(0.32 0.05 302);
   --primary: oklch(0.58 0.2 302);
-  --primary-foreground: #f8f7f4;
+  --primary-foreground: #f9f9f9;
   --secondary: oklch(0.48 0.15 302);
-  --secondary-foreground: #f8f7f4;
+  --secondary-foreground: #f9f9f9;
   --muted: oklch(0.91 0.03 302);
   --muted-foreground: oklch(0.45 0.07 302);
   --accent: oklch(0.82 0.08 302);
@@ -507,7 +507,7 @@
   --sidebar: #f8f5fc;
   --sidebar-foreground: oklch(0.32 0.05 302);
   --sidebar-primary: oklch(0.58 0.2 302);
-  --sidebar-primary-foreground: #f8f7f4;
+  --sidebar-primary-foreground: #f9f9f9;
   --sidebar-accent: oklch(0.82 0.08 302);
   --sidebar-accent-foreground: oklch(0.32 0.05 302);
   --sidebar-border: oklch(0.86 0.05 302);
@@ -515,11 +515,11 @@
 }
 
 .app-homelog.dark {
-  --background: oklch(0.23 0.04 302);
+  --background: #22223b;
   --foreground: #f5f0fa;
   --card: oklch(0.29 0.05 302);
   --card-foreground: #f5f0fa;
-  --popover: oklch(0.29 0.05 302);
+  --popover: #2a2a42;
   --popover-foreground: #f5f0fa;
   --primary: oklch(0.66 0.18 302);
   --primary-foreground: oklch(0.2 0.04 302);
@@ -544,7 +544,7 @@
   --chart-3: oklch(0.52 0.15 302);
   --chart-4: oklch(0.42 0.1 302);
   --chart-5: oklch(0.78 0.05 302);
-  --sidebar: oklch(0.29 0.05 302);
+  --sidebar: #2a2a42;
   --sidebar-foreground: #f5f0fa;
   --sidebar-primary: oklch(0.66 0.18 302);
   --sidebar-primary-foreground: oklch(0.2 0.04 302);
@@ -555,16 +555,16 @@
 }
 
 .app-sociallog {
-  --background: #f8f7f4;
+  --background: #f9f9f9;
   --foreground: oklch(0.3 0.05 357);
-  --card: #f8f7f4;
+  --card: #f9f9f9;
   --card-foreground: oklch(0.3 0.05 357);
-  --popover: #f8f7f4;
+  --popover: #f9f9f9;
   --popover-foreground: oklch(0.3 0.05 357);
   --primary: oklch(0.46 0.19 357);
-  --primary-foreground: #f8f7f4;
+  --primary-foreground: #f9f9f9;
   --secondary: oklch(0.4 0.14 357);
-  --secondary-foreground: #f8f7f4;
+  --secondary-foreground: #f9f9f9;
   --muted: oklch(0.91 0.03 357);
   --muted-foreground: oklch(0.42 0.07 357);
   --accent: oklch(0.8 0.09 357);
@@ -587,7 +587,7 @@
   --sidebar: #fdf5f8;
   --sidebar-foreground: oklch(0.3 0.05 357);
   --sidebar-primary: oklch(0.46 0.19 357);
-  --sidebar-primary-foreground: #f8f7f4;
+  --sidebar-primary-foreground: #f9f9f9;
   --sidebar-accent: oklch(0.8 0.09 357);
   --sidebar-accent-foreground: oklch(0.3 0.05 357);
   --sidebar-border: oklch(0.86 0.05 357);
@@ -595,11 +595,11 @@
 }
 
 .app-sociallog.dark {
-  --background: oklch(0.22 0.03 357);
+  --background: #22223b;
   --foreground: #fbeef3;
-  --card: oklch(0.28 0.04 357);
+  --card: #2a2a42;
   --card-foreground: #fbeef3;
-  --popover: oklch(0.28 0.04 357);
+  --popover: #2a2a42;
   --popover-foreground: #fbeef3;
   --primary: oklch(0.62 0.19 357);
   --primary-foreground: oklch(0.2 0.03 357);
@@ -624,7 +624,7 @@
   --chart-3: oklch(0.48 0.15 357);
   --chart-4: oklch(0.4 0.1 357);
   --chart-5: oklch(0.75 0.05 357);
-  --sidebar: oklch(0.28 0.04 357);
+  --sidebar: #2a2a42;
   --sidebar-foreground: #fbeef3;
   --sidebar-primary: oklch(0.62 0.19 357);
   --sidebar-primary-foreground: oklch(0.2 0.03 357);
@@ -635,16 +635,16 @@
 }
 
 .app-shoppinglog {
-  --background: #f8f7f4;
+  --background: #f9f9f9;
   --foreground: oklch(0.32 0.05 60);
-  --card: #f8f7f4;
+  --card: #f9f9f9;
   --card-foreground: oklch(0.32 0.05 60);
-  --popover: #f8f7f4;
+  --popover: #f9f9f9;
   --popover-foreground: oklch(0.32 0.05 60);
   --primary: oklch(0.62 0.19 60);
-  --primary-foreground: #f8f7f4;
+  --primary-foreground: #f9f9f9;
   --secondary: oklch(0.5 0.15 60);
-  --secondary-foreground: #f8f7f4;
+  --secondary-foreground: #f9f9f9;
   --muted: oklch(0.91 0.04 60);
   --muted-foreground: oklch(0.45 0.08 60);
   --accent: oklch(0.85 0.1 60);
@@ -667,7 +667,7 @@
   --sidebar: #fff7ed;
   --sidebar-foreground: oklch(0.32 0.05 60);
   --sidebar-primary: oklch(0.62 0.19 60);
-  --sidebar-primary-foreground: #f8f7f4;
+  --sidebar-primary-foreground: #f9f9f9;
   --sidebar-accent: oklch(0.85 0.1 60);
   --sidebar-accent-foreground: oklch(0.32 0.05 60);
   --sidebar-border: oklch(0.87 0.06 60);
@@ -675,9 +675,9 @@
 }
 
 .app-shoppinglog.dark {
-  --background: oklch(0.22 0.03 60);
+  --background: #22223b;
   --foreground: #fdf3e7;
-  --card: oklch(0.28 0.04 60);
+  --card: #2a2a42;
   --card-foreground: #fdf3e7;
   --popover: oklch(0.28 0.04 60);
   --popover-foreground: #fdf3e7;
