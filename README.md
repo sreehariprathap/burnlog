@@ -21,6 +21,7 @@ want via the app switcher.
 | **BurnLog** | `/dashboard` | Fitness tracking: workouts, weight/BMI, meal planner, AI-assisted onboarding | [`app/(burnlog)/README.md`](app/(burnlog)/README.md) |
 | **MoneyLog** | `/moneylog` | Personal finance: transactions, budgets, financial goals, insights | [`app/(moneylog)/README.md`](app/(moneylog)/README.md) |
 | **TaskLog** | `/tasklog` | Task/goal management: kanban board, plans, goals, idea log | [`app/(tasklog)/README.md`](app/(tasklog)/README.md) |
+| **TravelLog** | `/travellog` | Travel tracking: visit log, exploration map, AI-assisted trip planning | [`app/(travellog)/README.md`](app/(travellog)/README.md) |
 | **HomeLog** | `/homelog` | Household management: chores, bills, shared inventory, expense splitting | [`app/(homelog)/README.md`](app/(homelog)/README.md) |
 | **SocialLog** | `/sociallog` | Social feed: posts, follows, friends, messaging, leaderboards | [`app/(sociallog)/README.md`](app/(sociallog)/README.md) |
 | **ShoppingLog** | `/shoppinglog` | Marketplace: buy/sell listings, cart, orders, favorites | [`app/(shoppinglog)/README.md`](app/(shoppinglog)/README.md) |
@@ -31,20 +32,21 @@ them.
 
 ## How the app works
 
-### One Next.js app, seven route groups
+### One Next.js app, eight route groups
 
-All seven apps live in the same `app/` directory as [Next.js route
+All eight apps live in the same `app/` directory as [Next.js route
 groups](https://nextjs.org/docs/app/building-your-application/routing/route-groups) —
 `app/(logbook)`, `app/(burnlog)`, `app/(moneylog)`, `app/(tasklog)`,
-`app/(homelog)`, `app/(sociallog)`, `app/(shoppinglog)`. Route groups don't
-appear in the URL, so each app owns its own top-level path (`/moneylog`,
-`/tasklog`, ...) except BurnLog, which kept its pre-LogBook routes
-(`/dashboard`, `/session`, `/goals`, `/insights`) for backward compatibility.
+`app/(travellog)`, `app/(homelog)`, `app/(sociallog)`, `app/(shoppinglog)`.
+Route groups don't appear in the URL, so each app owns its own top-level path
+(`/moneylog`, `/tasklog`, ...) except BurnLog, which kept its pre-LogBook
+routes (`/dashboard`, `/session`, `/goals`, `/insights`) for backward
+compatibility.
 
 Each group has its own `layout.tsx` (theming, nav) and its own bottom-nav
 component (`BottomNav.tsx` for BurnLog, `LogbookBottomNav.tsx`,
-`MoneyLogBottomNav.tsx`, `TaskLogBottomNav.tsx`, `HomeLogBottomNav.tsx`,
-`SocialLogBottomNav.tsx`, `ShoppingLogBottomNav.tsx`).
+`MoneyLogBottomNav.tsx`, `TaskLogBottomNav.tsx`, `TravelLogBottomNav.tsx`,
+`HomeLogBottomNav.tsx`, `SocialLogBottomNav.tsx`, `ShoppingLogBottomNav.tsx`).
 
 ### Shared identity, per-app config
 
@@ -146,6 +148,7 @@ app/
   (burnlog)/             BurnLog — see app/(burnlog)/README.md
   (moneylog)/moneylog/   MoneyLog — see app/(moneylog)/README.md
   (tasklog)/tasklog/     TaskLog — see app/(tasklog)/README.md
+  (travellog)/travellog/ TravelLog — see app/(travellog)/README.md
   (homelog)/homelog/     HomeLog — see app/(homelog)/README.md
   (sociallog)/sociallog/ SocialLog — see app/(sociallog)/README.md
   (shoppinglog)/shoppinglog/ ShoppingLog — see app/(shoppinglog)/README.md
