@@ -1,0 +1,34 @@
+// app/(homelog)/homelog/onboarding/_components/DoneStep.tsx
+'use client';
+
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { PartyPopper } from 'lucide-react';
+
+interface DoneStepProps {
+  choreCount: number;
+  onFinish: () => void;
+}
+
+export function DoneStep({ choreCount, onFinish }: DoneStepProps) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <PartyPopper className="h-5 w-5 text-amber-500" />
+          Your household is set up!
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <p className="text-sm text-muted-foreground">
+          {choreCount > 0
+            ? `${choreCount} starter chore${choreCount === 1 ? '' : 's'} ready to go.`
+            : 'Add chores anytime from the Chores tab.'}
+        </p>
+        <Button className="w-full" onClick={onFinish}>
+          Go to HomeLog
+        </Button>
+      </CardContent>
+    </Card>
+  );
+}
