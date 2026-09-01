@@ -34,7 +34,7 @@ export function GoalProgressWidget({
   if (loading) {
     return (
       <NeonGradientCard
-        className="col-span-4"
+        className="col-span-4 z-0"
         borderSize={2}
         borderRadius={16}
         neonColors={NEON}
@@ -58,7 +58,7 @@ export function GoalProgressWidget({
   if (!goal) {
     return (
       <NeonGradientCard
-        className="col-span-4"
+        className="col-span-4 z-0"
         borderSize={2}
         borderRadius={16}
         neonColors={NEON}
@@ -100,7 +100,7 @@ export function GoalProgressWidget({
 
   return (
     <NeonGradientCard
-      className="col-span-4"
+      className="col-span-4 z-0"
       borderSize={2}
       borderRadius={16}
       neonColors={NEON}
