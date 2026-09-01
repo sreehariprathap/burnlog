@@ -1,11 +1,10 @@
 // server component - runs on every request
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
-import { cookies } from 'next/headers';
+import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { BootRedirect } from '@/components/BootRedirect';
 
 export default async function Home() {
-  const supabase = createServerComponentClient({ cookies });
+  const supabase = await createClient();
   // getUser() validates against Supabase's auth server instead of trusting
   // locally-decoded cookie state (which raced with middleware's token
   // refresh and intermittently logged authenticated users out in prod).

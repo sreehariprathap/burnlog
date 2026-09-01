@@ -1,8 +1,7 @@
 // app/insights/page.tsx
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/server';
 import InsightsClient from './_components/InsightsClient';
 import { RefreshInsightsButton } from './_components/RefreshInsightsButton';
 import { TopBar } from '@/components/TopBar';
@@ -13,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export default async function InsightsPage() {
-  const supabase = createServerComponentClient({ cookies });
+  const supabase = await createClient();
 
   // 1) Get the current user. getUser() validates against Supabase's auth
   // server instead of trusting locally-decoded cookie state — getSession()

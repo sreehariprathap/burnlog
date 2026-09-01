@@ -1,8 +1,7 @@
 // app/(moneylog)/moneylog/insights/page.tsx
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/server';
 import { TopBar } from '@/components/TopBar';
 import { MoneyLogBottomNav } from '@/components/MoneyLogBottomNav';
 import FinanceInsightsClient from './_components/FinanceInsightsClient';
@@ -12,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default async function MoneyLogInsightsPage() {
-  const supabase = createServerComponentClient({ cookies });
+  const supabase = await createClient();
 
   // getUser() validates against Supabase's auth server instead of trusting
   // locally-decoded cookie state (which raced with middleware's token
