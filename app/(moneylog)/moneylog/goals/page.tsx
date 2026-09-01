@@ -2,7 +2,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { TopBar } from '@/components/TopBar';
 import { MoneyLogBottomNav } from '@/components/MoneyLogBottomNav';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -13,7 +13,7 @@ import { useToast } from '@/components/ui/use-toast';
 
 // Client Component — cannot export `metadata`; page title is set via TopBar below.
 export default function FinancialGoalsPage() {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const { toast } = useToast();
   const [profileId, setProfileId] = useState<string | null>(null);
   const [goals, setGoals] = useState<FinancialGoalRow[]>([]);

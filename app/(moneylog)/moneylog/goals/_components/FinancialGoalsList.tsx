@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { startOfMonth, endOfMonth } from 'date-fns';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { AnimatedCircularProgressBar } from '@/components/ui/animated-circular-progress-bar';
@@ -23,7 +23,7 @@ function goalTypeLabel(goalType: string): string {
 }
 
 export function FinancialGoalsList({ goals, profileId }: FinancialGoalsListProps) {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const [recurringItems, setRecurringItems] = useState<RecurringItemRow[]>([]);
   const [transactions, setTransactions] = useState<{ type: string; category: string; amount: number; date: string }[]>([]);
 

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { Receipt } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,7 +21,7 @@ type LogTransactionModalProps = {
 type TransactionType = 'income' | 'expense';
 
 export function LogTransactionModal({ profileId, onClose, onSaved }: LogTransactionModalProps) {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const { toast } = useToast();
   const [tab, setTab] = useState<'manual' | 'photo'>('manual');
   const [showScanner, setShowScanner] = useState(false);

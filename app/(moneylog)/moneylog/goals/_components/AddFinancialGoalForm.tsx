@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,7 +19,7 @@ interface AddFinancialGoalFormProps {
 }
 
 export function AddFinancialGoalForm({ profileId, onGoalAdded }: AddFinancialGoalFormProps) {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const { toast } = useToast();
   const [goalType, setGoalType] = useState<string>(FINANCIAL_GOAL_TYPES[0].value);
   const [label, setLabel] = useState('');

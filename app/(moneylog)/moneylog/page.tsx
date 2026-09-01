@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { CalendarDays, CalendarRange, Calendar, RefreshCw } from 'lucide-react';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { Card, CardContent } from '@/components/ui/card';
@@ -101,7 +101,7 @@ function PeriodSlide({
 
 // Client Component — cannot export `metadata`; page title is set via TopBar above.
 export default function MoneyLogHomePage() {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const { profile } = useCurrentProfile();
   const profileId = profile?.id ?? null;
   const [selectedIndex, setSelectedIndex] = useState(0);

@@ -2,7 +2,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 import { TopBar } from '@/components/TopBar';
 import { MoneyLogBottomNav } from '@/components/MoneyLogBottomNav';
@@ -20,7 +20,7 @@ export interface PlanRecurringItem extends RecurringItemDraft {
 
 // Client Component — cannot export `metadata`; page title is set via TopBar below.
 export default function PlanPage() {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const { toast } = useToast();
   const [profileId, setProfileId] = useState<string | null>(null);
   const [items, setItems] = useState<PlanRecurringItem[]>([]);
