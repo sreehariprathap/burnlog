@@ -1,13 +1,14 @@
 // lib/format.ts
 
-const currencyFormatter = new Intl.NumberFormat("en-IN", {
-  style: "currency",
-  currency: "INR",
-  maximumFractionDigits: 0,
-});
+import { getCurrency, currencyLocale } from "./currency";
 
 export function formatCurrency(amount: number): string {
-  return currencyFormatter.format(amount);
+  const code = getCurrency();
+  return new Intl.NumberFormat(currencyLocale(code), {
+    style: "currency",
+    currency: code,
+    maximumFractionDigits: 0,
+  }).format(amount);
 }
 
 export function formatCalories(kcal: number): string {

@@ -3,6 +3,7 @@
 
 import useSWR, { mutate } from 'swr';
 import { createClient } from '@/lib/supabase/client';
+import { isCurrencyCode, setCurrency } from '@/lib/currency';
 
 export const CURRENT_PROFILE_KEY = 'current-profile';
 
@@ -28,6 +29,10 @@ async function fetchCurrentProfile(): Promise<CurrentProfile | null> {
   if (!user) return null;
 
   const { data: profile } = await supabase.from('profiles').select('*').eq('userId', user.id).single();
+  const currency = (profile as CurrentProfile | null)?.currency;
+  if (typeof currency === 'string' && isCurrencyCode(currency)) {
+    setCurrency(currency);
+  }
   return (profile as CurrentProfile) ?? null;
 }
 
