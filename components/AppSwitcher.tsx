@@ -2,9 +2,9 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import Image from 'next/image';
 import { motion } from 'motion/react';
 import { Star } from 'lucide-react';
+import { BurnLogMark } from '@/components/BurnLogMark';
 import { LogbookMark } from '@/components/LogbookMark';
 import { MoneyLogMark } from '@/components/MoneyLogMark';
 import { TaskLogMark } from '@/components/TaskLogMark';
@@ -37,7 +37,7 @@ function AppIcon({ id, size }: { id: AppId; size: number }) {
     case 'shoppinglog':
       return <ShoppingLogMark size={size} />;
     default:
-      return <Image src="/B.png" alt="BurnLog" width={size} height={size} />;
+      return <BurnLogMark size={size} />;
   }
 }
 
