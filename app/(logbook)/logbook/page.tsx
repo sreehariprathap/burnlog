@@ -7,6 +7,7 @@ import { TopBar } from '@/components/TopBar';
 import { LogbookBottomNav } from '@/components/LogbookBottomNav';
 import { GlobalSearch } from '@/components/GlobalSearch';
 import { Card, CardContent } from '@/components/ui/card';
+import { StatCard } from '@/components/ui/stat-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { useToast } from '@/components/ui/use-toast';
@@ -109,11 +110,9 @@ export default function LogbookPage() {
           <>
             <MorningBrief />
 
-            <Card>
-              <CardContent className="pt-6">
-                <DayScoreRing score={data.dayScore} />
-              </CardContent>
-            </Card>
+            <StatCard>
+              <DayScoreRing score={data.dayScore} />
+            </StatCard>
 
             <LogCardsGrid cards={data.cards} />
 
