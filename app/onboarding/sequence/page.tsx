@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { AppId, isAppId } from '@/lib/appMode';
@@ -12,7 +12,23 @@ const ONBOARDING_ROUTES: Partial<Record<AppId, string>> = {
   homelog: '/homelog/onboarding',
 };
 
+function LoadingFallback() {
+  return (
+    <div className="h-screen flex items-center justify-center">
+      <Loader2 className="animate-spin w-8 h-8" />
+    </div>
+  );
+}
+
 export default function OnboardingSequencePage() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <OnboardingSequenceRedirect />
+    </Suspense>
+  );
+}
+
+function OnboardingSequenceRedirect() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -39,9 +55,5 @@ export default function OnboardingSequencePage() {
     }
   }, [searchParams, router]);
 
-  return (
-    <div className="h-screen flex items-center justify-center">
-      <Loader2 className="animate-spin w-8 h-8" />
-    </div>
-  );
+  return <LoadingFallback />;
 }
