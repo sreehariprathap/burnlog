@@ -35,7 +35,7 @@ export default function RootLayoutClient({
         <meta name="theme-color" content="#3b82f6" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="burnlog" />
+        <meta name="apple-mobile-web-app-title" content="LogBook" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="msapplication-TileColor" content="#3b82f6" />
         <meta name="msapplication-tap-highlight" content="no" />
@@ -45,8 +45,8 @@ export default function RootLayoutClient({
         <link rel="shortcut icon" href="/icons/icon-192.png" />
         <link rel="manifest" href="/manifest.webmanifest" />
 
-        <title>burnlog - Fitness Tracker</title>
-        <meta name="description" content="Track your workouts, set fitness goals, and monitor your progress" />
+        <title>LogBook</title>
+        <meta name="description" content="Your daily digest across every app you track life with — fitness, money, tasks, home, social, shopping, and travel, all in one place." />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}

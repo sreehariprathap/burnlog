@@ -6,7 +6,7 @@ import { Loader2 } from 'lucide-react';
 import { AppId, isAppId } from '@/lib/appMode';
 
 const ONBOARDING_ROUTES: Partial<Record<AppId, string>> = {
-  burnlog: '/ai-setup',
+  burnlog: '/burnlog/ai-setup',
   moneylog: '/moneylog/onboarding',
   tasklog: '/tasklog/onboarding',
   homelog: '/homelog/onboarding',

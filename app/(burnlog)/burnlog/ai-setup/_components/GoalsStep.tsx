@@ -1,4 +1,4 @@
-// app/ai-setup/_components/GoalsStep.tsx
+// app/(burnlog)/burnlog/ai-setup/_components/GoalsStep.tsx
 'use client';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';

@@ -1,4 +1,4 @@
-// app/ai-setup/_components/ActivityPreferencesStep.tsx
+// app/(burnlog)/burnlog/ai-setup/_components/ActivityPreferencesStep.tsx
 'use client';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
