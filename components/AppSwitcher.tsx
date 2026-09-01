@@ -12,7 +12,7 @@ import { HomeLogMark } from '@/components/HomeLogMark';
 import { SocialLogMark } from '@/components/SocialLogMark';
 import { ShoppingLogMark } from '@/components/ShoppingLogMark';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
-import { APPS, AppId, getActiveApp, getDefaultApp, setDefaultApp } from '@/lib/appMode';
+import { APPS, AppId, getActiveApp, getDefaultApp, setDefaultApp, getEnabledApps } from '@/lib/appMode';
 import { useAppSwitch } from '@/lib/appSwitchContext';
 
 interface AppSwitcherProps {
@@ -45,6 +45,7 @@ export function AppSwitcher({ open, onOpenChange }: AppSwitcherProps) {
   const { switchTo } = useAppSwitch();
   const [activeApp, setActiveAppState] = useState<AppId>('logbook');
   const [defaultApp, setDefaultAppState] = useState<AppId>('logbook');
+  const [visibleApps, setVisibleApps] = useState(Object.values(APPS));
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressFired = useRef(false);
 
@@ -52,6 +53,12 @@ export function AppSwitcher({ open, onOpenChange }: AppSwitcherProps) {
     if (!open) return;
     setActiveAppState(getActiveApp());
     setDefaultAppState(getDefaultApp());
+    const enabled = getEnabledApps();
+    setVisibleApps(
+      enabled
+        ? Object.values(APPS).filter((app) => app.id === 'logbook' || enabled.includes(app.id))
+        : Object.values(APPS)
+    );
   }, [open]);
 
   function handleSelect(id: AppId) {
@@ -92,7 +99,7 @@ export function AppSwitcher({ open, onOpenChange }: AppSwitcherProps) {
           <DrawerTitle>Apps</DrawerTitle>
         </DrawerHeader>
         <div className="grid grid-cols-4 gap-4 p-4 pb-8 overflow-y-auto">
-          {Object.values(APPS).map((app, index) => (
+          {visibleApps.map((app, index) => (
             <motion.button
               key={app.id}
               type="button"
