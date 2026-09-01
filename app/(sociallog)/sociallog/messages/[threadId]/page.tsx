@@ -4,7 +4,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { ArrowLeft, Loader2, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,7 +20,7 @@ export default function SocialLogThreadPage() {
   const router = useRouter();
   const params = useParams<{ threadId: string }>();
   const threadId = params.threadId;
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const { profile } = useCurrentProfile();
   const { toast } = useToast();
 

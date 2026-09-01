@@ -2,7 +2,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
@@ -16,7 +16,7 @@ const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 const MAX_VIDEO_BYTES = 25 * 1024 * 1024;
 
 export function ComposeBox({ onPosted }: { onPosted: () => void }) {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const { profile } = useCurrentProfile();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);

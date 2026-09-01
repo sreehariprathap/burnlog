@@ -2,7 +2,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -37,7 +37,7 @@ export function ListingForm({
   submitLabel: string;
   onSubmit: (values: ListingFormValues) => Promise<void>;
 }) {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const { profile } = useCurrentProfile();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
