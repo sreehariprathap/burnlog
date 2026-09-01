@@ -2,12 +2,13 @@
 'use client';
 
 import { Flame, ListChecks, Wallet, House, MessageCircle, ShoppingBag, ArrowRight, type LucideIcon } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
+import { StatCard } from '@/components/ui/stat-card';
 import { BentoGrid } from '@/components/ui/bento-grid';
 import { cn } from '@/lib/utils';
 import { useAppSwitch } from '@/lib/appSwitchContext';
 import type { AppId } from '@/lib/appMode';
 import type { LogbookCard } from '@/lib/logbook/today';
+import { appSearchColor } from '@/lib/search/registry';
 
 const CARD_META: Record<LogbookCard['app'], { icon: LucideIcon; color: string; appId: AppId }> = {
   burnlog: { icon: Flame, color: '#F97316', appId: 'burnlog' },
@@ -52,18 +53,25 @@ export function LogCardsGrid({ cards }: LogCardsGridProps) {
         const Icon = meta.icon;
         const disabled = !card.available;
         const isHero = card.app in HERO_SPAN;
+        // Each tile represents ANOTHER app's data while sitting inside
+        // LogBook's own indigo theme — override StatCard's ambient-theme
+        // default with that app's own color, the same lookup GlobalSearch
+        // uses for the identical "another app's color, outside its theme
+        // context" problem.
+        const tileColor = appSearchColor(meta.appId);
 
         return (
-          <Card
+          <StatCard
             key={card.app}
             onClick={() => switchTo(meta.appId)}
+            neonColors={{ firstColor: tileColor, secondColor: `${tileColor}99` }}
             className={cn(
-              'group relative overflow-hidden',
+              'relative overflow-hidden group',
               HERO_SPAN[card.app],
               disabled ? 'opacity-70' : 'cursor-pointer transition-transform active:scale-[0.98]'
             )}
           >
-            <CardContent className={cn('flex flex-col gap-2 p-4', isHero && 'lg:flex-row lg:items-center lg:justify-between')}>
+            <div className={cn('flex flex-col gap-2', isHero && 'lg:flex-row lg:items-center lg:justify-between')}>
               <div className={cn('flex flex-1 flex-col gap-2', isHero && 'lg:flex-row lg:items-center lg:gap-4')}>
                 <div className="flex items-center justify-between">
                   <Icon className={cn('h-5 w-5', isHero && 'lg:h-6 lg:w-6')} style={{ color: meta.color }} />
@@ -86,13 +94,13 @@ export function LogCardsGrid({ cards }: LogCardsGridProps) {
                   />
                 </div>
               )}
-            </CardContent>
+            </div>
             {!disabled && (
               <ArrowRight
                 className="pointer-events-none absolute right-3 top-3 size-4 -translate-x-1 text-muted-foreground opacity-0 transition-all duration-300 group-hover:translate-x-0 group-hover:opacity-100"
               />
             )}
-          </Card>
+          </StatCard>
         );
       })}
     </BentoGrid>
