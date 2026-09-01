@@ -7,6 +7,7 @@ import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { TopBar } from '@/components/TopBar';
 import { TravelLogBottomNav } from '@/components/TravelLogBottomNav';
 import { Card, CardContent } from '@/components/ui/card';
+import { StatCard } from '@/components/ui/stat-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { isExplored, type TravelVisitRow } from '@/lib/travellog/types';
 
@@ -38,30 +39,26 @@ export default function TravelLogHomePage() {
       <TopBar title="TravelLog" />
       <div className="p-4 flex flex-col gap-4">
         {loading ? (
-          <Card>
-            <CardContent className="pt-6 grid grid-cols-3 gap-2">
-              <Skeleton className="h-16 w-full" />
-              <Skeleton className="h-16 w-full" />
-              <Skeleton className="h-16 w-full" />
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-3 gap-2">
+            <Skeleton className="h-20 w-full rounded-2xl" />
+            <Skeleton className="h-20 w-full rounded-2xl" />
+            <Skeleton className="h-20 w-full rounded-2xl" />
+          </div>
         ) : (
-          <Card>
-            <CardContent className="pt-6 grid grid-cols-3 gap-2 text-center">
-              <div>
-                <p className="text-2xl font-bold">{totalVisits}</p>
-                <p className="text-xs text-muted-foreground">Visits</p>
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{countries}</p>
-                <p className="text-xs text-muted-foreground">Countries</p>
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{exploredCount}</p>
-                <p className="text-xs text-muted-foreground">Explored</p>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="grid grid-cols-3 gap-2">
+            <StatCard className="text-center">
+              <p className="text-2xl font-bold">{totalVisits}</p>
+              <p className="text-xs text-muted-foreground">Visits</p>
+            </StatCard>
+            <StatCard className="text-center">
+              <p className="text-2xl font-bold">{countries}</p>
+              <p className="text-xs text-muted-foreground">Countries</p>
+            </StatCard>
+            <StatCard className="text-center">
+              <p className="text-2xl font-bold">{exploredCount}</p>
+              <p className="text-xs text-muted-foreground">Explored</p>
+            </StatCard>
+          </div>
         )}
         {!loading && totalVisits === 0 && (
           <Card>
