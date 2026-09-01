@@ -6,6 +6,7 @@ import useSWR from 'swr';
 import { Sparkles } from 'lucide-react';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { Skeleton } from '@/components/ui/skeleton';
+import { GlobalSearch } from '@/components/GlobalSearch';
 import { StreakBadge } from '@/components/logbook/StreakBadge';
 import { LogCardsGrid } from '@/components/logbook/LogCardsGrid';
 import { ActivityTimeline } from '@/components/logbook/ActivityTimeline';
@@ -47,6 +48,7 @@ export function HeaderQuickInfo() {
             <DrawerTitle>Quick Glance</DrawerTitle>
           </DrawerHeader>
           <div className="flex flex-col gap-5 overflow-y-auto p-4 pb-8">
+            <GlobalSearch onNavigate={() => setOpen(false)} />
             {isLoading || !data ? (
               <>
                 <Skeleton className="h-16 w-full rounded-2xl" />

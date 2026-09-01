@@ -5,6 +5,7 @@ import useSWR from 'swr';
 import { RefreshCw } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
 import { LogbookBottomNav } from '@/components/LogbookBottomNav';
+import { GlobalSearch } from '@/components/GlobalSearch';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
@@ -72,6 +73,8 @@ export default function LogbookPage() {
       />
 
       <div className="mx-auto flex max-w-lg flex-col gap-5 p-4">
+        <GlobalSearch />
+
         {loading && (
           <div className="flex flex-col items-center gap-4 py-6">
             <Skeleton className="h-44 w-44 rounded-full" />
