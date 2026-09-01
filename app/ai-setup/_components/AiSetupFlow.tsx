@@ -12,8 +12,8 @@ import { ActivityPreferencesStep } from './ActivityPreferencesStep';
 import { EquipmentStep } from './EquipmentStep';
 import { NutritionStep } from './NutritionStep';
 import { PlanPreview } from './PlanPreview';
-import { GroceryStep } from '@/app/(burnlog)/goals/_components/GroceryStep';
-import { MealPrepStep } from '@/app/(burnlog)/goals/_components/MealPrepStep';
+import { GroceryStep } from '@/app/(burnlog)/burnlog/goals/_components/GroceryStep';
+import { MealPrepStep } from '@/app/(burnlog)/burnlog/goals/_components/MealPrepStep';
 import { AiLoading } from '@/components/kokonutui/ai-loading';
 import type {
   LifestyleAnswers,
@@ -33,7 +33,7 @@ type Step = 'loading' | 'consent' | 'questionnaire' | PageKey | 'generating' | '
 export function AiSetupFlow() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const returnTo = searchParams.get('returnTo') || '/dashboard';
+  const returnTo = searchParams.get('returnTo') || '/burnlog/dashboard';
   const supabase = createClient();
 
   const [step, setStep] = useState<Step>('loading');
@@ -252,7 +252,7 @@ export function AiSetupFlow() {
           profileId,
           title: MEAL_PREP_REMINDER_TITLE,
           message: 'It\'s your meal-prep day — open the Meal Planner to plan this week.',
-          url: '/meal-planner',
+          url: '/burnlog/meal-planner',
           dayOfWeek: mealPrep.dayOfWeek,
           timeOfDay: mealPrep.time,
           timezone: mealPrep.timezone,

@@ -133,7 +133,7 @@ export async function sendRealTestNotification(): Promise<{ success: boolean; er
       body: JSON.stringify({
         title: 'burnlog Test',
         message: 'This is a real push notification from burnlog!',
-        url: '/dashboard',
+        url: '/burnlog/dashboard',
       }),
     });
 

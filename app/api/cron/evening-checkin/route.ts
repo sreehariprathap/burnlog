@@ -83,7 +83,7 @@ export async function GET(request: Request) {
         await sendPushToUser(supabase, userId, {
           title: 'Evening Check-In 🔥',
           message,
-          url: '/dashboard',
+          url: '/burnlog/dashboard',
         });
         sent += 1;
       } catch (perUserError) {

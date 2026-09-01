@@ -19,25 +19,25 @@ export function ShortcutWidget({
   shortcuts = [
     {
       label: 'Start Workout',
-      href: '/session',
+      href: '/burnlog/session',
       icon: Dumbbell,
       color: 'bg-amber-500'
     },
     {
       label: 'View Insights',
-      href: '/insights',
+      href: '/burnlog/insights',
       icon: LineChart,
       color: 'bg-blue-500'
     },
     {
       label: 'Set Goals',
-      href: '/goals',
+      href: '/burnlog/goals',
       icon: Heart,
       color: 'bg-green-500'
     },
     {
       label: 'Workout Plan',
-      href: '/session',
+      href: '/burnlog/session',
       icon: CalendarCheck,
       color: 'bg-purple-500'
     }

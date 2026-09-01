@@ -14,15 +14,15 @@ import { cn } from '@/lib/utils';
 import { ConfigMenu } from '@/components/ConfigMenu';
 
 const tabs = [
-  { href: '/dashboard', label: 'Home', Icon: HomeIcon },
-  { href: '/session',   label: 'Plan', Icon: DumbbellIcon },
-  { href: '/goals',     label: 'Goals', Icon: TargetIcon },
-  { href: '/insights',  label: 'Insights', Icon: ChartLine },
+  { href: '/burnlog/dashboard', label: 'Home', Icon: HomeIcon },
+  { href: '/burnlog/session',   label: 'Plan', Icon: DumbbellIcon },
+  { href: '/burnlog/goals',     label: 'Goals', Icon: TargetIcon },
+  { href: '/burnlog/insights',  label: 'Insights', Icon: ChartLine },
 ];
 
 export function BottomNav() {
   const pathname = usePathname();
-  const isConfigActive = pathname === '/dashboard/config' || pathname.startsWith('/dashboard/config/');
+  const isConfigActive = pathname === '/burnlog/dashboard/config' || pathname.startsWith('/burnlog/dashboard/config/');
 
   return (
     <nav
@@ -52,7 +52,7 @@ export function BottomNav() {
           </Link>
         );
       })}
-      <ConfigMenu href="/dashboard/config" isActive={isConfigActive} navId="bottom-nav-active" />
+      <ConfigMenu href="/burnlog/dashboard/config" isActive={isConfigActive} navId="bottom-nav-active" />
     </nav>
   );
 }

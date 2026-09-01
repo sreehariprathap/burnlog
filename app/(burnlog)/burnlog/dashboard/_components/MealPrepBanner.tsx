@@ -34,7 +34,7 @@ export function MealPrepBanner({ mealPrepDayOfWeek, lastMealPlanGeneratedAt }: M
           <p className="text-xs text-muted-foreground">Today&apos;s your meal-prep day.</p>
         </div>
         <Button asChild size="sm">
-          <Link href="/meal-planner">Plan now</Link>
+          <Link href="/burnlog/meal-planner">Plan now</Link>
         </Button>
       </CardContent>
     </Card>

@@ -21,7 +21,7 @@ export const APPS: Record<AppId, AppMeta> = {
     id: 'burnlog',
     name: 'BurnLog',
     tagline: 'Track workouts & fitness goals',
-    home: '/dashboard',
+    home: '/burnlog/dashboard',
   },
   moneylog: {
     id: 'moneylog',

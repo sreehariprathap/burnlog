@@ -24,7 +24,7 @@ import { nearestPastOrTodayWeekday, isSameLocalDay, toLocalDateString } from '@/
 import { PlanMonthCalendar } from './_components/PlanMonthCalendar';
 import { PlanDaySummary } from './_components/PlanDaySummary';
 import { WaterIntakeTracker } from '@/components/kokonutui/water-intake-tracker';
-import { DailyRingsWidget } from '@/app/(burnlog)/dashboard/_components/DailyRingsWidget';
+import { DailyRingsWidget } from '@/app/(burnlog)/burnlog/dashboard/_components/DailyRingsWidget';
 import { ProgramView } from './_components/ProgramView';
 
 export default function SessionsPage() {

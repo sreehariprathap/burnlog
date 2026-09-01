@@ -340,7 +340,7 @@ function MetricSlide({
                 <span className="text-3xl" aria-hidden="true">{METRIC_EMPTY_STATE[metric].icon}</span>
                 <p className="text-sm text-muted-foreground">{METRIC_EMPTY_STATE[metric].message}</p>
                 <Button asChild size="sm" className="mt-1">
-                  <Link href="/goals">Log an entry</Link>
+                  <Link href="/burnlog/goals">Log an entry</Link>
                 </Button>
               </div>
             )}

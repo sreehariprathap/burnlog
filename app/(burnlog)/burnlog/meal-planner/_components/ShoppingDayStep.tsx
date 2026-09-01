@@ -40,7 +40,7 @@ export function ShoppingDayStep({ profileId, onDone }: ShoppingDayStepProps) {
       profileId,
       title: 'Grocery run 🛒',
       message: 'Your grocery list for this week is ready.',
-      url: '/meal-planner/grocery-list',
+      url: '/burnlog/meal-planner/grocery-list',
       remindAt: remindAt.toISOString(),
     });
     setSaving(false);

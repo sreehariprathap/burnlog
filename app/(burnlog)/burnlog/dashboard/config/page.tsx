@@ -83,7 +83,7 @@ export default function BurnLogConfigPage() {
         profileId: profile.id,
         title: MEAL_PREP_REMINDER_TITLE,
         message: "It's your meal-prep day — open the Meal Planner to plan this week.",
-        url: '/meal-planner',
+        url: '/burnlog/meal-planner',
         dayOfWeek,
         timeOfDay: time,
         timezone,
@@ -198,7 +198,7 @@ export default function BurnLogConfigPage() {
               {disablingAi ? 'Disabling...' : 'Disable AI Insights'}
             </Button>
           ) : (
-            <Button onClick={() => router.push('/ai-setup?returnTo=/dashboard/config')}>
+            <Button onClick={() => router.push('/ai-setup?returnTo=/burnlog/dashboard/config')}>
               Enable AI Insights
             </Button>
           )}

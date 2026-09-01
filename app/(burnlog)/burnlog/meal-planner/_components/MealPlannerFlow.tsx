@@ -232,7 +232,7 @@ export function MealPlannerFlow() {
         <Card className="w-full max-w-md text-center">
           <CardContent className="pt-6 space-y-4">
             <p className="text-lg font-medium">🎉 Your week is planned!</p>
-            <Button onClick={() => router.push('/session')}>Go to Plan</Button>
+            <Button onClick={() => router.push('/burnlog/session')}>Go to Plan</Button>
           </CardContent>
         </Card>
       )}

@@ -195,7 +195,7 @@ export default function DashboardPage() {
         {/* Always-available entry point into the meal planner wizard */}
         <div className="flex justify-end">
           <Link
-            href="/meal-planner"
+            href="/burnlog/meal-planner"
             className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors"
           >
             <CalendarRange className="w-3.5 h-3.5" />

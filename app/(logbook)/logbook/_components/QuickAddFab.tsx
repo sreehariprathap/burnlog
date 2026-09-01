@@ -21,10 +21,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { useToast } from '@/components/ui/use-toast';
-import { LogCaloriesModal } from '@/app/(burnlog)/dashboard/_components/quick-log/LogCaloriesModal';
-import { LogWorkoutModal } from '@/app/(burnlog)/dashboard/_components/quick-log/LogWorkoutModal';
-import { LogStepsModal } from '@/app/(burnlog)/dashboard/_components/quick-log/LogStepsModal';
-import { WalkTrackerModal } from '@/app/(burnlog)/dashboard/_components/quick-log/WalkTrackerModal';
+import { LogCaloriesModal } from '@/app/(burnlog)/burnlog/dashboard/_components/quick-log/LogCaloriesModal';
+import { LogWorkoutModal } from '@/app/(burnlog)/burnlog/dashboard/_components/quick-log/LogWorkoutModal';
+import { LogStepsModal } from '@/app/(burnlog)/burnlog/dashboard/_components/quick-log/LogStepsModal';
+import { WalkTrackerModal } from '@/app/(burnlog)/burnlog/dashboard/_components/quick-log/WalkTrackerModal';
 import { LogTransactionModal } from '@/app/(moneylog)/moneylog/_components/LogTransactionModal';
 import type { TaskCategory, TaskPriority } from '@/lib/tasklog/types';
 

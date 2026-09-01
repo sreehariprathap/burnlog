@@ -69,7 +69,7 @@ export default function GroceryListPage() {
         <ShoppingCart className="h-10 w-10 text-muted-foreground" aria-hidden="true" />
         <p className="text-sm font-semibold">No grocery list yet</p>
         <p className="text-sm text-muted-foreground">Run the Meal Planner to generate your first grocery list.</p>
-        <Button onClick={() => router.push('/meal-planner')}>Start Meal Planner</Button>
+        <Button onClick={() => router.push('/burnlog/meal-planner')}>Start Meal Planner</Button>
       </div>
     );
   }

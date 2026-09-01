@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
-import { FoodScanner } from '@/app/(burnlog)/goals/_components/FoodScanner';
+import { FoodScanner } from '@/app/(burnlog)/burnlog/goals/_components/FoodScanner';
 import { useToast } from '@/components/ui/use-toast';
 
 const MEAL_TYPES = [

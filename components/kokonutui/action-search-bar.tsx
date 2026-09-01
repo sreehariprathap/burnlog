@@ -55,10 +55,10 @@ export function ActionSearchBar({ open, onOpenChange, isAdmin, onQuickLog }: Act
       { id: "workout", label: "Log Workout", description: "Manual entry or AI calorie estimate", icon: <Dumbbell className="h-4 w-4" />, run: () => onQuickLog("workout") },
       { id: "steps", label: "Log Steps", description: "Manual step entry", icon: <Footprints className="h-4 w-4" />, run: () => onQuickLog("steps") },
       { id: "walk", label: "Start Walk", description: "Live step + duration tracking", icon: <Footprints className="h-4 w-4" />, run: () => onQuickLog("walk") },
-      { id: "weight", label: "Track Weight", description: "Open the weight tracker", icon: <Scale className="h-4 w-4" />, run: () => router.push("/goals") },
-      { id: "goals", label: "Set Goals", description: "Manage your fitness goals", icon: <Target className="h-4 w-4" />, run: () => router.push("/goals") },
-      { id: "session", label: "Start Workout Session", description: "Today's planned session", icon: <Dumbbell className="h-4 w-4" />, run: () => router.push("/session") },
-      { id: "insights", label: "View Insights", description: "Progress charts and trends", icon: <LineChart className="h-4 w-4" />, run: () => router.push("/insights") },
+      { id: "weight", label: "Track Weight", description: "Open the weight tracker", icon: <Scale className="h-4 w-4" />, run: () => router.push("/burnlog/goals") },
+      { id: "goals", label: "Set Goals", description: "Manage your fitness goals", icon: <Target className="h-4 w-4" />, run: () => router.push("/burnlog/goals") },
+      { id: "session", label: "Start Workout Session", description: "Today's planned session", icon: <Dumbbell className="h-4 w-4" />, run: () => router.push("/burnlog/session") },
+      { id: "insights", label: "View Insights", description: "Progress charts and trends", icon: <LineChart className="h-4 w-4" />, run: () => router.push("/burnlog/insights") },
       ...(isAdmin
         ? [{ id: "ai-models", label: "Manage AI Models", description: "Admin: choose free OpenRouter models", icon: <Cpu className="h-4 w-4" />, run: () => router.push("/profile") }]
         : []),

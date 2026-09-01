@@ -14,7 +14,7 @@ interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
 }
 
-const SESSION_STORAGE_KEY = 'burnlog-install-prompt-shown';
+const SESSION_STORAGE_KEY = 'logbook-install-prompt-shown';
 
 export default function PWAInstall() {
   const pathname = usePathname();
@@ -69,14 +69,14 @@ export default function PWAInstall() {
   if (!showInstallPrompt || !isLoginPage) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-50 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg p-4 flex items-center justify-between">
+    <div className="fixed bottom-4 left-4 right-4 z-50 bg-card border border-border rounded-lg shadow-lg p-4 flex items-center justify-between">
       <div className="flex items-center space-x-3">
-        <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-          <Download className="w-5 h-5 text-white" />
+        <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+          <Download className="w-5 h-5 text-primary-foreground" />
         </div>
         <div>
-          <p className="font-medium text-sm">Install burnlog</p>
-          <p className="text-xs text-gray-600 dark:text-gray-400">
+          <p className="font-medium text-sm text-foreground">Install Logbook</p>
+          <p className="text-xs text-muted-foreground">
             Add to home screen for quick access
           </p>
         </div>
