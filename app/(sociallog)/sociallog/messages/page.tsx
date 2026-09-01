@@ -9,10 +9,11 @@ import { TopBar } from '@/components/TopBar';
 import { SocialLogBottomNav } from '@/components/SocialLogBottomNav';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Loader2, PenSquare, RefreshCw, MessageCircle } from 'lucide-react';
+import { Loader2, PenSquare, RefreshCw } from 'lucide-react';
 import { NewMessageDialog } from './_components/NewMessageDialog';
 import { apiFetch } from '@/lib/apiFetch';
 import { formatRelative } from '@/lib/format';
+import { ChatEmptyIllustration } from '@/components/sociallog/ChatEmptyIllustration';
 
 type Thread = {
   id: string;
@@ -50,10 +51,8 @@ export default function SocialLogMessagesPage() {
       <main className="flex-1 container mx-auto max-w-2xl space-y-2 p-4 pb-24">
         {isLoading && <Loader2 className="h-6 w-6 animate-spin" />}
         {!isLoading && (data?.threads.length ?? 0) === 0 && (
-          <div className="flex flex-col items-center gap-2 py-12 text-center">
-            <MessageCircle className="size-8 text-muted-foreground" />
-            <p className="text-sm font-medium">No conversations yet</p>
-            <p className="text-xs text-muted-foreground">Tap the pencil to start one.</p>
+          <div className="flex flex-col items-center gap-2">
+            <ChatEmptyIllustration title="No conversations yet" subtitle="Tap the pencil to start one" />
             <Button size="sm" className="mt-2" onClick={() => setDialogOpen(true)}>
               New message
             </Button>
