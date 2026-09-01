@@ -1,8 +1,8 @@
 'use client';
 
 import { Target } from 'lucide-react';
-import { AnimatedCircularProgressBar } from '@/components/ui/animated-circular-progress-bar';
-import { NeonGradientCard } from '@/components/ui/neon-gradient-card';
+import { StatCard } from '@/components/ui/stat-card';
+import { StatRing } from '@/components/ui/stat-ring';
 import { Skeleton } from '@/components/ui/skeleton';
 
 type Goal = {
@@ -18,9 +18,6 @@ type GoalProgressWidgetProps = {
   loading?: boolean;
 };
 
-// burnlog fire-themed neon
-const NEON = { firstColor: '#FF9E4F', secondColor: '#FF3D71' };
-
 export function GoalProgressWidget({
   goal = {
     id: '1',
@@ -33,17 +30,8 @@ export function GoalProgressWidget({
 }: GoalProgressWidgetProps) {
   if (loading) {
     return (
-      <NeonGradientCard
-        className="col-span-4 z-0"
-        borderSize={2}
-        borderRadius={16}
-        neonColors={NEON}
-      >
-        <div className="flex items-center justify-between">
-          <span className="font-semibold">Goal Progress</span>
-          <Target className="w-5 h-5 text-amber-500" />
-        </div>
-        <div className="mt-4 flex items-center gap-5">
+      <StatCard className="col-span-4" title="Goal Progress" icon={Target}>
+        <div className="flex items-center gap-5">
           <Skeleton className="size-24 shrink-0 rounded-full" />
           <div className="flex-1 space-y-2">
             <Skeleton className="h-4 w-full" />
@@ -51,24 +39,15 @@ export function GoalProgressWidget({
             <Skeleton className="h-3 w-2/3" />
           </div>
         </div>
-      </NeonGradientCard>
+      </StatCard>
     );
   }
 
   if (!goal) {
     return (
-      <NeonGradientCard
-        className="col-span-4 z-0"
-        borderSize={2}
-        borderRadius={16}
-        neonColors={NEON}
-      >
-        <div className="flex items-center justify-between">
-          <span className="font-semibold">Goal Progress</span>
-          <Target className="w-5 h-5 text-amber-500" />
-        </div>
-        <div className="mt-4 text-sm text-muted-foreground">Set a goal to track your progress</div>
-      </NeonGradientCard>
+      <StatCard className="col-span-4" title="Goal Progress" icon={Target}>
+        <div className="text-sm text-muted-foreground">Set a goal to track your progress</div>
+      </StatCard>
     );
   }
 
@@ -99,27 +78,9 @@ export function GoalProgressWidget({
   const progress = calculateProgress();
 
   return (
-    <NeonGradientCard
-      className="col-span-4 z-0"
-      borderSize={2}
-      borderRadius={16}
-      neonColors={NEON}
-    >
-      <div className="flex items-center justify-between">
-        <span className="font-semibold">{formattedGoalType}</span>
-        <Target className="w-5 h-5 text-amber-500" />
-      </div>
-
-      <div className="mt-4 flex items-center gap-5">
-        <AnimatedCircularProgressBar
-          value={progress}
-          min={0}
-          max={100}
-          gaugePrimaryColor="#FF9E4F"
-          gaugeSecondaryColor="rgba(255, 158, 79, 0.15)"
-          className="size-24 text-xl"
-        />
-
+    <StatCard className="col-span-4" title={formattedGoalType} icon={Target}>
+      <div className="flex items-center gap-5">
+        <StatRing value={progress} size="md" />
         <div className="flex-1 space-y-2 text-sm">
           <div className="flex items-center justify-between">
             <span className="text-muted-foreground">Current</span>
@@ -133,11 +94,9 @@ export function GoalProgressWidget({
               {goal.targetValue} {goal.unit}
             </span>
           </div>
-          <div className="pt-1 text-xs text-muted-foreground">
-            {progress}% complete
-          </div>
+          <div className="pt-1 text-xs text-muted-foreground">{progress}% complete</div>
         </div>
       </div>
-    </NeonGradientCard>
+    </StatCard>
   );
 }
