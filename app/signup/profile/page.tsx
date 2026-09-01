@@ -59,9 +59,9 @@ export default function ProfileSetupPage() {
         }
         
         if (existingProfile) {
-          // Profile already exists, redirect to dashboard
+          // Profile already exists, redirect to Logbook (the app's home)
           setProfileExists(true);
-          router.replace('/dashboard');
+          router.replace('/logbook');
         }
       } catch (err) {
         console.error("Error in session check:", err);
