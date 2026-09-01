@@ -9,6 +9,7 @@ const ONBOARDING_ROUTES: Partial<Record<AppId, string>> = {
   burnlog: '/ai-setup',
   moneylog: '/moneylog/onboarding',
   tasklog: '/tasklog/onboarding',
+  homelog: '/homelog/onboarding',
 };
 
 export default function OnboardingSequencePage() {

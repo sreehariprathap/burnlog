@@ -8,6 +8,7 @@ export default function HomeLogConfigPage() {
   return (
     <AppConfigShell
       appName="HomeLog"
+      onboardingHref="/homelog/onboarding?returnTo=/homelog/config"
       exportData={() => ({})}
       bottomNav={<HomeLogBottomNav />}
     >
