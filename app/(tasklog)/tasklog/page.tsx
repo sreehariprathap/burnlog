@@ -15,7 +15,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { todayDateString, type TaskRow } from '@/lib/tasklog/types';
 import { markTaskComplete } from '@/lib/tasklog/completeTask';
-import { CrossAppSnapshot } from '@/components/CrossAppSnapshot';
 import { useCurrentProfile, refreshCurrentProfile } from '@/lib/useCurrentProfile';
 import type { StreakProfile } from '@/lib/tasklog/streak';
 import { useToast } from '@/components/ui/use-toast';
@@ -176,12 +175,6 @@ export default function TaskLogDashboardPage() {
         </div>
         <p className="text-sm text-muted-foreground">{doneCount}/{tasks.length} done today</p>
       </div>
-
-      {profile && (
-        <div className="px-4 pb-3">
-          <CrossAppSnapshot currentApp="tasklog" profileId={profile.id} />
-        </div>
-      )}
 
       <div className="px-4">
         <Button type="button" variant="outline" size="sm" onClick={openPlanMyDay}>

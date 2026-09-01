@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
+import { GreetingBanner } from '@/components/logbook/GreetingBanner';
 import { DayScoreRing } from '@/components/logbook/DayScoreRing';
 import { LogCardsGrid } from '@/components/logbook/LogCardsGrid';
 import { StreakBadge } from '@/components/logbook/StreakBadge';
@@ -73,6 +74,8 @@ export default function LogbookPage() {
       />
 
       <div className="mx-auto flex max-w-lg flex-col gap-5 p-4">
+        {!profileLoading && profile && <GreetingBanner name={profile.firstName} />}
+
         <GlobalSearch />
 
         {loading && (

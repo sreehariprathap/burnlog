@@ -22,7 +22,6 @@ import { GetStartedCard } from './_components/GetStartedCard';
 import { NetSummaryCard } from './_components/NetSummaryCard';
 import { NetWorthCard } from './_components/NetWorthCard';
 import { MoneyLogFab } from './_components/MoneyLogFab';
-import { CrossAppSnapshot } from '@/components/CrossAppSnapshot';
 
 const periodTabs: TabItem[] = [
   { id: 'weekly', icon: CalendarDays, label: 'Weekly', color: 'var(--chart-1)' },
@@ -148,11 +147,6 @@ export default function MoneyLogHomePage() {
           </Button>
         }
       />
-      {profileId && (
-        <div className="px-4 pt-2">
-          <CrossAppSnapshot currentApp="moneylog" profileId={profileId} />
-        </div>
-      )}
       <div className="sticky top-14 z-10 border-b bg-background/80 px-4 py-2 backdrop-blur">
         <SmoothTabs items={periodTabs} selectedIndex={selectedIndex} onSelect={setSelectedIndex} showLabels />
       </div>

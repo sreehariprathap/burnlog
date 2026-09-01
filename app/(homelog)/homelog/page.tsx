@@ -14,7 +14,6 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useHouseholdMe } from '@/lib/homelog/useHouseholdMe';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
-import { CrossAppSnapshot } from '@/components/CrossAppSnapshot';
 import { useToast } from '@/components/ui/use-toast';
 
 interface PendingInvite {
@@ -180,7 +179,6 @@ export default function HomeLogPage() {
           </Button>
         }
       />
-      {profile && <CrossAppSnapshot currentApp="homelog" profileId={profile.id} />}
       <div className="flex flex-col gap-4 px-4 py-4">
         {isLoading ? (
           <Skeleton className="h-40 w-full" />

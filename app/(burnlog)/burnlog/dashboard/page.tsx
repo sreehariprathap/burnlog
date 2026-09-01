@@ -22,7 +22,6 @@ import { MealPrepBanner } from './_components/MealPrepBanner';
 import { DailyRingsWidget } from './_components/DailyRingsWidget';
 import { WaterIntakeTracker } from '@/components/kokonutui/water-intake-tracker';
 import { ConsistencyTracker } from './_components/ConsistencyTracker';
-import { CrossAppSnapshot } from '@/components/CrossAppSnapshot';
 import { QuickLogFab } from './_components/QuickLogFab';
 
 interface FitnessGoal {
@@ -86,30 +85,6 @@ export default function DashboardPage() {
         }
       />
       <main className="p-4 mt-4 space-y-6">
-        {/* Welcome Card */}
-        <Card>
-          <CardContent className="pt-6">
-            {loading ? (
-              <div className="space-y-2">
-                <Skeleton className="h-8 w-3/4" />
-                <Skeleton className="h-4 w-1/2" />
-              </div>
-            ) : (
-              <div>
-                <h2 className="text-2xl font-bold">
-                  Hello, {userProfile?.firstName || 'there'}!
-                </h2>
-                <p className="text-muted-foreground">
-                  Welcome to your fitness dashboard
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Cross-App Snapshot */}
-        {userProfile && <CrossAppSnapshot currentApp="burnlog" profileId={userProfile.id} />}
-
         {/* Consistency Tracker */}
         {userProfile && (
           <ConsistencyTracker
