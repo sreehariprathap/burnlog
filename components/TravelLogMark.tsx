@@ -6,15 +6,14 @@ interface TravelLogMarkProps {
   className?: string;
 }
 
-// Fixed amber, independent of the ambient theme — see TaskLogMark for why.
 export function TravelLogMark({ size = 20, className }: TravelLogMarkProps) {
   return (
     <span
-      className={cn('inline-flex items-center justify-center font-black leading-none text-amber-500', className)}
-      style={{ width: size, height: size, fontSize: size * 1.6 }}
+      className={cn('inline-flex items-center justify-center leading-none', className)}
+      style={{ width: size, height: size, fontSize: size }}
       aria-hidden="true"
     >
-      V
+      ✈️
     </span>
   );
 }
