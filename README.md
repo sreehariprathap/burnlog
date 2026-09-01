@@ -1,6 +1,6 @@
 # LogBook
 
-LogBook is a single Next.js app that bundles seven "life-tracking" mini-apps
+LogBook is a single Next.js app that bundles eight "life-tracking" mini-apps
 behind one login, one profile, and one bottom-nav shell. **LogBook itself is
 the entry point** — after login every user lands on `/logbook`, a daily
 digest that pulls a summary card from each sub-app they use (streaks, today's
@@ -18,7 +18,7 @@ want via the app switcher.
 | App | Route | What it's for | Docs |
 |---|---|---|---|
 | **LogBook** | `/logbook` | Hub: cross-app daily digest, streaks, morning brief, "My Day" planner, quick-add | [`app/(logbook)/README.md`](app/(logbook)/README.md) |
-| **BurnLog** | `/dashboard` | Fitness tracking: workouts, weight/BMI, meal planner, AI-assisted onboarding | [`app/(burnlog)/README.md`](app/(burnlog)/README.md) |
+| **BurnLog** | `/burnlog/dashboard` | Fitness tracking: workouts, weight/BMI, meal planner, AI-assisted onboarding | [`app/(burnlog)/README.md`](app/(burnlog)/README.md) |
 | **MoneyLog** | `/moneylog` | Personal finance: transactions, budgets, financial goals, insights | [`app/(moneylog)/README.md`](app/(moneylog)/README.md) |
 | **TaskLog** | `/tasklog` | Task/goal management: kanban board, plans, goals, idea log | [`app/(tasklog)/README.md`](app/(tasklog)/README.md) |
 | **TravelLog** | `/travellog` | Travel tracking: visit log, exploration map, AI-assisted trip planning | [`app/(travellog)/README.md`](app/(travellog)/README.md) |
@@ -39,9 +39,10 @@ groups](https://nextjs.org/docs/app/building-your-application/routing/route-grou
 `app/(logbook)`, `app/(burnlog)`, `app/(moneylog)`, `app/(tasklog)`,
 `app/(travellog)`, `app/(homelog)`, `app/(sociallog)`, `app/(shoppinglog)`.
 Route groups don't appear in the URL, so each app owns its own top-level path
-(`/moneylog`, `/tasklog`, ...) except BurnLog, which kept its pre-LogBook
-routes (`/dashboard`, `/session`, `/goals`, `/insights`) for backward
-compatibility.
+namespace (`/moneylog`, `/tasklog`, `/burnlog`, ...) — no two apps' routes
+overlap. BurnLog's routes were namespaced under `/burnlog` last; a handful of
+bare legacy paths (`/dashboard`, `/ai-setup`) are kept as redirect-only stubs
+for old links, aliasing to `/logbook` and `/burnlog/ai-setup` respectively.
 
 Each group has its own `layout.tsx` (theming, nav) and its own bottom-nav
 component (`BottomNav.tsx` for BurnLog, `LogbookBottomNav.tsx`,

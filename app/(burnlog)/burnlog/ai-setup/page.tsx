@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 import { Loader2 } from 'lucide-react';
 import { AiSetupFlow } from './_components/AiSetupFlow';
 
-export const metadata: Metadata = { title: 'AI Setup - burnlog' };
+export const metadata: Metadata = { title: 'AI Setup - BurnLog' };
 
 export default function AiSetupPage() {
   return (

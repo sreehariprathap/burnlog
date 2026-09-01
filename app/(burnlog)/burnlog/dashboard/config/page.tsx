@@ -112,7 +112,7 @@ export default function BurnLogConfigPage() {
   return (
     <AppConfigShell
       appName="BurnLog"
-      onboardingHref="/ai-setup?returnTo=/dashboard/config"
+      onboardingHref="/burnlog/ai-setup?returnTo=/burnlog/dashboard/config"
       exportData={() => ({
         activityLevel: profile.activityLevel,
         aiEnabled: profile.aiEnabled,
@@ -198,7 +198,7 @@ export default function BurnLogConfigPage() {
               {disablingAi ? 'Disabling...' : 'Disable AI Insights'}
             </Button>
           ) : (
-            <Button onClick={() => router.push('/ai-setup?returnTo=/burnlog/dashboard/config')}>
+            <Button onClick={() => router.push('/burnlog/ai-setup?returnTo=/burnlog/dashboard/config')}>
               Enable AI Insights
             </Button>
           )}
