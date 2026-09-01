@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/lib/apiFetch';
 import { useToast } from '@/components/ui/use-toast';
 import { formatCurrency } from '@/lib/format';
+import { usePayment } from '@/lib/moneylog/paymentContext';
 
 type CartItem = {
   cartItemId: string;
@@ -56,20 +57,73 @@ export default function CartPage() {
   const items = data?.items ?? [];
   const total = items.reduce((sum, i) => sum + i.listing.price * i.quantity, 0);
 
-  const grouped = items.reduce<Record<string, CartItem[]>>((acc, item) => {
-    const key = item.listing.seller?.username ?? 'unknown';
-    (acc[key] ??= []).push(item);
+  type SellerGroup = { sellerId: string; username: string; items: CartItem[] };
+
+  const grouped = items.reduce<Record<string, SellerGroup>>((acc, item) => {
+    const sellerId = item.listing.seller?.id ?? 'unknown';
+    const username = item.listing.seller?.username ?? 'unknown';
+    (acc[sellerId] ??= { sellerId, username, items: [] }).items.push(item);
     return acc;
   }, {});
 
+  const { requestPayment } = usePayment();
+
   const checkout = async () => {
     setCheckingOut(true);
-    const res = await apiFetch('/api/shoppinglog/checkout', { method: 'POST' });
-    if (res.ok) {
-      await mutate();
-      toast({ title: 'Order placed' });
-      router.push('/shoppinglog/orders');
+    let succeededCount = 0;
+    let stoppedEarly = false;
+
+    for (const group of Object.values(grouped)) {
+      if (group.sellerId === 'unknown') {
+        stoppedEarly = true;
+        break;
+      }
+
+      const subtotal = group.items.reduce((sum, i) => sum + i.listing.price * i.quantity, 0);
+      const memo = group.items.map((i) => i.listing.title).join(', ');
+
+      const payment = await requestPayment({
+        payeeId: group.sellerId,
+        payeeLabel: `@${group.username}`,
+        amount: subtotal,
+        category: 'shopping',
+        memo,
+        sourceApp: 'shoppinglog',
+      });
+
+      if (!payment.success) {
+        stoppedEarly = true;
+        break;
+      }
+
+      const res = await apiFetch('/api/shoppinglog/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sellerId: group.sellerId, paymentId: payment.paymentId }),
+      });
+
+      if (!res.ok) {
+        // Payment succeeded but order creation failed (e.g. cart changed
+        // concurrently) — rare, and not auto-reconciled here.
+        stoppedEarly = true;
+        break;
+      }
+
+      succeededCount += 1;
     }
+
+    await mutate();
+
+    if (succeededCount > 0) {
+      toast({
+        title: stoppedEarly ? `${succeededCount} order(s) placed` : 'Order placed',
+        description: stoppedEarly ? 'One seller could not be paid — remaining items stay in your cart.' : undefined,
+      });
+      router.push('/shoppinglog/orders');
+    } else if (stoppedEarly) {
+      toast({ variant: 'destructive', title: 'Checkout stopped', description: 'No payment went through.' });
+    }
+
     setCheckingOut(false);
   };
 
@@ -101,10 +155,10 @@ export default function CartPage() {
           </div>
         )}
 
-        {Object.entries(grouped).map(([sellerUsername, sellerItems]) => (
-          <div key={sellerUsername} className="space-y-2">
-            <p className="text-xs font-medium text-muted-foreground">Sold by @{sellerUsername}</p>
-            {sellerItems.map((item) => (
+        {Object.values(grouped).map((group) => (
+          <div key={group.sellerId} className="space-y-2">
+            <p className="text-xs font-medium text-muted-foreground">Sold by @{group.username}</p>
+            {group.items.map((item) => (
               <Card key={item.cartItemId}>
                 <CardContent className="flex items-center gap-3 p-3">
                   <div className="size-16 shrink-0 overflow-hidden rounded-md bg-muted">
