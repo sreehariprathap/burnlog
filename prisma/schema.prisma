@@ -90,6 +90,7 @@ model Profile {
   shopOrdersAsSeller      ShopOrder[] @relation("ShopOrderSeller")
   shopReviews             ShopReview[]
   MydayBlock              MydayBlock[]
+  TravelVisit             TravelVisit[]
 
   @@map("profiles")
 }
@@ -599,6 +600,23 @@ model Task {
   costLoggedAt    DateTime?
 
   @@map("tasklog_tasks")
+}
+
+/// a single logged travel stop — a place visited, with optional stay length; "explored" (multi-day) status is derived at read time, not stored
+model TravelVisit {
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile       Profile   @relation(fields: [profileId], references: [id])
+  profileId     String    @db.Uuid
+  placeName     String
+  country       String
+  lat           Float
+  lng           Float
+  arrivalDate   DateTime  @db.Date
+  departureDate DateTime? @db.Date
+  notes         String?
+  createdAt     DateTime  @default(now())
+
+  @@map("travellog_visits")
 }
 
 /// a single time-boxed item on a user's day plan — either typed in
