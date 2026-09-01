@@ -1,4 +1,5 @@
 import { toast } from '@/components/ui/use-toast';
+import { reportDevError } from '@/lib/devError';
 
 /**
  * Drop-in replacement for fetch() used by every SocialLog client component.
@@ -11,12 +12,13 @@ export async function apiFetch(input: string, init?: RequestInit): Promise<Respo
   let res: Response;
   try {
     res = await fetch(input, init);
-  } catch {
+  } catch (err) {
     toast({
       variant: 'destructive',
       title: 'Network error',
       description: 'Could not reach the server. Check your connection and try again.',
     });
+    reportDevError(err, `Network error: ${init?.method ?? 'GET'} ${input}`);
     return new Response(JSON.stringify({ error: 'Network error' }), {
       status: 503,
       headers: { 'Content-Type': 'application/json' },
@@ -32,6 +34,10 @@ export async function apiFetch(input: string, init?: RequestInit): Promise<Respo
       // Response wasn't JSON — keep the generic message.
     }
     toast({ variant: 'destructive', title: 'Request failed', description: message });
+    reportDevError(
+      new Error(message),
+      `API error: ${init?.method ?? 'GET'} ${input} → ${res.status}`
+    );
   }
 
   return res;
