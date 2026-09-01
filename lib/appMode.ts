@@ -68,7 +68,7 @@ function isBrowser(): boolean {
   return typeof window !== 'undefined';
 }
 
-function isAppId(val: string | null): val is AppId {
+export function isAppId(val: string | null): val is AppId {
   return (
     val === 'logbook' ||
     val === 'burnlog' ||
@@ -139,6 +139,23 @@ export function getActiveApp(): AppId {
 
 export function setActiveApp(app: AppId): void {
   safeSet(ACTIVE_APP_KEY, app);
+}
+
+export const ENABLED_APPS_KEY = 'app:enabledApps';
+
+export function getEnabledApps(): AppId[] | null {
+  const val = safeGet(ENABLED_APPS_KEY);
+  if (!val) return null;
+  try {
+    const parsed = JSON.parse(val);
+    return Array.isArray(parsed) ? parsed.filter((v): v is AppId => isAppId(v)) : null;
+  } catch {
+    return null;
+  }
+}
+
+export function setEnabledApps(apps: AppId[]): void {
+  safeSet(ENABLED_APPS_KEY, JSON.stringify(apps));
 }
 
 export function wipeAppStorage(app: AppId): void {

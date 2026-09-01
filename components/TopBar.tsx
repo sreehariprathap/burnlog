@@ -5,14 +5,15 @@ import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { AppSwitcher } from './AppSwitcher';
+import { BurnLogMark } from './BurnLogMark';
 import { MoneyLogMark } from './MoneyLogMark';
 import { TaskLogMark } from './TaskLogMark';
 import { HomeLogMark } from './HomeLogMark';
 import { SocialLogMark } from './SocialLogMark';
 import { ShoppingLogMark } from './ShoppingLogMark';
 import { LogbookMark } from './LogbookMark';
-import Image from 'next/image';
-import { AppId, getActiveApp } from '@/lib/appMode';
+import { AppId, getActiveApp, setEnabledApps, isAppId } from '@/lib/appMode';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 
 interface TopBarProps {
   title: string;
@@ -26,6 +27,19 @@ export function TopBar({ title, onClose, actions }: TopBarProps) {
 
   useEffect(() => {
     setActiveAppState(getActiveApp());
+    (async () => {
+      const supabase = createClientComponentClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) return;
+      const { data } = await supabase
+        .from('profiles')
+        .select('enabledApps')
+        .eq('userId', session.user.id)
+        .single();
+      if (data?.enabledApps) {
+        setEnabledApps((data.enabledApps as string[]).filter((v): v is AppId => isAppId(v)));
+      }
+    })();
   }, []);
 
   return (
@@ -53,7 +67,7 @@ export function TopBar({ title, onClose, actions }: TopBarProps) {
           ) : activeApp === 'shoppinglog' ? (
             <ShoppingLogMark size={20} />
           ) : (
-            <Image src="/B.png" alt="Logo" width={20} height={20} />
+            <BurnLogMark size={20} />
           )}
         </button>
         <h1 className="text-lg font-semibold">{title}</h1>

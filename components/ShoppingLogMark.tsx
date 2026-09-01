@@ -1,4 +1,5 @@
 // components/ShoppingLogMark.tsx
+import { ShoppingCart } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ShoppingLogMarkProps {
@@ -8,15 +9,17 @@ interface ShoppingLogMarkProps {
 
 // Fixed orange, independent of the ambient theme — see TaskLogMark for why
 // (this can render before .app-shoppinglog is applied, so `text-primary`
-// would briefly show the wrong app's color).
+// would briefly show the wrong app's color). Cart glyph instead of a
+// letterform since "shopping cart" reads more clearly than "S" (already
+// used elsewhere) or "$" (easy to mistake for MoneyLog).
 export function ShoppingLogMark({ size = 20, className }: ShoppingLogMarkProps) {
   return (
-    <span
-      className={cn('inline-flex items-center justify-center font-black leading-none', className)}
-      style={{ width: size, height: size, fontSize: size * 1.6, color: '#f18701' }}
+    <ShoppingCart
+      size={size}
+      strokeWidth={2.5}
+      className={cn('shrink-0', className)}
+      style={{ color: '#f18701' }}
       aria-hidden="true"
-    >
-      $
-    </span>
+    />
   );
 }

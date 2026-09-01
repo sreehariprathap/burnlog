@@ -35,6 +35,7 @@ model Profile {
   mealPrepDayOfWeek        Int?
   mealPrepTime             String?
   mealPrepTimezone         String?
+  enabledApps              String[] @default([])
   lastMealPlanGeneratedAt  DateTime?
   taskLogCurrentStreak     Int       @default(0)
   taskLogLongestStreak     Int       @default(0)
@@ -593,6 +594,9 @@ model Task {
   position        Int       @default(0)
   completedAt     DateTime?
   createdAt       DateTime  @default(now())
+  cost            Float?
+  costCategory    String?
+  costLoggedAt    DateTime?
 
   @@map("tasklog_tasks")
 }

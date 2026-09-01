@@ -7,24 +7,17 @@ import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Info, AlertTriangle, Sparkles, Bell, Flame, Settings, Cpu, GlassWater } from 'lucide-react';
+import { Loader2, Info, AlertTriangle, Bell, Settings, Cpu } from 'lucide-react';
 import { OnboardingPageTogglesModal } from './_components/OnboardingPageTogglesModal';
 import { ProfileAvatar } from './_components/ProfileAvatar';
 import { AiModelSettingsModal } from './_components/AiModelSettingsModal';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TopBar } from '@/components/TopBar';
-import { BottomNav } from '@/components/BottomNav';
-import { MoneyLogBottomNav } from '@/components/MoneyLogBottomNav';
-import { SocialLogBottomNav } from '@/components/SocialLogBottomNav';
-import { SocialLogSettingsCard } from './_components/SocialLogSettingsCard';
+import { LogbookBottomNav } from '@/components/LogbookBottomNav';
 import { sendRealTestNotification } from '@/lib/pushNotification';
 import { Switch } from '@/components/ui/switch';
-import { APPS, AppId, getActiveApp, getDefaultApp, setDefaultApp } from '@/lib/appMode';
-import { MEAL_PREP_REMINDER_TITLE } from '@/lib/ai/types';
+import { APPS, AppId, getDefaultApp, setDefaultApp, setEnabledApps } from '@/lib/appMode';
 import { useToast } from '@/components/ui/use-toast';
 
 // Client Component — no static <Metadata> export; page title stays the
@@ -42,12 +35,10 @@ export default function ProfilePage() {
   const [loggingOut, setLoggingOut] = useState(false);
   const [email, setEmail] = useState<string|null>(null);
   const [testSending, setTestSending] = useState(false);
-  const [disablingAi, setDisablingAi] = useState(false);
   const [showPageToggles, setShowPageToggles] = useState(false);
   const [showAiModelSettings, setShowAiModelSettings] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [defaultApp, setDefaultAppState] = useState<AppId>('burnlog');
-  const [activeApp, setActiveAppState] = useState<AppId>('burnlog');
   const [usernameInput, setUsernameInput] = useState('');
   const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle');
   const [savingUsername, setSavingUsername] = useState(false);
@@ -55,12 +46,32 @@ export default function ProfilePage() {
 
   useEffect(() => {
     setDefaultAppState(getDefaultApp());
-    setActiveAppState(getActiveApp());
   }, []);
 
   function handleSetDefaultApp(app: AppId) {
     setDefaultApp(app);
     setDefaultAppState(app);
+  }
+
+  const [addingApp, setAddingApp] = useState<AppId | null>(null);
+
+  async function handleAddApp(app: AppId) {
+    if (!profile) return;
+    setAddingApp(app);
+    const currentEnabled: AppId[] = profile.enabledApps ?? [];
+    const nextEnabled = [...currentEnabled, app];
+    const { error } = await supabase
+      .from('profiles')
+      .update({ enabledApps: nextEnabled })
+      .eq('id', profile.id);
+    if (error) {
+      toast({ title: 'Could not add app', description: error.message, variant: 'destructive' });
+      setAddingApp(null);
+      return;
+    }
+    setEnabledApps(nextEnabled);
+    setProfile((prev: any) => ({ ...prev, enabledApps: nextEnabled }));
+    router.push(`/onboarding/sequence?apps=${app}&step=0&returnTo=/profile`);
   }
 
   useEffect(() => {
@@ -86,7 +97,7 @@ export default function ProfilePage() {
         const userId = session.user.id;
         const { data, error: profErr } = await supabase
           .from('profiles')
-          .select('id,firstName,lastName,age,weight,height,activityLevel,aiEnabled,isAdmin,currentStreak,longestStreak,xp,level,avatarUrl,waterUnit,glassSizeMl,waterGoalMl,username,mealPrepDayOfWeek,mealPrepTime,mealPrepTimezone')
+          .select('id,firstName,lastName,age,height,weight,activityLevel,isAdmin,avatarUrl,username,enabledApps')
           .eq('userId', userId)
           .single();
 
@@ -178,73 +189,6 @@ export default function ProfilePage() {
       toast({ title: 'Test push failed', description: e?.message || 'Unknown error', variant: 'destructive' });
     }
     setTestSending(false);
-  };
-
-  const handleDisableAi = async () => {
-    setDisablingAi(true);
-    const { error } = await supabase
-      .from('profiles')
-      .update({ aiEnabled: false })
-      .eq('id', profile.id);
-    if (!error) {
-      setProfile((prev: any) => ({ ...prev, aiEnabled: false }));
-      toast({ description: 'AI insights disabled' });
-    } else {
-      toast({ title: 'Could not disable AI insights', description: error.message, variant: 'destructive' });
-    }
-    setDisablingAi(false);
-  };
-
-  const handleWaterSettingChange = async (field: 'waterUnit' | 'glassSizeMl' | 'waterGoalMl', value: string | number) => {
-    if (!profile) return;
-    // Guard against 0/negative values reaching the DB (would divide-by-zero
-    // in the water tracker's glasses-mode display and step size).
-    const safeValue =
-      field === 'glassSizeMl' ? Math.max(50, Number(value)) :
-      field === 'waterGoalMl' ? Math.max(250, Number(value)) :
-      value;
-    const { error } = await supabase
-      .from('profiles')
-      .update({ [field]: safeValue })
-      .eq('id', profile.id);
-    if (!error) {
-      setProfile((prev: any) => ({ ...prev, [field]: safeValue }));
-    } else {
-      toast({ title: 'Could not save water setting', description: error.message, variant: 'destructive' });
-    }
-  };
-
-  const handleMealPrepChange = async (dayOfWeek: number, time: string) => {
-    if (!profile) return;
-    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    try {
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ mealPrepDayOfWeek: dayOfWeek, mealPrepTime: time, mealPrepTimezone: timezone })
-        .eq('id', profile.id);
-      if (profileError) throw profileError;
-
-      await supabase
-        .from('scheduled_reminders')
-        .delete()
-        .eq('profileId', profile.id)
-        .eq('title', MEAL_PREP_REMINDER_TITLE);
-      const { error: reminderError } = await supabase.from('scheduled_reminders').insert({
-        profileId: profile.id,
-        title: MEAL_PREP_REMINDER_TITLE,
-        message: 'It\'s your meal-prep day — open the Meal Planner to plan this week.',
-        url: '/meal-planner',
-        dayOfWeek,
-        timeOfDay: time,
-        timezone,
-      });
-      if (reminderError) throw reminderError;
-
-      setProfile((prev: any) => ({ ...prev, mealPrepDayOfWeek: dayOfWeek, mealPrepTime: time, mealPrepTimezone: timezone }));
-      toast({ description: 'Meal-prep reminder saved' });
-    } catch (e: any) {
-      toast({ title: 'Could not save meal-prep reminder', description: e?.message || 'Unknown error', variant: 'destructive' });
-    }
   };
 
   const handleLogout = async () => {
@@ -405,209 +349,36 @@ export default function ProfilePage() {
                       />
                     </div>
                   ))}
+                  {(() => {
+                    const enabled: AppId[] = profile.enabledApps ?? [];
+                    const notEnabled = Object.values(APPS).filter(
+                      (app) => app.id !== 'logbook' && !enabled.includes(app.id)
+                    );
+                    if (notEnabled.length === 0) return null;
+                    return (
+                      <div className="pt-3 border-t space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground">Add another app</p>
+                        {notEnabled.map((app) => (
+                          <Button
+                            key={app.id}
+                            variant="outline"
+                            className="w-full justify-start"
+                            disabled={addingApp === app.id}
+                            onClick={() => handleAddApp(app.id)}
+                          >
+                            {addingApp === app.id ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
+                            {app.name}
+                          </Button>
+                        ))}
+                      </div>
+                    );
+                  })()}
                 </CardContent>
               </Card>
 
-              {/* Health Metrics */}
-              {activeApp === 'burnlog' && (
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Health Metrics</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Accordion type="single" collapsible>
-                      <AccordionItem value="bmi">
-                        <AccordionTrigger>
-                          BMI: {+(profile.weight/((profile.height/100)*(profile.height/100))).toFixed(1)} ({profile.weight/((profile.height/100)*(profile.height/100)) < 18.5 ? 'Underweight' : profile.weight/((profile.height/100)*(profile.height/100)) < 25 ? 'Normal' : profile.weight/((profile.height/100)*(profile.height/100)) < 30 ? 'Overweight' : 'Obese'})
-                        </AccordionTrigger>
-                        <AccordionContent>
-                          <p>Your BMI category is <strong>{profile.weight/((profile.height/100)*(profile.height/100)) < 18.5 ? 'Underweight' : profile.weight/((profile.height/100)*(profile.height/100)) < 25 ? 'Normal' : profile.weight/((profile.height/100)*(profile.height/100)) < 30 ? 'Overweight' : 'Obese'}</strong>.</p>
-                          <div className="h-2 bg-gray-200 rounded-full mt-2">
-                            <div
-                              className="h-2 bg-blue-500 rounded-full"
-                              style={{ width: `${(+(profile.weight/((profile.height/100)*(profile.height/100))).toFixed(1)/40)*100}%` }}
-                            />
-                          </div>
-                          <p className="text-sm  mt-1">
-                            Underweight &lt;18.5 | Normal 18.5–24.9 | Overweight 25–29.9 | Obese 30+
-                          </p>
-                        </AccordionContent>
-                      </AccordionItem>
-                      <AccordionItem value="bmr">
-                        <AccordionTrigger>
-                          BMR: {Math.round(10*profile.weight +6.25*profile.height -5*profile.age +5)} kcal/day
-                        </AccordionTrigger>
-                        <AccordionContent>
-                          <p>Your Basal Metabolic Rate: <strong>{Math.round(10*profile.weight +6.25*profile.height -5*profile.age +5)}</strong> kcal/day.</p>
-                          <div className="h-2 bg-gray-200 rounded-full mt-2">
-                            <div
-                              className="h-2 bg-green-500 rounded-full"
-                              style={{ width: `${Math.min(Math.round(10*profile.weight +6.25*profile.height -5*profile.age +5)/3000,1)*100}%` }}
-                            />
-                          </div>
-                          <p className="text-sm mt-1">
-                            Avg male 1600–2400 | Avg female 1400–2000 kcal/day
-                          </p>
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
-                  </CardContent>
-                </Card>
-              )}
             </div>
 
-            {activeApp === 'burnlog' && (
-              <div className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Flame className="w-5 h-5 text-orange-500" />
-                      Level {profile.level}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <div>
-                      <div className="flex justify-between text-sm mb-1">
-                        <span>{profile.xp} xp</span>
-                        <span>{100 - (profile.xp % 100)} xp to next level</span>
-                      </div>
-                      <div className="h-2 bg-gray-200 rounded-full">
-                        <div
-                          className="h-2 bg-orange-500 rounded-full"
-                          style={{ width: `${(profile.xp % 100)}%` }}
-                        />
-                      </div>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span>Current streak: <strong>{profile.currentStreak}</strong> day{profile.currentStreak === 1 ? '' : 's'}</span>
-                      <span>Longest: <strong>{profile.longestStreak}</strong> day{profile.longestStreak === 1 ? '' : 's'}</span>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {activeApp === 'burnlog' && (
-              <div className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Sparkles className="w-5 h-5 text-amber-500" />
-                      AI Insights
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <p className="text-sm text-muted-foreground">
-                      {profile.aiEnabled
-                        ? 'AI-powered suggestions are enabled for your account.'
-                        : 'Enable AI to get a personalized workout plan based on your lifestyle.'}
-                    </p>
-                    {profile.aiEnabled ? (
-                      <Button variant="outline" onClick={handleDisableAi} disabled={disablingAi}>
-                        {disablingAi ? 'Disabling...' : 'Disable AI Insights'}
-                      </Button>
-                    ) : (
-                      <Button onClick={() => router.push('/ai-setup?returnTo=/profile')}>
-                        Enable AI Insights
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {activeApp === 'burnlog' && (
-              <div className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <GlassWater className="w-5 h-5 text-primary" />
-                      Water Tracking
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="waterUnit" className="font-medium">Unit</Label>
-                      <Select
-                        value={profile.waterUnit}
-                        onValueChange={(value) => handleWaterSettingChange('waterUnit', value)}
-                      >
-                        <SelectTrigger id="waterUnit" className="w-32">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="glasses">Glasses</SelectItem>
-                          <SelectItem value="liters">Liters</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="glassSizeMl" className="font-medium">Glass size (ml)</Label>
-                      <input
-                        id="glassSizeMl"
-                        type="number"
-                        min={50}
-                        max={1000}
-                        defaultValue={profile.glassSizeMl}
-                        onBlur={(e) => handleWaterSettingChange('glassSizeMl', Number(e.target.value))}
-                        className="w-24 rounded-md border bg-background px-2 py-1 text-right"
-                      />
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <Label htmlFor="waterGoalMl" className="font-medium">Daily goal (ml)</Label>
-                      <input
-                        id="waterGoalMl"
-                        type="number"
-                        min={500}
-                        max={10000}
-                        step={250}
-                        defaultValue={profile.waterGoalMl}
-                        onBlur={(e) => handleWaterSettingChange('waterGoalMl', Number(e.target.value))}
-                        className="w-24 rounded-md border bg-background px-2 py-1 text-right"
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {activeApp === 'burnlog' && (
-              <div className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      🍽️ Meal Planner
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-3 pt-4 border-t">
-                      <p className="text-sm font-medium">🍽️ Meal-prep day</p>
-                      <div className="grid grid-cols-2 gap-2">
-                        {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((label, value) => (
-                          <button
-                            key={label}
-                            type="button"
-                            onClick={() => handleMealPrepChange(value, profile.mealPrepTime ?? '10:00')}
-                            className={`text-sm px-3 py-2 rounded-lg border transition-colors ${
-                              profile.mealPrepDayOfWeek === value ? 'bg-primary text-primary-foreground border-primary' : 'border-border hover:bg-muted'
-                            }`}
-                          >
-                            {label}
-                          </button>
-                        ))}
-                      </div>
-                      <Input
-                        type="time"
-                        defaultValue={profile.mealPrepTime ?? '10:00'}
-                        onBlur={(e) => handleMealPrepChange(profile.mealPrepDayOfWeek ?? 0, e.target.value)}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {activeApp === 'burnlog' && profile.isAdmin && (
+            {profile.isAdmin && (
               <div className="mt-6">
                 <Card>
                   <CardHeader>
@@ -628,7 +399,7 @@ export default function ProfilePage() {
               </div>
             )}
 
-            {activeApp === 'burnlog' && profile.isAdmin && (
+            {profile.isAdmin && (
               <div className="mt-6">
                 <Card>
                   <CardHeader>
@@ -651,7 +422,7 @@ export default function ProfilePage() {
               </div>
             )}
 
-            {activeApp === 'burnlog' && profile.isAdmin && (
+            {profile.isAdmin && (
               <div className="mt-6">
                 <Card>
                   <CardHeader>
@@ -673,12 +444,6 @@ export default function ProfilePage() {
               </div>
             )}
 
-            {activeApp === 'sociallog' && (
-              <div className="mt-6">
-                <SocialLogSettingsCard />
-              </div>
-            )}
-
             <div className="mt-6 text-center">
               <Button
                 variant="destructive"
@@ -691,19 +456,9 @@ export default function ProfilePage() {
           </>
         )}
       </main>
-      {activeApp === 'burnlog' && (
-        <>
-          <OnboardingPageTogglesModal open={showPageToggles} onOpenChange={setShowPageToggles} />
-          <AiModelSettingsModal open={showAiModelSettings} onOpenChange={setShowAiModelSettings} />
-        </>
-      )}
-      {activeApp === 'moneylog' ? (
-        <MoneyLogBottomNav />
-      ) : activeApp === 'sociallog' ? (
-        <SocialLogBottomNav />
-      ) : (
-        <BottomNav />
-      )}
+      <OnboardingPageTogglesModal open={showPageToggles} onOpenChange={setShowPageToggles} />
+      <AiModelSettingsModal open={showAiModelSettings} onOpenChange={setShowAiModelSettings} />
+      <LogbookBottomNav />
     </div>
   );
 }
