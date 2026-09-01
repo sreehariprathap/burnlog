@@ -13,7 +13,7 @@ export function TravelLogMark({ size = 20, className }: TravelLogMarkProps) {
       style={{ width: size, height: size, fontSize: size }}
       aria-hidden="true"
     >
-      ✈️
+      🏖️
     </span>
   );
 }
