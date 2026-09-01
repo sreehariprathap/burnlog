@@ -9,6 +9,7 @@ import { CheckIcon, FlameIcon, RefreshCwIcon, Cloud } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
 import { TaskLogBottomNav } from '@/components/TaskLogBottomNav';
 import { Card, CardContent } from '@/components/ui/card';
+import { StatCard } from '@/components/ui/stat-card';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -165,15 +166,19 @@ export default function TaskLogDashboardPage() {
           </Button>
         }
       />
-      <div className="flex items-center justify-between px-4 py-3">
-        <div className="flex items-center gap-2">
-          <FlameIcon className="h-5 w-5 text-primary" />
-          <div>
-            <p className="text-sm font-semibold">{Number(profile?.taskLogCurrentStreak ?? 0)} day streak</p>
-            <p className="text-xs text-muted-foreground">Best: {Number(profile?.taskLogLongestStreak ?? 0)}</p>
+      <div className="px-4 py-3">
+        <StatCard>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FlameIcon className="h-5 w-5 text-primary" />
+              <div>
+                <p className="text-sm font-semibold">{Number(profile?.taskLogCurrentStreak ?? 0)} day streak</p>
+                <p className="text-xs text-muted-foreground">Best: {Number(profile?.taskLogLongestStreak ?? 0)}</p>
+              </div>
+            </div>
+            <p className="text-sm text-muted-foreground">{doneCount}/{tasks.length} done today</p>
           </div>
-        </div>
-        <p className="text-sm text-muted-foreground">{doneCount}/{tasks.length} done today</p>
+        </StatCard>
       </div>
 
       <div className="px-4">

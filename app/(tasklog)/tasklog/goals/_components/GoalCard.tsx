@@ -3,7 +3,8 @@
 
 import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { StatCard } from '@/components/ui/stat-card';
+import { StatRing } from '@/components/ui/stat-ring';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import type { TaskGoalRow, TaskRow } from '@/lib/tasklog/types';
@@ -86,20 +87,19 @@ export function GoalCard({ goal }: GoalCardProps) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between text-base">
-          <span>{goal.title}</span>
+    <StatCard
+      title={
+        <span className="flex items-center gap-2 text-base font-semibold">
+          {goal.title}
           <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-normal capitalize">{goal.category}</span>
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3">
+        </span>
+      }
+    >
+      <div className="space-y-3">
         {goal.description && <p className="text-sm text-muted-foreground">{goal.description}</p>}
         {total > 0 && (
-          <div className="space-y-1">
-            <div className="h-2 w-full rounded-full bg-muted">
-              <div className="h-2 rounded-full bg-primary" style={{ width: `${pct}%` }} />
-            </div>
+          <div className="flex items-center gap-3">
+            <StatRing value={pct} size="sm" className="text-xs" />
             <p className="text-xs text-muted-foreground">{completed}/{total} tasks done</p>
           </div>
         )}
@@ -107,13 +107,13 @@ export function GoalCard({ goal }: GoalCardProps) {
         <Button type="button" variant="outline" size="sm" onClick={handleGenerate} disabled={generating}>
           {generating ? 'Thinking…' : total > 0 ? 'Regenerate tasks' : 'Generate tasks'}
         </Button>
-      </CardContent>
+      </div>
       <BreakdownReviewSheet
         open={reviewOpen}
         onOpenChange={setReviewOpen}
         suggestions={suggestions}
         onConfirm={handleConfirm}
       />
-    </Card>
+    </StatCard>
   );
 }
