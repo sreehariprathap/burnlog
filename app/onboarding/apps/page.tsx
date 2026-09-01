@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Loader2, Check } from 'lucide-react';
 import { APPS, AppId, setEnabledApps } from '@/lib/appMode';
@@ -12,7 +12,7 @@ const SELECTABLE_APPS = Object.values(APPS).filter((app) => app.id !== 'logbook'
 
 export default function OnboardingAppsPage() {
   const router = useRouter();
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const { toast } = useToast();
   const [selected, setSelected] = useState<Set<AppId>>(new Set());
   const [saving, setSaving] = useState(false);

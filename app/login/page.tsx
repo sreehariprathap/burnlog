@@ -1,7 +1,7 @@
 'use client';
 import { useState, useCallback } from 'react';
 import { useRouter }         from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button }            from '@/components/ui/button';
 import { Input }             from '@/components/ui/input';
@@ -16,7 +16,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // default set by the root layout.
 
 export default function LoginPage() {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const router   = useRouter();
   const { toast } = useToast();
 

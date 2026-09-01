@@ -1,7 +1,7 @@
 // app/profile/_components/AiModelSettingsModal.tsx
 'use client';
 import { useEffect, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import {
   Drawer,
   DrawerContent,
@@ -21,7 +21,7 @@ type AiModelSettingsModalProps = {
 };
 
 export function AiModelSettingsModal({ open, onOpenChange }: AiModelSettingsModalProps) {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [catalog, setCatalog] = useState<Catalog>({ text: [], vision: [] });

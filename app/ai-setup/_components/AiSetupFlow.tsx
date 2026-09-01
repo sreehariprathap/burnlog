@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { Loader2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ConsentStep } from './ConsentStep';
@@ -34,7 +34,7 @@ export function AiSetupFlow() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = searchParams.get('returnTo') || '/dashboard';
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
 
   const [step, setStep] = useState<Step>('loading');
   const [profileId, setProfileId] = useState<string | null>(null);

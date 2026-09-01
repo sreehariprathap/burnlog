@@ -1,7 +1,7 @@
 // app/profile/_components/OnboardingPageTogglesModal.tsx
 'use client';
 import { useEffect, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import {
   Drawer,
   DrawerContent,
@@ -24,7 +24,7 @@ type OnboardingPageTogglesModalProps = {
 };
 
 export function OnboardingPageTogglesModal({ open, onOpenChange }: OnboardingPageTogglesModalProps) {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const [flags, setFlags] = useState<PageFlag[]>([]);
   const [loading, setLoading] = useState(true);
 
