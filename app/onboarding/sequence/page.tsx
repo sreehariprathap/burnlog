@@ -8,6 +8,7 @@ import { AppId, isAppId } from '@/lib/appMode';
 const ONBOARDING_ROUTES: Partial<Record<AppId, string>> = {
   burnlog: '/ai-setup',
   moneylog: '/moneylog/onboarding',
+  tasklog: '/tasklog/onboarding',
 };
 
 export default function OnboardingSequencePage() {
