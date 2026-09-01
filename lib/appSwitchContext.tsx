@@ -8,7 +8,7 @@ import { APP_SWITCH_STEP_DURATION_MS, APP_SWITCH_TOTAL_STEPS } from '@/lib/appSw
 
 interface AppSwitchContextValue {
   switchingTo: AppId | null;
-  switchTo: (target: AppId) => void;
+  switchTo: (target: AppId, path?: string) => void;
 }
 
 const AppSwitchContext = createContext<AppSwitchContextValue>({
@@ -25,14 +25,14 @@ export function AppSwitchProvider({ children }: { children: React.ReactNode }) {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const switchTo = useCallback(
-    (target: AppId) => {
+    (target: AppId, path?: string) => {
       const current = getActiveApp();
       if (current === target) return;
 
       setSwitchingTo(target);
       wipeAppStorage(current);
       setActiveApp(target);
-      router.push(APPS[target].home);
+      router.push(path ?? APPS[target].home);
 
       if (timerRef.current) clearTimeout(timerRef.current);
       timerRef.current = setTimeout(() => setSwitchingTo(null), MIN_VISIBLE_MS);

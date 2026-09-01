@@ -6,8 +6,9 @@ import { useRouter } from 'next/navigation';
 import { Search, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { APPS } from '@/lib/appMode';
-import { SEARCH_REGISTRY, appSearchColor } from '@/lib/search/registry';
+import { APPS, getActiveApp } from '@/lib/appMode';
+import { useAppSwitch } from '@/lib/appSwitchContext';
+import { SEARCH_REGISTRY, appSearchColor, type SearchItem } from '@/lib/search/registry';
 
 function useDebounce<T>(value: T, delayMs: number): T {
   const [debounced, setDebounced] = useState(value);
@@ -32,6 +33,7 @@ interface GlobalSearchProps {
  */
 export function GlobalSearch({ onNavigate, placeholder }: GlobalSearchProps) {
   const router = useRouter();
+  const { switchTo } = useAppSwitch();
   const [query, setQuery] = useState('');
   const [highlighted, setHighlighted] = useState(0);
   const debouncedQuery = useDebounce(query, 150);
@@ -52,10 +54,17 @@ export function GlobalSearch({ onNavigate, placeholder }: GlobalSearchProps) {
     setHighlighted(0);
   }, [debouncedQuery]);
 
-  function goTo(href: string) {
+  function goTo(item: SearchItem) {
     setQuery('');
     onNavigate?.();
-    router.push(href);
+    // Jumping into a different app: go through switchTo so the app-switch
+    // loader plays and app-scoped storage/theme get reset, same as using
+    // the app switcher. Staying within the current app is a plain nav.
+    if (getActiveApp() !== item.app) {
+      switchTo(item.app, item.href);
+    } else {
+      router.push(item.href);
+    }
   }
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -68,7 +77,7 @@ export function GlobalSearch({ onNavigate, placeholder }: GlobalSearchProps) {
     } else if (e.key === 'Enter') {
       e.preventDefault();
       const item = filtered[highlighted];
-      if (item) goTo(item.href);
+      if (item) goTo(item);
     } else if (e.key === 'Escape') {
       setQuery('');
       inputRef.current?.blur();
@@ -106,7 +115,7 @@ export function GlobalSearch({ onNavigate, placeholder }: GlobalSearchProps) {
               <button
                 key={`${item.app}-${item.href}`}
                 type="button"
-                onClick={() => goTo(item.href)}
+                onClick={() => goTo(item)}
                 className={cn(
                   'flex w-full items-center gap-3 rounded-lg p-2.5 text-left transition-colors',
                   index === highlighted ? 'bg-accent' : 'hover:bg-accent/50'

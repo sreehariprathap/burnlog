@@ -30,6 +30,112 @@ Each sub-app doc covers what that app does, its routes, its data models, and
 any app-specific setup — this README only covers what's shared across all of
 them.
 
+## Features
+
+Full feature breakdown per app, from core to minor. See each app's own
+README (linked above) for routes, data models, and key files.
+
+### LogBook (hub)
+
+- Today digest — per-day score ring, streak badge, morning brief, activity
+  timeline, and a grid of summary cards (one per enabled sub-app)
+- Morning brief flow (`/logbook/morning`)
+- My Day — lightweight time-blocked day planner, independent of TaskLog's
+  kanban board
+- Quick add — floating action button for fast cross-app logging without
+  switching apps
+- Shared identity/profile (`/profile`): avatar, name, username, email,
+  default-app picker, logout
+- Admin-only global tools: push-notification testing, AI model settings
+- Idea log (shared `Idea` model, also surfaced from TaskLog)
+
+### BurnLog (fitness)
+
+- Dashboard — daily activity ring, stats, quick links
+- Workout sessions — Push/Pull/Legs, cardio, full-body, rest days; set/rep/
+  weight tracking
+- Goals — create and monitor fitness goals
+- Insights — charts/trends for weight, workouts, calories
+- Meal planner — AI-assisted meal planning, with grocery-list generator
+- AI onboarding — conversational setup that asks about goals/activity level
+  and generates an initial workout plan; relaunchable as "Reonboard"
+- Config — health metrics (BMI/BMR), level/XP/streak card, AI insights
+  toggle, water tracking, meal-planner settings, export config as JSON
+
+### MoneyLog (personal finance)
+
+- Home — spending overview, recent transactions
+- Budget planning (Plan tab)
+- Financial goals — savings targets, debt payoff, etc.
+- Insights — spending trends and charts
+- Onboarding — budget-setup wizard for new users, relaunchable as "Reonboard"
+- Config — MoneyLog settings, export config as JSON
+
+### TaskLog (tasks & goals)
+
+- Home — task overview
+- Kanban board — track tasks through stages
+- Plan — planning view
+- Goals — goal tracking, separate from task items
+- Idea log (shared with LogBook's quick-add)
+- My Day time-blocking (also surfaced in LogBook's hub)
+- Config — export config as JSON (no onboarding flow yet)
+
+### TravelLog (travel tracking)
+
+- Home — visit stats (total visits, countries, explored stops)
+- Map — Snapchat-Maps-style exploration map; log-a-visit form; chronological
+  visit connections; multi-day stays render as a pulsing hotspot
+- AI trip planner (Plan tab) — fill in trip details, review a generated
+  day-by-day itinerary, accept to save the plan, auto-log it as a visit, and
+  create TaskLog tasks (logistics + one per day)
+- AI suggestions — affordable-trip ideas based on real free-time windows
+  (TaskLog/LogBook), disposable income (MoneyLog), and upcoming public
+  holidays in the user's country; "Plan this trip" deep-links into Plan
+  prefilled
+- Config — country setting (drives holiday lookup), other TravelLog settings
+
+### HomeLog (household management)
+
+- Home — household overview
+- Chores — recurring/assigned chores and chore instances
+- Bills — shared bills/expenses with expense splitting and settlement
+  between household members
+- Shared inventory — household inventory and shopping-list items
+- Multi-member households with invites (the one sub-app built around shared,
+  multi-person state rather than single-user data)
+- Config — export config as JSON (no onboarding flow yet)
+
+### SocialLog (social feed)
+
+- Home feed — posts with topics, votes, comments
+- Friends/follows and leaderboards
+- Search — find other users by username
+- Direct messaging — threads and messages between users
+- Config — SocialLog-specific settings, export config as JSON
+
+### ShoppingLog (marketplace)
+
+- Home — browse listings (organized by category)
+- Listing detail view
+- Sell — create/manage your own listings, with images
+- Cart — add items before checkout
+- Orders — order history as buyer or seller, with reviews on completed
+  orders
+- Favorites — saved/favorited listings
+- Config — export config as JSON (no onboarding flow yet)
+
+### Cross-cutting features (shared across all apps)
+
+- Single login/signup/profile shared across all eight apps
+- App switcher with per-app theming (`lib/appMode.ts` registry)
+- Per-app Config pages, each with "Export config as JSON"
+- AI-assisted flows (OpenAI/OpenRouter): BurnLog onboarding & meal planning,
+  MoneyLog insights, TravelLog planning & suggestions
+- Installable PWA with offline support and push notifications
+  (`PWA_README.md`)
+- Native iOS/Android shells via Capacitor
+
 ## How the app works
 
 ### One Next.js app, eight route groups
