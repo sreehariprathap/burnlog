@@ -1,8 +1,5 @@
 "use client";
-import { useState } from "react";
 import { SWRConfig } from "swr";
-import { SessionContextProvider } from "@supabase/auth-helpers-react";
-import { createPagesBrowserClient } from "@supabase/auth-helpers-nextjs";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
@@ -31,8 +28,6 @@ export default function RootLayoutClient({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const [supabaseClient] = useState(() => createPagesBrowserClient());
-
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -65,18 +60,16 @@ export default function RootLayoutClient({
           }}
         >
           <ThemeProvider defaultTheme="light" storageKey="burnlog-theme">
-            <SessionContextProvider supabaseClient={supabaseClient}>
-              <AppSwitchProvider>
-                <SplashScreen />
-                <OfflineBanner />
-                <ErrorBoundary>{children}</ErrorBoundary>
-                <SwitchLoader />
-                <Toaster />
-                <PWAInstall />
-                <PWAStatus />
-                <PWAUpdateNotification />
-              </AppSwitchProvider>
-            </SessionContextProvider>
+            <AppSwitchProvider>
+              <SplashScreen />
+              <OfflineBanner />
+              <ErrorBoundary>{children}</ErrorBoundary>
+              <SwitchLoader />
+              <Toaster />
+              <PWAInstall />
+              <PWAStatus />
+              <PWAUpdateNotification />
+            </AppSwitchProvider>
           </ThemeProvider>
         </SWRConfig>
       </body>
