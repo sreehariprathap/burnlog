@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import { ThemeToggle } from './ThemeToggle';
 import { AppSwitcher } from './AppSwitcher';
+import { HeaderQuickInfo } from './HeaderQuickInfo';
 import { BurnLogMark } from './BurnLogMark';
 import { MoneyLogMark } from './MoneyLogMark';
 import { TaskLogMark } from './TaskLogMark';
@@ -75,6 +76,7 @@ export function TopBar({ title, onClose, actions }: TopBarProps) {
       <div className="flex items-center gap-4">
         <ThemeToggle />
         {actions && <div className="flex items-center gap-2">{actions}</div>}
+        {activeApp !== 'logbook' && <HeaderQuickInfo />}
         {onClose && (
           <button
             className="ml-2"
