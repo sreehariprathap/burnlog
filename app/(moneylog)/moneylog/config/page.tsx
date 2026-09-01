@@ -8,7 +8,7 @@ export default function MoneyLogConfigPage() {
   return (
     <AppConfigShell
       appName="MoneyLog"
-      onboardingHref="/moneylog/onboarding"
+      onboardingHref="/moneylog/onboarding?returnTo=/moneylog/config"
       exportData={() => ({})}
       bottomNav={<MoneyLogBottomNav />}
     >

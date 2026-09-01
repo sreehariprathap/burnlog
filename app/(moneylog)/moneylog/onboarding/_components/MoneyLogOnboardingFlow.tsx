@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
 import { WelcomeStep } from './WelcomeStep';
 import { IncomeSourcesStep } from './IncomeSourcesStep';
@@ -15,6 +15,8 @@ type Step = 'welcome' | 'income' | 'expenses' | 'review';
 
 export function MoneyLogOnboardingFlow() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTo = searchParams.get('returnTo') || '/moneylog';
   const supabase = createClientComponentClient();
   const { toast } = useToast();
   const [step, setStep] = useState<Step>('welcome');
@@ -24,7 +26,7 @@ export function MoneyLogOnboardingFlow() {
   const [error, setError] = useState('');
 
   function handleSkipAll() {
-    router.replace('/moneylog');
+    router.replace(returnTo);
   }
 
   async function handleConfirm() {
@@ -47,7 +49,7 @@ export function MoneyLogOnboardingFlow() {
       }
 
       toast({ title: 'Setup complete' });
-      router.replace('/moneylog');
+      router.replace(returnTo);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to save';
       setError(message);
