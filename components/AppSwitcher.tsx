@@ -51,14 +51,15 @@ export function AppSwitcher({ open, onOpenChange }: AppSwitcherProps) {
 
   useEffect(() => {
     if (!open) return;
-    setActiveAppState(getActiveApp());
+    const active = getActiveApp();
+    setActiveAppState(active);
     setDefaultAppState(getDefaultApp());
     const enabled = getEnabledApps();
-    setVisibleApps(
-      enabled
-        ? Object.values(APPS).filter((app) => app.id === 'logbook' || enabled.includes(app.id))
-        : Object.values(APPS)
-    );
+    const eligible = enabled
+      ? Object.values(APPS).filter((app) => app.id === 'logbook' || enabled.includes(app.id))
+      : Object.values(APPS);
+    // The app you're already in never appears in its own hub.
+    setVisibleApps(eligible.filter((app) => app.id !== active));
   }, [open]);
 
   function handleSelect(id: AppId) {
@@ -112,11 +113,7 @@ export function AppSwitcher({ open, onOpenChange }: AppSwitcherProps) {
               onClick={() => handleTap(app.id)}
               className="flex flex-col items-center gap-1.5"
             >
-              <div
-                className={`relative flex h-14 w-14 items-center justify-center rounded-2xl bg-muted ${
-                  activeApp === app.id ? 'ring-2 ring-primary' : ''
-                }`}
-              >
+              <div className="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-muted">
                 <AppIcon id={app.id} size={28} />
                 {defaultApp === app.id && (
                   <Star

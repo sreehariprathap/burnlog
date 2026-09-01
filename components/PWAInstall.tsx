@@ -18,13 +18,13 @@ const SESSION_STORAGE_KEY = 'logbook-install-prompt-shown';
 
 export default function PWAInstall() {
   const pathname = usePathname();
-  const isLoginPage = pathname === '/login';
+  const isEligiblePage = pathname === '/login' || pathname === '/logbook';
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
 
   useEffect(() => {
-    // Only ever show on the login page
-    if (!isLoginPage) return;
+    // Only ever show on the login page or the Logbook entry page
+    if (!isEligiblePage) return;
     // Already shown once this session, or app is already installed - never show again
     if (sessionStorage.getItem(SESSION_STORAGE_KEY)) return;
     if (window.matchMedia('(display-mode: standalone)').matches) return;
@@ -40,7 +40,7 @@ export default function PWAInstall() {
 
     window.addEventListener('beforeinstallprompt', handler);
     return () => window.removeEventListener('beforeinstallprompt', handler);
-  }, [isLoginPage]);
+  }, [isEligiblePage]);
 
   const handleInstallClick = async () => {
     if (!deferredPrompt) return;
@@ -66,7 +66,7 @@ export default function PWAInstall() {
     setShowInstallPrompt(false);
   };
 
-  if (!showInstallPrompt || !isLoginPage) return null;
+  if (!showInstallPrompt || !isEligiblePage) return null;
 
   return (
     <div className="fixed bottom-4 left-4 right-4 z-50 bg-card border border-border rounded-lg shadow-lg p-4 flex items-center justify-between">

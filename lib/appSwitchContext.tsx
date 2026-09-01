@@ -4,6 +4,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { APPS, AppId, getActiveApp, setActiveApp, wipeAppStorage } from '@/lib/appMode';
+import { APP_SWITCH_STEP_DURATION_MS, APP_SWITCH_TOTAL_STEPS } from '@/lib/appSwitchLoadingStates';
 
 interface AppSwitchContextValue {
   switchingTo: AppId | null;
@@ -15,7 +16,8 @@ const AppSwitchContext = createContext<AppSwitchContextValue>({
   switchTo: () => {},
 });
 
-const MIN_VISIBLE_MS = 700;
+// Matches SwitchLoader's multi-step loader so it isn't cut off mid-animation.
+const MIN_VISIBLE_MS = APP_SWITCH_STEP_DURATION_MS * APP_SWITCH_TOTAL_STEPS;
 
 export function AppSwitchProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter();

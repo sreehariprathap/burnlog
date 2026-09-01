@@ -1,9 +1,13 @@
 // components/SwitchLoader.tsx
 'use client';
 
-import { Loader2 } from 'lucide-react';
 import { useAppSwitch } from '@/lib/appSwitchContext';
 import { APPS } from '@/lib/appMode';
+import {
+  APP_SWITCH_LOADING_STATES,
+  APP_SWITCH_STEP_DURATION_MS,
+} from '@/lib/appSwitchLoadingStates';
+import { MultiStepLoader } from '@/components/ui/multi-step-loader';
 
 export function SwitchLoader() {
   const { switchingTo } = useAppSwitch();
@@ -13,9 +17,13 @@ export function SwitchLoader() {
   const app = APPS[switchingTo];
 
   return (
-    <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center gap-4 bg-background">
-      <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      <p className="text-sm text-muted-foreground">Switching to {app.name}…</p>
-    </div>
+    <MultiStepLoader
+      loading
+      duration={APP_SWITCH_STEP_DURATION_MS}
+      loadingStates={[
+        { text: `Switching to ${app.name}…` },
+        ...APP_SWITCH_LOADING_STATES[switchingTo],
+      ]}
+    />
   );
 }

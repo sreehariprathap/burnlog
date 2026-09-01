@@ -3,7 +3,7 @@
 // Note: this page is a Client Component ("use client"), so a `metadata` export
 // isn't possible here — it would need a server wrapper to set the page title.
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import useSWR from 'swr';
 import { createClient } from '@/lib/supabase/client';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
@@ -35,8 +35,6 @@ interface FitnessGoal {
 export default function DashboardPage() {
   const supabase = createClient();
   const { profile: userProfile, loading: profileLoading } = useCurrentProfile() as { profile: any; loading: boolean };
-  const [isInstallable, setIsInstallable] = useState(false);
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [refreshKey, setRefreshKey] = useState(0);
   const [searchOpen, setSearchOpen] = useState(false);
   const [quickLogTrigger, setQuickLogTrigger] = useState<'calories' | 'workout' | 'steps' | 'walk' | null>(null);
@@ -61,40 +59,6 @@ export default function DashboardPage() {
   };
 
   const loading = profileLoading || goalsLoading;
-
-  useEffect(() => {
-    // Set up "Add to Home Screen" prompt listener
-    window.addEventListener('beforeinstallprompt', (e) => {
-      // Prevent the mini-infobar from appearing on mobile
-      e.preventDefault();
-      // Stash the event so it can be triggered later
-      setDeferredPrompt(e);
-      // Update UI to notify the user they can install the PWA
-      setIsInstallable(true);
-    });
-
-    // Handle installed event
-    window.addEventListener('appinstalled', () => {
-      // Log install to analytics
-      console.log('PWA was installed');
-      setIsInstallable(false);
-    });
-  }, []);
-
-  const installApp = async () => {
-    if (!deferredPrompt) return;
-    
-    // Show the install prompt
-    deferredPrompt.prompt();
-    
-    // Wait for the user to respond to the prompt
-    const { outcome } = await deferredPrompt.userChoice;
-    console.log(`User response to the install prompt: ${outcome}`);
-    
-    // We've used the prompt, and can't use it again, clear it
-    setDeferredPrompt(null);
-    setIsInstallable(false);
-  };
 
   // Get first weight goal for BMI widget (if exists)
   const weightGoal = (goals ?? []).find(g => g.goalType === 'weight_loss' || g.goalType === 'weight_gain');
@@ -128,26 +92,6 @@ export default function DashboardPage() {
         }
       />
       <main className="p-4 mt-4 space-y-6">
-        {/* Install App Prompt */}
-        {isInstallable && (
-          <Card className="mb-4 border-amber-200 bg-amber-50 dark:border-amber-700 dark:bg-amber-900">
-            <CardContent className="pt-4 pb-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="font-semibold">Install burnlog App</h3>
-                  <p className="text-sm text-muted-foreground">Add to your home screen for quick access</p>
-                </div>
-                <button
-                  onClick={installApp}
-                  className="px-4 py-2 bg-amber-600 text-white rounded-md hover:bg-amber-700 dark:bg-amber-600 dark:hover:bg-amber-500"
-                >
-                  Install
-                </button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
         {/* Welcome Card */}
         <Card>
           <CardContent className="pt-6">
