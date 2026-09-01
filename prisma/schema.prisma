@@ -94,6 +94,7 @@ model Profile {
   shopReviews             ShopReview[]
   MydayBlock              MydayBlock[]
   TravelVisit             TravelVisit[]
+  TravelPlan              TravelPlan[]
 
   @@map("profiles")
 }
@@ -640,6 +641,8 @@ model Task {
   goalId          String?   @db.Uuid
   idea            Idea?     @relation(fields: [ideaId], references: [id])
   ideaId          String?   @db.Uuid
+  travelPlan      TravelPlan? @relation(fields: [travelPlanId], references: [id])
+  travelPlanId    String?   @db.Uuid
   title           String
   notes           String?
   category        String // 'life' | 'work'
@@ -672,6 +675,28 @@ model TravelVisit {
   createdAt     DateTime  @default(now())
 
   @@map("travellog_visits")
+}
+
+/// an AI-generated day-by-day trip itinerary; the full itinerary JSON is stored as-is, keyed by day/activity — see docs/superpowers/specs/2026-09-01-icemyvacation-planner-design.md for its shape
+model TravelPlan {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile        Profile   @relation(fields: [profileId], references: [id])
+  profileId      String    @db.Uuid
+  destination    String
+  hotel          String?
+  startDate      DateTime  @db.Date
+  endDate        DateTime  @db.Date
+  numPeople      Int       @default(1)
+  transportMode  String
+  budget         Float?
+  budgetCurrency String    @default("USD")
+  itinerary      Json
+  status         String    @default("draft")
+  acceptedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  tasks          Task[]
+
+  @@map("travellog_plans")
 }
 
 /// a single time-boxed item on a user's day plan — either typed in
