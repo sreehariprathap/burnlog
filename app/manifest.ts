@@ -3,9 +3,9 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'The Logbook',
-    short_name: 'Logbook',
-    description: 'Track your workouts, set fitness goals, and monitor your progress with our comprehensive fitness tracking app',
+    name: 'LogBook',
+    short_name: 'LogBook',
+    description: 'Your daily digest across every app you track life with — fitness, money, tasks, home, social, shopping, and travel, all in one place.',
     start_url: '/',
     display: 'standalone',
     background_color: '#ffffff',
@@ -64,30 +64,30 @@ export default function manifest(): MetadataRoute.Manifest {
         sizes: '1080x1920',
         type: 'image/png',
         form_factor: 'narrow',
-        label: 'burnlog Dashboard'
+        label: 'LogBook Dashboard'
       }
     ],
-    categories: ['fitness', 'health', 'lifestyle', 'productivity'],
+    categories: ['productivity', 'lifestyle', 'utilities'],
     shortcuts: [
       {
-        name: 'Start Workout',
-        short_name: 'Workout',
-        description: 'Start a new workout session',
-        url: '/burnlog/session',
+        name: "Today's Digest",
+        short_name: 'Today',
+        description: "View today's cross-app digest",
+        url: '/logbook',
         icons: [{ src: '/icons/icon-96.png', sizes: '96x96' }]
       },
       {
-        name: 'View Dashboard',
-        short_name: 'Dashboard',
-        description: 'View your fitness dashboard',
-        url: '/burnlog/dashboard',
+        name: 'Morning Brief',
+        short_name: 'Morning',
+        description: "Start your day's morning brief",
+        url: '/logbook/morning',
         icons: [{ src: '/icons/icon-96.png', sizes: '96x96' }]
       },
       {
-        name: 'Check Goals',
-        short_name: 'Goals',
-        description: 'Check your fitness goals',
-        url: '/burnlog/goals',
+        name: 'My Day',
+        short_name: 'My Day',
+        description: 'Plan your day across every app',
+        url: '/logbook/myday',
         icons: [{ src: '/icons/icon-96.png', sizes: '96x96' }]
       }
     ]

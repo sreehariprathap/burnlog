@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.burnlog.app',
-  appName: 'burnlog',
+  appId: 'com.logbook.app',
+  appName: 'LogBook',
   webDir: 'mobile/www',
   server: {
     url: 'https://burnlog-green.vercel.app',
