@@ -5,7 +5,8 @@ import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { startOfMonth, endOfMonth } from 'date-fns';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-import { AnimatedCircularProgressBar } from '@/components/ui/animated-circular-progress-bar';
+import { StatCard } from '@/components/ui/stat-card';
+import { StatRing } from '@/components/ui/stat-ring';
 import { Target } from 'lucide-react';
 import { FINANCIAL_GOAL_TYPES } from '@/lib/financialGoalTypes';
 import { categoryLabel } from '@/lib/financeCategories';
@@ -82,17 +83,9 @@ export function FinancialGoalsList({ goals, profileId }: FinancialGoalsListProps
         const progress = computeGoalProgress(goal, sinceCreationItems, thisMonthItems);
 
         return (
-          <Card key={goal.id}>
-            <CardHeader>
-              <CardTitle>{goal.label}</CardTitle>
-            </CardHeader>
-            <CardContent className="flex items-center gap-4">
-              <AnimatedCircularProgressBar
-                value={progress.pct}
-                gaugePrimaryColor="var(--primary)"
-                gaugeSecondaryColor="var(--muted)"
-                className="size-20 text-sm"
-              />
+          <StatCard key={goal.id} title={goal.label}>
+            <div className="flex items-center gap-4">
+              <StatRing value={progress.pct} size="sm" className="text-sm" />
               <div>
                 <p className="text-sm text-muted-foreground">{goalTypeLabel(goal.goalType)}</p>
                 {goal.category && <p className="text-xs text-muted-foreground">{categoryLabel(goal.category)}</p>}
@@ -100,8 +93,8 @@ export function FinancialGoalsList({ goals, profileId }: FinancialGoalsListProps
                   {formatCurrency(progress.current)} / {formatCurrency(progress.target)}
                 </p>
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </StatCard>
         );
       })}
     </div>
