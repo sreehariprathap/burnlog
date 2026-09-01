@@ -52,4 +52,10 @@ export const APP_SWITCH_LOADING_STATES: Record<AppId, LoadingState[]> = {
     { text: 'Padding the cart responsibly' },
     { text: 'Sniffing out a good deal' },
   ],
+  travellog: [
+    { text: 'Unfolding the paper map' },
+    { text: 'Pretending you know the local language' },
+    { text: 'Losing the itinerary, finding an adventure' },
+    { text: 'Convincing your passport it’s not expired' },
+  ],
 };

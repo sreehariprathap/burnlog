@@ -12,6 +12,7 @@ import { HomeLogMark } from './HomeLogMark';
 import { SocialLogMark } from './SocialLogMark';
 import { ShoppingLogMark } from './ShoppingLogMark';
 import { LogbookMark } from './LogbookMark';
+import { TravelLogMark } from './TravelLogMark';
 import { AppId, getActiveApp, setEnabledApps, isAppId } from '@/lib/appMode';
 import { createClient } from '@/lib/supabase/client';
 
@@ -66,6 +67,8 @@ export function TopBar({ title, onClose, actions }: TopBarProps) {
             <SocialLogMark size={20} />
           ) : activeApp === 'shoppinglog' ? (
             <ShoppingLogMark size={20} />
+          ) : activeApp === 'travellog' ? (
+            <TravelLogMark size={20} />
           ) : (
             <BurnLogMark size={20} />
           )}
