@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -21,7 +21,7 @@ function todayLocalDateString(): string {
 }
 
 export function ShoppingDayStep({ profileId, onDone }: ShoppingDayStepProps) {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const [date, setDate] = useState(todayLocalDateString());
   const [time, setTime] = useState('18:00');
   const [saving, setSaving] = useState(false);

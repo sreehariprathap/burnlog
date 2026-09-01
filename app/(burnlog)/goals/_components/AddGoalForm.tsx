@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Goal } from '../page';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { Loader } from 'lucide-react';
 import { GOAL_TYPES } from '@/lib/goalTypes';
 import { useToast } from '@/components/ui/use-toast';
@@ -21,7 +21,7 @@ export function AddGoalForm({ onGoalAdded, userId }: AddGoalFormProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const { toast } = useToast();
 
 

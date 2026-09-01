@@ -11,7 +11,7 @@ import { CalorieTracker } from './_components/CalorieTracker';
 import { WeightTracker } from './_components/WeightTracker';
 import { AddGoalForm } from './_components/AddGoalForm';
 import { GoalsList } from './_components/GoalsList';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { TopBar } from '@/components/TopBar';
 import { BottomNav } from '@/components/BottomNav';
 import { MotionCarousel } from '@/components/kokonutui/motion-carousel';
@@ -26,7 +26,7 @@ export type Goal = {
   createdAt: string;
 };
 
-const supabase = createClientComponentClient();
+const supabase = createClient();
 
 const goalTabs: TabItem[] = [
   { id: 'goals', icon: Target, label: 'Goals', color: 'var(--chart-1)' },

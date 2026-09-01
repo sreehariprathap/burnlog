@@ -3,7 +3,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { Loader2 } from 'lucide-react';
 import { StoreStep } from './StoreStep';
 import { HouseholdStep } from './HouseholdStep';
@@ -23,7 +23,7 @@ export type WizardStep = 'loading' | 'store' | 'household' | 'preferences' | 'ap
 
 export function MealPlannerFlow() {
   const router = useRouter();
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
 
   const [step, setStep] = useState<WizardStep>('loading');
   const [profileId, setProfileId] = useState<string | null>(null);
