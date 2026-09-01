@@ -9,6 +9,7 @@ import PWAStatus from "@/components/PWAStatus";
 import PWAUpdateNotification from "@/components/PWAUpdateNotification";
 import SplashScreen from "@/components/SplashScreen";
 import { AppSwitchProvider } from "@/lib/appSwitchContext";
+import { PaymentProvider } from "@/lib/moneylog/paymentContext";
 import { SwitchLoader } from "@/components/SwitchLoader";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { OfflineBanner } from "@/components/OfflineBanner";
@@ -61,14 +62,16 @@ export default function RootLayoutClient({
         >
           <ThemeProvider defaultTheme="light" storageKey="burnlog-theme">
             <AppSwitchProvider>
-              <SplashScreen />
-              <OfflineBanner />
-              <ErrorBoundary>{children}</ErrorBoundary>
-              <SwitchLoader />
-              <Toaster />
-              <PWAInstall />
-              <PWAStatus />
-              <PWAUpdateNotification />
+              <PaymentProvider>
+                <SplashScreen />
+                <OfflineBanner />
+                <ErrorBoundary>{children}</ErrorBoundary>
+                <SwitchLoader />
+                <Toaster />
+                <PWAInstall />
+                <PWAStatus />
+                <PWAUpdateNotification />
+              </PaymentProvider>
             </AppSwitchProvider>
           </ThemeProvider>
         </SWRConfig>
