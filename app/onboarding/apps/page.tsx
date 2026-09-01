@@ -1,0 +1,84 @@
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { Button } from '@/components/ui/button';
+import { Loader2, Check } from 'lucide-react';
+import { APPS, AppId, setEnabledApps } from '@/lib/appMode';
+import { useToast } from '@/components/ui/use-toast';
+
+const SELECTABLE_APPS = Object.values(APPS).filter((app) => app.id !== 'logbook');
+
+export default function OnboardingAppsPage() {
+  const router = useRouter();
+  const supabase = createClientComponentClient();
+  const { toast } = useToast();
+  const [selected, setSelected] = useState<Set<AppId>>(new Set());
+  const [saving, setSaving] = useState(false);
+
+  function toggle(id: AppId) {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  async function handleContinue() {
+    setSaving(true);
+    const chosen = Array.from(selected);
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      router.replace('/login');
+      return;
+    }
+    const { error } = await supabase
+      .from('profiles')
+      .update({ enabledApps: chosen })
+      .eq('userId', user.id);
+    if (error) {
+      toast({ title: 'Could not save your app selection', description: error.message, variant: 'destructive' });
+      setSaving(false);
+      return;
+    }
+    setEnabledApps(chosen);
+    router.push(`/onboarding/sequence?apps=${chosen.join(',')}&step=0`);
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center p-6">
+      <div className="w-full max-w-md space-y-6">
+        <div className="text-center space-y-2">
+          <h1 className="text-2xl font-bold">What do you want to track?</h1>
+          <p className="text-sm text-muted-foreground">
+            Pick the apps you want — Logbook ties them all together. You can always add more later.
+          </p>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          {SELECTABLE_APPS.map((app) => {
+            const isSelected = selected.has(app.id);
+            return (
+              <button
+                key={app.id}
+                type="button"
+                onClick={() => toggle(app.id)}
+                className={`relative flex flex-col items-start gap-1 rounded-xl border p-4 text-left transition-colors ${
+                  isSelected ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted'
+                }`}
+              >
+                {isSelected && <Check className="absolute top-3 right-3 h-4 w-4 text-primary" />}
+                <span className="font-medium">{app.name}</span>
+                <span className="text-xs text-muted-foreground">{app.tagline}</span>
+              </button>
+            );
+          })}
+        </div>
+        <Button className="w-full" disabled={selected.size === 0 || saving} onClick={handleContinue}>
+          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Continue'}
+        </Button>
+      </div>
+    </div>
+  );
+}
