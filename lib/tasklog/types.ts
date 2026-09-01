@@ -18,6 +18,9 @@ export interface TaskRow {
   position: number;
   completedAt: string | null;
   createdAt: string;
+  cost: number | null;
+  costCategory: string | null;
+  costLoggedAt: string | null;
 }
 
 export interface TaskGoalRow {

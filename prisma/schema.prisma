@@ -594,6 +594,9 @@ model Task {
   position        Int       @default(0)
   completedAt     DateTime?
   createdAt       DateTime  @default(now())
+  cost            Float?
+  costCategory    String?
+  costLoggedAt    DateTime?
 
   @@map("tasklog_tasks")
 }
