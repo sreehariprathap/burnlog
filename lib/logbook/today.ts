@@ -6,13 +6,13 @@ import { getTodayRange, resolveTarget, DEFAULT_TARGETS } from '@/lib/dailyTarget
 import { getMyHouseholdMembership } from '@/lib/homelog/serverAuth';
 
 export interface LogbookCard {
-  app: 'burnlog' | 'tasklog' | 'moneylog' | 'lifelog';
+  app: 'burnlog' | 'tasklog' | 'moneylog' | 'homelog' | 'sociallog' | 'shoppinglog';
   label: string;
   value: number;
   target: number;
   unit: string;
-  pct: number | null; // null = no target/data to compare against
-  available: boolean; // false = feature not built yet (lifelog)
+  pct: number | null; // null = no target/data to compare against (or a count-only stat)
+  available: boolean;
 }
 
 export interface LogbookActivityEvent {
@@ -165,15 +165,106 @@ async function computeMoneylogCard(
   };
 }
 
-function lifelogCard(): LogbookCard {
+async function computeHomelogCard(
+  supabase: SupabaseClient,
+  profileId: string,
+  today: string
+): Promise<{ card: LogbookCard; completed: number; total: number }> {
+  const membership = await getMyHouseholdMembership(supabase, profileId);
+  if (!membership) {
+    return {
+      completed: 0,
+      total: 0,
+      card: { app: 'homelog', label: 'Chores today', value: 0, target: 0, unit: 'chores', pct: null, available: true },
+    };
+  }
+
+  const { data } = await supabase
+    .from('household_chore_instances')
+    .select('id, completedAt')
+    .eq('assignedProfileId', profileId)
+    .eq('dueDate', today);
+
+  const rows = (data as { id: string; completedAt: string | null }[]) || [];
+  const total = rows.length;
+  const completed = rows.filter((r) => r.completedAt).length;
+
   return {
-    app: 'lifelog',
-    label: 'Sleep last night',
-    value: 0,
-    target: 8,
-    unit: 'hrs',
-    pct: null,
-    available: false,
+    completed,
+    total,
+    card: {
+      app: 'homelog',
+      label: 'Chores today',
+      value: completed,
+      target: total,
+      unit: 'chores',
+      pct: total > 0 ? Math.round((completed / total) * 100) : null,
+      available: true,
+    },
+  };
+}
+
+async function computeSociallogCard(
+  supabase: SupabaseClient,
+  profileId: string
+): Promise<{ card: LogbookCard; unread: number }> {
+  const { data: threads } = await supabase
+    .from('social_message_threads')
+    .select('id')
+    .or(`participantAId.eq.${profileId},participantBId.eq.${profileId}`);
+
+  const threadIds = ((threads as { id: string }[]) || []).map((t) => t.id);
+
+  let unread = 0;
+  if (threadIds.length > 0) {
+    const { count } = await supabase
+      .from('social_messages')
+      .select('id', { count: 'exact', head: true })
+      .in('threadId', threadIds)
+      .neq('senderId', profileId)
+      .is('readAt', null);
+    unread = count ?? 0;
+  }
+
+  return {
+    unread,
+    card: {
+      app: 'sociallog',
+      label: 'Unread messages',
+      value: unread,
+      target: 0,
+      unit: 'messages',
+      pct: null,
+      available: true,
+    },
+  };
+}
+
+async function computeShoppinglogCard(
+  supabase: SupabaseClient,
+  profileId: string
+): Promise<{ card: LogbookCard; ordersToday: number }> {
+  const { start, end } = getTodayRange();
+  const { data } = await supabase
+    .from('shop_orders')
+    .select('id')
+    .or(`buyerId.eq.${profileId},sellerId.eq.${profileId}`)
+    .gte('createdAt', start)
+    .lt('createdAt', end);
+
+  const ordersToday = (data || []).length;
+
+  return {
+    ordersToday,
+    card: {
+      app: 'shoppinglog',
+      label: 'Orders today',
+      value: ordersToday,
+      target: 0,
+      unit: 'orders',
+      pct: null,
+      available: true,
+    },
   };
 }
 
@@ -338,16 +429,20 @@ async function computeActivity(
 export async function getLogbookToday(supabase: SupabaseClient, profileId: string): Promise<LogbookToday> {
   const today = dayKey(new Date());
 
-  const [burnlog, tasklog, moneylog, streakInfo, activity, yesterdayScore] = await Promise.all([
-    computeBurnlogCard(supabase, profileId),
-    computeTasklogCard(supabase, profileId, today),
-    computeMoneylogCard(supabase, profileId),
-    computeStreak(supabase, profileId),
-    computeActivity(supabase, profileId),
-    computeYesterdayScore(supabase, profileId),
-  ]);
+  const [burnlog, tasklog, moneylog, homelog, sociallog, shoppinglog, streakInfo, activity, yesterdayScore] =
+    await Promise.all([
+      computeBurnlogCard(supabase, profileId),
+      computeTasklogCard(supabase, profileId, today),
+      computeMoneylogCard(supabase, profileId),
+      computeHomelogCard(supabase, profileId, today),
+      computeSociallogCard(supabase, profileId),
+      computeShoppinglogCard(supabase, profileId),
+      computeStreak(supabase, profileId),
+      computeActivity(supabase, profileId),
+      computeYesterdayScore(supabase, profileId),
+    ]);
 
-  const scoreComponents = [burnlog.card.pct, tasklog.card.pct, moneylog.card.pct].filter(
+  const scoreComponents = [burnlog.card.pct, tasklog.card.pct, moneylog.card.pct, homelog.card.pct].filter(
     (pct): pct is number => pct !== null
   );
   const dayScore = scoreComponents.length > 0
@@ -366,7 +461,7 @@ export async function getLogbookToday(supabase: SupabaseClient, profileId: strin
   return {
     dayScore,
     yesterdayScore,
-    cards: [burnlog.card, tasklog.card, moneylog.card, lifelogCard()],
+    cards: [burnlog.card, tasklog.card, moneylog.card, homelog.card, sociallog.card, shoppinglog.card],
     streak: streakInfo.streak,
     streakApps: streakInfo.streakApps,
     insight,
