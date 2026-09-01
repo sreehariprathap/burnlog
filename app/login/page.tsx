@@ -9,6 +9,7 @@ import { Label }             from '@/components/ui/label';
 import { Loader2 }           from 'lucide-react';
 import Image                 from 'next/image';
 import { useToast }          from '@/components/ui/use-toast';
+import { OAuthButtons }      from '@/components/auth/oauth-buttons';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -59,14 +60,21 @@ export default function LoginPage() {
       <Card className="w-full max-w-md">
         <CardHeader className="flex flex-col items-center gap-3">
           <Image
-            src="/burnlog-icon-splash.png"
-            alt="Logo"
-            width={400}
-            height={400}
+            src="/icons/logbook-light.png"
+            alt="The Logbook"
+            width={260}
+            height={78}
+            priority
           />
           <CardTitle>Log In</CardTitle>
         </CardHeader>
         <CardContent>
+          <OAuthButtons />
+          <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
+            <div className="h-px flex-1 bg-border" />
+            or
+            <div className="h-px flex-1 bg-border" />
+          </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="flex flex-col gap-2">
               <Label htmlFor="email">Email</Label>
@@ -116,7 +124,7 @@ export default function LoginPage() {
             Don’t have an account?{' '}
             <a
               href="/signup"
-              className="text-amber-500 hover:underline"
+              className="text-primary hover:underline"
             >
               Sign Up
             </a>

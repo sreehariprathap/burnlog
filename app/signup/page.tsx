@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { useToast } from '@/components/ui/use-toast';
+import { OAuthButtons } from '@/components/auth/oauth-buttons';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_PASSWORD_LENGTH = 6;
@@ -57,9 +58,19 @@ export default function SignUpPage() {
     <div className="min-h-screen flex items-center justify-center ">
       <Card className="w-full max-w-md">
         <CardHeader className='flex flex-col items-center gap-3'>
-          <Image src="/burnlog-icon-splash.png" alt="Logo" width={400} height={400} className="" />
+          <Image src="/icons/logbook-light.png" alt="The Logbook" width={260} height={78} priority />
           <CardTitle>Create Account</CardTitle></CardHeader>
         <CardContent>
+          {!sent && (
+            <>
+              <OAuthButtons />
+              <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
+                <div className="h-px flex-1 bg-border" />
+                or
+                <div className="h-px flex-1 bg-border" />
+              </div>
+            </>
+          )}
           {!sent ? (
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="flex flex-col gap-2">

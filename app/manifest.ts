@@ -3,8 +3,8 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'burnlog - Fitness Tracker',
-    short_name: 'burnlog',
+    name: 'The Logbook',
+    short_name: 'Logbook',
     description: 'Track your workouts, set fitness goals, and monitor your progress with our comprehensive fitness tracking app',
     start_url: '/',
     display: 'standalone',
@@ -73,21 +73,21 @@ export default function manifest(): MetadataRoute.Manifest {
         name: 'Start Workout',
         short_name: 'Workout',
         description: 'Start a new workout session',
-        url: '/session',
+        url: '/burnlog/session',
         icons: [{ src: '/icons/icon-96.png', sizes: '96x96' }]
       },
       {
         name: 'View Dashboard',
         short_name: 'Dashboard',
         description: 'View your fitness dashboard',
-        url: '/dashboard',
+        url: '/burnlog/dashboard',
         icons: [{ src: '/icons/icon-96.png', sizes: '96x96' }]
       },
       {
         name: 'Check Goals',
         short_name: 'Goals',
         description: 'Check your fitness goals',
-        url: '/goals',
+        url: '/burnlog/goals',
         icons: [{ src: '/icons/icon-96.png', sizes: '96x96' }]
       }
     ]
