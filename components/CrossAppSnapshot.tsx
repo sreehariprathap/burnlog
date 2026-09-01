@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { FlameIcon, ListChecksIcon, WalletIcon, HomeIcon, MessageCircleIcon, ShoppingCartIcon } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -77,7 +77,7 @@ function buildChips(currentApp: AppId, data: SnapshotData): Chip[] {
 }
 
 export function CrossAppSnapshot({ currentApp, profileId }: CrossAppSnapshotProps) {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const { switchTo } = useAppSwitch();
   const [chips, setChips] = useState<Chip[] | null>(null);
 

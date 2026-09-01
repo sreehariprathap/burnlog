@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { GlassWater, Minus, Plus } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -21,7 +21,7 @@ const STEP_ML = 250;
 const MAX_ICONS = 8;
 
 export function WaterIntakeTracker({ profileId, waterUnit, glassSizeMl, waterGoalMl }: WaterIntakeTrackerProps) {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const prefersReducedMotion = useReducedMotion();
   const [amountMl, setAmountMl] = useState(0);
   const [loading, setLoading] = useState(true);

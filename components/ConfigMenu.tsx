@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { motion } from 'motion/react';
 import { Settings, LogOut } from 'lucide-react';
 import {
@@ -22,7 +22,7 @@ type ConfigMenuProps = {
 
 export function ConfigMenu({ href, isActive, navId }: ConfigMenuProps) {
   const router = useRouter();
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const [loggingOut, setLoggingOut] = useState(false);
 
   const handleLogout = async () => {

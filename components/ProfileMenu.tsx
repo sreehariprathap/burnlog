@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { motion } from 'motion/react';
 import { UserIcon, LogOut } from 'lucide-react';
 import {
@@ -20,7 +20,7 @@ type ProfileMenuProps = {
 
 export function ProfileMenu({ isActive }: ProfileMenuProps) {
   const router = useRouter();
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const [loggingOut, setLoggingOut] = useState(false);
 
   const handleLogout = async () => {

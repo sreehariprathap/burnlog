@@ -2,7 +2,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { getPeriodRange, expandRecurringInRange } from '@/lib/financePeriods';
 import type { Period, RecurringItemRow, FinanceLineItem } from '@/lib/financePeriods';
 
@@ -23,7 +23,7 @@ const EMPTY_DATA: FinanceData = {
 };
 
 export function useFinanceData(profileId: string | null, period: Period, refreshKey: number = 0): FinanceData {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const [data, setData] = useState<FinanceData>(EMPTY_DATA);
 
   const fetchData = useCallback(async () => {

@@ -13,7 +13,7 @@ import { SocialLogMark } from './SocialLogMark';
 import { ShoppingLogMark } from './ShoppingLogMark';
 import { LogbookMark } from './LogbookMark';
 import { AppId, getActiveApp, setEnabledApps, isAppId } from '@/lib/appMode';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 
 interface TopBarProps {
   title: string;
@@ -28,7 +28,7 @@ export function TopBar({ title, onClose, actions }: TopBarProps) {
   useEffect(() => {
     setActiveAppState(getActiveApp());
     (async () => {
-      const supabase = createClientComponentClient();
+      const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
       const { data } = await supabase

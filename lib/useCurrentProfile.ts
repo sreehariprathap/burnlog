@@ -2,7 +2,7 @@
 'use client';
 
 import useSWR, { mutate } from 'swr';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 
 export const CURRENT_PROFILE_KEY = 'current-profile';
 
@@ -21,7 +21,7 @@ export interface CurrentProfile {
 }
 
 async function fetchCurrentProfile(): Promise<CurrentProfile | null> {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
