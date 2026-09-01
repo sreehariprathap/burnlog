@@ -17,7 +17,11 @@ type Settings = {
   showCrossAppActivity: boolean;
 };
 
-export function SocialLogSettingsCard() {
+type SocialLogSettingsCardProps = {
+  onSettingsLoaded?: (settings: Settings) => void;
+};
+
+export function SocialLogSettingsCard({ onSettingsLoaded }: SocialLogSettingsCardProps) {
   const [settings, setSettings] = useState<Settings | null>(null);
   const [loading, setLoading] = useState(true);
   const [bioInput, setBioInput] = useState('');
@@ -30,9 +34,11 @@ export function SocialLogSettingsCard() {
         const data: Settings = await res.json();
         setSettings(data);
         setBioInput(data.bio ?? '');
+        onSettingsLoaded?.(data);
       }
       setLoading(false);
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const patch = async (update: Partial<Settings>) => {
@@ -45,6 +51,7 @@ export function SocialLogSettingsCard() {
     if (res.ok) {
       const data: Settings = await res.json();
       setSettings(data);
+      onSettingsLoaded?.(data);
     }
     setSaving(false);
   };

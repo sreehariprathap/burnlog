@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { ClipboardListIcon, PackageIcon, ReceiptIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { HomeLogMark } from '@/components/HomeLogMark';
-import { HomeLogProfileMenu } from '@/components/HomeLogProfileMenu';
+import { ConfigMenu } from '@/components/ConfigMenu';
 
 const tabs = [
   { href: '/homelog', label: 'Home', Icon: null },
@@ -17,7 +17,7 @@ const tabs = [
 
 export function HomeLogBottomNav() {
   const pathname = usePathname();
-  const isProfileActive = pathname === '/profile' || pathname.startsWith('/profile/');
+  const isConfigActive = pathname === '/homelog/config' || pathname.startsWith('/homelog/config/');
 
   return (
     <nav
@@ -44,7 +44,7 @@ export function HomeLogBottomNav() {
           </Link>
         );
       })}
-      <HomeLogProfileMenu isActive={isProfileActive} />
+      <ConfigMenu href="/homelog/config" isActive={isConfigActive} navId="homelog-bottom-nav-active" />
     </nav>
   );
 }

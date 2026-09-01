@@ -2,12 +2,13 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
-import { Flame, Utensils, Timer, Footprints } from 'lucide-react';
+import { motion } from 'motion/react';
+import { Flame, Utensils, Timer, Footprints, Activity } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { resolveTarget, getTodayRange } from '@/lib/dailyTargets';
 import { formatCalories } from '@/lib/format';
-import { AnimatedCircularProgressBar } from '@/components/ui/animated-circular-progress-bar';
+import { cn } from '@/lib/utils';
 
 type Goal = { goalType: string; targetValue: number };
 
@@ -19,11 +20,15 @@ type Metrics = {
 };
 
 const RINGS = [
-  { key: 'burn' as const, goalType: 'calories_burned', color: '#F97316', secondaryColor: 'rgba(249, 115, 22, 0.15)', icon: Flame, label: 'Burn', unit: 'kcal', ringSize: 'size-48' },
-  { key: 'eat' as const, goalType: 'calories_intake', color: '#22C55E', secondaryColor: 'rgba(34, 197, 94, 0.15)', icon: Utensils, label: 'Eat', unit: 'kcal', ringSize: 'size-40' },
-  { key: 'workoutMinutes' as const, goalType: 'workout_time', color: '#3B82F6', secondaryColor: 'rgba(59, 130, 246, 0.15)', icon: Timer, label: 'Move', unit: 'min', ringSize: 'size-32' },
-  { key: 'steps' as const, goalType: 'daily_steps', color: '#A855F7', secondaryColor: 'rgba(168, 85, 247, 0.15)', icon: Footprints, label: 'Steps', unit: 'steps', ringSize: 'size-24' },
+  { key: 'burn' as const, goalType: 'calories_burned', color: '#F97316', icon: Flame, label: 'Burn', unit: 'kcal' },
+  { key: 'eat' as const, goalType: 'calories_intake', color: '#22C55E', icon: Utensils, label: 'Eat', unit: 'kcal' },
+  { key: 'workoutMinutes' as const, goalType: 'workout_time', color: '#3B82F6', icon: Timer, label: 'Move', unit: 'min' },
+  { key: 'steps' as const, goalType: 'daily_steps', color: '#A855F7', icon: Footprints, label: 'Steps', unit: 'steps' },
 ];
+
+const RING_SIZE = 220;
+const STROKE_WIDTH = 14;
+const RING_GAP = 4;
 
 type DailyRingsWidgetProps = {
   profileId: string;
@@ -94,59 +99,93 @@ export function DailyRingsWidget({ profileId, refreshKey }: DailyRingsWidgetProp
     steps: metrics.steps,
   };
 
-  const rows = RINGS.map((ring) => {
+  const rows = RINGS.map((ring, index) => {
     const target = resolveTarget(goals, ring.goalType);
     const value = values[ring.key];
     const pct = target > 0 ? Math.min(100, Math.round((value / target) * 100)) : 0;
     const current = Math.round(value);
-    return { ring, target, current, pct };
+    const radius = (RING_SIZE - STROKE_WIDTH) / 2 - index * (STROKE_WIDTH + RING_GAP);
+    const circumference = radius * 2 * Math.PI;
+    const arcLength = (pct / 100) * circumference;
+    return { ring, target, current, pct, radius, circumference, arcLength };
   });
+
+  const dayScore = Math.round(rows.reduce((sum, r) => sum + r.pct, 0) / rows.length);
 
   return (
     <Card>
       <CardContent className="pt-6">
-        <div className="flex flex-col gap-5">
-          <span className="font-semibold">Today&apos;s Activity</span>
+        <div className="flex flex-col items-center gap-4">
+          <span className="text-sm font-semibold">Today&apos;s Activity</span>
 
-          <div className="relative mx-auto size-48">
-            {rows.map(({ ring, pct }) => (
-              <AnimatedCircularProgressBar
-                key={ring.key}
-                value={pct}
-                min={0}
-                max={100}
-                gaugePrimaryColor={ring.color}
-                gaugeSecondaryColor={ring.secondaryColor}
-                showValue={false}
-                className={`absolute inset-0 m-auto ${ring.ringSize} text-transparent`}
-              />
+          <div className="relative" style={{ width: RING_SIZE, height: RING_SIZE }}>
+            <svg
+              className="-rotate-90 transform"
+              width={RING_SIZE}
+              height={RING_SIZE}
+              viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`}
+            >
+              <title>Today&apos;s activity rings</title>
+              {rows.map(({ ring, radius, circumference, arcLength }, index) => (
+                <g key={ring.key}>
+                  <circle
+                    cx={RING_SIZE / 2}
+                    cy={RING_SIZE / 2}
+                    r={radius}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth={STROKE_WIDTH}
+                    className="text-zinc-200/50 dark:text-zinc-800/50"
+                  />
+                  <motion.circle
+                    cx={RING_SIZE / 2}
+                    cy={RING_SIZE / 2}
+                    r={radius}
+                    fill="none"
+                    stroke={ring.color}
+                    strokeWidth={STROKE_WIDTH}
+                    strokeLinecap="round"
+                    strokeDasharray={`${arcLength} ${circumference - arcLength}`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.6, delay: index * 0.1 }}
+                  />
+                </g>
+              ))}
+            </svg>
+
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
+              <Activity className="h-3.5 w-3.5 text-muted-foreground" />
+              <span className={cn('text-xl font-bold tabular-nums', dayScore >= 100 ? 'text-emerald-500' : 'text-foreground')}>
+                {dayScore}%
+              </span>
+              <span className="text-[10px] text-muted-foreground">today</span>
+            </div>
+          </div>
+
+          <ul className="w-full space-y-1.5">
+            {rows.map(({ ring, target, current }) => (
+              <li key={ring.key} className="flex items-center justify-between gap-2 text-sm">
+                <span className="flex min-w-0 items-center gap-1.5">
+                  <span className="inline-block h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: ring.color }} />
+                  <span className="truncate">{ring.label}</span>
+                </span>
+                <span className="flex shrink-0 items-baseline gap-1">
+                  {ring.unit === 'kcal' ? (
+                    <>
+                      <span className="font-medium tabular-nums">{formatCalories(current)}</span>
+                      <span className="text-xs text-muted-foreground tabular-nums"> / {formatCalories(target)}</span>
+                    </>
+                  ) : (
+                    <>
+                      <span className="font-medium tabular-nums">{current.toLocaleString()}</span>
+                      <span className="text-xs text-muted-foreground tabular-nums"> / {target.toLocaleString()} {ring.unit}</span>
+                    </>
+                  )}
+                </span>
+              </li>
             ))}
-          </div>
-
-          <div className="flex flex-col gap-2.5">
-            {rows.map(({ ring, target, current }) => {
-              const Icon = ring.icon;
-              return (
-                <div key={ring.key} className="flex items-center gap-2.5">
-                  <Icon className="h-4 w-4 shrink-0" style={{ color: ring.color }} />
-                  <span className="text-sm font-medium">{ring.label}</span>
-                  <span className="ml-auto text-sm">
-                    {ring.unit === 'kcal' ? (
-                      <>
-                        <span className="font-medium tabular-nums">{formatCalories(current)}</span>
-                        <span className="text-muted-foreground"> / {formatCalories(target)}</span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="font-medium tabular-nums">{current.toLocaleString()}</span>
-                        <span className="text-muted-foreground"> / {target.toLocaleString()} {ring.unit}</span>
-                      </>
-                    )}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
+          </ul>
         </div>
       </CardContent>
     </Card>

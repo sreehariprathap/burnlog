@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { PlusCircleIcon, ShoppingCartIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ShoppingLogMark } from '@/components/ShoppingLogMark';
-import { ShoppingLogProfileMenu } from '@/components/ShoppingLogProfileMenu';
+import { ConfigMenu } from '@/components/ConfigMenu';
 
 const tabs = [
   { href: '/shoppinglog', label: 'Browse', Icon: null },
@@ -16,7 +16,7 @@ const tabs = [
 
 export function ShoppingLogBottomNav() {
   const pathname = usePathname();
-  const isProfileActive = pathname === '/profile' || pathname.startsWith('/profile/');
+  const isConfigActive = pathname === '/shoppinglog/config' || pathname.startsWith('/shoppinglog/config/');
 
   return (
     <nav
@@ -43,7 +43,7 @@ export function ShoppingLogBottomNav() {
           </Link>
         );
       })}
-      <ShoppingLogProfileMenu isActive={isProfileActive} />
+      <ConfigMenu href="/shoppinglog/config" isActive={isConfigActive} navId="shoppinglog-bottom-nav-active" />
     </nav>
   );
 }

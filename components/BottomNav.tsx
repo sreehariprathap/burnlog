@@ -12,7 +12,7 @@ import {
   UsersIcon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ProfileMenu } from '@/components/ProfileMenu';
+import { ConfigMenu } from '@/components/ConfigMenu';
 
 const tabs = [
   { href: '/dashboard', label: 'Home', Icon: HomeIcon },
@@ -24,7 +24,7 @@ const tabs = [
 
 export function BottomNav() {
   const pathname = usePathname();
-  const isProfileActive = pathname === '/profile' || pathname.startsWith('/profile/');
+  const isConfigActive = pathname === '/dashboard/config' || pathname.startsWith('/dashboard/config/');
 
   return (
     <nav
@@ -54,7 +54,7 @@ export function BottomNav() {
           </Link>
         );
       })}
-      <ProfileMenu isActive={isProfileActive} />
+      <ConfigMenu href="/dashboard/config" isActive={isConfigActive} navId="bottom-nav-active" />
     </nav>
   );
 }

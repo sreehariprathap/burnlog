@@ -5,8 +5,7 @@ import { createServiceRoleClient } from '@/lib/supabase/serviceRole';
 
 // Client-side reads can't join other members' profiles directly — `profiles`
 // RLS only allows reading your own row (see profiles_select_own in
-// supabase/rls.sql), same reason app/api/social/friends exists instead of a
-// direct client query. This route does that join server-side.
+// supabase/rls.sql). This route does that join server-side instead.
 export async function GET() {
   try {
     const supabase = createRouteHandlerClient({ cookies });

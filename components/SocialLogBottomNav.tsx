@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { SearchIcon, MessageCircleIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SocialLogMark } from '@/components/SocialLogMark';
-import { SocialLogProfileMenu } from '@/components/SocialLogProfileMenu';
+import { ConfigMenu } from '@/components/ConfigMenu';
 
 const tabs = [
   { href: '/sociallog', label: 'Home', Icon: null },
@@ -16,7 +16,7 @@ const tabs = [
 
 export function SocialLogBottomNav() {
   const pathname = usePathname();
-  const isProfileActive = pathname === '/profile' || pathname.startsWith('/profile/');
+  const isConfigActive = pathname === '/sociallog/config' || pathname.startsWith('/sociallog/config/');
 
   return (
     <nav
@@ -43,7 +43,7 @@ export function SocialLogBottomNav() {
           </Link>
         );
       })}
-      <SocialLogProfileMenu isActive={isProfileActive} />
+      <ConfigMenu href="/sociallog/config" isActive={isConfigActive} navId="sociallog-bottom-nav-active" />
     </nav>
   );
 }
