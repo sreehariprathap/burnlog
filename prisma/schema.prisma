@@ -35,6 +35,7 @@ model Profile {
   mealPrepDayOfWeek        Int?
   mealPrepTime             String?
   mealPrepTimezone         String?
+  enabledApps              String[] @default([])
   lastMealPlanGeneratedAt  DateTime?
   taskLogCurrentStreak     Int       @default(0)
   taskLogLongestStreak     Int       @default(0)
