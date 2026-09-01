@@ -20,6 +20,7 @@ import { categoryLabel } from '@/lib/financeCategories';
 import { getPeriodRange, formatPeriodLabel, type Period } from '@/lib/financePeriods';
 import { GetStartedCard } from './_components/GetStartedCard';
 import { NetSummaryCard } from './_components/NetSummaryCard';
+import { NetWorthCard } from './_components/NetWorthCard';
 import { MoneyLogFab } from './_components/MoneyLogFab';
 import { CrossAppSnapshot } from '@/components/CrossAppSnapshot';
 
@@ -95,6 +96,7 @@ function PeriodSlide({
         </CardContent>
       </Card>
       <NetSummaryCard income={data.totalIncome} expense={data.totalExpense} />
+      <NetWorthCard />
     </div>
   );
 }

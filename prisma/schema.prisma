@@ -51,6 +51,9 @@ model Profile {
   StaminaSession     StaminaSession[]
   RecurringItem      RecurringItem[]
   FinanceTransaction FinanceTransaction[]
+  paymentsAsPayer Payment[] @relation("PaymentPayer")
+  paymentsAsPayee Payment[] @relation("PaymentPayee")
+  assets Asset[]
   FinancialGoal      FinancialGoal[]
   StepEntry          StepEntry[]
   WaterEntry         WaterEntry[]
@@ -293,8 +296,60 @@ model FinanceTransaction {
   date      DateTime @default(now())
   notes     String?
   createdAt DateTime @default(now())
+  paymentId String?  @db.Uuid
+  payment   Payment? @relation(fields: [paymentId], references: [id])
 
   @@map("finance_transactions")
+}
+
+/// a single cross-profile transfer initiated through the shared payment sheet —
+/// the source of truth that ties together the payer's expense row and the
+/// payee's income row in finance_transactions
+model Payment {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  payer     Profile  @relation("PaymentPayer", fields: [payerId], references: [id], onDelete: Cascade)
+  payerId   String   @db.Uuid
+  payee     Profile  @relation("PaymentPayee", fields: [payeeId], references: [id], onDelete: Cascade)
+  payeeId   String   @db.Uuid
+  amount    Float
+  sourceApp String // 'moneylog' | 'shoppinglog' | ... — which app requested this payment
+  category  String // e.g. 'shopping', 'transfer' — mirrors finance_transactions.category
+  memo      String?
+  createdAt DateTime @default(now())
+
+  transactions FinanceTransaction[]
+  shopOrder    ShopOrder?
+
+  @@map("payments")
+}
+
+/// a user-declared real-world holding (bank account, investment account, cash, debt) —
+/// tracked as a dated history of balance snapshots, not a single overwritten field
+model Asset {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile    Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId  String   @db.Uuid
+  name       String
+  category   String // 'bank' | 'investment' | 'cash' | 'debt' | 'other'
+  createdAt  DateTime @default(now())
+  archivedAt DateTime?
+
+  balanceEntries AssetBalanceEntry[]
+
+  @@map("assets")
+}
+
+/// one dated balance snapshot for an asset — the asset's "current value" is its latest entry
+model AssetBalanceEntry {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  asset     Asset    @relation(fields: [assetId], references: [id], onDelete: Cascade)
+  assetId   String   @db.Uuid
+  value     Float
+  date      DateTime @default(now())
+  notes     String?
+  createdAt DateTime @default(now())
+
+  @@map("asset_balance_entries")
 }
 
 /// financial goals — savings target, spending cap, debt payoff, investment contribution
@@ -894,6 +949,8 @@ model ShopOrder {
   seller      Profile  @relation("ShopOrderSeller", fields: [sellerId], references: [id], onDelete: Cascade)
   sellerId    String   @db.Uuid
   totalAmount Float
+  paymentId   String?  @unique @db.Uuid
+  payment     Payment? @relation(fields: [paymentId], references: [id])
   createdAt   DateTime @default(now())
 
   items ShopOrderItem[]
