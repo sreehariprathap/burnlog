@@ -182,3 +182,23 @@ export function wipeAppStorage(app: AppId): void {
     // storage disabled/unavailable — no-op
   }
 }
+
+export function setAppTheme(app: AppId): void {
+  if (!isBrowser()) return;
+  const root = document.documentElement;
+
+  // Remove all app theme classes
+  Object.values(APPS).forEach((appMeta) => {
+    if (appMeta.themeClass) {
+      root.classList.remove(appMeta.themeClass);
+    }
+  });
+
+  // Add only the target app's theme class
+  const targetApp = APPS[app];
+  if (targetApp.themeClass) {
+    root.classList.add(targetApp.themeClass);
+  }
+
+  setActiveApp(app);
+}
