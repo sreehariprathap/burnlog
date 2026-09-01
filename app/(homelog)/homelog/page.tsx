@@ -15,6 +15,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useHouseholdMe } from '@/lib/homelog/useHouseholdMe';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { useToast } from '@/components/ui/use-toast';
+import { StatCard } from '@/components/ui/stat-card';
+import { ListTodo, Scale } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface PendingInvite {
   id: string;
@@ -30,6 +33,29 @@ async function fetchPendingInvites(): Promise<PendingInvite[]> {
   return body.invites ?? [];
 }
 
+interface ChoreWithInstance {
+  id: string;
+  instance: { dueDate: string } | null;
+}
+
+interface BalanceRow {
+  memberA: string;
+  memberB: string;
+  net: number;
+}
+
+async function fetchChoresForStats(): Promise<ChoreWithInstance[]> {
+  const res = await fetch('/api/homelog/chores');
+  const body = await res.json();
+  return body.chores ?? [];
+}
+
+async function fetchBalancesForStats(): Promise<BalanceRow[]> {
+  const res = await fetch('/api/homelog/balances');
+  const body = await res.json();
+  return body.balances ?? [];
+}
+
 export default function HomeLogPage() {
   const { toast } = useToast();
   const { household, members, myRole, isLoading, refresh } = useHouseholdMe();
@@ -38,6 +64,19 @@ export default function HomeLogPage() {
     !isLoading && !household ? 'homelog-invites' : null,
     fetchPendingInvites
   );
+  const { data: choresForStats } = useSWR(household ? 'homelog-chores' : null, fetchChoresForStats);
+  const { data: balancesForStats } = useSWR(
+    household ? 'homelog-balances' : null,
+    fetchBalancesForStats
+  );
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const choresDueToday = (choresForStats ?? []).filter((c) => c.instance?.dueDate === todayStr).length;
+  const myNetBalance = (balancesForStats ?? []).reduce((sum, b) => {
+    if (b.memberA === profile?.id) return sum - b.net;
+    if (b.memberB === profile?.id) return sum + b.net;
+    return sum;
+  }, 0);
 
   const [householdName, setHouseholdName] = useState('');
   const [creating, setCreating] = useState(false);
@@ -248,6 +287,16 @@ export default function HomeLogPage() {
           </>
         ) : (
           <>
+            <div className="grid grid-cols-2 gap-3">
+              <StatCard title="Chores due today" icon={ListTodo}>
+                <p className="text-2xl font-bold">{choresDueToday}</p>
+              </StatCard>
+              <StatCard title="Your balance" icon={Scale}>
+                <p className={cn('text-2xl font-bold', myNetBalance < 0 ? 'text-destructive' : 'text-emerald-500')}>
+                  {myNetBalance === 0 ? 'Settled up' : `${myNetBalance > 0 ? '+' : ''}${myNetBalance.toFixed(2)}`}
+                </p>
+              </StatCard>
+            </div>
             <Card>
               <CardHeader>
                 <CardTitle>{household.name}</CardTitle>
