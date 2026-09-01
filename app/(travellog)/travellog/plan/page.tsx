@@ -1,8 +1,8 @@
-// app/(travellog)/travellog/plan/page.tsx
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { TopBar } from '@/components/TopBar';
@@ -13,11 +13,22 @@ import { acceptTravelPlan } from '@/lib/travellog/acceptPlan';
 import { TripIntakeForm } from './_components/TripIntakeForm';
 import { ItineraryReview } from './_components/ItineraryReview';
 
-export default function TravelLogPlanPage() {
+function PlanPageInner() {
   const { profile } = useCurrentProfile();
   const { toast } = useToast();
   const router = useRouter();
   const supabase = createClient();
+  const searchParams = useSearchParams();
+
+  const initial: Partial<ItineraryRequest> | undefined = searchParams.get('destination')
+    ? {
+        destination: searchParams.get('destination') ?? undefined,
+        startDate: searchParams.get('startDate') ?? undefined,
+        endDate: searchParams.get('endDate') ?? undefined,
+        budget: searchParams.get('budget') ? Number(searchParams.get('budget')) : null,
+        budgetCurrency: searchParams.get('budgetCurrency') ?? undefined,
+      }
+    : undefined;
 
   const [generated, setGenerated] = useState<{ req: ItineraryRequest; itinerary: Itinerary } | null>(null);
   const [accepting, setAccepting] = useState(false);
@@ -45,7 +56,7 @@ export default function TravelLogPlanPage() {
       <TopBar title="Plan" />
       <div className="p-4">
         {!generated ? (
-          <TripIntakeForm onGenerated={(req, itinerary) => setGenerated({ req, itinerary })} />
+          <TripIntakeForm initial={initial} onGenerated={(req, itinerary) => setGenerated({ req, itinerary })} />
         ) : (
           <ItineraryReview
             req={generated.req}
@@ -58,5 +69,19 @@ export default function TravelLogPlanPage() {
       </div>
       <TravelLogBottomNav />
     </div>
+  );
+}
+
+export default function TravelLogPlanPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-[50vh] items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin" />
+        </div>
+      }
+    >
+      <PlanPageInner />
+    </Suspense>
   );
 }

@@ -15,20 +15,21 @@ const CURRENCIES = ['USD', 'EUR', 'GBP', 'JPY', 'INR', 'AUD', 'CAD', 'THB'];
 
 type TripIntakeFormProps = {
   onGenerated: (req: ItineraryRequest, itinerary: Itinerary) => void;
+  initial?: Partial<ItineraryRequest>;
 };
 
-export function TripIntakeForm({ onGenerated }: TripIntakeFormProps) {
+export function TripIntakeForm({ onGenerated, initial }: TripIntakeFormProps) {
   const { toast } = useToast();
   const today = new Date().toISOString().slice(0, 10);
 
-  const [destination, setDestination] = useState('');
-  const [hotel, setHotel] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
-  const [numPeople, setNumPeople] = useState('1');
-  const [transportMode, setTransportMode] = useState<TransportMode>('public_transit');
-  const [budget, setBudget] = useState('');
-  const [budgetCurrency, setBudgetCurrency] = useState('USD');
+  const [destination, setDestination] = useState(initial?.destination ?? '');
+  const [hotel, setHotel] = useState(initial?.hotel ?? '');
+  const [startDate, setStartDate] = useState(initial?.startDate ?? '');
+  const [endDate, setEndDate] = useState(initial?.endDate ?? '');
+  const [numPeople, setNumPeople] = useState(String(initial?.numPeople ?? 1));
+  const [transportMode, setTransportMode] = useState<TransportMode>(initial?.transportMode ?? 'public_transit');
+  const [budget, setBudget] = useState(initial?.budget != null ? String(initial.budget) : '');
+  const [budgetCurrency, setBudgetCurrency] = useState(initial?.budgetCurrency ?? 'USD');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
