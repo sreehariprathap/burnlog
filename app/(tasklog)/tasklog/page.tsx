@@ -4,7 +4,7 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { CheckIcon, FlameIcon, RefreshCwIcon } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
 import { TaskLogBottomNav } from '@/components/TaskLogBottomNav';
@@ -54,7 +54,7 @@ function toStreakProfile(profileId: string, profile: Record<string, unknown>): S
 }
 
 export default function TaskLogDashboardPage() {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const { profile } = useCurrentProfile();
   const { toast } = useToast();
   const [pickerOpen, setPickerOpen] = useState(false);

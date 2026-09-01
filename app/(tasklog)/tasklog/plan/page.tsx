@@ -4,7 +4,7 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { PlusIcon, Inbox, Lightbulb, RefreshCwIcon } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
 import { TaskLogBottomNav } from '@/components/TaskLogBottomNav';
@@ -23,7 +23,7 @@ import { IdeaCard } from './_components/IdeaCard';
 import { IdeaBreakdownReviewSheet, type BreakdownSuggestion } from './_components/IdeaBreakdownReviewSheet';
 
 export default function PlanPage() {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const { profile } = useCurrentProfile();
   const { toast } = useToast();
   const [quickAddText, setQuickAddText] = useState('');

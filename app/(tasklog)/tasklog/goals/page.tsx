@@ -4,7 +4,7 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { TopBar } from '@/components/TopBar';
 import { TaskLogBottomNav } from '@/components/TaskLogBottomNav';
 import { Button } from '@/components/ui/button';
@@ -16,7 +16,7 @@ import { AddGoalForm } from './_components/AddGoalForm';
 import { GoalCard } from './_components/GoalCard';
 
 export default function GoalsPage() {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const { profile } = useCurrentProfile();
   const [refreshing, setRefreshing] = useState(false);
 

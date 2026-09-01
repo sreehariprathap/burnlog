@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { Loader2 } from 'lucide-react';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { useToast } from '@/components/ui/use-toast';
@@ -21,7 +21,7 @@ export function TaskLogOnboardingFlow() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = searchParams.get('returnTo') || '/tasklog';
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const { profile, loading: profileLoading } = useCurrentProfile();
   const { toast } = useToast();
 

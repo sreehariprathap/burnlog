@@ -4,7 +4,7 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { PlusIcon, RefreshCwIcon } from 'lucide-react';
 import {
   DndContext,
@@ -40,7 +40,7 @@ function toStreakProfile(profileId: string, profile: Record<string, unknown>): S
 }
 
 export default function BoardPage() {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const { profile } = useCurrentProfile();
   const { toast } = useToast();
   const [detailTask, setDetailTask] = useState<TaskRow | null>(null);
