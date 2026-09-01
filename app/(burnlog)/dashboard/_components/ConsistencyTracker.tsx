@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Check, Flame, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -29,7 +29,7 @@ export function ConsistencyTracker({
   lastConsistencyBonusWeek,
   refreshKey,
 }: ConsistencyTrackerProps) {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const [activeDates, setActiveDates] = useState<Set<string> | null>(null);
   const [achievement, setAchievement] = useState<{ stats: string[] } | null>(null);
   const awardInFlight = useRef(false);

@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -33,7 +33,7 @@ function hasMotionPermissionApi(ctor: unknown): ctor is MotionPermissionCtor {
 }
 
 export function WalkTrackerModal({ profileId, onClose, onSaved }: WalkTrackerModalProps) {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const { toast } = useToast();
   const [tracking, setTracking] = useState(false);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);

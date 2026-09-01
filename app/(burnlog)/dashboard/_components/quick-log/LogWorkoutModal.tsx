@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,7 +17,7 @@ type LogWorkoutModalProps = {
 };
 
 export function LogWorkoutModal({ profileId, onClose, onSaved }: LogWorkoutModalProps) {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const { toast } = useToast();
   const [activityType, setActivityType] = useState<string>(COMMON_ACTIVITIES[0]);
   const [duration, setDuration] = useState('');

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,7 +25,7 @@ type LogCaloriesModalProps = {
 };
 
 export function LogCaloriesModal({ profileId, onClose, onSaved }: LogCaloriesModalProps) {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const { toast } = useToast();
   const [tab, setTab] = useState<'manual' | 'describe' | 'photo'>('manual');
   const [showScanner, setShowScanner] = useState(false);

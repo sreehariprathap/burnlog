@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { motion } from 'motion/react';
 import { Flame, Utensils, Timer, Footprints, Activity } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -36,7 +36,7 @@ type DailyRingsWidgetProps = {
 };
 
 export function DailyRingsWidget({ profileId, refreshKey }: DailyRingsWidgetProps) {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const [loading, setLoading] = useState(true);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [metrics, setMetrics] = useState<Metrics>({ burn: 0, eat: 0, workoutMinutes: 0, steps: 0 });

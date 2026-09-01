@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -15,7 +15,7 @@ type LogStepsModalProps = {
 };
 
 export function LogStepsModal({ profileId, onClose, onSaved }: LogStepsModalProps) {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const { toast } = useToast();
   const [steps, setSteps] = useState('');
   const [date, setDate] = useState(() => new Date().toISOString().split('T')[0]);

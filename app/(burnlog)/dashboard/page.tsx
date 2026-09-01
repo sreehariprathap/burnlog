@@ -5,7 +5,7 @@
 
 import { useEffect, useState } from 'react';
 import useSWR from 'swr';
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs';
+import { createClient } from '@/lib/supabase/client';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { Search, CalendarRange, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
@@ -33,7 +33,7 @@ interface FitnessGoal {
 }
 
 export default function DashboardPage() {
-  const supabase = createClientComponentClient();
+  const supabase = createClient();
   const { profile: userProfile, loading: profileLoading } = useCurrentProfile() as { profile: any; loading: boolean };
   const [isInstallable, setIsInstallable] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
