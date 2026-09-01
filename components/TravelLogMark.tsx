@@ -1,5 +1,5 @@
 // components/TravelLogMark.tsx
-import { Waves } from 'lucide-react';
+import { PalmtreeIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TravelLogMarkProps {
@@ -9,7 +9,7 @@ interface TravelLogMarkProps {
 
 export function TravelLogMark({ size = 20, className }: TravelLogMarkProps) {
   return (
-    <Waves
+    <PalmtreeIcon
       size={size}
       strokeWidth={2.5}
       className={cn('shrink-0', className)}
