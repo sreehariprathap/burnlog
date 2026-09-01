@@ -34,10 +34,15 @@ export default function TravelLogMapPage() {
   );
 
   const sorted = visits ?? [];
-  const dots = sorted.slice(1).map((visit, i) => ({
-    start: { lat: sorted[i].lat, lng: sorted[i].lng, label: sorted[i].placeName },
-    end: { lat: visit.lat, lng: visit.lng, label: visit.placeName },
-  }));
+  // A lone visit has no pair to connect to — render it as a self-loop dot so it
+  // still shows up on the map, matching every other visit which gets a start/end pair.
+  const dots =
+    sorted.length === 1
+      ? [{ start: { lat: sorted[0].lat, lng: sorted[0].lng, label: sorted[0].placeName }, end: { lat: sorted[0].lat, lng: sorted[0].lng, label: sorted[0].placeName } }]
+      : sorted.slice(1).map((visit, i) => ({
+          start: { lat: sorted[i].lat, lng: sorted[i].lng, label: sorted[i].placeName },
+          end: { lat: visit.lat, lng: visit.lng, label: visit.placeName },
+        }));
   const hotspots = sorted.filter(isExplored).map((v) => ({ lat: v.lat, lng: v.lng, label: v.placeName }));
 
   return (
