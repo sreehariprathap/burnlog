@@ -49,15 +49,26 @@ export async function markTaskComplete(
       // Best-effort — a failed activity post must never block task completion.
     });
 
-    if (task.cost && task.cost > 0 && !task.costLoggedAt) {
-      await supabase.from('finance_transactions').insert({
-        profileId: profile.id,
-        type: 'expense',
-        category: task.costCategory ?? 'other_expense',
-        label: `TaskLog: ${task.title ?? 'Task'}`,
-        amount: task.cost,
-      });
-      await supabase.from('tasklog_tasks').update({ costLoggedAt: new Date().toISOString() }).eq('id', task.id);
+    if (task.cost && task.cost > 0) {
+      // Atomically claim the "log this cost" right by conditioning the update on the
+      // DATABASE's costLoggedAt, not the caller's possibly-stale in-memory copy — this
+      // closes both the board drag-to-done staleness gap and true concurrent-call races.
+      const { data: claimed } = await supabase
+        .from('tasklog_tasks')
+        .update({ costLoggedAt: new Date().toISOString() })
+        .eq('id', task.id)
+        .is('costLoggedAt', null)
+        .select('id');
+
+      if (claimed && claimed.length > 0) {
+        await supabase.from('finance_transactions').insert({
+          profileId: profile.id,
+          type: 'expense',
+          category: task.costCategory ?? 'other_expense',
+          label: `TaskLog: ${task.title ?? 'Task'}`,
+          amount: task.cost,
+        });
+      }
     }
   }
 }
