@@ -40,7 +40,7 @@ export default async function MoneyLogInsightsPage() {
   return (
     <div className="flex flex-col h-screen">
       <TopBar title="Insights" />
-      <main className="flex-1 overflow-auto px-4 py-6 pb-24">
+      <main className="flex-1 overflow-auto px-4 pb-24">
         <FinanceInsightsClient recurringItems={recurringItems || []} transactions={transactions || []} />
       </main>
       <MoneyLogBottomNav />
