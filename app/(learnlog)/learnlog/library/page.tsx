@@ -13,7 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Star } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
-import { createTaskLogTask } from '@/lib/learnlog/crossApp';
+import { createTaskLogTask, logToMoneyLog } from '@/lib/learnlog/crossApp';
 import type { LibraryItemRow } from '@/lib/learnlog/types';
 import { LibraryItemDrawer } from './_components/LibraryItemDrawer';
 
@@ -52,6 +52,16 @@ export default function LearnLogLibraryPage() {
       toast({ description: 'Added to TaskLog.' });
     } catch (err) {
       toast({ title: 'Could not add to TaskLog', description: err instanceof Error ? err.message : String(err), variant: 'destructive' });
+    }
+  }
+
+  async function handleLogToMoneyLog(item: LibraryItemRow) {
+    if (!profile || item.cost == null) return;
+    try {
+      await logToMoneyLog(profile.id, item.title, item.cost);
+      toast({ description: 'Logged to MoneyLog.' });
+    } catch (err) {
+      toast({ title: 'Could not log to MoneyLog', description: err instanceof Error ? err.message : String(err), variant: 'destructive' });
     }
   }
 
@@ -101,6 +111,9 @@ export default function LearnLogLibraryPage() {
               </div>
               <div className="flex items-center gap-2 mt-2">
                 <Button size="sm" variant="outline" onClick={() => handleAddToTaskLog(item)}>Add to TaskLog</Button>
+                {item.cost != null && (
+                  <Button size="sm" variant="outline" onClick={() => handleLogToMoneyLog(item)}>Log to MoneyLog (${item.cost})</Button>
+                )}
               </div>
             </CardContent>
           </Card>

@@ -21,3 +21,16 @@ export async function createTaskLogTask(
   });
   if (error) throw error;
 }
+
+/** Logs a LearnLog cost (course fee, gear, book) as a MoneyLog expense. */
+export async function logToMoneyLog(profileId: string, label: string, amount: number): Promise<void> {
+  const supabase = createClient();
+  const { error } = await supabase.from('finance_transactions').insert({
+    profileId,
+    type: 'expense',
+    category: 'education',
+    label,
+    amount,
+  });
+  if (error) throw error;
+}
