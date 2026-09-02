@@ -16,6 +16,23 @@ export async function sendPushToUser(
   userId: string,
   payload: PushPayload
 ): Promise<{ sent: number; pruned: number }> {
+  // Persisted before delivery is attempted (and regardless of whether it
+  // succeeds) — this is what lets a user see a notification in-app even if
+  // push was never granted or a delivery attempt fails below.
+  try {
+    const { data: recipient } = await supabase.from('profiles').select('id').eq('userId', userId).maybeSingle();
+    if (recipient) {
+      await supabase.from('notifications').insert({
+        profileId: recipient.id,
+        title: payload.title,
+        message: payload.message,
+        url: payload.url,
+      });
+    }
+  } catch (notifError) {
+    console.error('Error persisting notification record:', notifError);
+  }
+
   if (!vapidPublicKey || !vapidPrivateKey) {
     throw new Error('Push notifications are not configured on the server');
   }

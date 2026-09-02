@@ -113,6 +113,7 @@ model Profile {
   LearnGroupMember           LearnGroupMember[]
   learnGroupInvitesSent      LearnGroupInvite[] @relation("LearnGroupInviteSender")
   learnGroupInvitesReceived  LearnGroupInvite[] @relation("LearnGroupInviteRecipient")
+  Notification               Notification[]
 
   @@map("profiles")
 }
@@ -220,6 +221,22 @@ model PushSubscription {
   endpoint         String   @unique
 
   @@map("push_subscriptions")
+}
+
+/// in-app record of every notification sent via sendPushToUser, persisted
+/// regardless of push delivery success — lets a user see what they missed
+/// if push was never granted or delivery failed
+model Notification {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId String   @db.Uuid
+  title     String
+  message   String
+  url       String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("notifications")
 }
 
 /// stamina/endurance tracking
