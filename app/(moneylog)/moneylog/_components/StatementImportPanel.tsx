@@ -1,8 +1,8 @@
 // app/(moneylog)/moneylog/_components/StatementImportPanel.tsx
 'use client';
 
-import { useState } from 'react';
-import { Copy, X } from 'lucide-react';
+import { useRef, useState } from 'react';
+import { Copy, Loader2, Upload, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -48,7 +48,56 @@ export function StatementImportPanel({ profileId, isAdmin, onImported }: Stateme
   const [rows, setRows] = useState<ReviewRow[]>([]);
   const [saving, setSaving] = useState(false);
 
+  const [mode, setMode] = useState<'manual' | 'auto'>('manual');
+  const [pdfBase64, setPdfBase64] = useState<string | null>(null);
+  const [pdfFilename, setPdfFilename] = useState<string | null>(null);
+  const [extracting, setExtracting] = useState(false);
+  const [extractError, setExtractError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   const formInput = { bank, accountType, periodStart, periodEnd };
+
+  const handlePdfFile = (file: File) => {
+    if (file.type !== 'application/pdf') {
+      setExtractError('Please select a PDF file');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setExtractError('PDF must be under 10 MB');
+      return;
+    }
+    setExtractError(null);
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setPdfBase64(e.target?.result as string);
+      setPdfFilename(file.name);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleExtract = async () => {
+    if (!pdfBase64) return;
+    setExtracting(true);
+    setExtractError(null);
+    try {
+      const res = await fetch('/api/ai/moneylog/import-statement', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pdfBase64, filename: pdfFilename, ...formInput }),
+      });
+      const data = await res.json();
+      if (!res.ok || data.error) {
+        setExtractError(data.error ?? 'Failed to extract transactions');
+        return;
+      }
+      setRows(toReviewRows(data.transactions));
+      setStep('review');
+    } catch {
+      setExtractError('Network error. Please try again.');
+    } finally {
+      setExtracting(false);
+    }
+  };
 
   const handleCopyPrompt = async () => {
     await navigator.clipboard.writeText(buildStatementImportPrompt(formInput));
@@ -224,29 +273,63 @@ export function StatementImportPanel({ profileId, isAdmin, onImported }: Stateme
         </div>
       </div>
 
-      <div className="rounded-lg border border-border p-3 space-y-2">
-        <div className="flex items-center justify-between">
-          <p className="text-sm font-medium">Manual</p>
-          <Button type="button" size="sm" variant="outline" className="gap-1.5" onClick={handleCopyPrompt}>
-            <Copy className="h-3.5 w-3.5" />
-            Copy Prompt
+      {isAdmin && (
+        <div className="flex gap-2">
+          <Button type="button" size="sm" variant={mode === 'manual' ? 'default' : 'outline'} className="flex-1" onClick={() => setMode('manual')}>
+            Manual
+          </Button>
+          <Button type="button" size="sm" variant={mode === 'auto' ? 'default' : 'outline'} className="flex-1" onClick={() => setMode('auto')}>
+            Auto (AI upload)
           </Button>
         </div>
-        <p className="text-xs text-muted-foreground">
-          Paste the copied prompt into ChatGPT or Claude along with your statement PDF, then paste its JSON reply below.
-        </p>
-        <Textarea
-          value={pastedJson}
-          onChange={(e) => setPastedJson(e.target.value)}
-          placeholder='{"transactions": [...]}'
-          rows={5}
-          className="text-xs font-mono"
-        />
-        {parseError && <p className="text-sm text-destructive">{parseError}</p>}
-        <Button type="button" className="w-full" disabled={!pastedJson.trim() || !bank.trim()} onClick={handleParse}>
-          Parse
-        </Button>
-      </div>
+      )}
+
+      {mode === 'manual' || !isAdmin ? (
+        <div className="rounded-lg border border-border p-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium">Manual</p>
+            <Button type="button" size="sm" variant="outline" className="gap-1.5" onClick={handleCopyPrompt}>
+              <Copy className="h-3.5 w-3.5" />
+              Copy Prompt
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Paste the copied prompt into ChatGPT or Claude along with your statement PDF, then paste its JSON reply below.
+          </p>
+          <Textarea
+            value={pastedJson}
+            onChange={(e) => setPastedJson(e.target.value)}
+            placeholder='{"transactions": [...]}'
+            rows={5}
+            className="text-xs font-mono"
+          />
+          {parseError && <p className="text-sm text-destructive">{parseError}</p>}
+          <Button type="button" className="w-full" disabled={!pastedJson.trim() || !bank.trim()} onClick={handleParse}>
+            Parse
+          </Button>
+        </div>
+      ) : (
+        <div className="rounded-lg border border-border p-3 space-y-2">
+          <p className="text-sm font-medium">Auto (AI upload)</p>
+          <p className="text-xs text-muted-foreground">Upload the statement PDF — AI extracts transactions directly.</p>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="application/pdf"
+            className="hidden"
+            onChange={(e) => e.target.files?.[0] && handlePdfFile(e.target.files[0])}
+          />
+          <Button type="button" variant="outline" className="w-full gap-1.5" onClick={() => fileInputRef.current?.click()}>
+            <Upload className="h-3.5 w-3.5" />
+            {pdfFilename ?? 'Choose PDF'}
+          </Button>
+          {extractError && <p className="text-sm text-destructive">{extractError}</p>}
+          <Button type="button" className="w-full gap-1.5" disabled={!pdfBase64 || !bank.trim() || extracting} onClick={handleExtract}>
+            {extracting ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+            {extracting ? 'Extracting...' : 'Extract Transactions'}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
