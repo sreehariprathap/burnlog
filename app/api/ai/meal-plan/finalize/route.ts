@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import OpenAI from 'openai';
 import { getModel } from '@/lib/ai/modelConfig';
 import { formatAiError } from '@/lib/ai/errors';
+import { runAiJob, AiRouteError } from '@/lib/ai/jobs';
 import { MANUAL_INGREDIENTS_OPTION, type MealGridCell, type MealPlannerWizardAnswers, type LifestyleAnswers } from '@/lib/ai/types';
 
 const client = new OpenAI({
@@ -71,77 +72,94 @@ export async function POST(request: Request) {
 
     MODEL = await getModel(supabase, 'text');
 
-    const completion = await client.chat.completions.create({
-      model: MODEL,
-      temperature: 0.4,
-      messages: [{ role: 'user', content: buildGroceryListPrompt(grid, answers) }],
-      response_format: { type: 'json_object' },
-    });
-
-    const content = completion.choices?.[0]?.message?.content;
-    if (!content) {
-      return NextResponse.json({ error: 'AI returned no response' }, { status: 502 });
-    }
-
-    let parsed: { groceryList?: Record<string, string[]>; estimatedBudget?: string };
     try {
-      parsed = JSON.parse(content);
-    } catch {
-      return NextResponse.json({ error: 'AI response was not valid JSON' }, { status: 502 });
-    }
+      const responsePayload = await runAiJob(
+        supabase,
+        profile.id,
+        { jobType: 'meal-plan-finalize', app: 'burnlog', model: MODEL },
+        { grid, answers },
+        async () => {
+          const completion = await client.chat.completions.create({
+            model: MODEL,
+            temperature: 0.4,
+            messages: [{ role: 'user', content: buildGroceryListPrompt(grid, answers) }],
+            response_format: { type: 'json_object' },
+          });
 
-    if (!parsed.groceryList) {
-      return NextResponse.json({ error: 'AI response missing grocery list' }, { status: 502 });
-    }
+          const content = completion.choices?.[0]?.message?.content;
+          if (!content) {
+            throw new AiRouteError('AI returned no response', 502);
+          }
 
-    const rows = grid
-      .filter((cell) => cell.meal)
-      .map((cell) => ({
-        profileId: profile.id,
-        dayOfWeek: cell.dayOfWeek,
-        mealType: cell.mealType,
-        name: cell.meal!.name,
-        description: cell.meal!.description,
-        calories: cell.meal!.calories ?? null,
-        protein: cell.meal!.protein ?? null,
-        carbs: cell.meal!.carbs ?? null,
-        fat: cell.meal!.fat ?? null,
-        prepMinutes: cell.meal!.prepMinutes ?? null,
-      }));
+          let parsed: { groceryList?: Record<string, string[]>; estimatedBudget?: string };
+          try {
+            parsed = JSON.parse(content);
+          } catch {
+            throw new AiRouteError('AI response was not valid JSON', 502);
+          }
 
-    const { error: mealPlanError } = await supabase
-      .from('meal_plan_entries')
-      .upsert(rows, { onConflict: 'profileId,dayOfWeek,mealType' });
-    if (mealPlanError) console.error('finalize: meal_plan_entries upsert failed:', mealPlanError);
+          if (!parsed.groceryList) {
+            throw new AiRouteError('AI response missing grocery list', 502);
+          }
 
-    const { error: groceryError } = await supabase
-      .from('grocery_lists')
-      .upsert(
-        { profileId: profile.id, items: parsed.groceryList, estimatedBudget: parsed.estimatedBudget ?? null },
-        { onConflict: 'profileId' }
+          const rows = grid
+            .filter((cell) => cell.meal)
+            .map((cell) => ({
+              profileId: profile.id,
+              dayOfWeek: cell.dayOfWeek,
+              mealType: cell.mealType,
+              name: cell.meal!.name,
+              description: cell.meal!.description,
+              calories: cell.meal!.calories ?? null,
+              protein: cell.meal!.protein ?? null,
+              carbs: cell.meal!.carbs ?? null,
+              fat: cell.meal!.fat ?? null,
+              prepMinutes: cell.meal!.prepMinutes ?? null,
+            }));
+
+          const { error: mealPlanError } = await supabase
+            .from('meal_plan_entries')
+            .upsert(rows, { onConflict: 'profileId,dayOfWeek,mealType' });
+          if (mealPlanError) console.error('finalize: meal_plan_entries upsert failed:', mealPlanError);
+
+          const { error: groceryError } = await supabase
+            .from('grocery_lists')
+            .upsert(
+              { profileId: profile.id, items: parsed.groceryList, estimatedBudget: parsed.estimatedBudget ?? null },
+              { onConflict: 'profileId' }
+            );
+          if (groceryError) console.error('finalize: grocery_lists upsert failed:', groceryError);
+
+          const existingLifestyle = (profile.lifestyle ?? {}) as LifestyleAnswers;
+          const { error: profileError } = await supabase
+            .from('profiles')
+            .update({
+              lastMealPlanGeneratedAt: new Date().toISOString(),
+              lifestyle: {
+                ...existingLifestyle,
+                mealPlanning: {
+                  householdSize: answers.householdSize,
+                  cookMode: answers.cookMode,
+                  cuisinePreferences: answers.cuisinePreferences,
+                  surpriseMe: answers.surpriseMe,
+                  kitchenAppliances: answers.appliances,
+                },
+              },
+            })
+            .eq('id', profile.id);
+          if (profileError) console.error('finalize: profile update failed:', profileError);
+
+          return { groceryList: parsed.groceryList, estimatedBudget: parsed.estimatedBudget ?? '' };
+        }
       );
-    if (groceryError) console.error('finalize: grocery_lists upsert failed:', groceryError);
 
-    const existingLifestyle = (profile.lifestyle ?? {}) as LifestyleAnswers;
-    const { error: profileError } = await supabase
-      .from('profiles')
-      .update({
-        lastMealPlanGeneratedAt: new Date().toISOString(),
-        lifestyle: {
-          ...existingLifestyle,
-          mealPlanning: {
-            householdSize: answers.householdSize,
-            cookMode: answers.cookMode,
-            cuisinePreferences: answers.cuisinePreferences,
-            surpriseMe: answers.surpriseMe,
-            kitchenAppliances: answers.appliances,
-          },
-        },
-      })
-      .eq('id', profile.id);
-    if (profileError) console.error('finalize: profile update failed:', profileError);
-
-    return NextResponse.json({ groceryList: parsed.groceryList, estimatedBudget: parsed.estimatedBudget ?? '' });
+      return NextResponse.json(responsePayload);
+    } catch (err) {
+      if (err instanceof AiRouteError) {
+        return NextResponse.json({ error: err.message }, { status: err.status });
+      }
+      throw err;
+    }
   } catch (error) {
     console.error('meal-plan finalize error:', error);
     return NextResponse.json({ error: formatAiError(MODEL, error) }, { status: 500 });

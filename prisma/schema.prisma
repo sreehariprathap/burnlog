@@ -118,6 +118,7 @@ model Profile {
   toggleOverridesSet         ToggleOverride[] @relation("ToggleOverrideSetBy")
   errorLogsResolved          ErrorLog[]       @relation("ErrorLogResolvedBy")
   invitesSent                Invite[]         @relation("InviteSentBy")
+  aiJobs                     AiJob[]
 
   @@map("profiles")
 }
@@ -290,6 +291,26 @@ model AiModelSetting {
   updatedAt DateTime @default(now())
 
   @@map("ai_model_settings")
+}
+
+/// log of every AI job (request) run across the app, for the AI Jobs panel
+model AiJob {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile     Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId   String    @db.Uuid
+  jobType     String
+  app         String
+  status      String    @default("running")
+  input       Json?
+  output      Json?
+  error       String?
+  model       String?
+  durationMs  Int?
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  @@index([profileId, createdAt])
+  @@map("ai_jobs")
 }
 
 /// admin-toggleable onboarding page flags

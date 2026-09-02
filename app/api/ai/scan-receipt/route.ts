@@ -4,6 +4,7 @@ import OpenAI from 'openai';
 import { getModel } from '@/lib/ai/modelConfig';
 import { formatAiError } from '@/lib/ai/errors';
 import { EXPENSE_CATEGORIES } from '@/lib/financeCategories';
+import { runAiJob, AiRouteError } from '@/lib/ai/jobs';
 
 const client = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
@@ -28,12 +29,28 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No image provided' }, { status: 400 });
     }
 
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('userId', user.id)
+      .single();
+    if (!profile) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    }
+
     const base64Data = imageBase64.includes(',') ? imageBase64.split(',')[1] : imageBase64;
     const mimeType = imageBase64.startsWith('data:image/png') ? 'image/png' : 'image/jpeg';
 
     const categoryValues = EXPENSE_CATEGORIES.map((c) => c.value).join('", "');
 
-    const prompt = `You are a receipt-reading assistant analyzing a photo of a purchase receipt.
+    try {
+      const responsePayload = await runAiJob(
+        supabase,
+        profile.id,
+        { jobType: 'scan-receipt', app: 'burnlog', model: VISION_MODEL },
+        {},
+        async () => {
+          const prompt = `You are a receipt-reading assistant analyzing a photo of a purchase receipt.
 
 Look at this image carefully and extract the transaction details.
 
@@ -52,55 +69,65 @@ Pick the category that best matches the merchant/items (e.g. a supermarket recei
 If you cannot identify a receipt in the image, return:
 {"error": "No receipt detected in this image"}`;
 
-    const completion = await client.chat.completions.create({
-      model: VISION_MODEL,
-      temperature: 0.1,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'image_url',
-              image_url: {
-                url: `data:${mimeType};base64,${base64Data}`,
+          const completion = await client.chat.completions.create({
+            model: VISION_MODEL,
+            temperature: 0.1,
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  {
+                    type: 'image_url',
+                    image_url: {
+                      url: `data:${mimeType};base64,${base64Data}`,
+                    },
+                  },
+                  {
+                    type: 'text',
+                    text: prompt,
+                  },
+                ],
               },
-            },
-            {
-              type: 'text',
-              text: prompt,
-            },
-          ],
-        },
-      ],
-      response_format: { type: 'json_object' },
-    });
+            ],
+            response_format: { type: 'json_object' },
+          });
 
-    const content = completion.choices?.[0]?.message?.content;
-    if (!content) {
-      return NextResponse.json({ error: 'AI returned no response' }, { status: 502 });
+          const content = completion.choices?.[0]?.message?.content;
+          if (!content) {
+            throw new AiRouteError('AI returned no response', 502);
+          }
+
+          let parsed: unknown;
+          try {
+            parsed = JSON.parse(content);
+          } catch {
+            throw new AiRouteError('AI response was not valid JSON', 502);
+          }
+
+          const result = parsed as Record<string, unknown>;
+
+          if (result.error) {
+            throw new AiRouteError(String(result.error), 422);
+          }
+
+          return {
+            merchant: result.merchant ?? 'Unknown merchant',
+            amount: Number(result.amount ?? 0),
+            date: result.date ?? new Date().toISOString().slice(0, 10),
+            category: result.category ?? 'other_expense',
+            confidence: result.confidence ?? 'medium',
+            notes: result.notes ?? '',
+          };
+        }
+      );
+
+      return NextResponse.json(responsePayload);
+    } catch (err) {
+      if (err instanceof AiRouteError) {
+        return NextResponse.json({ error: err.message }, { status: err.status });
+      }
+      throw err;
     }
-
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(content);
-    } catch {
-      return NextResponse.json({ error: 'AI response was not valid JSON' }, { status: 502 });
-    }
-
-    const result = parsed as Record<string, unknown>;
-
-    if (result.error) {
-      return NextResponse.json({ error: result.error }, { status: 422 });
-    }
-
-    return NextResponse.json({
-      merchant: result.merchant ?? 'Unknown merchant',
-      amount: Number(result.amount ?? 0),
-      date: result.date ?? new Date().toISOString().slice(0, 10),
-      category: result.category ?? 'other_expense',
-      confidence: result.confidence ?? 'medium',
-      notes: result.notes ?? '',
-    });
   } catch (error) {
     console.error('scan-receipt error:', error);
     return NextResponse.json({ error: formatAiError(VISION_MODEL, error) }, { status: 500 });

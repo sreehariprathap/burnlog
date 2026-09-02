@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import OpenAI from 'openai';
 import { getModel } from '@/lib/ai/modelConfig';
 import { formatAiError } from '@/lib/ai/errors';
+import { runAiJob, AiRouteError } from '@/lib/ai/jobs';
 
 const client = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
@@ -42,42 +43,68 @@ export async function POST(request: Request) {
 
     MODEL = await getModel(supabase, 'text');
 
-    const completion = await client.chat.completions.create({
-      model: MODEL,
-      temperature: 0.5,
-      messages: [{ role: 'user', content: buildPrompt(title, notes || '', category || 'idea') }],
-      response_format: { type: 'json_object' },
-    });
-
-    const content = completion.choices?.[0]?.message?.content;
-    if (!content) {
-      return NextResponse.json({ error: 'AI returned no response' }, { status: 502 });
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('userId', user.id)
+      .single();
+    if (!profile) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
-    let parsed: {
-      plan?: string;
-      tasks?: Array<{ title?: string; category?: string; priority?: string; suggestedDueDate?: string | null }>;
-    };
     try {
-      parsed = JSON.parse(content);
-    } catch {
-      return NextResponse.json({ error: 'AI response was not valid JSON' }, { status: 502 });
+      const responsePayload = await runAiJob(
+        supabase,
+        profile.id,
+        { jobType: 'tasklog-idea-breakdown', app: 'tasklog', model: MODEL },
+        { title, notes, category },
+        async () => {
+          const completion = await client.chat.completions.create({
+            model: MODEL,
+            temperature: 0.5,
+            messages: [{ role: 'user', content: buildPrompt(title, notes || '', category || 'idea') }],
+            response_format: { type: 'json_object' },
+          });
+
+          const content = completion.choices?.[0]?.message?.content;
+          if (!content) {
+            throw new AiRouteError('AI returned no response', 502);
+          }
+
+          let parsed: {
+            plan?: string;
+            tasks?: Array<{ title?: string; category?: string; priority?: string; suggestedDueDate?: string | null }>;
+          };
+          try {
+            parsed = JSON.parse(content);
+          } catch {
+            throw new AiRouteError('AI response was not valid JSON', 502);
+          }
+
+          if (!parsed.plan || !parsed.tasks || parsed.tasks.length === 0) {
+            throw new AiRouteError('AI response was missing a plan or tasks', 502);
+          }
+
+          const tasks = parsed.tasks
+            .filter((t) => t.title && t.title.trim())
+            .map((t) => ({
+              title: t.title!.trim(),
+              category: t.category === 'work' ? 'work' : 'life',
+              priority: (['low', 'medium', 'high'].includes(t.priority || '') ? t.priority : 'medium') as 'low' | 'medium' | 'high',
+              suggestedDueDate: t.suggestedDueDate && t.suggestedDueDate !== 'null' ? t.suggestedDueDate : null,
+            }));
+
+          return { plan: parsed.plan.trim(), tasks };
+        }
+      );
+
+      return NextResponse.json(responsePayload);
+    } catch (err) {
+      if (err instanceof AiRouteError) {
+        return NextResponse.json({ error: err.message }, { status: err.status });
+      }
+      throw err;
     }
-
-    if (!parsed.plan || !parsed.tasks || parsed.tasks.length === 0) {
-      return NextResponse.json({ error: 'AI response was missing a plan or tasks' }, { status: 502 });
-    }
-
-    const tasks = parsed.tasks
-      .filter((t) => t.title && t.title.trim())
-      .map((t) => ({
-        title: t.title!.trim(),
-        category: t.category === 'work' ? 'work' : 'life',
-        priority: (['low', 'medium', 'high'].includes(t.priority || '') ? t.priority : 'medium') as 'low' | 'medium' | 'high',
-        suggestedDueDate: t.suggestedDueDate && t.suggestedDueDate !== 'null' ? t.suggestedDueDate : null,
-      }));
-
-    return NextResponse.json({ plan: parsed.plan.trim(), tasks });
   } catch (error) {
     console.error('tasklog idea-breakdown error:', error);
     return NextResponse.json({ error: formatAiError(MODEL, error) }, { status: 500 });
