@@ -60,6 +60,9 @@ export const NOTIFICATION_TEMPLATES: NotificationTemplate[] = [
   { id: 'learnlog-practice-reminder', app: 'learnlog', label: 'Practice reminder (streak)', title: "Keep your streak alive", message: 'Log a Skiing session today to keep your 5-day streak.', url: '/learnlog/skills' },
   { id: 'learnlog-classes-ready', app: 'learnlog', label: 'Nearby classes ready', title: 'Nearby classes found', message: 'We found 4 skiing class ideas near Vancouver.', url: '/learnlog/skills' },
   { id: 'learnlog-cert-expiring', app: 'learnlog', label: 'Certification expiring', title: 'Certification expiring soon', message: 'Your "First Aid & CPR" certification expires in 30 days.', url: '/learnlog/career' },
+  { id: 'learnlog-group-invite', app: 'learnlog', label: 'New learning group invite', title: 'New learning group invite', message: 'Sam invited you to join "Skiing".', url: '/learnlog' },
+  { id: 'learnlog-group-invite-accepted', app: 'learnlog', label: 'Group invite accepted', title: 'Group invite accepted', message: 'Jordan joined "Skiing".', url: '/learnlog' },
+  { id: 'learnlog-group-invite-declined', app: 'learnlog', label: 'Group invite declined', title: 'Group invite declined', message: 'Jordan declined your invite to "Skiing".', url: '/learnlog' },
 ];
 
 export function templatesByApp(): { app: AppId; label: string; templates: NotificationTemplate[] }[] {
