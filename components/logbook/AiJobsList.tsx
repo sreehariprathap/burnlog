@@ -26,6 +26,14 @@ async function fetchAiJobs(): Promise<{ jobs: AiJobDTO[] }> {
   return res.json();
 }
 
+// Postgres timestamps come back without a "Z" suffix (e.g.
+// "2026-09-02T19:06:27.397"); `new Date(...)` on that string parses it as
+// local time instead of UTC, so every relative time is off by the local
+// UTC offset. Treat a Z-less ISO string as UTC explicitly.
+function parseUtcDate(iso: string): Date {
+  return new Date(/[zZ]|[+-]\d\d:\d\d$/.test(iso) ? iso : `${iso}Z`);
+}
+
 const STATUS_STYLES: Record<AiJobDTO['status'], string> = {
   running: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
   success: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
@@ -52,7 +60,7 @@ function JobRow({ job }: { job: AiJobDTO }) {
         <div className="flex flex-col gap-1">
           <span className="text-sm font-medium">{humanizeJobType(job.jobType)}</span>
           <span className="text-xs text-muted-foreground">
-            {job.app} &middot; {formatDistanceToNow(new Date(job.createdAt), { addSuffix: true })}
+            {job.app} &middot; {formatDistanceToNow(parseUtcDate(job.createdAt), { addSuffix: true })}
           </span>
         </div>
         <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[job.status]}`}>
