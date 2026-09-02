@@ -71,7 +71,7 @@ export default function InvitesPage() {
             </Button>
           </div>
           <p className="text-xs text-muted-foreground">
-            Signup stays open to everyone — this just tracks who you've reached out to.
+            Signup stays open to everyone — this just tracks who you&apos;ve reached out to.
           </p>
         </CardContent>
       </Card>
