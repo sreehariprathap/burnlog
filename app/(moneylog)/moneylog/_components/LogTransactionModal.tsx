@@ -156,7 +156,7 @@ export function LogTransactionModal({ profileId, onClose, onSaved }: LogTransact
                       <option key={c.value} value={c.value}>{c.label}</option>
                     ))}
                   </select>
-                  {categoryError && <p className="text-sm text-red-500">{categoryError}</p>}
+                  {categoryError && <p className="text-sm text-destructive">{categoryError}</p>}
                 </div>
                 <div className="space-y-1">
                   <Label htmlFor="amount">Amount</Label>
@@ -170,7 +170,7 @@ export function LogTransactionModal({ profileId, onClose, onSaved }: LogTransact
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
                   />
-                  {amountError && <p className="text-sm text-red-500">{amountError}</p>}
+                  {amountError && <p className="text-sm text-destructive">{amountError}</p>}
                 </div>
               </div>
 
@@ -183,7 +183,7 @@ export function LogTransactionModal({ profileId, onClose, onSaved }: LogTransact
                   value={label}
                   onChange={(e) => setLabel(e.target.value)}
                 />
-                {labelError && <p className="text-sm text-red-500">{labelError}</p>}
+                {labelError && <p className="text-sm text-destructive">{labelError}</p>}
               </div>
 
               <div className="space-y-1">

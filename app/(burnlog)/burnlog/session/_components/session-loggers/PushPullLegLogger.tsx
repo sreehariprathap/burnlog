@@ -61,7 +61,7 @@ export function PushPullLegLogger({ bodyPart, userEquipment, onEnd }: PushPullLe
           {muscles.map((muscle, i) => (
             <div key={muscle} className="mb-6">
               <Label className="text-lg font-semibold mb-3 flex items-center">
-                {muscle} {muscleDone[i] && <CheckCircle2 className="ml-2 h-4 w-4 text-emerald-500" />}
+                {muscle} {muscleDone[i] && <CheckCircle2 className="ml-2 h-4 w-4 text-success" />}
               </Label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
                 {exercisesByMuscle[muscle].map((ex) => (

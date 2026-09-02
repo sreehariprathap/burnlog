@@ -22,10 +22,10 @@ export function BMIWidget({ height, weight }: BMIWidgetProps) {
   
   // Determine BMI category
   const getBmiCategory = (bmi: number): BMI => {
-    if (bmi < 18.5) return { value: bmi, category: 'Underweight', color: '#3B82F6' }; // blue
-    if (bmi < 25) return { value: bmi, category: 'Healthy', color: '#10B981' }; // green
-    if (bmi < 30) return { value: bmi, category: 'Overweight', color: '#F59E0B' }; // amber
-    return { value: bmi, category: 'Obese', color: '#EF4444' }; // red
+    if (bmi < 18.5) return { value: bmi, category: 'Underweight', color: 'var(--info)' };
+    if (bmi < 25) return { value: bmi, category: 'Healthy', color: 'var(--success)' };
+    if (bmi < 30) return { value: bmi, category: 'Overweight', color: 'var(--warning)' };
+    return { value: bmi, category: 'Obese', color: 'var(--destructive)' };
   };
   
   const bmiData = getBmiCategory(bmi);
@@ -46,7 +46,7 @@ export function BMIWidget({ height, weight }: BMIWidgetProps) {
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle>BMI</CardTitle>
-          <Activity className="w-5 h-5 text-amber-500" />
+          <Activity className="w-5 h-5 text-warning" />
         </div>
       </CardHeader>
       <CardContent>
@@ -71,10 +71,10 @@ export function BMIWidget({ height, weight }: BMIWidgetProps) {
           
           {/* Color bands */}
           <div className="absolute h-full w-full flex rounded-full overflow-hidden">
-            <div className="h-full bg-blue-400" style={{ width: '17.5%' }}></div>
-            <div className="h-full bg-green-400" style={{ width: '32.5%' }}></div>
-            <div className="h-full bg-amber-400" style={{ width: '25%' }}></div>
-            <div className="h-full bg-red-400" style={{ width: '25%' }}></div>
+            <div className="h-full bg-info" style={{ width: '17.5%' }}></div>
+            <div className="h-full bg-success" style={{ width: '32.5%' }}></div>
+            <div className="h-full bg-warning" style={{ width: '25%' }}></div>
+            <div className="h-full bg-destructive" style={{ width: '25%' }}></div>
           </div>
           
           {/* Indicator */}

@@ -78,9 +78,9 @@ export interface PriorityMeta {
 }
 
 export const PRIORITIES: PriorityMeta[] = [
-  { id: 'low', label: 'Low', color: '#60A5FA' },
-  { id: 'medium', label: 'Medium', color: '#F59E0B' },
-  { id: 'high', label: 'High', color: '#EF4444' },
+  { id: 'low', label: 'Low', color: 'var(--info)' },
+  { id: 'medium', label: 'Medium', color: 'var(--warning)' },
+  { id: 'high', label: 'High', color: 'var(--destructive)' },
 ];
 
 export function todayDateString(): string {

@@ -177,7 +177,7 @@ export default function ListingDetailPage() {
           </div>
           {listing.avgRating !== null && (
             <span className="flex items-center gap-1 text-sm">
-              <Star className="size-4 fill-current text-amber-500" />
+              <Star className="size-4 fill-current text-warning" />
               {listing.avgRating.toFixed(1)} ({listing.reviewCount})
             </span>
           )}
@@ -225,7 +225,7 @@ export default function ListingDetailPage() {
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-semibold">@{r.reviewer?.username}</span>
                   <span className="flex items-center gap-0.5 text-[10px] text-muted-foreground">
-                    <Star className="size-3 fill-current text-amber-500" />
+                    <Star className="size-3 fill-current text-warning" />
                     {r.rating}
                   </span>
                   <span className="text-[10px] text-muted-foreground">
@@ -244,7 +244,7 @@ export default function ListingDetailPage() {
               <div className="flex gap-1">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <button key={n} type="button" onClick={() => setReviewRating(n)} aria-label={`${n} stars`}>
-                    <Star className={cn('size-5', n <= reviewRating ? 'fill-current text-amber-500' : 'text-muted-foreground')} />
+                    <Star className={cn('size-5', n <= reviewRating ? 'fill-current text-warning' : 'text-muted-foreground')} />
                   </button>
                 ))}
               </div>

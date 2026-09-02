@@ -63,7 +63,7 @@ export function BodyweightLogger({ userEquipment, onEnd }: BodyweightLoggerProps
           {categories.map((cat, i) => (
             <div key={cat} className="mb-6">
               <Label className="text-lg font-semibold mb-3 flex items-center">
-                {cat} {catDone[i] && <CheckCircle2 className="ml-2 h-4 w-4 text-emerald-500" />}
+                {cat} {catDone[i] && <CheckCircle2 className="ml-2 h-4 w-4 text-success" />}
               </Label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
                 {exercisesByGroup[cat].map((ex) => (

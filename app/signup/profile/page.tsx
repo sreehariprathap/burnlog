@@ -213,7 +213,7 @@ export default function ProfileSetupPage() {
             </div>
 
             {error && (
-              <p className="text-red-500 text-sm">{error}</p>
+              <p className="text-destructive text-sm">{error}</p>
             )}
 
             <div className="flex justify-end">

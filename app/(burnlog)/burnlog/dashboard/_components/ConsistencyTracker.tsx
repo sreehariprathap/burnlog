@@ -100,7 +100,7 @@ export function ConsistencyTracker({
       <CardHeader className="flex flex-row items-center justify-between pb-2">
         <CardTitle className="text-base">This Week</CardTitle>
         {currentStreak > 0 && (
-          <span className="flex items-center gap-1 text-sm font-semibold text-amber-600 dark:text-amber-400">
+          <span className="flex items-center gap-1 text-sm font-semibold text-warning">
             <Flame className="size-4" />
             {currentStreak} day{currentStreak === 1 ? '' : 's'}
           </span>

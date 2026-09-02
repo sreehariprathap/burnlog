@@ -235,7 +235,7 @@ export default function ProfilePage() {
       <main className="flex-1 container mx-auto p-4 pb-20">
         {error && (
           <div className="text-center my-12">
-            <AlertTriangle className="w-12 h-12 text-red-500 mx-auto mb-4" />
+            <AlertTriangle className="w-12 h-12 text-destructive mx-auto mb-4" />
             <h2 className="text-2xl font-bold mb-4">Error</h2>
             <p className="mb-6">{error}</p>
             <Button 
@@ -250,7 +250,7 @@ export default function ProfilePage() {
         
         {!error && profileNotFound && (
           <div className="text-center my-12">
-            <AlertTriangle className="w-12 h-12 text-amber-500 mx-auto mb-4" />
+            <AlertTriangle className="w-12 h-12 text-warning mx-auto mb-4" />
             <h2 className="text-2xl font-bold mb-4">Profile Not Found</h2>
             <p className="mb-2">We couldn&apos;t find your profile information.</p>
             {email && <p className="text-sm mb-6">Logged in as: {email}</p>}
@@ -344,10 +344,10 @@ export default function ProfilePage() {
                     </Button>
                   </div>
                   {usernameStatus === 'checking' && <p className="text-xs text-muted-foreground">Checking availability…</p>}
-                  {usernameStatus === 'available' && <p className="text-xs text-green-600">Available</p>}
-                  {usernameStatus === 'taken' && <p className="text-xs text-red-500">Already taken</p>}
-                  {usernameStatus === 'invalid' && <p className="text-xs text-red-500">3-20 lowercase letters, digits, or underscores</p>}
-                  {usernameSaveError && <p className="text-xs text-red-500">{usernameSaveError}</p>}
+                  {usernameStatus === 'available' && <p className="text-xs text-success">Available</p>}
+                  {usernameStatus === 'taken' && <p className="text-xs text-destructive">Already taken</p>}
+                  {usernameStatus === 'invalid' && <p className="text-xs text-destructive">3-20 lowercase letters, digits, or underscores</p>}
+                  {usernameSaveError && <p className="text-xs text-destructive">{usernameSaveError}</p>}
                 </CardContent>
               </Card>
 
@@ -403,7 +403,7 @@ export default function ProfilePage() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <Bell className="w-5 h-5 text-amber-500" />
+                      <Bell className="w-5 h-5 text-warning" />
                       Test Push Notifications
                     </CardTitle>
                   </CardHeader>
@@ -454,7 +454,7 @@ export default function ProfilePage() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <Settings className="w-5 h-5 text-amber-500" />
+                      <Settings className="w-5 h-5 text-warning" />
                       Onboarding Pages
                     </CardTitle>
                   </CardHeader>
@@ -477,7 +477,7 @@ export default function ProfilePage() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <Cpu className="w-5 h-5 text-amber-500" />
+                      <Cpu className="w-5 h-5 text-warning" />
                       AI Model Settings
                     </CardTitle>
                   </CardHeader>
@@ -499,7 +499,7 @@ export default function ProfilePage() {
                 <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      <Bug className="w-5 h-5 text-amber-500" />
+                      <Bug className="w-5 h-5 text-warning" />
                       Developer Error Alerts
                     </CardTitle>
                   </CardHeader>

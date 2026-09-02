@@ -22,9 +22,9 @@ type ReceiptScannerProps = {
 };
 
 const CONFIDENCE_COLORS = {
-  high: 'text-emerald-600 dark:text-emerald-400',
-  medium: 'text-amber-600 dark:text-amber-400',
-  low: 'text-red-600 dark:text-red-400',
+  high: 'text-success',
+  medium: 'text-warning',
+  low: 'text-destructive',
 };
 
 export function ReceiptScanner({ onResult, onClose }: ReceiptScannerProps) {
@@ -201,7 +201,7 @@ export function ReceiptScanner({ onResult, onClose }: ReceiptScannerProps) {
           )}
 
           {error && (
-            <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 rounded-lg p-3">
+            <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/30 rounded-lg p-3">
               <AlertTriangle className="h-4 w-4 shrink-0" />
               {error}
             </div>

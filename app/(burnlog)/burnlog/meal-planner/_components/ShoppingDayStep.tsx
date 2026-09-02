@@ -62,7 +62,7 @@ export function ShoppingDayStep({ profileId, onDone }: ShoppingDayStepProps) {
       </CardHeader>
       <CardContent className="space-y-5">
         {error && (
-          <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 rounded-lg p-3">
+          <div className="text-sm text-destructive bg-destructive/30 rounded-lg p-3">
             {error}
           </div>
         )}

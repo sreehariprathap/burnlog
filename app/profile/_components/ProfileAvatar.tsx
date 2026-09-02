@@ -5,7 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Camera, Loader2 } from 'lucide-react';
 
-const AVATAR_COLORS = ['#F97316', '#FBBF24', '#EF4444', '#FF9E4F', '#B55233'];
+const AVATAR_COLORS = ['var(--chart-1)', 'var(--chart-2)', 'var(--chart-3)', 'var(--chart-4)', 'var(--chart-5)'];
 
 function colorForName(name: string): string {
   let hash = 0;
@@ -111,7 +111,7 @@ export function ProfileAvatar({ userId, firstName, lastName, avatarUrl, onUpload
           if (file) handleFile(file);
         }}
       />
-      {error && <p className="text-xs text-red-500">{error}</p>}
+      {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
   );
 }

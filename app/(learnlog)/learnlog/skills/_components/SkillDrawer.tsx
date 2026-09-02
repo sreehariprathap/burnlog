@@ -65,7 +65,7 @@ export function SkillDrawer({ profileId, open, onOpenChange, onSaved }: SkillDra
           <div className="flex flex-col gap-2">
             <Label htmlFor="name">Name</Label>
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Skiing" />
-            {nameError && <p className="text-red-500 text-xs">{nameError}</p>}
+            {nameError && <p className="text-destructive text-xs">{nameError}</p>}
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="category">Category (optional)</Label>

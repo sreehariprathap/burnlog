@@ -70,7 +70,7 @@ export function RoleDrawer({ profileId, open, onOpenChange, onSaved }: RoleDrawe
             <Label htmlFor="company">Company</Label>
             <Input id="company" value={company} onChange={(e) => setCompany(e.target.value)} />
           </div>
-          {error && <p className="text-red-500 text-xs">{error}</p>}
+          {error && <p className="text-destructive text-xs">{error}</p>}
           <div className="flex flex-col gap-2">
             <Label htmlFor="startDate">Start date</Label>
             <Input id="startDate" type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />

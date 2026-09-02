@@ -78,27 +78,27 @@ export default function SignUpPage() {
                 <Input id="email" type="email" autoComplete="email" autoFocus value={email}
                   onChange={e=>{ setEmail(e.target.value); setFieldErrors(f=>({ ...f, email: undefined })); }}
                   required aria-invalid={!!fieldErrors.email} />
-                {fieldErrors.email && <p className="text-red-500 text-xs">{fieldErrors.email}</p>}
+                {fieldErrors.email && <p className="text-destructive text-xs">{fieldErrors.email}</p>}
               </div>
               <div className="flex flex-col gap-2">
                 <Label htmlFor="password">Password</Label>
                 <Input id="password" type="password" autoComplete="new-password" value={password}
                   onChange={e=>{ setPassword(e.target.value); setFieldErrors(f=>({ ...f, password: undefined })); }}
                   required aria-invalid={!!fieldErrors.password} />
-                {fieldErrors.password && <p className="text-red-500 text-xs">{fieldErrors.password}</p>}
+                {fieldErrors.password && <p className="text-destructive text-xs">{fieldErrors.password}</p>}
               </div>
               <div className="flex flex-col gap-2">
                 <Label htmlFor="confirmPassword">Confirm password</Label>
                 <Input id="confirmPassword" type="password" autoComplete="new-password" value={confirmPassword}
                   onChange={e=>{ setConfirmPassword(e.target.value); setFieldErrors(f=>({ ...f, confirmPassword: undefined })); }}
                   required aria-invalid={!!fieldErrors.confirmPassword} />
-                {fieldErrors.confirmPassword && <p className="text-red-500 text-xs">{fieldErrors.confirmPassword}</p>}
+                {fieldErrors.confirmPassword && <p className="text-destructive text-xs">{fieldErrors.confirmPassword}</p>}
               </div>
-              {error && <p className="text-red-500">{error}</p>}
+              {error && <p className="text-destructive">{error}</p>}
               <Button type="submit" className="w-full" disabled={loading} aria-label={loading ? 'Signing up' : undefined}>
                 {loading ? <Loader2 className="animate-spin"/> : 'Sign Up'}
               </Button>
-              <p className="text-sm text-center ">Already have an account? <a href="/login" className="text-amber-500">Log In</a></p>
+              <p className="text-sm text-center ">Already have an account? <a href="/login" className="text-primary">Log In</a></p>
             </form>
           ) : (
             <div className="text-center space-y-4">

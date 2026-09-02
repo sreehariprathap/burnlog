@@ -57,7 +57,7 @@ interface NeonGradientCardProps extends React.HTMLAttributes<HTMLDivElement> {
   borderRadius?: number
 
   /**
-   * @default "{ firstColor: '#ff00aa', secondColor: '#00FFF1' }"
+   * @default "{ firstColor: 'var(--primary)', secondColor: 'var(--chart-2)' }"
    * @type string
    * @description
    * The colors of the neon gradient
@@ -71,8 +71,8 @@ export const NeonGradientCard: React.FC<NeonGradientCardProps> = ({
   borderSize = 2,
   borderRadius = 20,
   neonColors = {
-    firstColor: "#ff00aa",
-    secondColor: "#00FFF1",
+    firstColor: "var(--primary)",
+    secondColor: "var(--chart-2)",
   },
   ...props
 }) => {

@@ -1,6 +1,7 @@
 // components/logbook/StreakBadge.tsx
 import { Flame } from 'lucide-react';
 import { StatCard } from '@/components/ui/stat-card';
+import { appSearchColor } from '@/lib/search/registry';
 
 interface StreakBadgeProps {
   streak: number;
@@ -15,8 +16,14 @@ export function StreakBadge({ streak, streakApps }: StreakBadgeProps) {
   return (
     <StatCard>
       <div className="flex items-center gap-3">
-        <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-orange-500/10">
-          <Flame className={streak > 0 ? 'h-5 w-5 text-orange-500' : 'h-5 w-5 text-muted-foreground'} />
+        <div
+          className="flex size-10 shrink-0 items-center justify-center rounded-full"
+          style={{ backgroundColor: `color-mix(in oklch, ${appSearchColor('burnlog')}, transparent 90%)` }}
+        >
+          <Flame
+            className="h-5 w-5"
+            style={{ color: streak > 0 ? appSearchColor('burnlog') : 'var(--muted-foreground)' }}
+          />
         </div>
         <div>
           <p className="text-sm font-semibold">

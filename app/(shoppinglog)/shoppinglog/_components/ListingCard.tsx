@@ -51,7 +51,7 @@ export function ListingCard({ listing }: { listing: ListingSummary }) {
             <span className="text-xs text-muted-foreground">@{listing.seller?.username ?? 'unknown'}</span>
             {typeof listing.avgRating === 'number' && (
               <span className="flex items-center gap-0.5 text-xs text-muted-foreground">
-                <Star className="size-3 fill-current text-amber-500" />
+                <Star className="size-3 fill-current text-warning" />
                 {listing.avgRating.toFixed(1)}
               </span>
             )}

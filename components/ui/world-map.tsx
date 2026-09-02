@@ -19,7 +19,7 @@ interface MapProps {
   lineColor?: string;
 }
 
-export default function WorldMap({ dots = [], hotspots = [], lineColor = '#0ea5e9' }: MapProps) {
+export default function WorldMap({ dots = [], hotspots = [], lineColor = 'var(--primary)' }: MapProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const map = new DottedMap({ height: 100, grid: 'diagonal' });
 

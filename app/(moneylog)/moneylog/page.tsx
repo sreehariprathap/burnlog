@@ -32,8 +32,14 @@ const periodTabs: TabItem[] = [
 
 const PERIODS: Period[] = ['weekly', 'monthly', 'yearly'];
 
-const INCOME_RING_COLORS = ['#10B981', '#14B8A6', '#22C55E', '#059669', '#0D9488', '#65A30D'];
-const EXPENSE_RING_COLORS = ['#F43F5E', '#F97316', '#EF4444', '#EC4899', '#F59E0B', '#DC2626'];
+const INCOME_RING_COLORS = [
+  'var(--moneylog-income-1)', 'var(--moneylog-income-2)', 'var(--moneylog-income-3)',
+  'var(--moneylog-income-4)', 'var(--moneylog-income-5)', 'var(--moneylog-income-6)',
+];
+const EXPENSE_RING_COLORS = [
+  'var(--moneylog-expense-1)', 'var(--moneylog-expense-2)', 'var(--moneylog-expense-3)',
+  'var(--moneylog-expense-4)', 'var(--moneylog-expense-5)', 'var(--moneylog-expense-6)',
+];
 
 function toSegments(byCategory: Record<string, number>, palette: string[]): RingSegment[] {
   return Object.entries(byCategory).map(([category, value], index) => ({

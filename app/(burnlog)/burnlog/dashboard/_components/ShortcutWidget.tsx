@@ -21,25 +21,25 @@ export function ShortcutWidget({
       label: 'Start Workout',
       href: '/burnlog/session',
       icon: Dumbbell,
-      color: 'bg-amber-500'
+      color: 'bg-chart-1'
     },
     {
       label: 'View Insights',
       href: '/burnlog/insights',
       icon: LineChart,
-      color: 'bg-blue-500'
+      color: 'bg-chart-2'
     },
     {
       label: 'Set Goals',
       href: '/burnlog/goals',
       icon: Heart,
-      color: 'bg-green-500'
+      color: 'bg-chart-3'
     },
     {
       label: 'Workout Plan',
       href: '/burnlog/session',
       icon: CalendarCheck,
-      color: 'bg-purple-500'
+      color: 'bg-chart-4'
     }
   ]
 }: ShortcutWidgetProps) {
@@ -54,7 +54,7 @@ export function ShortcutWidget({
               <Link 
                 key={idx}
                 href={shortcut.href}
-                className="flex flex-col items-center justify-center p-3 rounded-xl hover:dark:bg-amber-500 hover:bg-amber-200 transition-colors text-center"
+                className="flex flex-col items-center justify-center p-3 rounded-xl hover:bg-warning/20 transition-colors text-center"
               >
                 <div className={`${shortcut.color} text-white p-2 rounded-full mb-2`}>
                   <Icon className="w-4 h-4" />

@@ -144,7 +144,7 @@ export function PlanMonthCalendar({ profileId, currentStreak, selectedDate, onSe
   return (
     <div className="space-y-3 p-4">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-1 text-sm font-semibold text-amber-600 dark:text-amber-400">
+        <div className="flex items-center gap-1 text-sm font-semibold text-warning">
           <Flame className="size-4" />
           {currentStreak} day streak
         </div>

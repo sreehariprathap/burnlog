@@ -11,12 +11,12 @@ import type { LogbookCard } from '@/lib/logbook/today';
 import { appSearchColor } from '@/lib/search/registry';
 
 const CARD_META: Record<LogbookCard['app'], { icon: LucideIcon; color: string; appId: AppId }> = {
-  burnlog: { icon: Flame, color: '#F97316', appId: 'burnlog' },
-  tasklog: { icon: ListChecks, color: '#3B82F6', appId: 'tasklog' },
-  moneylog: { icon: Wallet, color: '#22C55E', appId: 'moneylog' },
-  homelog: { icon: House, color: '#9253DA', appId: 'homelog' },
-  sociallog: { icon: MessageCircle, color: '#A10059', appId: 'sociallog' },
-  shoppinglog: { icon: ShoppingBag, color: '#D46000', appId: 'shoppinglog' },
+  burnlog: { icon: Flame, color: appSearchColor('burnlog'), appId: 'burnlog' },
+  tasklog: { icon: ListChecks, color: appSearchColor('tasklog'), appId: 'tasklog' },
+  moneylog: { icon: Wallet, color: appSearchColor('moneylog'), appId: 'moneylog' },
+  homelog: { icon: House, color: appSearchColor('homelog'), appId: 'homelog' },
+  sociallog: { icon: MessageCircle, color: appSearchColor('sociallog'), appId: 'sociallog' },
+  shoppinglog: { icon: ShoppingBag, color: appSearchColor('shoppinglog'), appId: 'shoppinglog' },
 };
 
 // Hero tiles bookend the grid — everything else sits two-per-row between them.

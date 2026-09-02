@@ -396,9 +396,9 @@ export function WorkoutHistory({ onClose }: WorkoutHistoryProps) {
                 </div>
                 <div className="flex items-center">
                   {workout.sessionData.completed ? (
-                    <CheckCircle className="h-5 w-5 text-green-500" />
+                    <CheckCircle className="h-5 w-5 text-success" />
                   ) : (
-                    <div className="text-sm text-yellow-500">Incomplete</div>
+                    <div className="text-sm text-warning">Incomplete</div>
                   )}
                 </div>
               </div>

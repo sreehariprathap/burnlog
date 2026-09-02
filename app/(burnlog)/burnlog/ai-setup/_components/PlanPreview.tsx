@@ -54,7 +54,7 @@ export function PlanPreview({
                       onClick={() => setDayBodyPart(entry.dayOfWeek, bp)}
                       className={`px-2 py-1 text-xs rounded-md border ${
                         entry.bodyPart === bp
-                          ? 'bg-amber-500 text-white border-amber-500'
+                          ? 'bg-warning text-white border-warning'
                           : 'border-gray-300 text-gray-700'
                       }`}
                     >

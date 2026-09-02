@@ -4,7 +4,10 @@
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
-const RING_COLORS = ["#FF9E4F", "#FF3D71", "#4ADE80", "#FFA726", "#FFEB3B", "#FF4081"];
+const RING_COLORS = [
+  "var(--primary)", "var(--chart-2)", "var(--success)",
+  "var(--chart-3)", "var(--warning)", "var(--chart-4)",
+];
 
 const DEFAULT_TASKS = [
   "Reviewing your profile",
@@ -54,13 +57,12 @@ export function AiLoading({ tasks = DEFAULT_TASKS }: { tasks?: string[] }) {
                 cy="50"
                 r={r}
                 fill="none"
-                stroke={color}
                 strokeWidth="2.5"
                 strokeDasharray={circumference}
                 strokeDashoffset={offset}
                 strokeLinecap="round"
                 opacity={0.85}
-                style={{ transition: "stroke-dashoffset 0.6s ease" }}
+                style={{ stroke: color, transition: "stroke-dashoffset 0.6s ease" }}
               />
             );
           })}

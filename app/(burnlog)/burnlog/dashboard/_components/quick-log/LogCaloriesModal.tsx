@@ -216,7 +216,7 @@ export function LogCaloriesModal({ profileId, onClose, onSaved }: LogCaloriesMod
             </TabsContent>
           </Tabs>
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          {error && <p className="text-sm text-destructive">{error}</p>}
 
           <Button onClick={handleSave} disabled={saving} className="w-full">
             {saving ? 'Saving...' : 'Save'}

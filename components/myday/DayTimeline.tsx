@@ -3,6 +3,7 @@
 import { CheckCircle2, Circle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { MyDayBlock } from '@/lib/myday/types';
+import { appSearchColor } from '@/lib/search/registry';
 
 interface DayTimelineProps {
   blocks: MyDayBlock[];
@@ -15,10 +16,10 @@ const END_HOUR = 23;
 const ROW_HEIGHT_PX = 64;
 
 const SOURCE_COLORS: Record<MyDayBlock['source'], string> = {
-  manual: '#64748B',
-  burnlog: '#F97316',
-  tasklog: '#3B82F6',
-  moneylog: '#22C55E',
+  manual: 'var(--muted-foreground)',
+  burnlog: appSearchColor('burnlog'),
+  tasklog: appSearchColor('tasklog'),
+  moneylog: appSearchColor('moneylog'),
 };
 
 function timeToMinutes(time: string): number {
@@ -71,7 +72,7 @@ export function DayTimeline({ blocks, onBlockClick, onSlotClick }: DayTimelinePr
               <div className="flex items-center gap-1.5">
                 {block.actual !== null &&
                   (block.actual ? (
-                    <CheckCircle2 className="h-3.5 w-3.5 text-green-500" />
+                    <CheckCircle2 className="h-3.5 w-3.5 text-success" />
                   ) : (
                     <Circle className="h-3.5 w-3.5 text-muted-foreground" />
                   ))}

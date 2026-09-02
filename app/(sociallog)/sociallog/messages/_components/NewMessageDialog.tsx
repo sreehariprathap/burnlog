@@ -69,7 +69,7 @@ export function NewMessageDialog({
           autoFocus
           autoComplete="off"
         />
-        {error && <p className="text-xs text-red-500">{error}</p>}
+        {error && <p className="text-xs text-destructive">{error}</p>}
         {isLoading && <Loader2 className="h-5 w-5 animate-spin" />}
         <div className="max-h-72 space-y-1 overflow-y-auto">
           {(data?.results ?? []).map((u) => (

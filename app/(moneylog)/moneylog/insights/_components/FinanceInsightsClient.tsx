@@ -129,9 +129,9 @@ export default function FinanceInsightsClient({ recurringItems, transactions }: 
             <YAxis />
             <Tooltip formatter={(value: number) => formatCurrency(value)} />
             <Legend />
-            <Line type="monotone" dataKey="income" stroke="#22C55E" />
-            <Line type="monotone" dataKey="expense" stroke="#EF4444" />
-            <Line type="monotone" dataKey="net" stroke="#3B82F6" />
+            <Line type="monotone" dataKey="income" stroke="var(--success)" />
+            <Line type="monotone" dataKey="expense" stroke="var(--destructive)" />
+            <Line type="monotone" dataKey="net" stroke="var(--info)" />
           </LineChart>
         </ResponsiveContainer>
       </CardContent>
@@ -150,7 +150,7 @@ export default function FinanceInsightsClient({ recurringItems, transactions }: 
             <XAxis dataKey="category" tick={{ fontSize: 10 }} interval={0} angle={-30} textAnchor="end" height={60} />
             <YAxis />
             <Tooltip formatter={(value: number) => formatCurrency(value)} />
-            <Bar dataKey="amount" fill="#EF4444" />
+            <Bar dataKey="amount" fill="var(--destructive)" />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>
@@ -169,7 +169,7 @@ export default function FinanceInsightsClient({ recurringItems, transactions }: 
             <XAxis dataKey="category" tick={{ fontSize: 10 }} interval={0} angle={-30} textAnchor="end" height={60} />
             <YAxis />
             <Tooltip formatter={(value: number) => formatCurrency(value)} />
-            <Bar dataKey="amount" fill="#22C55E" />
+            <Bar dataKey="amount" fill="var(--success)" />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>

@@ -137,7 +137,7 @@ export default function BurnLogConfigPage() {
               <AccordionContent>
                 <p>Your BMI category is <strong>{bmiCategory}</strong>.</p>
                 <div className="h-2 bg-gray-200 rounded-full mt-2">
-                  <div className="h-2 bg-blue-500 rounded-full" style={{ width: `${(bmi / 40) * 100}%` }} />
+                  <div className="h-2 bg-info rounded-full" style={{ width: `${(bmi / 40) * 100}%` }} />
                 </div>
                 <p className="text-sm mt-1">Underweight &lt;18.5 | Normal 18.5–24.9 | Overweight 25–29.9 | Obese 30+</p>
               </AccordionContent>
@@ -147,7 +147,7 @@ export default function BurnLogConfigPage() {
               <AccordionContent>
                 <p>Your Basal Metabolic Rate: <strong>{bmr}</strong> kcal/day.</p>
                 <div className="h-2 bg-gray-200 rounded-full mt-2">
-                  <div className="h-2 bg-green-500 rounded-full" style={{ width: `${Math.min(bmr / 3000, 1) * 100}%` }} />
+                  <div className="h-2 bg-success rounded-full" style={{ width: `${Math.min(bmr / 3000, 1) * 100}%` }} />
                 </div>
                 <p className="text-sm mt-1">Avg male 1600–2400 | Avg female 1400–2000 kcal/day</p>
               </AccordionContent>
@@ -159,7 +159,7 @@ export default function BurnLogConfigPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Flame className="w-5 h-5 text-orange-500" />
+            <Flame className="w-5 h-5 text-primary" />
             Level {profile.level}
           </CardTitle>
         </CardHeader>
@@ -170,7 +170,7 @@ export default function BurnLogConfigPage() {
               <span>{100 - (profile.xp % 100)} xp to next level</span>
             </div>
             <div className="h-2 bg-gray-200 rounded-full">
-              <div className="h-2 bg-orange-500 rounded-full" style={{ width: `${profile.xp % 100}%` }} />
+              <div className="h-2 bg-primary rounded-full" style={{ width: `${profile.xp % 100}%` }} />
             </div>
           </div>
           <div className="flex justify-between text-sm">
@@ -183,7 +183,7 @@ export default function BurnLogConfigPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-amber-500" />
+            <Sparkles className="w-5 h-5 text-warning" />
             AI Insights
           </CardTitle>
         </CardHeader>

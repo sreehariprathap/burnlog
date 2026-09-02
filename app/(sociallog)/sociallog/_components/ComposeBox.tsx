@@ -122,7 +122,7 @@ export function ComposeBox({ onPosted }: { onPosted: () => void }) {
             </button>
           </div>
         )}
-        {error && <p className="text-xs text-red-500">{error}</p>}
+        {error && <p className="text-xs text-destructive">{error}</p>}
         <div className="flex items-center justify-between">
           <Button
             variant="outline"

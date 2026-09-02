@@ -125,8 +125,8 @@ export function ActiveCommuteLogger({ commuteDetails, onEnd }: ActiveCommuteLogg
           </div>
 
           {/* Summary card */}
-          <div className="rounded-xl bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 p-4 space-y-1">
-            <p className="text-sm font-semibold text-green-700 dark:text-green-400">Today&apos;s commute workout</p>
+          <div className="rounded-xl bg-success/30 border border-success p-4 space-y-1">
+            <p className="text-sm font-semibold text-success">Today&apos;s commute workout</p>
             <div className="grid grid-cols-3 gap-2 text-center mt-2">
               <div>
                 <p className="text-xl font-bold">{totalDistance.toFixed(1)}</p>

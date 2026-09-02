@@ -176,7 +176,7 @@ export function WalkTrackerModal({ profileId, onClose, onSaved }: WalkTrackerMod
                 />
               </div>
 
-              {error && <p className="text-sm text-red-500">{error}</p>}
+              {error && <p className="text-sm text-destructive">{error}</p>}
 
               <Button onClick={handleFinish} disabled={!canFinish || saving} className="w-full">
                 {saving ? 'Saving...' : 'Finish'}

@@ -14,6 +14,8 @@ async function fetchWeekly(): Promise<LogbookWeekly> {
   return res.json();
 }
 
+// Fixed per-app colors, independent of the ambient .app-* theme — see
+// appSearchColor() in lib/search/registry.ts for the same pattern.
 const METRIC_META: Record<WeeklyMetric['app'], { icon: LucideIcon; color: string }> = {
   burnlog: { icon: Flame, color: '#F97316' },
   tasklog: { icon: ListChecks, color: '#3B82F6' },
@@ -43,7 +45,7 @@ function DeltaBadge({ metric }: { metric: WeeklyMetric }) {
   const Icon = diff > 0 ? TrendingUp : TrendingDown;
 
   return (
-    <span className={`flex items-center gap-1 text-xs font-medium ${isGoodDirection ? 'text-green-600 dark:text-green-400' : 'text-red-500'}`}>
+    <span className={`flex items-center gap-1 text-xs font-medium ${isGoodDirection ? 'text-success' : 'text-destructive'}`}>
       <Icon className="h-3 w-3" />
       {pct !== null ? `${pct}%` : formatMetricValue(metric, Math.abs(diff))} {diff > 0 ? 'more' : 'less'}
     </span>

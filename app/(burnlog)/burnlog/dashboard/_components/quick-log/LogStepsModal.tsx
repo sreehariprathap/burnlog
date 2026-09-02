@@ -67,7 +67,7 @@ export function LogStepsModal({ profileId, onClose, onSaved }: LogStepsModalProp
             <Input id="date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           </div>
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          {error && <p className="text-sm text-destructive">{error}</p>}
 
           <Button onClick={handleSave} disabled={saving} className="w-full">
             {saving ? 'Saving...' : 'Save'}

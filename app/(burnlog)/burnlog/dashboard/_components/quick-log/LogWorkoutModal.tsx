@@ -173,7 +173,7 @@ export function LogWorkoutModal({ profileId, onClose, onSaved }: LogWorkoutModal
             </div>
           </div>
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          {error && <p className="text-sm text-destructive">{error}</p>}
 
           <Button onClick={handleSave} disabled={saving} className="w-full">
             {saving ? 'Saving...' : 'Save'}

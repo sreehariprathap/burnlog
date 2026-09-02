@@ -34,8 +34,8 @@ export default function PWAStatus() {
   return (
     <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-50 px-4 py-2 rounded-full text-white text-sm font-medium flex items-center space-x-2 transition-all duration-300 ${
       isOnline 
-        ? 'bg-green-500' 
-        : 'bg-red-500'
+        ? 'bg-success' 
+        : 'bg-destructive'
     }`}>
       {isOnline ? (
         <>

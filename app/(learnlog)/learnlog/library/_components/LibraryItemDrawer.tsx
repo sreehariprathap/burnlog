@@ -89,7 +89,7 @@ export function LibraryItemDrawer({ profileId, open, onOpenChange, onSaved }: Li
           <div className="flex flex-col gap-2">
             <Label htmlFor="title">Title</Label>
             <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Atomic Habits" />
-            {titleError && <p className="text-red-500 text-xs">{titleError}</p>}
+            {titleError && <p className="text-destructive text-xs">{titleError}</p>}
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="authorOrProvider">{type === 'BOOK' ? 'Author' : 'Provider'} (optional)</Label>

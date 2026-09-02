@@ -16,8 +16,8 @@ async function fetchCalendar(): Promise<LogbookCalendar> {
 
 const LEVEL_CLASSES: Record<0 | 1 | 2, string> = {
   0: 'bg-muted',
-  1: 'bg-green-300 dark:bg-green-800',
-  2: 'bg-green-500 dark:bg-green-500',
+  1: 'bg-success',
+  2: 'bg-success',
 };
 
 const WEEKDAY_LABELS = ['', 'Mon', '', 'Wed', '', 'Fri', ''];

@@ -77,7 +77,7 @@ export function SessionLogger({ plan, lifestyle, onEnd }: SessionLoggerProps) {
         <div className="fixed bottom-20 left-0 right-0 p-4 flex justify-center">
           <Button 
             onClick={() => setIsCompleting(true)} 
-            className="px-8 py-6 rounded-full bg-green-600 hover:bg-green-700 text-white"
+            className="px-8 py-6 rounded-full bg-success hover:bg-success/90 text-white"
           >
             <Check className="mr-2 h-6 w-6" />
             Complete Workout

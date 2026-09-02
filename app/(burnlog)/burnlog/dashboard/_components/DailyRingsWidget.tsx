@@ -20,10 +20,10 @@ type Metrics = {
 };
 
 const RINGS = [
-  { key: 'burn' as const, goalType: 'calories_burned', color: '#F97316', icon: Flame, label: 'Burn', unit: 'kcal' },
-  { key: 'eat' as const, goalType: 'calories_intake', color: '#22C55E', icon: Utensils, label: 'Eat', unit: 'kcal' },
-  { key: 'workoutMinutes' as const, goalType: 'workout_time', color: '#3B82F6', icon: Timer, label: 'Move', unit: 'min' },
-  { key: 'steps' as const, goalType: 'daily_steps', color: '#A855F7', icon: Footprints, label: 'Steps', unit: 'steps' },
+  { key: 'burn' as const, goalType: 'calories_burned', color: 'var(--chart-1)', icon: Flame, label: 'Burn', unit: 'kcal' },
+  { key: 'eat' as const, goalType: 'calories_intake', color: 'var(--chart-2)', icon: Utensils, label: 'Eat', unit: 'kcal' },
+  { key: 'workoutMinutes' as const, goalType: 'workout_time', color: 'var(--chart-3)', icon: Timer, label: 'Move', unit: 'min' },
+  { key: 'steps' as const, goalType: 'daily_steps', color: 'var(--chart-4)', icon: Footprints, label: 'Steps', unit: 'steps' },
 ];
 
 const RING_SIZE = 220;
@@ -156,7 +156,7 @@ export function DailyRingsWidget({ profileId, refreshKey }: DailyRingsWidgetProp
 
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
               <Activity className="h-3.5 w-3.5 text-muted-foreground" />
-              <span className={cn('text-xl font-bold tabular-nums', dayScore >= 100 ? 'text-emerald-500' : 'text-foreground')}>
+              <span className={cn('text-xl font-bold tabular-nums', dayScore >= 100 ? 'text-success' : 'text-foreground')}>
                 {dayScore}%
               </span>
               <span className="text-[10px] text-muted-foreground">today</span>

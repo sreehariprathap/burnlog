@@ -149,7 +149,7 @@ export function MealPlannerFlow() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background">
       {error && (
-        <div className="fixed top-4 left-1/2 -translate-x-1/2 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 rounded-lg p-3 z-10">
+        <div className="fixed top-4 left-1/2 -translate-x-1/2 text-sm text-destructive bg-destructive/30 rounded-lg p-3 z-10">
           {error}
         </div>
       )}

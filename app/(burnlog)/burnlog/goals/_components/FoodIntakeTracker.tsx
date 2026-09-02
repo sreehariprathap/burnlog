@@ -200,21 +200,21 @@ export function FoodIntakeTracker({ userId }: FoodIntakeTrackerProps) {
       <div className="flex items-center justify-center mt-4 mb-2">
         <div className="relative h-32 w-32 rounded-full overflow-hidden">
           <div 
-            className="absolute bg-amber-500" 
+            className="absolute bg-warning" 
             style={{
               top: 0, left: 0, height: '100%', width: '100%', 
               clipPath: `polygon(50% 50%, 50% 0, ${50 + 50 * Math.cos(2 * Math.PI * proteinPercent / 100)}% ${50 - 50 * Math.sin(2 * Math.PI * proteinPercent / 100)}%, 50% 50%)`
             }}
           />
           <div 
-            className="absolute bg-green-500" 
+            className="absolute bg-success" 
             style={{
               top: 0, left: 0, height: '100%', width: '100%', 
               clipPath: `polygon(50% 50%, ${50 + 50 * Math.cos(2 * Math.PI * proteinPercent / 100)}% ${50 - 50 * Math.sin(2 * Math.PI * proteinPercent / 100)}%, ${50 + 50 * Math.cos(2 * Math.PI * (proteinPercent + carbsPercent) / 100)}% ${50 - 50 * Math.sin(2 * Math.PI * (proteinPercent + carbsPercent) / 100)}%, 50% 50%)`
             }}
           />
           <div 
-            className="absolute bg-red-500" 
+            className="absolute bg-destructive" 
             style={{
               top: 0, left: 0, height: '100%', width: '100%', 
               clipPath: `polygon(50% 50%, ${50 + 50 * Math.cos(2 * Math.PI * (proteinPercent + carbsPercent) / 100)}% ${50 - 50 * Math.sin(2 * Math.PI * (proteinPercent + carbsPercent) / 100)}%, 100% 50%, 50% 100%, 0 50%, 50% 0)`
@@ -223,15 +223,15 @@ export function FoodIntakeTracker({ userId }: FoodIntakeTrackerProps) {
         </div>
         <div className="ml-4">
           <div className="flex items-center">
-            <div className="w-3 h-3 bg-blue-500 mr-1"></div> 
+            <div className="w-3 h-3 bg-info mr-1"></div> 
             <span className="text-xs">Protein: {proteinPercent}%</span>
           </div>
           <div className="flex items-center">
-            <div className="w-3 h-3 bg-green-500 mr-1"></div> 
+            <div className="w-3 h-3 bg-success mr-1"></div> 
             <span className="text-xs">Carbs: {carbsPercent}%</span>
           </div>
           <div className="flex items-center">
-            <div className="w-3 h-3 bg-red-500 mr-1"></div> 
+            <div className="w-3 h-3 bg-destructive mr-1"></div> 
             <span className="text-xs">Fat: {fatPercent}%</span>
           </div>
         </div>
@@ -293,9 +293,9 @@ export function FoodIntakeTracker({ userId }: FoodIntakeTrackerProps) {
               <div>
                 <p className="text-sm text-muted-foreground">Macros (g)</p>
                 <p className="text-sm">
-                  <span className="font-semibold text-blue-500">P: {todayStats.protein}</span> / 
-                  <span className="font-semibold text-green-500"> C: {todayStats.carbs}</span> / 
-                  <span className="font-semibold text-red-500"> F: {todayStats.fat}</span>
+                  <span className="font-semibold text-info">P: {todayStats.protein}</span> / 
+                  <span className="font-semibold text-success"> C: {todayStats.carbs}</span> / 
+                  <span className="font-semibold text-destructive"> F: {todayStats.fat}</span>
                 </p>
               </div>
             </div>
@@ -387,7 +387,7 @@ export function FoodIntakeTracker({ userId }: FoodIntakeTrackerProps) {
                 </div>
               </div>
 
-              {error && <p className="text-sm text-red-500">{error}</p>}
+              {error && <p className="text-sm text-destructive">{error}</p>}
 
               <Button type="submit" className="w-full" disabled={submitting}>
                 {submitting ? 'Saving...' : 'Log Food'}

@@ -15,7 +15,7 @@ export function DoneStep({ choreCount, onFinish }: DoneStepProps) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <PartyPopper className="h-5 w-5 text-amber-500" />
+          <PartyPopper className="h-5 w-5 text-warning" />
           Your household is set up!
         </CardTitle>
       </CardHeader>

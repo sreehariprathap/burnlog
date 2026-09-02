@@ -63,7 +63,7 @@ export function CertDrawer({ profileId, open, onOpenChange, onSaved }: CertDrawe
           <div className="flex flex-col gap-2">
             <Label htmlFor="name">Name</Label>
             <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
-            {error && <p className="text-red-500 text-xs">{error}</p>}
+            {error && <p className="text-destructive text-xs">{error}</p>}
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="issuer">Issuer (optional)</Label>

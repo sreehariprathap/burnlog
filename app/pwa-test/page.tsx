@@ -94,15 +94,15 @@ export default function PWATest() {
     icon: LucideIcon; 
   }) => (
     <div className="flex items-center space-x-3 p-3 rounded-lg border">
-      <Icon className="w-5 h-5 text-blue-600" />
+      <Icon className="w-5 h-5 text-info" />
       <div className="flex-1">
         <h4 className="font-medium">{title}</h4>
         <p className="text-sm text-gray-600">{description}</p>
       </div>
       {status ? (
-        <CheckCircle className="w-5 h-5 text-green-600" />
+        <CheckCircle className="w-5 h-5 text-success" />
       ) : (
-        <XCircle className="w-5 h-5 text-red-600" />
+        <XCircle className="w-5 h-5 text-destructive" />
       )}
     </div>
   );
@@ -189,7 +189,7 @@ export default function PWATest() {
         </CardContent>
       </Card>
 
-      <div className="mt-8 p-4 bg-blue-50 rounded-lg">
+      <div className="mt-8 p-4 bg-info/10 rounded-lg">
         <h3 className="font-medium mb-2 flex items-center gap-2"><PartyPopper className="w-5 h-5" />Your app is PWA-ready!</h3>
         <p className="text-sm text-gray-700">
           Users can now install your app on their devices, use it offline, and receive push notifications.

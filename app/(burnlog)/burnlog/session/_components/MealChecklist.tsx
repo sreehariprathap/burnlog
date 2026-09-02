@@ -177,7 +177,7 @@ export function MealChecklist({ profileId, dayOfWeek, selectedDate }: MealCheckl
         </CardHeader>
         <CardContent className="space-y-3">
           {error && (
-            <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 rounded-lg p-3">
+            <div className="text-sm text-destructive bg-destructive/30 rounded-lg p-3">
               {error}
             </div>
           )}
@@ -205,7 +205,7 @@ export function MealChecklist({ profileId, dayOfWeek, selectedDate }: MealCheckl
       </CardHeader>
       <CardContent className="space-y-3 pt-2">
         {error && (
-          <div className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 rounded-lg p-3">
+          <div className="text-sm text-destructive bg-destructive/30 rounded-lg p-3">
             {error}
           </div>
         )}
@@ -239,10 +239,10 @@ export function MealChecklist({ profileId, dayOfWeek, selectedDate }: MealCheckl
               )}
               {(meal.calories || meal.protein || meal.carbs || meal.fat) && (
                 <div className="flex gap-3 text-[10px] mt-1">
-                  {meal.calories ? <span className="text-orange-500 font-medium">{formatCalories(meal.calories)}</span> : null}
-                  {meal.protein ? <span className="text-blue-500">P: {meal.protein}g</span> : null}
-                  {meal.carbs ? <span className="text-green-500">C: {meal.carbs}g</span> : null}
-                  {meal.fat ? <span className="text-red-500">F: {meal.fat}g</span> : null}
+                  {meal.calories ? <span className="text-primary font-medium">{formatCalories(meal.calories)}</span> : null}
+                  {meal.protein ? <span className="text-info">P: {meal.protein}g</span> : null}
+                  {meal.carbs ? <span className="text-success">C: {meal.carbs}g</span> : null}
+                  {meal.fat ? <span className="text-destructive">F: {meal.fat}g</span> : null}
                 </div>
               )}
             </div>

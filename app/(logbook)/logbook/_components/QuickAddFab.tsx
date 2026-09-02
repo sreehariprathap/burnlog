@@ -35,6 +35,9 @@ interface QuickAddFabProps {
   onSaved: () => void;
 }
 
+// Fixed per-app colors, independent of the ambient .app-* theme (this renders
+// from Logbook, which shows every other app's own brand color) — same
+// reasoning as appSearchColor() in lib/search/registry.ts.
 const OPTIONS: { id: QuickAddOption; label: string; app: string; icon: LucideIcon; color: string; available: boolean; ai: boolean }[] = [
   { id: 'meal', label: 'Log Meal', app: 'burnlog', icon: Flame, color: '#F97316', available: true, ai: true },
   { id: 'workout', label: 'Log Workout', app: 'burnlog', icon: Dumbbell, color: '#F97316', available: true, ai: true },

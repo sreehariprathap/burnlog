@@ -115,7 +115,7 @@ export function LifestyleForm({ submitting, initialAnswers, onSubmit }: Lifestyl
                   placeholder="e.g. 4"
                 />
                 {isActiveCommuter && commuteDistanceKm > 0 && (
-                  <p className="text-xs text-green-600 dark:text-green-400">
+                  <p className="text-xs text-success">
                     ✅ Your commute can count as a workout day!
                   </p>
                 )}

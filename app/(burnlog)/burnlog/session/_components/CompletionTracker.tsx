@@ -182,7 +182,7 @@ export function CompletionTracker({ plan, exerciseLog, onComplete }: CompletionT
       />
 
       <div className="flex items-center justify-center space-x-2 py-6">
-        <Trophy className="w-8 h-8 text-yellow-500" />
+        <Trophy className="w-8 h-8 text-warning" />
         <h2 className="text-2xl font-bold">Complete Workout</h2>
       </div>
 

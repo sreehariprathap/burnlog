@@ -202,7 +202,7 @@ export function CalorieTracker({ userId }: CalorieTrackerProps) {
           return (
             <div key={day} className="flex flex-col items-center flex-1">
               <div 
-                className="bg-orange-500 w-full rounded-t"
+                className="bg-primary w-full rounded-t"
                 style={{ height: `${Math.max(5, height)}%` }}
                 title={`${calories} calories`}
               />
@@ -285,7 +285,7 @@ export function CalorieTracker({ userId }: CalorieTrackerProps) {
                 </div>
               </div>
 
-              {error && <p className="text-sm text-red-500">{error}</p>}
+              {error && <p className="text-sm text-destructive">{error}</p>}
 
               <Button type="submit" className="w-full" disabled={submitting}>
                 {submitting ? 'Saving...' : 'Log Activity'}

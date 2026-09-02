@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { Sunrise, Flame, ListChecks, Wallet } from 'lucide-react';
+import { appSearchColor } from '@/lib/search/registry';
 import { TopBar } from '@/components/TopBar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -89,19 +90,19 @@ export default function MorningBriefPage() {
               <Card>
                 <CardContent className="divide-y p-0">
                   <div className="flex items-center gap-3 p-4">
-                    <Flame className="h-4 w-4 text-orange-500" />
+                    <Flame className="h-4 w-4" style={{ color: appSearchColor('burnlog') }} />
                     <span className="flex-1 text-sm">Calories burned</span>
                     <span className="text-sm font-semibold tabular-nums">{formatCalories(burnTarget)}</span>
                   </div>
                   <div className="flex items-center gap-3 p-4">
-                    <ListChecks className="h-4 w-4 text-blue-500" />
+                    <ListChecks className="h-4 w-4" style={{ color: appSearchColor('tasklog') }} />
                     <span className="flex-1 text-sm">Tasks planned</span>
                     <span className="text-sm font-semibold tabular-nums">
                       {taskTarget > 0 ? `${taskTarget} task${taskTarget === 1 ? '' : 's'}` : 'None yet'}
                     </span>
                   </div>
                   <div className="flex items-center gap-3 p-4">
-                    <Wallet className="h-4 w-4 text-emerald-500" />
+                    <Wallet className="h-4 w-4" style={{ color: appSearchColor('moneylog') }} />
                     <span className="flex-1 text-sm">Daily budget</span>
                     <span className="text-sm font-semibold tabular-nums">
                       {budgetTarget > 0 ? formatCurrency(Math.round(budgetTarget)) : 'Not set'}

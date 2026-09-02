@@ -27,6 +27,18 @@
   --color-chart-3: var(--chart-3);
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
+  --color-moneylog-income-1: var(--moneylog-income-1);
+  --color-moneylog-income-2: var(--moneylog-income-2);
+  --color-moneylog-income-3: var(--moneylog-income-3);
+  --color-moneylog-income-4: var(--moneylog-income-4);
+  --color-moneylog-income-5: var(--moneylog-income-5);
+  --color-moneylog-income-6: var(--moneylog-income-6);
+  --color-moneylog-expense-1: var(--moneylog-expense-1);
+  --color-moneylog-expense-2: var(--moneylog-expense-2);
+  --color-moneylog-expense-3: var(--moneylog-expense-3);
+  --color-moneylog-expense-4: var(--moneylog-expense-4);
+  --color-moneylog-expense-5: var(--moneylog-expense-5);
+  --color-moneylog-expense-6: var(--moneylog-expense-6);
   --color-ring: var(--ring);
   --color-input: var(--input);
   --color-border: var(--border);
@@ -278,6 +290,20 @@
   --sidebar-accent-foreground: oklch(0.28 0.05 200);
   --sidebar-border: oklch(0.85 0.04 170);
   --sidebar-ring: oklch(0.6 0.14 165);
+  /* Category-segment palettes for income/expense ring charts — need several
+     distinct swatches within one chart, not collapsible to a single token. */
+  --moneylog-income-1: oklch(0.68 0.16 155);
+  --moneylog-income-2: oklch(0.6 0.14 165);
+  --moneylog-income-3: oklch(0.52 0.13 175);
+  --moneylog-income-4: oklch(0.72 0.14 145);
+  --moneylog-income-5: oklch(0.45 0.11 165);
+  --moneylog-income-6: oklch(0.58 0.15 135);
+  --moneylog-expense-1: oklch(0.64 0.2 25);
+  --moneylog-expense-2: oklch(0.68 0.17 45);
+  --moneylog-expense-3: oklch(0.6 0.22 15);
+  --moneylog-expense-4: oklch(0.66 0.18 355);
+  --moneylog-expense-5: oklch(0.72 0.15 60);
+  --moneylog-expense-6: oklch(0.54 0.2 10);
 }
 
 .app-moneylog.dark {
@@ -319,6 +345,18 @@
   --sidebar-accent-foreground: #f2fbf9;
   --sidebar-border: oklch(1 0 0 / 12%);
   --sidebar-ring: oklch(0.55 0.1 175);
+  --moneylog-income-1: oklch(0.75 0.16 155);
+  --moneylog-income-2: oklch(0.68 0.14 165);
+  --moneylog-income-3: oklch(0.6 0.13 175);
+  --moneylog-income-4: oklch(0.78 0.14 145);
+  --moneylog-income-5: oklch(0.55 0.11 165);
+  --moneylog-income-6: oklch(0.65 0.15 135);
+  --moneylog-expense-1: oklch(0.7 0.19 25);
+  --moneylog-expense-2: oklch(0.74 0.16 45);
+  --moneylog-expense-3: oklch(0.66 0.21 15);
+  --moneylog-expense-4: oklch(0.72 0.17 355);
+  --moneylog-expense-5: oklch(0.78 0.14 60);
+  --moneylog-expense-6: oklch(0.6 0.19 10);
 }
 
 .app-tasklog {

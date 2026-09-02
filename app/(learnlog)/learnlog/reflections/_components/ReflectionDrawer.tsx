@@ -68,7 +68,7 @@ export function ReflectionDrawer({ profileId, open, onOpenChange, onSaved }: Ref
             <Label htmlFor="body">Entry</Label>
             <Textarea id="body" value={body} onChange={(e) => setBody(e.target.value)} rows={8} />
           </div>
-          {error && <p className="text-red-500 text-xs">{error}</p>}
+          {error && <p className="text-destructive text-xs">{error}</p>}
           <div className="flex flex-col gap-2">
             <Label htmlFor="tags">Tags (comma-separated, optional)</Label>
             <Input id="tags" value={tagsInput} onChange={(e) => setTagsInput(e.target.value)} placeholder="gratitude, meditation" />

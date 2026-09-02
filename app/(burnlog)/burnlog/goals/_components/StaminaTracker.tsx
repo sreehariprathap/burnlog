@@ -228,7 +228,7 @@ export function StaminaTracker({ userId }: StaminaTrackerProps) {
             <polyline
               points={points}
               fill="none"
-              stroke="#3b82f6"
+              stroke="var(--chart-1)"
               strokeWidth="2"
             />
           </svg>
@@ -338,7 +338,7 @@ export function StaminaTracker({ userId }: StaminaTrackerProps) {
                 </div>
               </div>
 
-              {error && <p className="text-sm text-red-500">{error}</p>}
+              {error && <p className="text-sm text-destructive">{error}</p>}
 
               <Button type="submit" className="w-full" disabled={submitting}>
                 {submitting ? 'Saving...' : 'Log Stamina Session'}

@@ -93,7 +93,7 @@ export function WorkoutChecklist({ workoutType }: WorkoutChecklistProps) {
         <ul className="space-y-3">
           {activities.map((activity, index) => (
             <li key={index} className="flex items-start gap-3">
-              <CheckCircle className="h-5 w-5 text-amber-500 mt-0.5 flex-shrink-0" />
+              <CheckCircle className="h-5 w-5 text-warning mt-0.5 flex-shrink-0" />
               <span>{activity}</span>
             </li>
           ))}

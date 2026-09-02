@@ -114,7 +114,7 @@ export function AddGoalForm({ onGoalAdded, userId }: AddGoalFormProps) {
         />
       </div>
 
-      {error && <p className="text-sm text-red-500">{error}</p>}
+      {error && <p className="text-sm text-destructive">{error}</p>}
 
       <Button type="submit" disabled={loading}>
         {loading ? <Loader className='animate-spin'/>: 'Add Goal'}

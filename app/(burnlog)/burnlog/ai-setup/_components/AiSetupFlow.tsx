@@ -342,7 +342,7 @@ export function AiSetupFlow() {
 
       {step === 'error' && (
         <div className="flex flex-col items-center gap-4 max-w-sm text-center">
-          <AlertTriangle className="h-10 w-10 text-amber-500" />
+          <AlertTriangle className="h-10 w-10 text-warning" />
           <p className="text-sm text-muted-foreground">{errorMessage}</p>
           <div className="flex gap-3">
             <Button variant="outline" onClick={handleSkip}>Skip for now</Button>

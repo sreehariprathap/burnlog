@@ -105,7 +105,7 @@ export function AddWorkoutModal({
                   type="button"
                   className={`p-3 text-center rounded sm:text-[10px] ${
                     dayIndex === d.index
-                      ? 'bg-amber-500 text-white'
+                      ? 'bg-warning text-white'
                       : 'bg-muted text-muted-foreground'
                   }`}
                   onClick={() => setDayIndex(d.index)}
@@ -128,7 +128,7 @@ export function AddWorkoutModal({
                     type="button"
                     className={`flex flex-col items-center p-4 border rounded-lg space-y-1 transition ${
                       bodyPart === opt.value
-                        ? 'border-amber-500 '
+                        ? 'border-warning '
                         : 'border-border'
                     }`}
                     onClick={() => setBodyPart(opt.value)}

@@ -162,7 +162,7 @@ export function DualRingCard({
 
         <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
           <Scale className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className={cn('text-xl font-bold tabular-nums', net >= 0 ? 'text-emerald-500' : 'text-destructive')}>
+          <span className={cn('text-xl font-bold tabular-nums', net >= 0 ? 'text-success' : 'text-destructive')}>
             {net.toLocaleString()}
           </span>
           <span className="text-[10px] text-muted-foreground">net</span>
@@ -170,9 +170,9 @@ export function DualRingCard({
       </div>
 
       <div className="flex w-full gap-4">
-        <RingLegend title="Income" icon={TrendingUp} iconClassName="text-emerald-500" segments={incomeSegments} total={incomeTotal} />
+        <RingLegend title="Income" icon={TrendingUp} iconClassName="text-success" segments={incomeSegments} total={incomeTotal} />
         <div className="w-px self-stretch bg-border" />
-        <RingLegend title="Expenses" icon={TrendingDown} iconClassName="text-rose-500" segments={expenseSegments} total={expenseTotal} />
+        <RingLegend title="Expenses" icon={TrendingDown} iconClassName="text-destructive" segments={expenseSegments} total={expenseTotal} />
       </div>
     </div>
   );

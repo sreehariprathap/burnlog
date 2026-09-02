@@ -198,7 +198,7 @@ export function OutdoorCardioLogger({ lifestyle, onEnd }: OutdoorCardioLoggerPro
             )}
           </div>
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          {error && <p className="text-sm text-destructive">{error}</p>}
 
           <div className="flex justify-end">
             <Button

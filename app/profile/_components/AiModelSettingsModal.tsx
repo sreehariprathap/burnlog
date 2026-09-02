@@ -111,7 +111,7 @@ export function AiModelSettingsModal({ open, onOpenChange }: AiModelSettingsModa
             <div className="space-y-4">
               {renderSelect('text', 'Text Model', catalog.text)}
               {renderSelect('vision', 'Image Model', catalog.vision)}
-              {error && <p className="text-sm text-red-500">{error}</p>}
+              {error && <p className="text-sm text-destructive">{error}</p>}
             </div>
           )}
         </div>

@@ -22,7 +22,7 @@ type AchievementOverlayProps = {
 };
 
 // burnlog fire-themed sparkles
-const SPARKLE_COLORS = { first: '#FF9E4F', second: '#FF3D71' };
+const SPARKLE_COLORS = { first: 'var(--primary)', second: 'var(--chart-2)' };
 
 export function AchievementOverlay({
   open,
@@ -51,7 +51,7 @@ export function AchievementOverlay({
     >
       {celebrate && <FireworksBackground />}
       <div
-        className="relative w-full max-w-sm overflow-hidden rounded-3xl border border-amber-300/30 bg-background p-8 text-center shadow-2xl animate-in zoom-in-95 duration-300"
+        className="relative w-full max-w-sm overflow-hidden rounded-3xl border border-warning/30 bg-background p-8 text-center shadow-2xl animate-in zoom-in-95 duration-300"
         onClick={(e) => e.stopPropagation()}
       >
         {/* glow */}
@@ -64,8 +64,8 @@ export function AchievementOverlay({
         />
 
         <div className="relative flex flex-col items-center gap-4">
-          <div className="flex size-16 items-center justify-center rounded-full bg-amber-500/15 ring-1 ring-amber-400/40">
-            <Trophy className="size-8 text-amber-500" />
+          <div className="flex size-16 items-center justify-center rounded-full bg-warning/15 ring-1 ring-amber-400/40">
+            <Trophy className="size-8 text-warning" />
           </div>
 
           <SparklesText
@@ -83,7 +83,7 @@ export function AchievementOverlay({
               {stats.map((s) => (
                 <span
                   key={s}
-                  className="rounded-full bg-amber-500/10 px-3 py-1 text-sm font-semibold text-amber-600 dark:text-amber-400"
+                  className="rounded-full bg-warning/10 px-3 py-1 text-sm font-semibold text-warning"
                 >
                   {s}
                 </span>

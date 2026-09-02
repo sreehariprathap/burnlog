@@ -60,7 +60,7 @@ export function GoalDrawer({ profileId, open, onOpenChange, onSaved }: GoalDrawe
           <div className="flex flex-col gap-2">
             <Label htmlFor="title">Title</Label>
             <Input id="title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Become a Staff Engineer" />
-            {error && <p className="text-red-500 text-xs">{error}</p>}
+            {error && <p className="text-destructive text-xs">{error}</p>}
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="targetDate">Target date (optional)</Label>

@@ -16,7 +16,7 @@ export function DoneStep({ goalCount, taskCount, onFinish }: DoneStepProps) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <PartyPopper className="h-5 w-5 text-amber-500" />
+          <PartyPopper className="h-5 w-5 text-warning" />
           You&apos;re set!
         </CardTitle>
       </CardHeader>

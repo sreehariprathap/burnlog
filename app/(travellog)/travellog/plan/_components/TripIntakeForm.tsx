@@ -133,7 +133,7 @@ export function TripIntakeForm({ onGenerated, initial }: TripIntakeFormProps) {
               </Select>
             </div>
           </div>
-          {error && <p className="text-red-500 text-sm">{error}</p>}
+          {error && <p className="text-destructive text-sm">{error}</p>}
           <Button type="submit" className="w-full" disabled={loading}>
             {loading ? <Loader2 className="animate-spin w-5 h-5" /> : 'Generate itinerary'}
           </Button>

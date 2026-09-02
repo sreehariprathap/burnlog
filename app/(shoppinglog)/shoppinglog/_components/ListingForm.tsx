@@ -214,7 +214,7 @@ export function ListingForm({
           </div>
         </div>
 
-        {error && <p className="text-xs text-red-500">{error}</p>}
+        {error && <p className="text-xs text-destructive">{error}</p>}
 
         <Button type="submit" className="w-full" disabled={submitting}>
           {submitting ? <Loader2 className="size-4 animate-spin" /> : submitLabel}

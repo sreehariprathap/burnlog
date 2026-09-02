@@ -33,9 +33,9 @@ const MEAL_TYPES = [
 ];
 
 const CONFIDENCE_COLORS = {
-  high: 'text-green-600 dark:text-green-400',
-  medium: 'text-amber-600 dark:text-amber-400',
-  low: 'text-red-600 dark:text-red-400',
+  high: 'text-success',
+  medium: 'text-warning',
+  low: 'text-destructive',
 };
 
 export function FoodScanner({ onResult, onClose }: FoodScannerProps) {
@@ -182,7 +182,7 @@ export function FoodScanner({ onResult, onClose }: FoodScannerProps) {
 
           {/* Error */}
           {error && (
-            <div className="flex items-center gap-2 text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/30 rounded-lg p-3">
+            <div className="flex items-center gap-2 text-sm text-destructive bg-destructive/30 rounded-lg p-3">
               <AlertTriangle className="h-4 w-4 flex-shrink-0" />
               {error}
             </div>
@@ -206,7 +206,7 @@ export function FoodScanner({ onResult, onClose }: FoodScannerProps) {
           {result && (
             <div className="space-y-3">
               <div className="flex items-center gap-2">
-                <CheckCircle className="h-5 w-5 text-green-500" />
+                <CheckCircle className="h-5 w-5 text-success" />
                 <span className="font-semibold">{result.foodName}</span>
               </div>
 
@@ -217,10 +217,10 @@ export function FoodScanner({ onResult, onClose }: FoodScannerProps) {
               {/* Macro grid */}
               <div className="grid grid-cols-4 gap-2 text-center">
                 {[
-                  { label: 'Calories', value: result.calories, unit: 'kcal', color: 'bg-orange-50 dark:bg-orange-950/30' },
-                  { label: 'Protein', value: result.protein, unit: 'g', color: 'bg-blue-50 dark:bg-blue-950/30' },
-                  { label: 'Carbs', value: result.carbs, unit: 'g', color: 'bg-green-50 dark:bg-green-950/30' },
-                  { label: 'Fat', value: result.fat, unit: 'g', color: 'bg-red-50 dark:bg-red-950/30' },
+                  { label: 'Calories', value: result.calories, unit: 'kcal', color: 'bg-primary/10' },
+                  { label: 'Protein', value: result.protein, unit: 'g', color: 'bg-info/30' },
+                  { label: 'Carbs', value: result.carbs, unit: 'g', color: 'bg-success/30' },
+                  { label: 'Fat', value: result.fat, unit: 'g', color: 'bg-destructive/30' },
                 ].map((m) => (
                   <div key={m.label} className={`rounded-lg p-2 ${m.color}`}>
                     <p className="text-base font-bold">{m.value}</p>

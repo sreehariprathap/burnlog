@@ -2,12 +2,13 @@
 import { format } from 'date-fns';
 import { Flame, ListChecks, Wallet, Home, type LucideIcon } from 'lucide-react';
 import type { LogbookActivityEvent } from '@/lib/logbook/today';
+import { appSearchColor } from '@/lib/search/registry';
 
 const APP_META: Record<LogbookActivityEvent['app'], { icon: LucideIcon; color: string }> = {
-  burnlog: { icon: Flame, color: '#F97316' },
-  tasklog: { icon: ListChecks, color: '#3B82F6' },
-  moneylog: { icon: Wallet, color: '#22C55E' },
-  homelog: { icon: Home, color: '#9b5de5' },
+  burnlog: { icon: Flame, color: appSearchColor('burnlog') },
+  tasklog: { icon: ListChecks, color: appSearchColor('tasklog') },
+  moneylog: { icon: Wallet, color: appSearchColor('moneylog') },
+  homelog: { icon: Home, color: appSearchColor('homelog') },
 };
 
 interface ActivityTimelineProps {

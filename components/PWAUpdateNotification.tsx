@@ -45,16 +45,16 @@ export default function PWAUpdateNotification() {
   if (!showUpdate) return null;
 
   return (
-    <div className="fixed top-4 left-4 right-4 z-50 bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-lg shadow-lg p-4 flex items-center justify-between">
+    <div className="fixed top-4 left-4 right-4 z-50 bg-info/10 border border-info/30 rounded-lg shadow-lg p-4 flex items-center justify-between">
       <div className="flex items-center space-x-3">
-        <div className="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
+        <div className="w-10 h-10 bg-info rounded-lg flex items-center justify-center">
           <RefreshCw className="w-5 h-5 text-white" />
         </div>
         <div>
-          <p className="font-medium text-sm text-blue-900 dark:text-blue-100">
+          <p className="font-medium text-sm text-info">
             App Update Available
           </p>
-          <p className="text-xs text-blue-700 dark:text-blue-300">
+          <p className="text-xs text-info">
             A new version is ready to install
           </p>
         </div>
@@ -63,7 +63,7 @@ export default function PWAUpdateNotification() {
         <Button
           onClick={handleUpdate}
           size="sm"
-          className="text-xs bg-blue-600 hover:bg-blue-700"
+          className="text-xs bg-info hover:bg-info/90"
         >
           Update
         </Button>
@@ -71,7 +71,7 @@ export default function PWAUpdateNotification() {
           onClick={handleDismiss}
           variant="ghost"
           size="sm"
-          className="p-1 text-blue-600 hover:text-blue-700"
+          className="p-1 text-info hover:text-info/80"
         >
           <X className="w-4 h-4" />
         </Button>

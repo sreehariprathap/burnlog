@@ -293,7 +293,7 @@ export default function HomeLogPage() {
                 <p className="text-2xl font-bold">{choresDueToday}</p>
               </StatCard>
               <StatCard title="Your balance" icon={Scale}>
-                <p className={cn('text-2xl font-bold', myNetBalance < 0 ? 'text-destructive' : 'text-emerald-500')}>
+                <p className={cn('text-2xl font-bold', myNetBalance < 0 ? 'text-destructive' : 'text-success')}>
                   {myNetBalance === 0 ? 'Settled up' : `${myNetBalance > 0 ? '+' : ''}${myNetBalance.toFixed(2)}`}
                 </p>
               </StatCard>
@@ -347,7 +347,7 @@ export default function HomeLogPage() {
                   </Button>
                 </form>
                 {inviteError && <p className="mt-2 text-sm text-destructive">{inviteError}</p>}
-                {inviteSuccess && <p className="mt-2 text-sm text-emerald-600">{inviteSuccess}</p>}
+                {inviteSuccess && <p className="mt-2 text-sm text-success">{inviteSuccess}</p>}
               </CardContent>
             </Card>
 

@@ -182,7 +182,7 @@ export function WeightTracker({ userId }: WeightTrackerProps) {
           return (
             <div 
               key={entry.id} 
-              className="bg-amber-500 w-4 rounded-t"
+              className="bg-warning w-4 rounded-t"
               style={{ height: `${Math.max(10, height)}%` }}
               title={`${new Date(entry.date).toLocaleDateString()}: ${entry.weight}kg`}
             />
@@ -213,7 +213,7 @@ export function WeightTracker({ userId }: WeightTrackerProps) {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Change</p>
-                  <p className={`text-xl font-bold ${stats.change < 0 ? 'text-green-500' : stats.change > 0 ? 'text-red-500' : ''}`}>
+                  <p className={`text-xl font-bold ${stats.change < 0 ? 'text-success' : stats.change > 0 ? 'text-destructive' : ''}`}>
                     {stats.change > 0 ? '+' : ''}{stats.change} kg
                   </p>
                 </div>
@@ -253,7 +253,7 @@ export function WeightTracker({ userId }: WeightTrackerProps) {
                 />
               </div>
 
-              {error && <p className="text-sm text-red-500">{error}</p>}
+              {error && <p className="text-sm text-destructive">{error}</p>}
             </form>
 
             {entries.length > 0 ? (

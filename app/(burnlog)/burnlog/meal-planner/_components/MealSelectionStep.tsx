@@ -77,10 +77,10 @@ export function MealSelectionStep({ candidates, cookMode, mealsPerDay, onContinu
               <p className="font-medium text-sm mt-1">{c.name}</p>
               <p className="text-xs text-muted-foreground">{c.description}</p>
               <div className="flex gap-3 text-[10px] mt-1">
-                <span className="text-orange-500 font-medium">{formatCalories(c.calories)}</span>
-                <span className="text-blue-500">P: {c.protein}g</span>
-                <span className="text-green-500">C: {c.carbs}g</span>
-                <span className="text-red-500">F: {c.fat}g</span>
+                <span className="text-primary font-medium">{formatCalories(c.calories)}</span>
+                <span className="text-info">P: {c.protein}g</span>
+                <span className="text-success">C: {c.carbs}g</span>
+                <span className="text-destructive">F: {c.fat}g</span>
               </div>
             </button>
           );

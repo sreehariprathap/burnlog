@@ -8,9 +8,9 @@ export default function Offline() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
       <div className="text-center p-8">
-        <div className="w-24 h-24 mx-auto mb-6 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+        <div className="w-24 h-24 mx-auto mb-6 bg-info/10 rounded-full flex items-center justify-center">
           <svg
-            className="w-12 h-12 text-blue-600 dark:text-blue-400"
+            className="w-12 h-12 text-info"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -31,7 +31,7 @@ export default function Offline() {
         </p>
         <button
           onClick={handleRetry}
-          className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-colors"
+          className="bg-info hover:bg-info/90 text-white font-medium py-2 px-4 rounded-lg transition-colors"
         >
           Try Again
         </button>

@@ -22,7 +22,7 @@ type Firework = {
   particles: Particle[];
 };
 
-const BRAND_COLORS = ["#F97316", "#FBBF24", "#EF4444", "#FF9E4F"];
+const BRAND_COLORS = ["var(--primary)", "var(--warning)", "var(--destructive)", "var(--chart-2)"];
 
 export function FireworksBackground({
   color = BRAND_COLORS,
@@ -42,12 +42,21 @@ export function FireworksBackground({
     let width = (canvas.width = canvas.offsetWidth);
     let height = (canvas.height = canvas.offsetHeight);
 
+    // Canvas fillStyle can't resolve CSS var() references — resolve each
+    // token to its computed color once, up front.
+    const resolvedColors = color.map((c) => {
+      if (!c.startsWith("var(")) return c;
+      const varName = c.slice(4, -1).trim();
+      const resolved = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+      return resolved || c;
+    });
+
     const fireworks: Firework[] = [];
     let frameId: number;
     let spawnTimer = 0;
 
     function spawnFirework() {
-      const c = color[Math.floor(Math.random() * color.length)];
+      const c = resolvedColors[Math.floor(Math.random() * resolvedColors.length)];
       fireworks.push({
         x: Math.random() * width,
         y: height,

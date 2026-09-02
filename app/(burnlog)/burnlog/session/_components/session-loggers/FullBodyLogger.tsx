@@ -60,7 +60,7 @@ export function FullBodyLogger({ userEquipment, onEnd }: FullBodyLoggerProps) {
           {groups.map((group, i) => (
             <div key={group} className="mb-6">
               <Label className="font-semibold text-lg mb-2 flex items-center gap-2">
-                {group} {groupDone[i] && <CheckCircle2 className="h-4 w-4 text-emerald-500" />}
+                {group} {groupDone[i] && <CheckCircle2 className="h-4 w-4 text-success" />}
               </Label>
               <div className="grid grid-cols-2 gap-4 mt-2">
                 {exercisesByGroup[group].map((ex) => (

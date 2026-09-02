@@ -97,7 +97,7 @@ export default function LoginPage() {
                 disabled={loading}
                 aria-invalid={!!fieldErrors.email}
               />
-              {fieldErrors.email && <p className="text-red-500 text-xs">{fieldErrors.email}</p>}
+              {fieldErrors.email && <p className="text-destructive text-xs">{fieldErrors.email}</p>}
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="password">Password</Label>
@@ -111,10 +111,10 @@ export default function LoginPage() {
                 disabled={loading}
                 aria-invalid={!!fieldErrors.password}
               />
-              {fieldErrors.password && <p className="text-red-500 text-xs">{fieldErrors.password}</p>}
+              {fieldErrors.password && <p className="text-destructive text-xs">{fieldErrors.password}</p>}
             </div>
             {error && (
-              <p className="text-red-500 text-sm">{error}</p>
+              <p className="text-destructive text-sm">{error}</p>
             )}
             <Button
               type="submit"

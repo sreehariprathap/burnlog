@@ -108,7 +108,7 @@ export function ItineraryReview({ req, itinerary, onAccept, onStartOver, accepti
           ))}
           <div className="border-t pt-2 mt-1 flex items-center justify-between">
             <span className="font-semibold">Total estimated</span>
-            <span className={`font-semibold ${isOverBudget ? 'text-red-500' : ''}`}>
+            <span className={`font-semibold ${isOverBudget ? 'text-destructive' : ''}`}>
               {formatCurrency(itinerary.totalEstimatedCost, itinerary.currency)}
             </span>
           </div>

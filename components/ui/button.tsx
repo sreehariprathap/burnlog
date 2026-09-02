@@ -45,7 +45,7 @@ function rippleColorFor(variant: ButtonProps["variant"]): string {
     case "link":
       return "var(--primary)"
     default:
-      return "#ffffff"
+      return "var(--primary-foreground)"
   }
 }
 
