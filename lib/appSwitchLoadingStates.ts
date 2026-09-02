@@ -58,4 +58,10 @@ export const APP_SWITCH_LOADING_STATES: Record<AppId, LoadingState[]> = {
     { text: 'Losing the itinerary, finding an adventure' },
     { text: 'Convincing your passport it’s not expired' },
   ],
+  learnlog: [
+    { text: 'Dusting off the bookshelf' },
+    { text: 'Waking up dormant brain cells' },
+    { text: 'Leveling up (theoretically)' },
+    { text: 'Reordering your life goals alphabetically' },
+  ],
 };

@@ -25,6 +25,7 @@ want via the app switcher.
 | **HomeLog** | `/homelog` | Household management: chores, bills, shared inventory, expense splitting | [`app/(homelog)/README.md`](app/(homelog)/README.md) |
 | **SocialLog** | `/sociallog` | Social feed: posts, follows, friends, messaging, leaderboards | [`app/(sociallog)/README.md`](app/(sociallog)/README.md) |
 | **ShoppingLog** | `/shoppinglog` | Marketplace: buy/sell listings, cart, orders, favorites | [`app/(shoppinglog)/README.md`](app/(shoppinglog)/README.md) |
+| **LearnLog** | `/learnlog` | Lifelong learning: books/courses, skills with leveling, career, reflections | [`app/(learnlog)/README.md`](app/(learnlog)/README.md) |
 
 Each sub-app doc covers what that app does, its routes, its data models, and
 any app-specific setup — this README only covers what's shared across all of
@@ -125,25 +126,37 @@ README (linked above) for routes, data models, and key files.
 - Favorites — saved/favorited listings
 - Config — export config as JSON (no onboarding flow yet)
 
+### LearnLog (lifelong learning)
+
+- Library — books & courses with a Want/In Progress/Completed pipeline, progress, notes, rating, source link
+- Skills — practical/physical skills (skiing, boxing, climbing, etc.) with BurnLog-style level/XP/streak tracking, session logging, milestones
+- AI "Find nearby classes" — AI-generated (not verified) local class ideas per skill, destination-aware when an upcoming TravelLog trip matches
+- Career — role timeline, certifications with expiry flags, career goals
+- Reflections — freeform journal with tags
+- AI onboarding — suggests starter skills, a career goal, and library items
+- Config — city/region setting, AI-suggestions toggle, export config as JSON
+
 ### Cross-cutting features (shared across all apps)
 
-- Single login/signup/profile shared across all eight apps
+- Single login/signup/profile shared across all nine apps
 - App switcher with per-app theming (`lib/appMode.ts` registry)
 - Per-app Config pages, each with "Export config as JSON"
 - AI-assisted flows (OpenAI/OpenRouter): BurnLog onboarding & meal planning,
-  MoneyLog insights, TravelLog planning & suggestions
+  MoneyLog insights, TravelLog planning & suggestions, LearnLog onboarding
+  & nearby-class suggestions
 - Installable PWA with offline support and push notifications
   (`PWA_README.md`)
 - Native iOS/Android shells via Capacitor
 
 ## How the app works
 
-### One Next.js app, eight route groups
+### One Next.js app, nine route groups
 
-All eight apps live in the same `app/` directory as [Next.js route
+All nine apps live in the same `app/` directory as [Next.js route
 groups](https://nextjs.org/docs/app/building-your-application/routing/route-groups) —
 `app/(logbook)`, `app/(burnlog)`, `app/(moneylog)`, `app/(tasklog)`,
-`app/(travellog)`, `app/(homelog)`, `app/(sociallog)`, `app/(shoppinglog)`.
+`app/(travellog)`, `app/(homelog)`, `app/(sociallog)`, `app/(shoppinglog)`,
+`app/(learnlog)`.
 Route groups don't appear in the URL, so each app owns its own top-level path
 namespace (`/moneylog`, `/tasklog`, `/burnlog`, ...) — no two apps' routes
 overlap. BurnLog's routes were namespaced under `/burnlog` last; a handful of
@@ -153,7 +166,8 @@ for old links, aliasing to `/logbook` and `/burnlog/ai-setup` respectively.
 Each group has its own `layout.tsx` (theming, nav) and its own bottom-nav
 component (`BottomNav.tsx` for BurnLog, `LogbookBottomNav.tsx`,
 `MoneyLogBottomNav.tsx`, `TaskLogBottomNav.tsx`, `TravelLogBottomNav.tsx`,
-`HomeLogBottomNav.tsx`, `SocialLogBottomNav.tsx`, `ShoppingLogBottomNav.tsx`).
+`HomeLogBottomNav.tsx`, `SocialLogBottomNav.tsx`, `ShoppingLogBottomNav.tsx`,
+`LearnLogBottomNav.tsx`).
 
 ### Shared identity, per-app config
 
@@ -259,6 +273,7 @@ app/
   (homelog)/homelog/     HomeLog — see app/(homelog)/README.md
   (sociallog)/sociallog/ SocialLog — see app/(sociallog)/README.md
   (shoppinglog)/shoppinglog/ ShoppingLog — see app/(shoppinglog)/README.md
+  (learnlog)/learnlog/   LearnLog — see app/(learnlog)/README.md
   login/, signup/, profile/  Shared auth & identity (not app-scoped)
   api/                    API routes, one subtree per app
 components/               Shared UI + per-app nav/menu components

@@ -20,6 +20,7 @@ export const EXPENSE_CATEGORIES = [
   { value: 'shopping', label: 'Shopping' },
   { value: 'debt_payment', label: 'Debt Payment' },
   { value: 'investment_contribution', label: 'Investment Contribution' },
+  { value: 'education', label: 'Education' },
   { value: 'other_expense', label: 'Other' },
 ] as const;
 
