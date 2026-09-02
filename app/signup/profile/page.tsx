@@ -110,6 +110,19 @@ export default function ProfileSetupPage() {
         console.error("Profile error:", profileError);
         setError(profileError.message);
       } else {
+        // Best-effort: mark a matching pending invite as signed_up via the
+        // service-role route (a brand-new user has no admin rights to write
+        // adminlog_invites directly, and it shouldn't need any). Never
+        // blocks or fails signup — this is a courtesy record, not a gate.
+        if (session.user.email) {
+          fetch('/api/invites/mark-signed-up', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: session.user.email }),
+          }).catch(() => {
+            // no-op — invite tracking is not required for signup to succeed
+          });
+        }
         router.push('/onboarding/apps');
       }
     } catch (err) {
