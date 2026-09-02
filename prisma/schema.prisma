@@ -110,6 +110,9 @@ model Profile {
   CareerCertification     CareerCertification[]
   CareerGoal              CareerGoal[]
   Reflection              Reflection[]
+  LearnGroupMember           LearnGroupMember[]
+  learnGroupInvitesSent      LearnGroupInvite[] @relation("LearnGroupInviteSender")
+  learnGroupInvitesReceived  LearnGroupInvite[] @relation("LearnGroupInviteRecipient")
 
   @@map("profiles")
 }
@@ -1210,4 +1213,44 @@ model Reflection {
   updatedAt DateTime @updatedAt
 
   @@map("learnlog_reflections")
+}
+
+model LearnGroup {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  entityType String   // 'skill' | 'library_item' | 'career_goal'
+  name       String
+  createdAt  DateTime @default(now())
+  members    LearnGroupMember[]
+  invites    LearnGroupInvite[]
+
+  @@map("learnlog_groups")
+}
+
+model LearnGroupMember {
+  id        String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  group     LearnGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupId   String     @db.Uuid
+  profile   Profile    @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId String     @db.Uuid
+  entityId  String     @db.Uuid
+  role      String     @default("member") // 'owner' | 'member'
+  joinedAt  DateTime   @default(now())
+
+  @@unique([groupId, profileId])
+  @@map("learnlog_group_members")
+}
+
+model LearnGroupInvite {
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  group       LearnGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  groupId     String     @db.Uuid
+  invitedBy   Profile    @relation("LearnGroupInviteSender", fields: [invitedById], references: [id])
+  invitedById String     @db.Uuid
+  invitee     Profile    @relation("LearnGroupInviteRecipient", fields: [inviteeId], references: [id])
+  inviteeId   String     @db.Uuid
+  status      String     @default("pending") // 'pending' | 'accepted' | 'declined'
+  createdAt   DateTime   @default(now())
+  respondedAt DateTime?
+
+  @@map("learnlog_group_invites")
 }
