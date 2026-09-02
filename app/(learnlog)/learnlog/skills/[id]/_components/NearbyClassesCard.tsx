@@ -2,6 +2,7 @@
 'use client';
 
 import { useState } from 'react';
+import { createClient } from '@/lib/supabase/client';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,6 +13,23 @@ import type { ClassIdea } from '@/lib/learnlog/suggestions';
 type NearbyClassesCardProps = {
   skill: SkillRow;
 };
+
+async function fetchUpcomingDestination(profileId: string, category: string | null): Promise<string | null> {
+  if (!category) return null;
+  const supabase = createClient();
+  const today = new Date().toISOString().slice(0, 10);
+  const { data } = await supabase
+    .from('travellog_visits')
+    .select('placeName,country')
+    .eq('profileId', profileId)
+    .gte('arrivalDate', today)
+    .order('arrivalDate', { ascending: true })
+    .limit(5);
+  const match = (data ?? []).find((v: { placeName: string; country: string }) =>
+    `${v.placeName} ${v.country}`.toLowerCase().includes(category.toLowerCase())
+  );
+  return match ? `${match.placeName}, ${match.country}` : null;
+}
 
 export function NearbyClassesCard({ skill }: NearbyClassesCardProps) {
   const { profile } = useCurrentProfile();
@@ -29,10 +47,11 @@ export function NearbyClassesCard({ skill }: NearbyClassesCardProps) {
     }
     setLoading(true);
     try {
+      const upcomingDestination = profile ? await fetchUpcomingDestination(profile.id, skill.category) : null;
       const res = await fetch('/api/ai/learnlog/suggestions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ skillName: skill.name, skillCategory: skill.category, city }),
+        body: JSON.stringify({ skillName: skill.name, skillCategory: skill.category, city, upcomingDestination }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to get suggestions');

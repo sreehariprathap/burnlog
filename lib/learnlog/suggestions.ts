@@ -5,6 +5,7 @@ export interface ClassSuggestionsRequest {
   skillCategory: string | null;
   city: string;
   budgetHint: string | null;
+  upcomingDestination: string | null;
 }
 
 export interface ClassIdea {
@@ -24,7 +25,10 @@ export function buildSuggestionsSystemPrompt(): string {
 }
 
 export function buildSuggestionsUserPrompt(req: ClassSuggestionsRequest): string {
-  return `Suggest 3 to 5 plausible class or lesson ideas for someone learning "${req.skillName}"${req.skillCategory ? ` (category: ${req.skillCategory})` : ''} in ${req.city}.
+  const destinationNote = req.upcomingDestination
+    ? ` They also have an upcoming trip to ${req.upcomingDestination} — if relevant, include at least one idea suited to that destination instead of only their home city.`
+    : '';
+  return `Suggest 3 to 5 plausible class or lesson ideas for someone learning "${req.skillName}"${req.skillCategory ? ` (category: ${req.skillCategory})` : ''} in ${req.city}.${destinationNote}
 ${req.budgetHint ? `Budget consideration: ${req.budgetHint}` : ''}
 
 Requirements:

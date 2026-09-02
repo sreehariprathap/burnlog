@@ -34,6 +34,7 @@ export async function POST(request: Request) {
       skillCategory: body.skillCategory ?? null,
       city: body.city,
       budgetHint: body.budgetHint ?? null,
+      upcomingDestination: body.upcomingDestination ?? null,
     };
 
     MODEL = await getModel(supabase, 'text');

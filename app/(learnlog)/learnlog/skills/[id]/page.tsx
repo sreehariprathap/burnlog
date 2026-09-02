@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Flame } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
 import { createTaskLogTask } from '@/lib/learnlog/crossApp';
 import type { SkillRow, SkillSessionRow, SkillMilestoneRow } from '@/lib/learnlog/types';
@@ -47,6 +48,20 @@ async function fetchMilestones(skillId: string): Promise<SkillMilestoneRow[]> {
   return (data ?? []) as SkillMilestoneRow[];
 }
 
+async function fetchRelatedTrips(profileId: string, category: string | null) {
+  if (!category) return [];
+  const supabase = createClient();
+  const { data, error } = await supabase
+    .from('travellog_visits')
+    .select('id,placeName,country')
+    .eq('profileId', profileId)
+    .order('arrivalDate', { ascending: true });
+  if (error) throw error;
+  return (data ?? []).filter((v: { placeName: string; country: string }) =>
+    `${v.placeName} ${v.country}`.toLowerCase().includes(category.toLowerCase())
+  );
+}
+
 export default function SkillDetailPage() {
   const params = useParams<{ id: string }>();
   const skillId = params.id;
@@ -64,6 +79,10 @@ export default function SkillDetailPage() {
   const { data: milestones, mutate: mutateMilestones } = useSWR(
     ['learnlog-skill-milestones', skillId],
     () => fetchMilestones(skillId)
+  );
+  const { data: relatedTrips } = useSWR(
+    skill ? ['learnlog-related-trips', skill.profileId, skill.category] : null,
+    () => fetchRelatedTrips(skill!.profileId, skill!.category)
   );
 
   if (skillLoading || !skill) {
@@ -100,6 +119,14 @@ export default function SkillDetailPage() {
             )}
           </CardContent>
         </Card>
+
+        {relatedTrips && relatedTrips.length > 0 && (
+          <div className="flex gap-2 flex-wrap">
+            {relatedTrips.map((t: { id: string; placeName: string; country: string }) => (
+              <Badge key={t.id} variant="outline">Related trip: {t.placeName}, {t.country}</Badge>
+            ))}
+          </div>
+        )}
 
         <Button onClick={() => setDrawerOpen(true)} className="w-full">Log a session</Button>
         <Button variant="outline" className="w-full" onClick={handleAddToTaskLog}>Queue a practice session in TaskLog</Button>
