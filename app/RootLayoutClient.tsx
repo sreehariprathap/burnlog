@@ -14,6 +14,7 @@ import { SwitchLoader } from "@/components/SwitchLoader";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { DevErrorWatcher } from "@/components/DevErrorWatcher";
 import { OfflineBanner } from "@/components/OfflineBanner";
+import { EnableNotificationsPrompt } from "@/components/EnableNotificationsPrompt";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -73,6 +74,7 @@ export default function RootLayoutClient({
                 <PWAInstall />
                 <PWAStatus />
                 <PWAUpdateNotification />
+                <EnableNotificationsPrompt />
               </PaymentProvider>
             </AppSwitchProvider>
           </ThemeProvider>
