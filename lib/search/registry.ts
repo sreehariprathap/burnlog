@@ -34,6 +34,10 @@ import {
   LayoutDashboard,
   UserCircle,
   Bot,
+  GraduationCap,
+  Library,
+  Briefcase,
+  NotebookPen,
 } from 'lucide-react';
 import type { AppId } from '@/lib/appMode';
 
@@ -117,4 +121,11 @@ export const SEARCH_REGISTRY: SearchItem[] = [
   { app: 'travellog', label: 'Plan', description: 'AI-assisted trip planner (TravelLog)', href: '/travellog/plan', icon: CalendarRange },
   { app: 'travellog', label: 'Suggestions', description: 'AI-assisted, affordable trip suggestions', href: '/travellog/suggestions', icon: Sparkles },
   { app: 'travellog', label: 'Config', description: 'Country setting for holiday lookup, and more (TravelLog)', href: '/travellog/config', icon: Settings },
+
+  { app: 'learnlog', label: 'Home', description: 'Skills, reading, and career overview (LearnLog)', href: '/learnlog', icon: GraduationCap },
+  { app: 'learnlog', label: 'Library', description: 'Books and courses — want to read, in progress, completed', href: '/learnlog/library', icon: Library },
+  { app: 'learnlog', label: 'Skills', description: 'Practical skills with level/XP/streak tracking (LearnLog)', href: '/learnlog/skills', icon: Dumbbell },
+  { app: 'learnlog', label: 'Career', description: 'Role timeline, certifications, career goals', href: '/learnlog/career', icon: Briefcase },
+  { app: 'learnlog', label: 'Reflections', description: 'Freeform journal for personal growth', href: '/learnlog/reflections', icon: NotebookPen },
+  { app: 'learnlog', label: 'Config', description: 'City setting, AI suggestions toggle, and more (LearnLog)', href: '/learnlog/config', icon: Settings },
 ];
