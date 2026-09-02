@@ -5,9 +5,40 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { ChefHat } from 'lucide-react';
+import {
+  ChefHat,
+  Flame,
+  Zap,
+  Box,
+  Microwave,
+  Fan,
+  Sandwich,
+  Soup,
+  CookingPot,
+  Blend,
+  Wheat,
+  Beef,
+  type LucideIcon,
+} from 'lucide-react';
 import { KITCHEN_APPLIANCES, type MealPlannerWizardAnswers } from '@/lib/ai/types';
+import { cn } from '@/lib/utils';
+
+// Not every appliance has a dedicated lucide icon — several share the
+// closest visual match available (e.g. both stove variants use a heat-based
+// icon) rather than going without one.
+const APPLIANCE_ICONS: Record<(typeof KITCHEN_APPLIANCES)[number], LucideIcon> = {
+  'Stove (gas)': Flame,
+  'Stove (electric/induction)': Zap,
+  'Oven': Box,
+  'Microwave': Microwave,
+  'Air Fryer': Fan,
+  'Toaster': Sandwich,
+  'Slow Cooker': Soup,
+  'Instant Pot / Pressure Cooker': CookingPot,
+  'Blender': Blend,
+  'Rice Cooker': Wheat,
+  'Grill / BBQ': Beef,
+};
 
 type AppliancesStepProps = {
   initialAnswers?: Partial<MealPlannerWizardAnswers>;
@@ -52,13 +83,26 @@ export function AppliancesStep({ initialAnswers, onContinue }: AppliancesStepPro
         {cookingAtHome && (
           <div className="space-y-2">
             <Label>What do you have available?</Label>
-            <div className="grid grid-cols-2 gap-2">
-              {KITCHEN_APPLIANCES.map((a) => (
-                <label key={a} className="flex items-center space-x-2">
-                  <Checkbox checked={appliances.includes(a)} onCheckedChange={() => toggle(a)} />
-                  <span className="text-sm">{a}</span>
-                </label>
-              ))}
+            <div className="grid grid-cols-3 gap-2">
+              {KITCHEN_APPLIANCES.map((a) => {
+                const Icon = APPLIANCE_ICONS[a];
+                const selected = appliances.includes(a);
+                return (
+                  <button
+                    key={a}
+                    type="button"
+                    onClick={() => toggle(a)}
+                    aria-pressed={selected}
+                    className={cn(
+                      'flex flex-col items-center gap-1.5 rounded-xl border p-3 text-center transition-colors',
+                      selected ? 'bg-primary text-primary-foreground border-primary' : 'border-border hover:bg-muted'
+                    )}
+                  >
+                    <Icon className="h-5 w-5" />
+                    <span className="text-xs leading-tight">{a}</span>
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}
