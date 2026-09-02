@@ -50,9 +50,17 @@ export async function acceptTravelPlan(
     .single();
   if (planError) throw planError;
 
+  const { error: memberError } = await supabase.from('travellog_plan_members').insert({
+    planId: plan.id,
+    profileId,
+    role: 'owner',
+  });
+  if (memberError) throw memberError;
+
   const { lat, lng } = firstCoordinates(itinerary);
   const { error: visitError } = await supabase.from('travellog_visits').insert({
     profileId,
+    tripPlanId: plan.id,
     placeName: req.destination,
     country: req.destination,
     lat,
