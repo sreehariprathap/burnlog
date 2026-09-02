@@ -125,16 +125,18 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
 
 // Calls the real server-side push endpoint - unlike sendTestNotification, this exercises
 // actual delivery through the service worker's push handler.
-export async function sendRealTestNotification(): Promise<{ success: boolean; error?: string }> {
+export async function sendRealTestNotification(
+  payload: { title: string; message: string; url: string } = {
+    title: 'burnlog Test',
+    message: 'This is a real push notification from burnlog!',
+    url: '/burnlog/dashboard',
+  }
+): Promise<{ success: boolean; error?: string }> {
   try {
     const response = await fetch('/api/notifications/send', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        title: 'burnlog Test',
-        message: 'This is a real push notification from burnlog!',
-        url: '/burnlog/dashboard',
-      }),
+      body: JSON.stringify(payload),
     });
 
     const body = await response.json();

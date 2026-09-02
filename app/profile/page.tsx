@@ -3,6 +3,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -20,6 +21,8 @@ import { Switch } from '@/components/ui/switch';
 import { APPS, AppId, getDefaultApp, setDefaultApp, setEnabledApps } from '@/lib/appMode';
 import { isDevErrorModeEnabled, setDevErrorModeEnabled } from '@/lib/devErrorMode';
 import { useToast } from '@/components/ui/use-toast';
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { NOTIFICATION_TEMPLATES, templatesByApp, type NotificationTemplate } from '@/lib/notificationTemplates';
 
 // Client Component — no static <Metadata> export; page title stays the
 // default set by the root layout.
@@ -36,6 +39,7 @@ export default function ProfilePage() {
   const [loggingOut, setLoggingOut] = useState(false);
   const [email, setEmail] = useState<string|null>(null);
   const [testSending, setTestSending] = useState(false);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>(NOTIFICATION_TEMPLATES[0].id);
   const [showPageToggles, setShowPageToggles] = useState(false);
   const [showAiModelSettings, setShowAiModelSettings] = useState(false);
   const [devErrorMode, setDevErrorMode] = useState(false);
@@ -183,9 +187,11 @@ export default function ProfilePage() {
   };
 
   const handleSendTestPush = async () => {
+    const template = NOTIFICATION_TEMPLATES.find((t) => t.id === selectedTemplateId);
+    if (!template) return;
     setTestSending(true);
     try {
-      const result = await sendRealTestNotification();
+      const result = await sendRealTestNotification({ title: template.title, message: template.message, url: template.url });
       if (result.success) {
         toast({ description: 'Test push sent — check for a real notification on this device.' });
       } else {
@@ -208,6 +214,9 @@ export default function ProfilePage() {
       setLoggingOut(false);
     }
   };
+
+  const selectedTemplate: NotificationTemplate | undefined = NOTIFICATION_TEMPLATES.find((t) => t.id === selectedTemplateId);
+  const groupedTemplates = templatesByApp();
 
   if (loading) return (
     <div className="h-screen flex items-center justify-center">
@@ -393,10 +402,38 @@ export default function ProfilePage() {
                       Test Push Notifications
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-3">
+                  <CardContent className="space-y-4">
                     <p className="text-sm text-muted-foreground">
-                      Admin tool - send yourself a real push notification to verify delivery.
+                      Admin tool - pick a notification type and send yourself a real push to verify delivery and copy.
                     </p>
+
+                    <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose a notification type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {groupedTemplates.map((group) => (
+                          <SelectGroup key={group.app}>
+                            <SelectLabel>{group.label}</SelectLabel>
+                            {group.templates.map((t) => (
+                              <SelectItem key={t.id} value={t.id}>{t.label}</SelectItem>
+                            ))}
+                          </SelectGroup>
+                        ))}
+                      </SelectContent>
+                    </Select>
+
+                    {selectedTemplate && (
+                      <div className="rounded-lg border bg-muted/40 p-3 flex gap-3 items-start">
+                        <Image src="/icons/icon-48.png" alt="" width={48} height={48} className="w-8 h-8 rounded-md shrink-0" />
+                        <div className="min-w-0">
+                          <p className="text-sm font-semibold truncate">{selectedTemplate.title}</p>
+                          <p className="text-sm text-muted-foreground">{selectedTemplate.message}</p>
+                          <p className="text-xs text-muted-foreground/70 mt-1">Opens: {selectedTemplate.url}</p>
+                        </div>
+                      </div>
+                    )}
+
                     <Button onClick={handleSendTestPush} disabled={testSending}>
                       {testSending ? 'Sending...' : 'Send Test Push'}
                     </Button>
