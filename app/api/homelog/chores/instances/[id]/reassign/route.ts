@@ -2,11 +2,15 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/serviceRole';
 import { getMyProfileId, getMyHouseholdMembership } from '@/lib/homelog/serverAuth';
-import { nextOccurrenceAfter } from '@/lib/homelog/choreRecurrence';
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const { id } = await params;
+    const body = (await request.json()) as { assignedProfileId?: string | null };
+    if (body.assignedProfileId !== null && typeof body.assignedProfileId !== 'string') {
+      return NextResponse.json({ error: 'assignedProfileId must be a string or null' }, { status: 400 });
+    }
+
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -26,66 +30,48 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     const { data: instance, error: fetchError } = await admin
       .from('household_chore_instances')
-      .select('id, choreId, dueDate, assignedProfileId, completedAt')
+      .select('id, choreId, completedAt')
       .eq('id', id)
       .maybeSingle();
     if (fetchError || !instance) {
       return NextResponse.json({ error: 'Chore instance not found' }, { status: 404 });
     }
     if (instance.completedAt) {
-      return NextResponse.json({ error: 'Already completed' }, { status: 400 });
+      return NextResponse.json({ error: 'Cannot reassign a completed chore' }, { status: 400 });
     }
 
     const { data: chore } = await admin
       .from('household_chores')
-      .select('id, householdId, frequency, dayOfWeek, dayOfMonth, monthOfYear, autoRotate')
+      .select('id, householdId')
       .eq('id', instance.choreId)
       .maybeSingle();
     if (!chore || chore.householdId !== membership.householdId) {
       return NextResponse.json({ error: 'Not your household chore' }, { status: 403 });
     }
 
+    if (body.assignedProfileId) {
+      const { data: targetMember } = await admin
+        .from('household_members')
+        .select('profileId')
+        .eq('householdId', membership.householdId)
+        .eq('profileId', body.assignedProfileId)
+        .maybeSingle();
+      if (!targetMember) {
+        return NextResponse.json({ error: 'That person is not a member of your household' }, { status: 400 });
+      }
+    }
+
     const { error: updateError } = await admin
       .from('household_chore_instances')
-      .update({ completedAt: new Date().toISOString(), completedByProfileId: meId })
+      .update({ assignedProfileId: body.assignedProfileId ?? null })
       .eq('id', id);
     if (updateError) {
       return NextResponse.json({ error: updateError.message }, { status: 400 });
     }
 
-    const next = nextOccurrenceAfter(chore, new Date(instance.dueDate));
-    if (next) {
-      // autoRotate: round-robin to the next household member (join order),
-      // same behavior every chore has always had. Otherwise carry the same
-      // assignee forward — reassigning a chore should stick until someone
-      // changes it again, not get silently rotated away.
-      let nextAssignee: string | null = instance.assignedProfileId;
-      if (chore.autoRotate) {
-        const { data: members } = await admin
-          .from('household_members')
-          .select('profileId')
-          .eq('householdId', membership.householdId)
-          .order('joinedAt', { ascending: true });
-
-        nextAssignee = members?.[0]?.profileId ?? null;
-        if (members && members.length > 0 && instance.assignedProfileId) {
-          const currentIndex = members.findIndex((m) => m.profileId === instance.assignedProfileId);
-          nextAssignee = members[(currentIndex + 1 + members.length) % members.length].profileId;
-        }
-      }
-
-      await admin.from('household_chore_instances').insert([
-        {
-          choreId: chore.id,
-          dueDate: next.toISOString().slice(0, 10),
-          assignedProfileId: nextAssignee,
-        },
-      ]);
-    }
-
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('complete chore instance error:', error);
+    console.error('reassign chore instance error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

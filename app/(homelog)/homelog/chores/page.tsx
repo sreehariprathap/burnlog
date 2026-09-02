@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { ListTodo, RefreshCw } from 'lucide-react';
 import { useHouseholdMe } from '@/lib/homelog/useHouseholdMe';
 import { useToast } from '@/components/ui/use-toast';
@@ -35,6 +36,7 @@ interface ChoreInfo {
   title: string;
   category: string;
   frequency: string;
+  autoRotate: boolean;
   instance: ChoreInstanceInfo | null;
 }
 
@@ -46,7 +48,7 @@ async function fetchChores(): Promise<ChoreInfo[]> {
 
 export default function ChoresPage() {
   const { toast } = useToast();
-  const { household, isLoading: householdLoading } = useHouseholdMe();
+  const { household, members, isLoading: householdLoading } = useHouseholdMe();
   const {
     data: chores,
     isLoading: choresLoading,
@@ -64,6 +66,8 @@ export default function ChoresPage() {
   const [error, setError] = useState('');
   const [completingId, setCompletingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [reassigningId, setReassigningId] = useState<string | null>(null);
+  const [togglingRotateId, setTogglingRotateId] = useState<string | null>(null);
 
   const loading = householdLoading || choresLoading;
 
@@ -118,6 +122,51 @@ export default function ChoresPage() {
       });
     } finally {
       setCompletingId(null);
+    }
+  }
+
+  async function handleReassign(instanceId: string, assignedProfileId: string | null) {
+    setReassigningId(instanceId);
+    try {
+      const res = await fetch(`/api/homelog/chores/instances/${instanceId}/reassign`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assignedProfileId }),
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || 'Failed to reassign chore');
+      await refresh();
+      toast({ title: 'Chore reassigned' });
+    } catch (err) {
+      toast({
+        title: 'Failed to reassign chore',
+        description: err instanceof Error ? err.message : 'Please try again',
+        variant: 'destructive',
+      });
+    } finally {
+      setReassigningId(null);
+    }
+  }
+
+  async function handleToggleAutoRotate(choreId: string, autoRotate: boolean) {
+    setTogglingRotateId(choreId);
+    try {
+      const res = await fetch(`/api/homelog/chores/${choreId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ autoRotate }),
+      });
+      const body = await res.json();
+      if (!res.ok) throw new Error(body.error || 'Failed to update chore');
+      await refresh();
+    } catch (err) {
+      toast({
+        title: 'Failed to update chore',
+        description: err instanceof Error ? err.message : 'Please try again',
+        variant: 'destructive',
+      });
+    } finally {
+      setTogglingRotateId(null);
     }
   }
 
@@ -275,36 +324,79 @@ export default function ChoresPage() {
         ) : (
           chores.map((chore) => (
             <Card key={chore.id}>
-              <CardContent className="flex items-center justify-between gap-3 p-4">
-                <div>
-                  <p className="text-sm font-medium">{chore.title}</p>
-                  <p className="text-xs text-muted-foreground capitalize">
-                    {chore.category} · {chore.frequency}
-                    {chore.instance && ` · due ${chore.instance.dueDate}`}
-                    {chore.instance?.assignedName && ` · ${chore.instance.assignedName}`}
-                  </p>
-                </div>
-                <div className="flex gap-2">
-                  {chore.instance && (
+              <CardContent className="flex flex-col gap-3 p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-medium">{chore.title}</p>
+                    <p className="text-xs text-muted-foreground capitalize">
+                      {chore.category} · {chore.frequency}
+                      {chore.instance && ` · due ${chore.instance.dueDate}`}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    {chore.instance && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        onClick={() => handleComplete(chore.instance!.id)}
+                        disabled={completingId === chore.instance.id}
+                      >
+                        {completingId === chore.instance.id ? 'Saving…' : 'Done'}
+                      </Button>
+                    )}
                     <Button
                       type="button"
                       size="sm"
-                      onClick={() => handleComplete(chore.instance!.id)}
-                      disabled={completingId === chore.instance.id}
+                      variant="ghost"
+                      onClick={() => handleDelete(chore.id)}
+                      disabled={deletingId === chore.id}
                     >
-                      {completingId === chore.instance.id ? 'Saving…' : 'Done'}
+                      {deletingId === chore.id ? 'Deleting…' : 'Delete'}
                     </Button>
-                  )}
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="ghost"
-                    onClick={() => handleDelete(chore.id)}
-                    disabled={deletingId === chore.id}
-                  >
-                    {deletingId === chore.id ? 'Deleting…' : 'Delete'}
-                  </Button>
+                  </div>
                 </div>
+
+                {chore.instance && (
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor={`assignee-${chore.id}`} className="text-xs text-muted-foreground">
+                        Assigned to
+                      </Label>
+                      <Select
+                        value={chore.instance.assignedProfileId ?? 'unassigned'}
+                        onValueChange={(value) =>
+                          handleReassign(chore.instance!.id, value === 'unassigned' ? null : value)
+                        }
+                        disabled={reassigningId === chore.instance.id}
+                      >
+                        <SelectTrigger id={`assignee-${chore.id}`} className="h-8 w-36">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="unassigned">Unassigned</SelectItem>
+                          {members.map((member) => (
+                            <SelectItem key={member.profileId} value={member.profileId}>
+                              {member.firstName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    {chore.frequency !== 'once' && (
+                      <div className="flex items-center gap-2">
+                        <Label htmlFor={`auto-rotate-${chore.id}`} className="text-xs text-muted-foreground">
+                          Auto-rotate
+                        </Label>
+                        <Switch
+                          id={`auto-rotate-${chore.id}`}
+                          checked={chore.autoRotate}
+                          onCheckedChange={(checked) => handleToggleAutoRotate(chore.id, checked)}
+                          disabled={togglingRotateId === chore.id}
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))
