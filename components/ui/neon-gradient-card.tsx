@@ -121,7 +121,13 @@ export const NeonGradientCard: React.FC<NeonGradientCardProps> = ({
           // tight grids everywhere (2-3 columns), and a width-scaled blur
           // (the old `width / 3`) radiates far past a card's own edges,
           // bleeding into neighbors instead of staying a contained glow.
-          "--after-blur": "10px",
+          // Kept small (6px, down from 10px) because the total bleed beyond
+          // the card's own box is roughly borderSize + this blur value —
+          // any container that clips overflow (a carousel slide, a scroll
+          // area) needs at least that much gutter or the glow gets a hard
+          // cut edge instead of fading out. 6px keeps that ask modest enough
+          // to fit inside the padding most containers already have.
+          "--after-blur": "6px",
         } as CSSProperties
       }
       className={cn(
