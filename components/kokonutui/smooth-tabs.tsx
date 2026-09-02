@@ -36,7 +36,7 @@ export function SmoothTabs({ items, selectedIndex, onSelect, className, showLabe
             aria-current={isActive}
             className={cn(
               "relative flex shrink-0 items-center justify-center gap-1.5 rounded-full transition-colors",
-              showLabels ? "p-2.5 sm:px-3 sm:py-2" : "p-2.5"
+              showLabels ? "px-3 py-2" : "p-2.5"
             )}
           >
             {isActive && (
@@ -56,8 +56,8 @@ export function SmoothTabs({ items, selectedIndex, onSelect, className, showLabe
             {showLabels && (
               <span
                 className={cn(
-                  "relative z-10 hidden text-sm font-medium sm:inline",
-                  isActive ? "text-white" : "text-muted-foreground"
+                  "relative z-10 text-sm font-medium sm:inline",
+                  isActive ? "inline text-white" : "hidden text-muted-foreground"
                 )}
               >
                 {item.label}
