@@ -712,3 +712,47 @@ create policy "adminlog_toggle_overrides_admin_delete" on adminlog_toggle_overri
   using (
     exists (select 1 from profiles where profiles."userId" = auth.uid() and profiles."isAdmin" = true)
   );
+
+-- adminlog_error_logs -----------------------------------------------------
+-- Persisted client/server error log. Any authenticated user may insert
+-- (their own client-side errors get reported here regardless of whether
+-- an admin is watching); only admins may read or mark resolved.
+alter table adminlog_error_logs enable row level security;
+
+create policy "adminlog_error_logs_insert_any_authenticated" on adminlog_error_logs
+  for insert
+  with check (auth.uid() is not null);
+
+create policy "adminlog_error_logs_admin_select" on adminlog_error_logs
+  for select
+  using (
+    exists (select 1 from profiles where profiles."userId" = auth.uid() and profiles."isAdmin" = true)
+  );
+
+create policy "adminlog_error_logs_admin_update" on adminlog_error_logs
+  for update
+  using (
+    exists (select 1 from profiles where profiles."userId" = auth.uid() and profiles."isAdmin" = true)
+  )
+  with check (
+    exists (select 1 from profiles where profiles."userId" = auth.uid() and profiles."isAdmin" = true)
+  );
+
+-- adminlog_invites --------------------------------------------------------
+-- Admin-only courtesy invite tracker. Not a signup gate — matching a new
+-- user's email against a pending invite (to mark signed_up) happens
+-- server-side via the service-role client, which bypasses RLS, so no
+-- policy is needed for that write.
+alter table adminlog_invites enable row level security;
+
+create policy "adminlog_invites_admin_select" on adminlog_invites
+  for select
+  using (
+    exists (select 1 from profiles where profiles."userId" = auth.uid() and profiles."isAdmin" = true)
+  );
+
+create policy "adminlog_invites_admin_insert" on adminlog_invites
+  for insert
+  with check (
+    exists (select 1 from profiles where profiles."userId" = auth.uid() and profiles."isAdmin" = true)
+  );

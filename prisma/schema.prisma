@@ -116,6 +116,8 @@ model Profile {
   Notification               Notification[]
   toggleOverridesReceived    ToggleOverride[] @relation("ToggleOverrideProfile")
   toggleOverridesSet         ToggleOverride[] @relation("ToggleOverrideSetBy")
+  errorLogsResolved          ErrorLog[]       @relation("ErrorLogResolvedBy")
+  invitesSent                Invite[]         @relation("InviteSentBy")
 
   @@map("profiles")
 }
@@ -329,6 +331,32 @@ model ToggleOverride {
 
   @@unique([toggleKey, profileId])
   @@map("adminlog_toggle_overrides")
+}
+
+model ErrorLog {
+  id                String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  source            String                     // 'client' | 'server' | 'worker'
+  message           String
+  stack             String?
+  context           Json?
+  createdAt         DateTime  @default(now())
+  resolvedAt        DateTime?
+  resolvedByAdmin   Profile?  @relation("ErrorLogResolvedBy", fields: [resolvedByAdminId], references: [id])
+  resolvedByAdminId String?   @db.Uuid
+
+  @@map("adminlog_error_logs")
+}
+
+model Invite {
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email            String
+  invitedByAdmin   Profile   @relation("InviteSentBy", fields: [invitedByAdminId], references: [id])
+  invitedByAdminId String    @db.Uuid
+  status           String    @default("pending") // 'pending' | 'signed_up'
+  createdAt        DateTime  @default(now())
+  signedUpAt       DateTime?
+
+  @@map("adminlog_invites")
 }
 
 /// recurring income/expense templates — expanded into period ranges at read time, never materialized into rows
