@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import OpenAI from 'openai';
 import { getModel } from '@/lib/ai/modelConfig';
 import { formatAiError } from '@/lib/ai/errors';
+import { runAiJob, AiRouteError } from '@/lib/ai/jobs';
 import { MANUAL_INGREDIENTS_OPTION, type MealCandidate, type MealPlannerWizardAnswers, type LifestyleAnswers } from '@/lib/ai/types';
 
 const client = new OpenAI({
@@ -74,7 +75,7 @@ export async function POST(request: Request) {
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('lifestyle')
+      .select('id, lifestyle')
       .eq('userId', user.id)
       .single();
 
@@ -87,34 +88,51 @@ export async function POST(request: Request) {
 
     MODEL = await getModel(supabase, 'text');
 
-    const prompt = buildCandidatesPrompt(answers, lifestyle);
-
-    const completion = await client.chat.completions.create({
-      model: MODEL,
-      temperature: 0.6,
-      messages: [{ role: 'user', content: prompt }],
-      response_format: { type: 'json_object' },
-    });
-
-    const content = completion.choices?.[0]?.message?.content;
-    if (!content) {
-      return NextResponse.json({ error: 'AI returned no response' }, { status: 502 });
-    }
-
-    let parsed: { candidates?: Omit<MealCandidate, 'id'>[] };
     try {
-      parsed = JSON.parse(content);
-    } catch {
-      return NextResponse.json({ error: 'AI response was not valid JSON' }, { status: 502 });
+      const responsePayload = await runAiJob(
+        supabase,
+        profile.id,
+        { jobType: 'meal-plan-candidates', app: 'burnlog', model: MODEL },
+        { answers, lifestyle },
+        async () => {
+          const prompt = buildCandidatesPrompt(answers, lifestyle);
+
+          const completion = await client.chat.completions.create({
+            model: MODEL,
+            temperature: 0.6,
+            messages: [{ role: 'user', content: prompt }],
+            response_format: { type: 'json_object' },
+          });
+
+          const content = completion.choices?.[0]?.message?.content;
+          if (!content) {
+            throw new AiRouteError('AI returned no response', 502);
+          }
+
+          let parsed: { candidates?: Omit<MealCandidate, 'id'>[] };
+          try {
+            parsed = JSON.parse(content);
+          } catch {
+            throw new AiRouteError('AI response was not valid JSON', 502);
+          }
+
+          if (!parsed.candidates || parsed.candidates.length === 0) {
+            throw new AiRouteError('AI response missing candidates', 502);
+          }
+
+          const candidates: MealCandidate[] = parsed.candidates.map((c, i) => ({ ...c, id: String(i) }));
+
+          return { candidates };
+        }
+      );
+
+      return NextResponse.json(responsePayload);
+    } catch (err) {
+      if (err instanceof AiRouteError) {
+        return NextResponse.json({ error: err.message }, { status: err.status });
+      }
+      throw err;
     }
-
-    if (!parsed.candidates || parsed.candidates.length === 0) {
-      return NextResponse.json({ error: 'AI response missing candidates' }, { status: 502 });
-    }
-
-    const candidates: MealCandidate[] = parsed.candidates.map((c, i) => ({ ...c, id: String(i) }));
-
-    return NextResponse.json({ candidates });
   } catch (error) {
     console.error('meal-plan candidates error:', error);
     return NextResponse.json({ error: formatAiError(MODEL, error) }, { status: 500 });

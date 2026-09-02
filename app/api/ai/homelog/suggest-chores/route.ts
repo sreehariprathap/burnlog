@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import OpenAI from 'openai';
 import { getModel } from '@/lib/ai/modelConfig';
 import { formatAiError } from '@/lib/ai/errors';
+import { runAiJob, AiRouteError } from '@/lib/ai/jobs';
 
 const client = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
@@ -38,48 +39,74 @@ export async function POST(request: Request) {
 
     MODEL = await getModel(supabase, 'text');
 
-    const completion = await client.chat.completions.create({
-      model: MODEL,
-      temperature: 0.5,
-      messages: [{ role: 'user', content: buildPrompt(householdName) }],
-      response_format: { type: 'json_object' },
-    });
-
-    const content = completion.choices?.[0]?.message?.content;
-    if (!content) {
-      return NextResponse.json({ error: 'AI returned no response' }, { status: 502 });
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('userId', user.id)
+      .single();
+    if (!profile) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
-    let parsed: { chores?: Array<{ title?: string; category?: string; frequency?: string; dayOfWeek?: number | null }> };
     try {
-      parsed = JSON.parse(content);
-    } catch {
-      return NextResponse.json({ error: 'AI response was not valid JSON' }, { status: 502 });
+      const responsePayload = await runAiJob(
+        supabase,
+        profile.id,
+        { jobType: 'suggest-chores', app: 'homelog', model: MODEL },
+        { householdName },
+        async () => {
+          const completion = await client.chat.completions.create({
+            model: MODEL,
+            temperature: 0.5,
+            messages: [{ role: 'user', content: buildPrompt(householdName) }],
+            response_format: { type: 'json_object' },
+          });
+
+          const content = completion.choices?.[0]?.message?.content;
+          if (!content) {
+            throw new AiRouteError('AI returned no response', 502);
+          }
+
+          let parsed: { chores?: Array<{ title?: string; category?: string; frequency?: string; dayOfWeek?: number | null }> };
+          try {
+            parsed = JSON.parse(content);
+          } catch {
+            throw new AiRouteError('AI response was not valid JSON', 502);
+          }
+
+          if (!parsed.chores || parsed.chores.length === 0) {
+            throw new AiRouteError('AI response contained no chores', 502);
+          }
+
+          const chores = parsed.chores
+            .filter((c) => c.title && c.title.trim())
+            .map((c) => {
+              const frequency = (['weekly', 'monthly', 'yearly'].includes(c.frequency || '') ? c.frequency : 'weekly') as
+                | 'weekly'
+                | 'monthly'
+                | 'yearly';
+              return {
+                title: c.title!.trim(),
+                category: (['cleaning', 'maintenance', 'other'].includes(c.category || '') ? c.category : 'other') as
+                  | 'cleaning'
+                  | 'maintenance'
+                  | 'other',
+                frequency,
+                dayOfWeek: frequency === 'weekly' && typeof c.dayOfWeek === 'number' ? c.dayOfWeek : null,
+              };
+            });
+
+          return { chores };
+        }
+      );
+
+      return NextResponse.json(responsePayload);
+    } catch (err) {
+      if (err instanceof AiRouteError) {
+        return NextResponse.json({ error: err.message }, { status: err.status });
+      }
+      throw err;
     }
-
-    if (!parsed.chores || parsed.chores.length === 0) {
-      return NextResponse.json({ error: 'AI response contained no chores' }, { status: 502 });
-    }
-
-    const chores = parsed.chores
-      .filter((c) => c.title && c.title.trim())
-      .map((c) => {
-        const frequency = (['weekly', 'monthly', 'yearly'].includes(c.frequency || '') ? c.frequency : 'weekly') as
-          | 'weekly'
-          | 'monthly'
-          | 'yearly';
-        return {
-          title: c.title!.trim(),
-          category: (['cleaning', 'maintenance', 'other'].includes(c.category || '') ? c.category : 'other') as
-            | 'cleaning'
-            | 'maintenance'
-            | 'other',
-          frequency,
-          dayOfWeek: frequency === 'weekly' && typeof c.dayOfWeek === 'number' ? c.dayOfWeek : null,
-        };
-      });
-
-    return NextResponse.json({ chores });
   } catch (error) {
     console.error('homelog suggest-chores error:', error);
     return NextResponse.json({ error: formatAiError(MODEL, error) }, { status: 500 });

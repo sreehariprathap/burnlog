@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import OpenAI from 'openai';
 import { getModel } from '@/lib/ai/modelConfig';
 import { formatAiError } from '@/lib/ai/errors';
+import { runAiJob, AiRouteError } from '@/lib/ai/jobs';
 
 const client = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
@@ -38,22 +39,32 @@ export async function POST(request: Request) {
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('weight, age')
+      .select('id, weight, age')
       .eq('userId', user.id)
       .single();
+    if (!profile) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    }
 
     const weight = profile?.weight ?? 70;
     const age = profile?.age ?? 30;
 
-    const activityLine = activityType === 'Other'
-      ? `Activity: unspecified — infer the actual activity from this description: "${description?.trim()}"`
-      : `Activity: ${activityType}`;
+    try {
+      const responsePayload = await runAiJob(
+        supabase,
+        profile.id,
+        { jobType: 'estimate-workout-calories', app: 'burnlog', model: MODEL },
+        { activityType, durationMinutes, distanceKm, description },
+        async () => {
+          const activityLine = activityType === 'Other'
+            ? `Activity: unspecified — infer the actual activity from this description: "${description?.trim()}"`
+            : `Activity: ${activityType}`;
 
-    const paceLine = distanceKm && distanceKm > 0
-      ? `\nDistance covered: ${distanceKm} km in ${durationMinutes} minutes (use this pace to judge intensity).`
-      : '';
+          const paceLine = distanceKm && distanceKm > 0
+            ? `\nDistance covered: ${distanceKm} km in ${durationMinutes} minutes (use this pace to judge intensity).`
+            : '';
 
-    const prompt = `You are an exercise physiologist estimating calorie expenditure.
+          const prompt = `You are an exercise physiologist estimating calorie expenditure.
 
 ${activityLine}
 Duration: ${durationMinutes} minutes${paceLine}
@@ -68,36 +79,46 @@ Respond ONLY with a valid JSON object (no markdown, no extra text) with this exa
   "notes": "one short sentence explaining the estimate (e.g. MET value used, inferred activity if applicable)"
 }`;
 
-    const completion = await client.chat.completions.create({
-      model: MODEL,
-      temperature: 0.2,
-      messages: [{ role: 'user', content: prompt }],
-      response_format: { type: 'json_object' },
-    });
+          const completion = await client.chat.completions.create({
+            model: MODEL,
+            temperature: 0.2,
+            messages: [{ role: 'user', content: prompt }],
+            response_format: { type: 'json_object' },
+          });
 
-    const content = completion.choices?.[0]?.message?.content;
-    if (!content) {
-      return NextResponse.json({ error: 'AI returned no response' }, { status: 502 });
+          const content = completion.choices?.[0]?.message?.content;
+          if (!content) {
+            throw new AiRouteError('AI returned no response', 502);
+          }
+
+          let parsed: unknown;
+          try {
+            parsed = JSON.parse(content);
+          } catch {
+            throw new AiRouteError('AI response was not valid JSON', 502);
+          }
+
+          const result = parsed as Record<string, unknown>;
+          const caloriesBurned = Number(result.caloriesBurned);
+
+          if (!caloriesBurned || Number.isNaN(caloriesBurned) || caloriesBurned <= 0) {
+            throw new AiRouteError('AI response missing a valid calorie estimate', 502);
+          }
+
+          return {
+            caloriesBurned: Math.round(caloriesBurned),
+            notes: result.notes ?? '',
+          };
+        }
+      );
+
+      return NextResponse.json(responsePayload);
+    } catch (err) {
+      if (err instanceof AiRouteError) {
+        return NextResponse.json({ error: err.message }, { status: err.status });
+      }
+      throw err;
     }
-
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(content);
-    } catch {
-      return NextResponse.json({ error: 'AI response was not valid JSON' }, { status: 502 });
-    }
-
-    const result = parsed as Record<string, unknown>;
-    const caloriesBurned = Number(result.caloriesBurned);
-
-    if (!caloriesBurned || Number.isNaN(caloriesBurned) || caloriesBurned <= 0) {
-      return NextResponse.json({ error: 'AI response missing a valid calorie estimate' }, { status: 502 });
-    }
-
-    return NextResponse.json({
-      caloriesBurned: Math.round(caloriesBurned),
-      notes: result.notes ?? '',
-    });
   } catch (error) {
     console.error('estimate-workout-calories error:', error);
     return NextResponse.json({ error: formatAiError(MODEL, error) }, { status: 500 });
