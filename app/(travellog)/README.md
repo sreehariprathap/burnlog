@@ -21,6 +21,13 @@ Travel-tracking sub-app. One of eight sub-apps under LogBook — see the
   disposable income (MoneyLog), and upcoming public holidays in the
   user's configured country. "Plan this trip" deep-links into the Plan
   tab with the suggestion prefilled.
+- **Trips** (`/travellog/trips`) — shared trip management. Any accepted
+  `TravelPlan` can have other users invited by username; invitees get a
+  push notification and an accept/decline flow. Accepted members see the
+  trip's itinerary (read-only) and a trip-scoped visit log — separate
+  from each member's own personal exploration map. The owner (the plan's
+  creator) can invite; any member can log a visit tagged to the trip via
+  the Map tab's "Part of a trip?" field.
 - **Config** (`/travellog/config`) — TravelLog-specific settings. No
   dedicated onboarding flow yet.
 
@@ -29,6 +36,7 @@ Travel-tracking sub-app. One of eight sub-apps under LogBook — see the
 ```
 /travellog              Home
 /travellog/map            Map + log a visit
+/travellog/trips              My Trips (list + detail, members, invites)
 /travellog/plan              Plan (placeholder)
 /travellog/suggestions          Suggestions (placeholder)
 /travellog/config                  Settings
@@ -37,10 +45,16 @@ Travel-tracking sub-app. One of eight sub-apps under LogBook — see the
 ## Data model
 
 Prisma models: `TravelVisit` (table `travellog_visits`), `TravelPlan` (table
-`travellog_plans`). `Task` (TaskLog's model) gets an optional `travelPlanId`
-back-reference. Shares the top-level `Profile` model with every other app.
-"Explored" (multi-day stay) status is derived at read time via
-`isExplored()` in `lib/travellog/types.ts`, never stored.
+`travellog_plans`), `TravelPlanMember` and `TravelPlanInvite` (shared-trip
+membership/invites, tables `travellog_plan_members`/`travellog_plan_invites`
+— shaped like HomeLog's `Household`/`HouseholdMember`/`HouseholdInvite`
+pattern, but `@@unique([planId, profileId])` rather than globally unique
+per profile, since one person plans many trips over time). `TravelVisit`
+has an optional `tripPlanId` tagging it to a shared trip. `Task` (TaskLog's
+model) gets an optional `travelPlanId` back-reference. Shares the top-level
+`Profile` model with every other app. "Explored" (multi-day stay) status is
+derived at read time via `isExplored()` in `lib/travellog/types.ts`, never
+stored.
 
 `Profile.country` (nullable, set from TravelLog's config page) drives the
 Suggestions tab's holiday lookup.
@@ -52,7 +66,8 @@ app/(travellog)/
   layout.tsx                Route-group layout/theming
   travellog/page.tsx           Home
   travellog/map/                 Map + log-a-visit form
-  travellog/plan/                   AI trip planner (intake → review → accept)
+  travellog/trips/                  My Trips list + trip detail (members, invite, shared visit log)
+  travellog/plan/                   AI trip planner (intake → review → accept) + pending trip-invites banner
   travellog/suggestions/               Suggestions (free time + income + holidays → AI picks)
   travellog/config/                       Settings
 components/TravelLogBottomNav.tsx      TravelLog's bottom nav
