@@ -101,6 +101,9 @@ model Profile {
   MydayBlock              MydayBlock[]
   TravelVisit             TravelVisit[]
   TravelPlan              TravelPlan[]
+  TravelPlanMember             TravelPlanMember[]
+  travelPlanInvitesSent        TravelPlanInvite[] @relation("TravelPlanInviteSender")
+  travelPlanInvitesReceived    TravelPlanInvite[] @relation("TravelPlanInviteRecipient")
   LibraryItem             LibraryItem[]
   Skill                   Skill[]
   CareerRole              CareerRole[]
@@ -702,6 +705,8 @@ model TravelVisit {
   departureDate DateTime? @db.Date
   notes         String?
   createdAt     DateTime  @default(now())
+  tripPlanId    String?     @db.Uuid
+  plan          TravelPlan? @relation(fields: [tripPlanId], references: [id])
 
   @@map("travellog_visits")
 }
@@ -724,8 +729,39 @@ model TravelPlan {
   acceptedAt     DateTime?
   createdAt      DateTime  @default(now())
   tasks          Task[]
+  members        TravelPlanMember[]
+  invites        TravelPlanInvite[]
+  taggedVisits   TravelVisit[]
 
   @@map("travellog_plans")
+}
+
+model TravelPlanMember {
+  id        String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  plan      TravelPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  planId    String     @db.Uuid
+  profile   Profile    @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId String     @db.Uuid
+  role      String     @default("member") // 'owner' | 'member'
+  joinedAt  DateTime   @default(now())
+
+  @@unique([planId, profileId])
+  @@map("travellog_plan_members")
+}
+
+model TravelPlanInvite {
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  plan        TravelPlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+  planId      String     @db.Uuid
+  invitedBy   Profile    @relation("TravelPlanInviteSender", fields: [invitedById], references: [id])
+  invitedById String     @db.Uuid
+  invitee     Profile    @relation("TravelPlanInviteRecipient", fields: [inviteeId], references: [id])
+  inviteeId   String     @db.Uuid
+  status      String     @default("pending") // 'pending' | 'accepted' | 'declined'
+  createdAt   DateTime   @default(now())
+  respondedAt DateTime?
+
+  @@map("travellog_plan_invites")
 }
 
 /// a single time-boxed item on a user's day plan — either typed in
