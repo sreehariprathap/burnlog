@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { UsernameSearchInput } from '@/components/UsernameSearchInput';
 import { useToast } from '@/components/ui/use-toast';
 import { apiFetch } from '@/lib/apiFetch';
 
@@ -35,7 +35,7 @@ export function InviteMemberForm({ planId, onInvited }: { planId: string; onInvi
 
   return (
     <div className="flex gap-2">
-      <Input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="username" />
+      <UsernameSearchInput value={username} onChange={setUsername} />
       <Button onClick={handleInvite} disabled={saving || !username.trim()}>
         {saving ? 'Sending…' : 'Invite'}
       </Button>

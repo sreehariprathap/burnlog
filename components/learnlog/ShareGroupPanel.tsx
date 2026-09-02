@@ -4,7 +4,7 @@
 import { useState } from 'react';
 import useSWR from 'swr';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { UsernameSearchInput } from '@/components/UsernameSearchInput';
 import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -128,7 +128,7 @@ export function ShareGroupPanel({
         ))}
         {detail?.myRole === 'owner' && (
           <div className="flex gap-2 pt-2 border-t">
-            <Input value={username} onChange={(e) => setUsername(e.target.value)} placeholder="username" />
+            <UsernameSearchInput value={username} onChange={setUsername} />
             <Button onClick={handleInvite} disabled={inviting || !username.trim()}>
               {inviting ? 'Sending…' : 'Invite'}
             </Button>

@@ -11,6 +11,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { UsernameSearchInput } from '@/components/UsernameSearchInput';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useHouseholdMe } from '@/lib/homelog/useHouseholdMe';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
@@ -336,12 +337,10 @@ export default function HomeLogPage() {
                   <Label htmlFor="invite-username" className="sr-only">
                     Username to invite
                   </Label>
-                  <Input
+                  <UsernameSearchInput
                     id="invite-username"
-                    autoComplete="username"
                     value={inviteUsername}
-                    onChange={(e) => setInviteUsername(e.target.value)}
-                    placeholder="username"
+                    onChange={setInviteUsername}
                   />
                   <Button type="submit" disabled={inviting}>
                     {inviting ? 'Sending…' : 'Invite'}
