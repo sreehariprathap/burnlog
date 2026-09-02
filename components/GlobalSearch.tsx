@@ -86,7 +86,7 @@ export function GlobalSearch({ onNavigate, placeholder }: GlobalSearchProps) {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-2 rounded-lg border px-3">
+      <div className="flex items-center gap-2 rounded-lg border bg-muted px-3">
         <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
         <Input
           ref={inputRef}
@@ -94,7 +94,7 @@ export function GlobalSearch({ onNavigate, placeholder }: GlobalSearchProps) {
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder ?? 'Search anything across every app…'}
-          className="border-none px-0 shadow-none focus-visible:ring-0"
+          className="border-none bg-transparent px-0 shadow-none focus-visible:ring-0 dark:bg-transparent"
         />
         {query && (
           <button type="button" onClick={() => setQuery('')} aria-label="Clear search">
