@@ -52,7 +52,7 @@ export default function LearnLogSkillsPage() {
         {!isLoading && (skills ?? []).length === 0 && (
           <Card>
             <CardContent className="pt-6 text-sm text-muted-foreground text-center">
-              No skills yet. Add one — skiing, boxing, climbing, anything you're building.
+              No skills yet. Add one — skiing, boxing, climbing, anything you&apos;re building.
             </CardContent>
           </Card>
         )}
