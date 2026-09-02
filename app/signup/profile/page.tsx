@@ -7,7 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Ruler, Run } from 'lucide-react';
+import { Loader2, Ruler, Footprints } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { generateUsername } from '@/lib/username';
 
@@ -190,7 +190,7 @@ export default function ProfileSetupPage() {
 
             <div className="flex flex-col gap-2">
               <Label htmlFor="activityLevel" className="flex items-center gap-2">
-                <Run className="w-4 h-4" />Activity Level
+                <Footprints className="w-4 h-4" />Activity Level
               </Label>
               <Select
                 value={activityLevel}

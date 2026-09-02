@@ -18,7 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { SmoothTabs, type TabItem } from '@/components/kokonutui/smooth-tabs';
 import { MotionCarousel } from '@/components/kokonutui/motion-carousel';
-import { Scale, Flame, Utensils, Heart, TrendingUp, Zap, Repeat, BarChart3 } from 'lucide-react';
+import { Scale, Flame, Utensils, Heart, HeartPulse, TrendingUp, Zap, Repeat, BarChart3 } from 'lucide-react';
 
 // Types
 interface WeightEntry {
@@ -294,6 +294,7 @@ function MetricSlide({
   const fastestProgress = useMemo(() => calculateFastestProgress(chartData, metric, meta.dataKey), [chartData, metric, meta.dataKey]);
   const longestStreak = useMemo(() => calculateLongestStreak(chartData), [chartData]);
   const averageMetric = useMemo(() => calculateAverage(chartData, metric, meta.dataKey), [chartData, metric, meta.dataKey]);
+  const EmptyStateIcon = METRIC_EMPTY_STATE[metric].IconComponent;
 
   return (
     <div className="flex flex-col gap-4">
@@ -337,7 +338,7 @@ function MetricSlide({
               </ResponsiveContainer>
             ) : (
               <div className="flex flex-col items-center justify-center gap-2 h-full text-center px-4">
-                <METRIC_EMPTY_STATE[metric].IconComponent className="w-8 h-8 text-muted-foreground" aria-hidden="true" />
+                <EmptyStateIcon className="w-8 h-8 text-muted-foreground" aria-hidden="true" />
                 <p className="text-sm text-muted-foreground">{METRIC_EMPTY_STATE[metric].message}</p>
                 <Button asChild size="sm" className="mt-1">
                   <Link href="/burnlog/goals">Log an entry</Link>

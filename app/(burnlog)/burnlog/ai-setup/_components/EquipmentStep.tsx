@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Dumbbell, Home, Zap, Tree, Shuffle } from 'lucide-react';
+import { Dumbbell, Home, Zap, Shuffle } from 'lucide-react';
 import { EQUIPMENT_OPTIONS, type EquipmentAnswers, type HomeEnvironment } from '@/lib/ai/types';
 
 type EquipmentStepProps = {

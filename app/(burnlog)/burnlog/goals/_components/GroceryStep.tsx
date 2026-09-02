@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { DollarSign, CreditCard, ShoppingCart, ChefHat, Knife, Package, Leaf } from 'lucide-react';
+import { DollarSign, CreditCard, ShoppingCart, ChefHat, UtensilsCrossed, Package, Leaf } from 'lucide-react';
 import { GROCERY_STORES, type GroceryAnswers } from '@/lib/ai/types';
 
 type GroceryStepProps = {
@@ -31,7 +31,7 @@ const BUDGET_OPTIONS = [
 const COOKING_SKILLS = [
   { value: 'beginner', label: 'Beginner — simple recipes, minimal prep', icon: ChefHat },
   { value: 'intermediate', label: 'Intermediate — comfortable in the kitchen', icon: ChefHat },
-  { value: 'advanced', label: 'Advanced — enjoy complex techniques', icon: Knife },
+  { value: 'advanced', label: 'Advanced — enjoy complex techniques', icon: UtensilsCrossed },
 ];
 
 export function GroceryStep({ onContinue, onSkip, initialAnswers }: GroceryStepProps) {
