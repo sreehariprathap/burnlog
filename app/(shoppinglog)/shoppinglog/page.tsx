@@ -5,12 +5,13 @@
 import { useEffect, useState } from 'react';
 import useSWR from 'swr';
 import Link from 'next/link';
-import { Heart, Loader2, RefreshCw, SearchX } from 'lucide-react';
+import { Heart, Loader2, RefreshCw, SearchX, Store, Package } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
 import { ShoppingLogBottomNav } from '@/components/ShoppingLogBottomNav';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { StatCard } from '@/components/ui/stat-card';
 import { apiFetch } from '@/lib/apiFetch';
 import { CategoryChips, type Category } from './_components/CategoryChips';
 import { ListingCard, type ListingSummary } from './_components/ListingCard';
@@ -43,6 +44,10 @@ export default function ShoppingLogBrowsePage() {
     `/api/shoppinglog/listings?${params.toString()}`,
     fetcher
   );
+  const { data: stats } = useSWR<{ activeListings: number; ordersThisMonth: number }>(
+    '/api/shoppinglog/stats',
+    fetcher
+  );
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -62,6 +67,14 @@ export default function ShoppingLogBrowsePage() {
         }
       />
       <main className="flex-1 container mx-auto max-w-4xl space-y-4 p-4 pb-24">
+        <div className="grid grid-cols-2 gap-3">
+          <StatCard title="Active listings" icon={Store}>
+            <p className="text-2xl font-bold">{stats?.activeListings ?? 0}</p>
+          </StatCard>
+          <StatCard title="Orders this month" icon={Package}>
+            <p className="text-2xl font-bold">{stats?.ordersThisMonth ?? 0}</p>
+          </StatCard>
+        </div>
         <Label htmlFor="listing-search" className="sr-only">
           Search listings
         </Label>
