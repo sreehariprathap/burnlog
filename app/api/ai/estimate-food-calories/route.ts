@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import OpenAI from 'openai';
 import { getModel } from '@/lib/ai/modelConfig';
 import { formatAiError } from '@/lib/ai/errors';
+import { runAiJob, AiRouteError } from '@/lib/ai/jobs';
 
 const client = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
@@ -30,7 +31,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No food description provided' }, { status: 400 });
     }
 
-    const prompt = `You are a nutrition expert estimating calories and macros from a text description of a meal.
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('userId', user.id)
+      .single();
+    if (!profile) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    }
+
+    try {
+      const responsePayload = await runAiJob(
+        supabase,
+        profile.id,
+        { jobType: 'estimate-food-calories', app: 'burnlog', model: MODEL },
+        { description, mealType },
+        async () => {
+          const prompt = `You are a nutrition expert estimating calories and macros from a text description of a meal.
 
 The description may list multiple items separated by "+", commas, "and", or line breaks — for example "coffee + pancake + a banana". Identify each distinct item, estimate its calories and macros using a typical/average serving size unless the description gives a size, then sum the totals.
 
@@ -54,54 +71,64 @@ If the description does not describe any food, return:
 
 Be realistic with estimates.`;
 
-    const completion = await client.chat.completions.create({
-      model: MODEL,
-      temperature: 0.2,
-      messages: [{ role: 'user', content: prompt }],
-      response_format: { type: 'json_object' },
-    });
+          const completion = await client.chat.completions.create({
+            model: MODEL,
+            temperature: 0.2,
+            messages: [{ role: 'user', content: prompt }],
+            response_format: { type: 'json_object' },
+          });
 
-    const content = completion.choices?.[0]?.message?.content;
-    if (!content) {
-      return NextResponse.json({ error: 'AI returned no response' }, { status: 502 });
+          const content = completion.choices?.[0]?.message?.content;
+          if (!content) {
+            throw new AiRouteError('AI returned no response', 502);
+          }
+
+          let parsed: unknown;
+          try {
+            parsed = JSON.parse(content);
+          } catch {
+            throw new AiRouteError('AI response was not valid JSON', 502);
+          }
+
+          const result = parsed as Record<string, unknown>;
+
+          if (result.error) {
+            throw new AiRouteError(String(result.error), 422);
+          }
+
+          const calories = Number(result.calories ?? 0);
+          if (!calories || Number.isNaN(calories) || calories <= 0) {
+            throw new AiRouteError('AI response missing a valid calorie estimate', 502);
+          }
+
+          const items = Array.isArray(result.items)
+            ? (result.items as Array<Record<string, unknown>>)
+                .map((item) => ({ name: String(item.name ?? ''), calories: Number(item.calories ?? 0) }))
+                .filter((item) => item.name.length > 0)
+            : [];
+
+          return {
+            foodName: result.foodName ?? 'Unknown food',
+            calories: Math.round(calories),
+            protein: Number(result.protein ?? 0),
+            carbs: Number(result.carbs ?? 0),
+            fat: Number(result.fat ?? 0),
+            fiber: Number(result.fiber ?? 0),
+            items,
+            confidence: result.confidence ?? 'medium',
+            notes: result.notes ?? '',
+            mealType,
+          };
+        }
+      );
+
+      return NextResponse.json(responsePayload);
+    } catch (err) {
+      if (err instanceof AiRouteError) {
+        return NextResponse.json({ error: err.message }, { status: err.status });
+      }
+      throw err;
     }
-
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(content);
-    } catch {
-      return NextResponse.json({ error: 'AI response was not valid JSON' }, { status: 502 });
-    }
-
-    const result = parsed as Record<string, unknown>;
-
-    if (result.error) {
-      return NextResponse.json({ error: result.error }, { status: 422 });
-    }
-
-    const calories = Number(result.calories ?? 0);
-    if (!calories || Number.isNaN(calories) || calories <= 0) {
-      return NextResponse.json({ error: 'AI response missing a valid calorie estimate' }, { status: 502 });
-    }
-
-    const items = Array.isArray(result.items)
-      ? (result.items as Array<Record<string, unknown>>)
-          .map((item) => ({ name: String(item.name ?? ''), calories: Number(item.calories ?? 0) }))
-          .filter((item) => item.name.length > 0)
-      : [];
-
-    return NextResponse.json({
-      foodName: result.foodName ?? 'Unknown food',
-      calories: Math.round(calories),
-      protein: Number(result.protein ?? 0),
-      carbs: Number(result.carbs ?? 0),
-      fat: Number(result.fat ?? 0),
-      fiber: Number(result.fiber ?? 0),
-      items,
-      confidence: result.confidence ?? 'medium',
-      notes: result.notes ?? '',
-      mealType,
-    });
   } catch (error) {
     console.error('estimate-food-calories error:', error);
     return NextResponse.json({ error: formatAiError(MODEL, error) }, { status: 500 });

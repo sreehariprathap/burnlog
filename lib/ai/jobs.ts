@@ -8,6 +8,23 @@ type AiJobMeta = {
 };
 
 /**
+ * Thrown from inside a runAiJob closure to fail with a specific HTTP status
+ * (e.g. 422 for a rejected AI answer, 502 for a malformed one) instead of
+ * the generic 500 the route's outer catch would otherwise return. runAiJob
+ * still logs the job as status "error" with this error's message; the
+ * route's own catch block is responsible for checking
+ * `instanceof AiRouteError` and mapping it back to `err.status`.
+ */
+export class AiRouteError extends Error {
+  status: number;
+  constructor(message: string, status: number) {
+    super(message);
+    this.name = 'AiRouteError';
+    this.status = status;
+  }
+}
+
+/**
  * Logs an AI call as a row in ai_jobs (running -> success/error) while
  * running it. Logging failures never break the underlying call: create
  * failures just skip logging, and update failures are fire-and-forget so a

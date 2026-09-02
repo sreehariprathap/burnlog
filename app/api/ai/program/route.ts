@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { generateProgram } from '@/lib/ai/program';
 import { getModel } from '@/lib/ai/modelConfig';
 import { formatAiError } from '@/lib/ai/errors';
+import { runAiJob, AiRouteError } from '@/lib/ai/jobs';
 
 export async function POST(request: Request) {
   let model = 'unknown';
@@ -21,7 +22,7 @@ export async function POST(request: Request) {
 
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('age, weight, height, activityLevel')
+      .select('id, age, weight, height, activityLevel')
       .eq('userId', user.id)
       .single();
 
@@ -32,17 +33,34 @@ export async function POST(request: Request) {
     model = await getModel(supabase, 'text');
 
     try {
-      const program = await generateProgram(profile, pastedPlanText, model);
-      return NextResponse.json({ program });
-    } catch (firstError) {
-      console.error('AI program generation failed, retrying once:', firstError);
-      try {
-        const program = await generateProgram(profile, pastedPlanText, model);
-        return NextResponse.json({ program });
-      } catch (secondError) {
-        console.error('AI program generation failed on retry:', secondError);
-        return NextResponse.json({ error: formatAiError(model, secondError) }, { status: 502 });
+      const responsePayload = await runAiJob(
+        supabase,
+        profile.id,
+        { jobType: 'program', app: 'burnlog', model },
+        { pastedPlanText },
+        async () => {
+          try {
+            const program = await generateProgram(profile, pastedPlanText, model);
+            return { program };
+          } catch (firstError) {
+            console.error('AI program generation failed, retrying once:', firstError);
+            try {
+              const program = await generateProgram(profile, pastedPlanText, model);
+              return { program };
+            } catch (secondError) {
+              console.error('AI program generation failed on retry:', secondError);
+              throw new AiRouteError(formatAiError(model, secondError), 502);
+            }
+          }
+        }
+      );
+
+      return NextResponse.json(responsePayload);
+    } catch (err) {
+      if (err instanceof AiRouteError) {
+        return NextResponse.json({ error: err.message }, { status: err.status });
       }
+      throw err;
     }
   } catch (error) {
     console.error('Unexpected error in /api/ai/program:', error);
