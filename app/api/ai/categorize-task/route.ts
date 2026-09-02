@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import OpenAI from 'openai';
 import { getModel } from '@/lib/ai/modelConfig';
 import { formatAiError } from '@/lib/ai/errors';
+import { runAiJob, AiRouteError } from '@/lib/ai/jobs';
 
 const client = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
@@ -30,7 +31,23 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'title is required' }, { status: 400 });
     }
 
-    const prompt = `You are triaging a personal task list.
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('userId', user.id)
+      .single();
+    if (!profile) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    }
+
+    try {
+      const responsePayload = await runAiJob(
+        supabase,
+        profile.id,
+        { jobType: 'categorize-task', app: 'tasklog', model: MODEL },
+        { title },
+        async () => {
+          const prompt = `You are triaging a personal task list.
 
 Task title: "${title.trim()}"
 
@@ -44,37 +61,47 @@ Respond ONLY with a valid JSON object (no markdown, no extra text) with this exa
   "priority": "low" | "medium" | "high"
 }`;
 
-    const completion = await client.chat.completions.create({
-      model: MODEL,
-      temperature: 0.2,
-      messages: [{ role: 'user', content: prompt }],
-      response_format: { type: 'json_object' },
-    });
+          const completion = await client.chat.completions.create({
+            model: MODEL,
+            temperature: 0.2,
+            messages: [{ role: 'user', content: prompt }],
+            response_format: { type: 'json_object' },
+          });
 
-    const content = completion.choices?.[0]?.message?.content;
-    if (!content) {
-      return NextResponse.json({ error: 'AI returned no response' }, { status: 502 });
+          const content = completion.choices?.[0]?.message?.content;
+          if (!content) {
+            throw new AiRouteError('AI returned no response', 502);
+          }
+
+          let parsed: unknown;
+          try {
+            parsed = JSON.parse(content);
+          } catch {
+            throw new AiRouteError('AI response was not valid JSON', 502);
+          }
+
+          const result = parsed as Record<string, unknown>;
+          const category = result.category as string;
+          const priority = result.priority as string;
+
+          if (!VALID_CATEGORIES.includes(category as typeof VALID_CATEGORIES[number])) {
+            throw new AiRouteError('AI response had an invalid category', 502);
+          }
+          if (!VALID_PRIORITIES.includes(priority as typeof VALID_PRIORITIES[number])) {
+            throw new AiRouteError('AI response had an invalid priority', 502);
+          }
+
+          return { category, priority };
+        }
+      );
+
+      return NextResponse.json(responsePayload);
+    } catch (err) {
+      if (err instanceof AiRouteError) {
+        return NextResponse.json({ error: err.message }, { status: err.status });
+      }
+      throw err;
     }
-
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(content);
-    } catch {
-      return NextResponse.json({ error: 'AI response was not valid JSON' }, { status: 502 });
-    }
-
-    const result = parsed as Record<string, unknown>;
-    const category = result.category as string;
-    const priority = result.priority as string;
-
-    if (!VALID_CATEGORIES.includes(category as typeof VALID_CATEGORIES[number])) {
-      return NextResponse.json({ error: 'AI response had an invalid category' }, { status: 502 });
-    }
-    if (!VALID_PRIORITIES.includes(priority as typeof VALID_PRIORITIES[number])) {
-      return NextResponse.json({ error: 'AI response had an invalid priority' }, { status: 502 });
-    }
-
-    return NextResponse.json({ category, priority });
   } catch (error) {
     console.error('categorize-task error:', error);
     return NextResponse.json({ error: formatAiError(MODEL, error) }, { status: 500 });

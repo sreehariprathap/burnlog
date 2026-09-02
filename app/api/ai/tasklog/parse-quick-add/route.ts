@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import OpenAI from 'openai';
 import { getModel } from '@/lib/ai/modelConfig';
 import { formatAiError } from '@/lib/ai/errors';
+import { runAiJob, AiRouteError } from '@/lib/ai/jobs';
 import { todayDateString } from '@/lib/tasklog/types';
 
 const client = new OpenAI({
@@ -33,32 +34,58 @@ export async function POST(request: Request) {
 
     MODEL = await getModel(supabase, 'text');
 
-    const completion = await client.chat.completions.create({
-      model: MODEL,
-      temperature: 0.2,
-      messages: [{ role: 'user', content: buildPrompt(text) }],
-      response_format: { type: 'json_object' },
-    });
-
-    const content = completion.choices?.[0]?.message?.content;
-    if (!content) {
-      return NextResponse.json({ error: 'AI returned no response' }, { status: 502 });
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('userId', user.id)
+      .single();
+    if (!profile) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
-    let parsed: { title?: string; dueDate?: string | null; priority?: string };
     try {
-      parsed = JSON.parse(content);
-    } catch {
-      return NextResponse.json({ error: 'AI response was not valid JSON' }, { status: 502 });
+      const responsePayload = await runAiJob(
+        supabase,
+        profile.id,
+        { jobType: 'tasklog-parse-quick-add', app: 'tasklog', model: MODEL },
+        { text },
+        async () => {
+          const completion = await client.chat.completions.create({
+            model: MODEL,
+            temperature: 0.2,
+            messages: [{ role: 'user', content: buildPrompt(text) }],
+            response_format: { type: 'json_object' },
+          });
+
+          const content = completion.choices?.[0]?.message?.content;
+          if (!content) {
+            throw new AiRouteError('AI returned no response', 502);
+          }
+
+          let parsed: { title?: string; dueDate?: string | null; priority?: string };
+          try {
+            parsed = JSON.parse(content);
+          } catch {
+            throw new AiRouteError('AI response was not valid JSON', 502);
+          }
+
+          const priority = ['low', 'medium', 'high'].includes(parsed.priority || '') ? parsed.priority : 'medium';
+
+          return {
+            title: parsed.title?.trim() || text.trim(),
+            dueDate: parsed.dueDate && parsed.dueDate !== 'null' ? parsed.dueDate : null,
+            priority,
+          };
+        }
+      );
+
+      return NextResponse.json(responsePayload);
+    } catch (err) {
+      if (err instanceof AiRouteError) {
+        return NextResponse.json({ error: err.message }, { status: err.status });
+      }
+      throw err;
     }
-
-    const priority = ['low', 'medium', 'high'].includes(parsed.priority || '') ? parsed.priority : 'medium';
-
-    return NextResponse.json({
-      title: parsed.title?.trim() || text.trim(),
-      dueDate: parsed.dueDate && parsed.dueDate !== 'null' ? parsed.dueDate : null,
-      priority,
-    });
   } catch (error) {
     console.error('tasklog parse-quick-add error:', error);
     return NextResponse.json({ error: formatAiError(MODEL, error) }, { status: 500 });
