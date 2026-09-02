@@ -23,6 +23,7 @@ import { isDevErrorModeEnabled, setDevErrorModeEnabled } from '@/lib/devErrorMod
 import { useToast } from '@/components/ui/use-toast';
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { NOTIFICATION_TEMPLATES, templatesByApp, type NotificationTemplate } from '@/lib/notificationTemplates';
+import { PushEnableHelp } from '@/components/PushEnableHelp';
 
 // Client Component — no static <Metadata> export; page title stays the
 // default set by the root layout.
@@ -39,6 +40,7 @@ export default function ProfilePage() {
   const [loggingOut, setLoggingOut] = useState(false);
   const [email, setEmail] = useState<string|null>(null);
   const [testSending, setTestSending] = useState(false);
+  const [testPushFailed, setTestPushFailed] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>(NOTIFICATION_TEMPLATES[0].id);
   const [showPageToggles, setShowPageToggles] = useState(false);
   const [showAiModelSettings, setShowAiModelSettings] = useState(false);
@@ -190,15 +192,18 @@ export default function ProfilePage() {
     const template = NOTIFICATION_TEMPLATES.find((t) => t.id === selectedTemplateId);
     if (!template) return;
     setTestSending(true);
+    setTestPushFailed(false);
     try {
       const result = await sendRealTestNotification({ title: template.title, message: template.message, url: template.url });
       if (result.success) {
         toast({ description: 'Test push sent — check for a real notification on this device.' });
       } else {
         toast({ title: 'Test push failed', description: result.error || 'Unknown error', variant: 'destructive' });
+        setTestPushFailed(true);
       }
     } catch (e: any) {
       toast({ title: 'Test push failed', description: e?.message || 'Unknown error', variant: 'destructive' });
+      setTestPushFailed(true);
     }
     setTestSending(false);
   };
@@ -437,6 +442,8 @@ export default function ProfilePage() {
                     <Button onClick={handleSendTestPush} disabled={testSending}>
                       {testSending ? 'Sending...' : 'Send Test Push'}
                     </Button>
+
+                    {testPushFailed && <PushEnableHelp />}
                   </CardContent>
                 </Card>
               </div>
