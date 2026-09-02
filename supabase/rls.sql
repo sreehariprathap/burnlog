@@ -134,6 +134,28 @@ create policy "ai_model_settings_admin_update" on ai_model_settings
     )
   );
 
+-- ai_jobs -----------------------------------------------------------------
+-- Owned via profileId, same shape as the owner-loop tables above (kept
+-- separate since it was added after that loop existed).
+alter table ai_jobs enable row level security;
+
+create policy "ai_jobs_owner_access" on ai_jobs
+  for all
+  using (
+    exists (
+      select 1 from profiles
+      where profiles.id = ai_jobs."profileId"
+        and profiles."userId" = auth.uid()
+    )
+  )
+  with check (
+    exists (
+      select 1 from profiles
+      where profiles.id = ai_jobs."profileId"
+        and profiles."userId" = auth.uid()
+    )
+  );
+
 -- avatars storage bucket ------------------------------------------------
 -- Public read (avatars are just profile pictures); writes restricted to
 -- objects under the caller's own auth.uid() folder, e.g. avatars/{uid}/*.
