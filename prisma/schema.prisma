@@ -21,6 +21,7 @@ model Profile {
   aiEnabled     Boolean  @default(false)
   lifestyle     Json?
   isAdmin       Boolean  @default(false)
+  isTestAccount Boolean  @default(false)
   currentStreak   Int       @default(0)
   longestStreak   Int       @default(0)
   xp              Int       @default(0)
