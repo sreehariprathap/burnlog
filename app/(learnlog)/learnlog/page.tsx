@@ -11,6 +11,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { StatCard } from '@/components/ui/stat-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Flame } from 'lucide-react';
+import { GroupInvitesBanner } from '@/components/learnlog/GroupInvitesBanner';
 import type { SkillRow, LibraryItemRow, CareerGoalRow } from '@/lib/learnlog/types';
 
 async function fetchHomeData(profileId: string) {
@@ -46,6 +47,7 @@ export default function LearnLogHomePage() {
     <div className="min-h-screen pb-24">
       <TopBar title="LearnLog" />
       <div className="p-4 flex flex-col gap-4">
+        <GroupInvitesBanner />
         {loading ? (
           <div className="grid grid-cols-2 gap-2">
             <Skeleton className="h-20 w-full rounded-2xl" />

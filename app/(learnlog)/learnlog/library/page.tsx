@@ -11,9 +11,11 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Star } from 'lucide-react';
+import { Plus, Star, Share2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/use-toast';
 import { createTaskLogTask, logToMoneyLog } from '@/lib/learnlog/crossApp';
+import { ShareGroupPanel } from '@/components/learnlog/ShareGroupPanel';
 import type { LibraryItemRow } from '@/lib/learnlog/types';
 import { LibraryItemDrawer } from './_components/LibraryItemDrawer';
 
@@ -38,6 +40,7 @@ export default function LearnLogLibraryPage() {
   const { profile } = useCurrentProfile();
   const { toast } = useToast();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [shareItem, setShareItem] = useState<LibraryItemRow | null>(null);
   const { data: items, isLoading, mutate } = useSWR(
     profile ? ['learnlog-library', profile.id] : null,
     () => fetchLibraryItems(profile!.id)
@@ -114,6 +117,7 @@ export default function LearnLogLibraryPage() {
                 {item.cost != null && (
                   <Button size="sm" variant="outline" onClick={() => handleLogToMoneyLog(item)}>Log to MoneyLog (${item.cost})</Button>
                 )}
+                <Button size="sm" variant="outline" onClick={() => setShareItem(item)}><Share2 className="h-3 w-3 mr-1" />Share</Button>
               </div>
             </CardContent>
           </Card>
@@ -128,6 +132,12 @@ export default function LearnLogLibraryPage() {
           onSaved={() => mutate()}
         />
       )}
+      <Dialog open={!!shareItem} onOpenChange={(open) => !open && setShareItem(null)}>
+        <DialogContent>
+          <DialogHeader><DialogTitle>{shareItem?.title}</DialogTitle></DialogHeader>
+          {shareItem && <ShareGroupPanel entityType="library_item" entityId={shareItem.id} entityName={shareItem.title} />}
+        </DialogContent>
+      </Dialog>
       <LearnLogBottomNav />
     </div>
   );

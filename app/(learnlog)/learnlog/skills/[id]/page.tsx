@@ -18,6 +18,7 @@ import type { SkillRow, SkillSessionRow, SkillMilestoneRow } from '@/lib/learnlo
 import { LogSessionDrawer } from './_components/LogSessionDrawer';
 import { MilestoneList } from './_components/MilestoneList';
 import { NearbyClassesCard } from './_components/NearbyClassesCard';
+import { ShareGroupPanel } from '@/components/learnlog/ShareGroupPanel';
 
 async function fetchSkill(id: string): Promise<SkillRow> {
   const supabase = createClient();
@@ -134,6 +135,8 @@ export default function SkillDetailPage() {
         <MilestoneList skillId={skill.id} milestones={milestones ?? []} onChanged={() => mutateMilestones()} />
 
         <NearbyClassesCard skill={skill} />
+
+        <ShareGroupPanel entityType="skill" entityId={skill.id} entityName={skill.name} />
 
         <div className="flex flex-col gap-2">
           <p className="font-medium text-sm">Recent sessions</p>
