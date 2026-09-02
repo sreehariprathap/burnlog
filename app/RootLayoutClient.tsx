@@ -15,6 +15,7 @@ import { SwitchLoader } from "@/components/SwitchLoader";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { DevErrorWatcher } from "@/components/DevErrorWatcher";
 import { OfflineBanner } from "@/components/OfflineBanner";
+import { TestModeBanner } from "@/components/adminlog/TestModeBanner";
 import { EnableNotificationsPrompt } from "@/components/EnableNotificationsPrompt";
 
 const geistSans = Geist({
@@ -68,6 +69,7 @@ export default function RootLayoutClient({
               <PaymentProvider>
                 <SplashScreen />
                 <OfflineBanner />
+                <TestModeBanner />
                 <ErrorBoundary>{children}</ErrorBoundary>
                 <DevErrorWatcher />
                 <GlobalErrorListener />

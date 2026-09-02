@@ -10,6 +10,7 @@ const SECTIONS = [
   { href: '/adminlog/errors', label: 'Error Log', description: 'Browse persisted client, server, and background job errors.' },
   { href: '/adminlog/invites', label: 'Invites', description: 'Send and track invites to new users.' },
   { href: '/adminlog/tools', label: 'Admin Tools', description: 'Test push notifications, onboarding pages, AI model settings.' },
+  { href: '/adminlog/test-onboarding', label: 'Test Onboarding', description: 'Run the real onboarding flow as a disposable test account.' },
 ];
 
 export default function AdminLogDashboard() {
