@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { KineticText } from '@/components/ui/kinetic-text';
-import FlowField from '@/components/kokonutui/flow-field';
+import { DottedGlowBackground } from '@/components/ui/dotted-glow-background';
 import { cn } from '@/lib/utils';
 import { getDefaultApp, type AppId } from '@/lib/appMode';
 
@@ -13,26 +13,6 @@ const FADE_MS = 600;
 
 const SPLASH_LIGHT_BG = '249, 249, 249'; // #f9f9f9 — matches the app-wide unified light background
 const SPLASH_DARK_BG = '34, 34, 59'; // #22223b — matches the app-wide unified dark background
-
-/** Derives a hue (0-360) from a hex color so FlowField's particles can be
- * tinted to each app's own accent color instead of a fixed preset palette. */
-function hexToHue(hex: string): number {
-  const clean = hex.replace('#', '');
-  const r = parseInt(clean.substring(0, 2), 16) / 255;
-  const g = parseInt(clean.substring(2, 4), 16) / 255;
-  const b = parseInt(clean.substring(4, 6), 16) / 255;
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  const delta = max - min;
-  if (delta === 0) return 0;
-  let h: number;
-  if (max === r) h = ((g - b) / delta) % 6;
-  else if (max === g) h = (b - r) / delta + 2;
-  else h = (r - g) / delta + 4;
-  h *= 60;
-  if (h < 0) h += 360;
-  return h;
-}
 
 const SPLASH_CONTENT: Record<
   AppId,
@@ -168,7 +148,6 @@ export default function SplashScreen() {
   if (!mounted) return null;
 
   const content = SPLASH_CONTENT[appId];
-  const hue = hexToHue(isDark ? content.darkTextColor : content.lightTextColor);
 
   return (
     <div
@@ -180,16 +159,16 @@ export default function SplashScreen() {
         transitionDuration: `${FADE_MS}ms`,
       }}
     >
-      <FlowField
-        className="h-full min-h-0 w-full"
-        backgroundFill={isDark ? SPLASH_DARK_BG : SPLASH_LIGHT_BG}
-        hueStart={hue}
-        hueRange={60}
-        saturation={85}
-        lightness={isDark ? 62 : 45}
-        canvasOpacity={0.5}
+      <div
+        className="relative flex h-full min-h-0 w-full items-center justify-center overflow-hidden"
+        style={{ backgroundColor: `rgb(${isDark ? SPLASH_DARK_BG : SPLASH_LIGHT_BG})` }}
       >
-        <div className="relative flex flex-col items-center animate-in fade-in zoom-in-95 duration-700">
+        <DottedGlowBackground
+          opacity={0.7}
+          color={isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.35)'}
+          glowColor={isDark ? content.darkTextColor : content.lightTextColor}
+        />
+        <div className="relative z-10 flex flex-col items-center animate-in fade-in zoom-in-95 duration-700">
           {appId === 'logbook' ? (
             <Image
               src="/icons/logbook-light.png"
@@ -217,7 +196,7 @@ export default function SplashScreen() {
             {content.tagline}
           </p>
         </div>
-      </FlowField>
+      </div>
     </div>
   );
 }

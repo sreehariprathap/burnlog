@@ -10,6 +10,7 @@ import { Loader2 }           from 'lucide-react';
 import Image                 from 'next/image';
 import { useToast }          from '@/components/ui/use-toast';
 import { OAuthButtons }      from '@/components/auth/oauth-buttons';
+import { DottedGlowBackground } from '@/components/ui/dotted-glow-background';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -56,8 +57,15 @@ export default function LoginPage() {
   }, [email, password, supabase, router, toast]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center">
-      <Card className="w-full max-w-md">
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      <DottedGlowBackground
+        opacity={0.7}
+        colorLightVar="--foreground"
+        colorDarkVar="--foreground"
+        glowColorLightVar="--primary"
+        glowColorDarkVar="--primary"
+      />
+      <Card className="relative z-10 w-full max-w-md">
         <CardHeader className="flex flex-col items-center gap-3">
           <Image
             src="/icons/logbook-light.png"
