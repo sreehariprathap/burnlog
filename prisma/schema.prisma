@@ -42,6 +42,8 @@ model Profile {
   lastTaskLogStreakDate    DateTime? @db.Date
   currency                 String    @default("CAD")
   country                  String?
+  learnLogCity             String?
+  learnLogAiEnabled        Boolean   @default(true)
 
   FitnessGoal    FitnessGoal[]
   Workout        Workout[]
@@ -97,6 +99,12 @@ model Profile {
   MydayBlock              MydayBlock[]
   TravelVisit             TravelVisit[]
   TravelPlan              TravelPlan[]
+  LibraryItem             LibraryItem[]
+  Skill                   Skill[]
+  CareerRole              CareerRole[]
+  CareerCertification     CareerCertification[]
+  CareerGoal              CareerGoal[]
+  Reflection              Reflection[]
 
   @@map("profiles")
 }
@@ -1012,4 +1020,134 @@ model ShopReview {
 
   @@unique([reviewerId, listingId])
   @@map("shop_reviews")
+}
+
+enum LibraryItemType {
+  BOOK
+  COURSE
+}
+
+enum LibraryItemStatus {
+  WANT
+  IN_PROGRESS
+  COMPLETED
+}
+
+model LibraryItem {
+  id               String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile          Profile           @relation(fields: [profileId], references: [id])
+  profileId        String            @db.Uuid
+  type             LibraryItemType
+  title            String
+  authorOrProvider String?
+  status           LibraryItemStatus @default(WANT)
+  progressPercent  Int               @default(0)
+  currentPosition  String?
+  notes            String?
+  rating           Int?
+  sourceUrl        String?
+  cost             Float?
+  startedAt        DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  @@map("learnlog_library_items")
+}
+
+model Skill {
+  id              String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile         Profile          @relation(fields: [profileId], references: [id])
+  profileId       String           @db.Uuid
+  name            String
+  category        String?
+  level           Int              @default(1)
+  xp              Int              @default(0)
+  currentStreak   Int              @default(0)
+  longestStreak   Int              @default(0)
+  lastSessionDate DateTime?        @db.Date
+  createdAt       DateTime         @default(now())
+
+  sessions        SkillSession[]
+  milestones      SkillMilestone[]
+
+  @@map("learnlog_skills")
+}
+
+model SkillSession {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  skill           Skill    @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  skillId         String   @db.Uuid
+  date            DateTime @db.Date
+  durationMinutes Int?
+  notes           String?
+  xpEarned        Int
+  createdAt       DateTime @default(now())
+
+  @@map("learnlog_skill_sessions")
+}
+
+model SkillMilestone {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  skill      Skill     @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  skillId    String    @db.Uuid
+  title      String
+  achievedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@map("learnlog_skill_milestones")
+}
+
+model CareerRole {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile   Profile   @relation(fields: [profileId], references: [id])
+  profileId String    @db.Uuid
+  title     String
+  company   String
+  startDate DateTime  @db.Date
+  endDate   DateTime? @db.Date
+  notes     String?
+  createdAt DateTime  @default(now())
+
+  @@map("learnlog_career_roles")
+}
+
+model CareerCertification {
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile   Profile   @relation(fields: [profileId], references: [id])
+  profileId String    @db.Uuid
+  name      String
+  issuer    String?
+  earnedAt  DateTime  @db.Date
+  expiresAt DateTime? @db.Date
+  notes     String?
+  createdAt DateTime  @default(now())
+
+  @@map("learnlog_career_certifications")
+}
+
+model CareerGoal {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile    Profile   @relation(fields: [profileId], references: [id])
+  profileId  String    @db.Uuid
+  title      String
+  targetDate DateTime? @db.Date
+  status     String    @default("active")
+  notes      String?
+  createdAt  DateTime  @default(now())
+
+  @@map("learnlog_career_goals")
+}
+
+model Reflection {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile   Profile  @relation(fields: [profileId], references: [id])
+  profileId String   @db.Uuid
+  title     String
+  body      String
+  tags      String[] @default([])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("learnlog_reflections")
 }
