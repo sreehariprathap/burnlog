@@ -131,6 +131,19 @@ const SPLASH_CONTENT: Record<
     darkEdgeColor: '251,191,36',
     darkCoreColor: '146,64,14',
   },
+  learnlog: {
+    label: 'Loading LearnLog',
+    text: 'learnlog',
+    tagline: "Track what you're learning, becoming, and growing into",
+    darkTextColor: '#C4B5FD',
+    lightTextColor: '#5B21B6',
+    darkTaglineClass: 'text-violet-200/70',
+    lightTaglineClass: 'text-violet-900/60',
+    lightColors: ['#C4B5FD', '#A78BFA', '#8B5CF6', '#7C3AED'],
+    lightBackgroundFill: '#F9F9F9',
+    darkEdgeColor: '196,181,253',
+    darkCoreColor: '124,58,237',
+  },
 };
 
 export default function SplashScreen() {
