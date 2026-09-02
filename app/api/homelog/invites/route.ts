@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/serviceRole';
+import { sendPushToUser } from '@/lib/pushNotification/server';
 
 export async function GET() {
   try {
@@ -67,7 +68,7 @@ export async function POST(request: Request) {
     }
 
     const admin = createServiceRoleClient();
-    const { data: me } = await admin.from('profiles').select('id').eq('userId', user.id).single();
+    const { data: me } = await admin.from('profiles').select('id, username, firstName').eq('userId', user.id).single();
     if (!me) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
@@ -83,7 +84,7 @@ export async function POST(request: Request) {
 
     const { data: invitee } = await admin
       .from('profiles')
-      .select('id')
+      .select('id, userId')
       .eq('username', inviteeUsername.trim().toLowerCase())
       .maybeSingle();
     if (!invitee) {
@@ -120,6 +121,20 @@ export async function POST(request: Request) {
       .single();
     if (insertError) {
       return NextResponse.json({ error: insertError.message }, { status: 400 });
+    }
+
+    // Best-effort — a missing/expired push subscription shouldn't fail invite creation.
+    try {
+      const { data: household } = await admin.from('households').select('name').eq('id', myMembership.householdId).maybeSingle();
+      const inviterName = me.firstName || me.username;
+      const householdName = household?.name ?? 'a household';
+      await sendPushToUser(admin, invitee.userId, {
+        title: 'New household invite',
+        message: `${inviterName} invited you to join ${householdName}.`,
+        url: '/homelog',
+      });
+    } catch (pushError) {
+      console.error('household invite push error:', pushError);
     }
 
     return NextResponse.json({ invite });

@@ -32,6 +32,8 @@ export const NOTIFICATION_TEMPLATES: NotificationTemplate[] = [
   { id: 'tasklog-overdue', app: 'tasklog', label: 'Task overdue', title: 'Task overdue', message: '"Renew car insurance" was due 2 days ago.', url: '/tasklog/board' },
 
   // HomeLog
+  { id: 'homelog-invite-received', app: 'homelog', label: 'Household invite received', title: 'New household invite', message: 'Sam invited you to join The Smiths.', url: '/homelog' },
+  { id: 'homelog-invite-accepted', app: 'homelog', label: 'Household invite accepted', title: 'Invite accepted', message: 'Jordan joined your household.', url: '/homelog' },
   { id: 'homelog-chore-assigned', app: 'homelog', label: 'Chore assigned', title: 'New chore assigned to you', message: 'Sam assigned you "Take out recycling."', url: '/homelog/chores' },
   { id: 'homelog-chore-overdue', app: 'homelog', label: 'Chore overdue', title: 'Chore overdue', message: '"Clean kitchen" was due yesterday.', url: '/homelog/chores' },
   { id: 'homelog-settlement-requested', app: 'homelog', label: 'Settlement requested', title: 'Settlement requested', message: 'Jordan requested $42.50 for shared groceries.', url: '/homelog/bills' },
