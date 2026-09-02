@@ -3,14 +3,36 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { KineticText } from '@/components/ui/kinetic-text';
-import { WavyBackground } from '@/components/kokonutui/wavy-background';
-import { LinesGradientShader } from '@/components/kokonutui/lines-gradient-shader';
+import FlowField from '@/components/kokonutui/flow-field';
 import { cn } from '@/lib/utils';
 import { getDefaultApp, type AppId } from '@/lib/appMode';
 
 const SESSION_KEY = 'app-splash-shown';
 const VISIBLE_MS = 2000;
 const FADE_MS = 600;
+
+const SPLASH_LIGHT_BG = '249, 249, 249'; // #f9f9f9 — matches the app-wide unified light background
+const SPLASH_DARK_BG = '34, 34, 59'; // #22223b — matches the app-wide unified dark background
+
+/** Derives a hue (0-360) from a hex color so FlowField's particles can be
+ * tinted to each app's own accent color instead of a fixed preset palette. */
+function hexToHue(hex: string): number {
+  const clean = hex.replace('#', '');
+  const r = parseInt(clean.substring(0, 2), 16) / 255;
+  const g = parseInt(clean.substring(2, 4), 16) / 255;
+  const b = parseInt(clean.substring(4, 6), 16) / 255;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const delta = max - min;
+  if (delta === 0) return 0;
+  let h: number;
+  if (max === r) h = ((g - b) / delta) % 6;
+  else if (max === g) h = (b - r) / delta + 2;
+  else h = (r - g) / delta + 4;
+  h *= 60;
+  if (h < 0) h += 360;
+  return h;
+}
 
 const SPLASH_CONTENT: Record<
   AppId,
@@ -22,10 +44,6 @@ const SPLASH_CONTENT: Record<
     lightTextColor: string;
     darkTaglineClass: string;
     lightTaglineClass: string;
-    lightColors: string[];
-    lightBackgroundFill: string;
-    darkEdgeColor: string;
-    darkCoreColor: string;
   }
 > = {
   logbook: {
@@ -36,10 +54,6 @@ const SPLASH_CONTENT: Record<
     lightTextColor: '#3730A3',
     darkTaglineClass: 'text-indigo-200/70',
     lightTaglineClass: 'text-indigo-900/60',
-    lightColors: ['#A5B4FC', '#818CF8', '#6366F1', '#4338CA'],
-    lightBackgroundFill: '#EEF0FC',
-    darkEdgeColor: '129,140,248',
-    darkCoreColor: '67,56,202',
   },
   burnlog: {
     label: 'Loading burnlog',
@@ -49,10 +63,6 @@ const SPLASH_CONTENT: Record<
     lightTextColor: '#B5471B',
     darkTaglineClass: 'text-amber-200/70',
     lightTaglineClass: 'text-amber-900/60',
-    lightColors: ['#FF9E4F', '#F97316', '#EF4444', '#B55233'],
-    lightBackgroundFill: '#FFF7ED',
-    darkEdgeColor: '255,158,79',
-    darkCoreColor: '255,61,113',
   },
   moneylog: {
     label: 'Loading MoneyLog',
@@ -62,10 +72,6 @@ const SPLASH_CONTENT: Record<
     lightTextColor: '#065F46',
     darkTaglineClass: 'text-emerald-200/70',
     lightTaglineClass: 'text-emerald-900/60',
-    lightColors: ['#34D399', '#10B981', '#059669', '#047857'],
-    lightBackgroundFill: '#ECFDF5',
-    darkEdgeColor: '52,211,153',
-    darkCoreColor: '5,150,105',
   },
   tasklog: {
     label: 'Loading TaskLog',
@@ -75,10 +81,6 @@ const SPLASH_CONTENT: Record<
     lightTextColor: '#1E40AF',
     darkTaglineClass: 'text-blue-200/70',
     lightTaglineClass: 'text-blue-900/60',
-    lightColors: ['#60A5FA', '#3B82F6', '#2563EB', '#1D4ED8'],
-    lightBackgroundFill: '#EFF6FF',
-    darkEdgeColor: '96,165,250',
-    darkCoreColor: '37,99,235',
   },
   homelog: {
     label: 'Loading HomeLog',
@@ -88,10 +90,6 @@ const SPLASH_CONTENT: Record<
     lightTextColor: '#6D28D9',
     darkTaglineClass: 'text-violet-200/60',
     lightTaglineClass: 'text-violet-900/50',
-    lightColors: ['#C4B5FD', '#9b5de5', '#7C3AED', '#6D28D9'],
-    lightBackgroundFill: '#F5F3FF',
-    darkEdgeColor: '196,181,253',
-    darkCoreColor: '109,40,217',
   },
   sociallog: {
     label: 'Loading SocialLog',
@@ -101,10 +99,6 @@ const SPLASH_CONTENT: Record<
     lightTextColor: '#9D174D',
     darkTaglineClass: 'text-pink-200/70',
     lightTaglineClass: 'text-pink-900/60',
-    lightColors: ['#FF6FA5', '#F43F7E', '#DB2777', '#9D174D'],
-    lightBackgroundFill: '#FDF2F8',
-    darkEdgeColor: '244,63,126',
-    darkCoreColor: '158,0,89',
   },
   shoppinglog: {
     label: 'Loading ShoppingLog',
@@ -114,10 +108,6 @@ const SPLASH_CONTENT: Record<
     lightTextColor: '#9A3412',
     darkTaglineClass: 'text-orange-200/70',
     lightTaglineClass: 'text-orange-900/60',
-    lightColors: ['#FDBA74', '#FB923C', '#F18701', '#C2660A'],
-    lightBackgroundFill: '#FFF7ED',
-    darkEdgeColor: '251,146,60',
-    darkCoreColor: '241,135,1',
   },
   travellog: {
     label: 'Loading TravelLog',
@@ -127,10 +117,6 @@ const SPLASH_CONTENT: Record<
     lightTextColor: '#92400E',
     darkTaglineClass: 'text-amber-200/70',
     lightTaglineClass: 'text-amber-900/60',
-    lightColors: ['#FCD34D', '#FBBF24', '#D97706', '#92400E'],
-    lightBackgroundFill: '#FDF8F3',
-    darkEdgeColor: '251,191,36',
-    darkCoreColor: '146,64,14',
   },
   learnlog: {
     label: 'Loading LearnLog',
@@ -140,10 +126,6 @@ const SPLASH_CONTENT: Record<
     lightTextColor: '#5B21B6',
     darkTaglineClass: 'text-violet-200/70',
     lightTaglineClass: 'text-violet-900/60',
-    lightColors: ['#C4B5FD', '#A78BFA', '#8B5CF6', '#7C3AED'],
-    lightBackgroundFill: '#F9F9F9',
-    darkEdgeColor: '196,181,253',
-    darkCoreColor: '124,58,237',
   },
 };
 
@@ -186,59 +168,55 @@ export default function SplashScreen() {
   if (!mounted) return null;
 
   const content = SPLASH_CONTENT[appId];
+  const hue = hexToHue(isDark ? content.darkTextColor : content.lightTextColor);
 
   return (
     <div
       role="status"
       aria-label={content.label}
-      className="fixed inset-0 z-[100] flex flex-col items-center justify-center overflow-hidden transition-opacity ease-out"
+      className="fixed inset-0 z-[100] overflow-hidden transition-opacity ease-out"
       style={{
         opacity: leaving ? 0 : 1,
         transitionDuration: `${FADE_MS}ms`,
       }}
     >
-      {isDark ? (
-        <LinesGradientShader
-          className="pointer-events-none absolute inset-0 h-full w-full"
-          edgeColor={content.darkEdgeColor}
-          coreColor={content.darkCoreColor}
-        />
-      ) : (
-        <WavyBackground
-          className="pointer-events-none absolute inset-0 h-full w-full"
-          colors={content.lightColors}
-          backgroundFill={content.lightBackgroundFill}
-        />
-      )}
-
-      <div className="relative flex flex-col items-center animate-in fade-in zoom-in-95 duration-700">
-        {appId === 'logbook' ? (
-          <Image
-            src="/icons/logbook-light.png"
-            alt="The LogBook"
-            width={1146}
-            height={348}
-            priority
-            className="h-auto w-[min(80vw,420px)] select-none"
-          />
-        ) : (
-          <KineticText
-            text={content.text}
-            className={cn(
-              'justify-center text-[clamp(2.75rem,14vw,6rem)] leading-none tracking-tight select-none',
-            )}
-            style={{ color: isDark ? content.darkTextColor : content.lightTextColor }}
-          />
-        )}
-        <p
-          className={cn(
-            'mt-4 text-sm font-medium tracking-[0.3em] uppercase',
-            isDark ? content.darkTaglineClass : content.lightTaglineClass
+      <FlowField
+        className="h-full min-h-0 w-full"
+        backgroundFill={isDark ? SPLASH_DARK_BG : SPLASH_LIGHT_BG}
+        hueStart={hue}
+        hueRange={60}
+        saturation={85}
+        lightness={isDark ? 62 : 45}
+      >
+        <div className="relative flex flex-col items-center animate-in fade-in zoom-in-95 duration-700">
+          {appId === 'logbook' ? (
+            <Image
+              src="/icons/logbook-light.png"
+              alt="The LogBook"
+              width={1146}
+              height={348}
+              priority
+              className="h-auto w-[min(80vw,420px)] select-none"
+            />
+          ) : (
+            <KineticText
+              text={content.text}
+              className={cn(
+                'justify-center text-[clamp(2.75rem,14vw,6rem)] leading-none tracking-tight select-none',
+              )}
+              style={{ color: isDark ? content.darkTextColor : content.lightTextColor }}
+            />
           )}
-        >
-          {content.tagline}
-        </p>
-      </div>
+          <p
+            className={cn(
+              'mt-4 text-sm font-medium tracking-[0.3em] uppercase',
+              isDark ? content.darkTaglineClass : content.lightTaglineClass
+            )}
+          >
+            {content.tagline}
+          </p>
+        </div>
+      </FlowField>
     </div>
   );
 }
