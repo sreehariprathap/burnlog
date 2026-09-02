@@ -80,6 +80,7 @@ export const SEARCH_REGISTRY: SearchItem[] = [
   { app: 'burnlog', label: 'Goals', description: 'Create and monitor fitness goals (BurnLog)', href: '/burnlog/goals', icon: Target },
   { app: 'burnlog', label: 'Insights', description: 'Charts and trends over weight, workouts, calories (BurnLog)', href: '/burnlog/insights', icon: LineChart },
   { app: 'burnlog', label: 'Meal Planner', description: 'AI-assisted meal planning and grocery lists', href: '/burnlog/meal-planner', icon: UtensilsCrossed },
+  { app: 'burnlog', label: 'Favorite Meals', description: 'Set dishes you always want worked into your meal plan', href: '/burnlog/meal-planner?step=preferences', icon: Heart },
   { app: 'burnlog', label: 'Grocery List', description: 'Generated grocery list from your meal plan', href: '/burnlog/meal-planner/grocery-list', icon: ShoppingCart },
   { app: 'burnlog', label: 'AI Onboarding', description: 'Conversational setup that builds your first workout plan', href: '/burnlog/ai-setup', icon: Bot },
   { app: 'burnlog', label: 'Config', description: 'Health metrics, streak card, AI insights, water tracking (BurnLog)', href: '/burnlog/dashboard/config', icon: Settings },

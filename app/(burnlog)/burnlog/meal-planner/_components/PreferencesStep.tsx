@@ -6,19 +6,21 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Utensils, Sparkles } from 'lucide-react';
+import { Utensils, Sparkles, Heart } from 'lucide-react';
 import { CUISINE_STYLES, type MealPlannerWizardAnswers } from '@/lib/ai/types';
 
 type PreferencesStepProps = {
   initialAnswers?: Partial<MealPlannerWizardAnswers>;
-  onContinue: (partial: Pick<MealPlannerWizardAnswers, 'mealsPerDay' | 'cuisinePreferences' | 'surpriseMe'>) => void;
+  onContinue: (partial: Pick<MealPlannerWizardAnswers, 'mealsPerDay' | 'cuisinePreferences' | 'surpriseMe' | 'favoriteMeals'>) => void;
 };
 
 export function PreferencesStep({ initialAnswers, onContinue }: PreferencesStepProps) {
   const [mealsPerDay, setMealsPerDay] = useState(initialAnswers?.mealsPerDay ?? 3);
   const [cuisinePreferences, setCuisinePreferences] = useState<string[]>(initialAnswers?.cuisinePreferences ?? []);
   const [surpriseMe, setSurpriseMe] = useState(initialAnswers?.surpriseMe ?? false);
+  const [favoriteMeals, setFavoriteMeals] = useState(initialAnswers?.favoriteMeals ?? '');
 
   const toggle = (value: string) => {
     setCuisinePreferences((prev) => (prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]));
@@ -63,8 +65,31 @@ export function PreferencesStep({ initialAnswers, onContinue }: PreferencesStepP
           </div>
         )}
 
+        <div className="space-y-2">
+          <Label htmlFor="favorite-meals" className="flex items-center gap-2">
+            <Heart className="w-4 h-4" />
+            Favorite meals
+          </Label>
+          <Textarea
+            id="favorite-meals"
+            value={favoriteMeals}
+            onChange={(e) => setFavoriteMeals(e.target.value)}
+            placeholder="e.g. butter chicken, caesar salad, avocado toast — dishes you'd like worked in"
+            rows={2}
+          />
+        </div>
+
         <div className="flex justify-end pt-2">
-          <Button onClick={() => onContinue({ mealsPerDay, cuisinePreferences: surpriseMe ? [] : cuisinePreferences, surpriseMe })}>
+          <Button
+            onClick={() =>
+              onContinue({
+                mealsPerDay,
+                cuisinePreferences: surpriseMe ? [] : cuisinePreferences,
+                surpriseMe,
+                favoriteMeals: favoriteMeals.trim(),
+              })
+            }
+          >
             Continue →
           </Button>
         </div>

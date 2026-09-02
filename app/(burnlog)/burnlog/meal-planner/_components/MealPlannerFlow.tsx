@@ -2,7 +2,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Loader2, PartyPopper } from 'lucide-react';
 import { StoreStep } from './StoreStep';
@@ -23,6 +23,7 @@ export type WizardStep = 'loading' | 'store' | 'household' | 'preferences' | 'ap
 
 export function MealPlannerFlow() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = createClient();
 
   const [step, setStep] = useState<WizardStep>('loading');
@@ -57,8 +58,16 @@ export function MealPlannerFlow() {
       setProfileId(profile.id);
       const lifestyle = (profile.lifestyle ?? null) as LifestyleAnswers | null;
       setInitialLifestyle(lifestyle);
+
+      // A search deep-link (e.g. "set your favorite meals") jumps straight
+      // to the preferences step, skipping store/household — those need a
+      // safe fallback since there's no way to revisit them later in this
+      // wizard.
+      const jumpToPreferences = searchParams.get('step') === 'preferences';
+
       setAnswers((prev) => ({
         ...prev,
+        ...(jumpToPreferences ? { store: 'Other', onHandIngredients: [] } : {}),
         mealsPerDay: lifestyle?.nutrition?.mealsPerDay ?? 3,
         householdSize: lifestyle?.mealPlanning?.householdSize ?? 1,
         cookMode: lifestyle?.mealPlanning?.cookMode ?? 'fresh_daily',
@@ -66,9 +75,9 @@ export function MealPlannerFlow() {
         surpriseMe: lifestyle?.mealPlanning?.surpriseMe ?? false,
         appliances: lifestyle?.mealPlanning?.kitchenAppliances,
       }));
-      setStep('store');
+      setStep(jumpToPreferences ? 'preferences' : 'store');
     })();
-  }, [supabase, router]);
+  }, [supabase, router, searchParams]);
 
   useEffect(() => {
     if (step !== 'generating-candidates') return;

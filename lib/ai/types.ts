@@ -165,4 +165,6 @@ export type MealPlannerWizardAnswers = {
   cuisinePreferences: string[];
   surpriseMe: boolean;
   appliances: string[];
+  /** Freeform favorite dishes/meals the user always wants worked in, e.g. "butter chicken, caesar salad". */
+  favoriteMeals: string;
 };

@@ -38,6 +38,10 @@ function buildCandidatesPrompt(answers: MealPlannerWizardAnswers, lifestyle: Lif
     ? `The user batch-cooks once and eats the same meals across the week for ${answers.householdSize} people — favor recipes that reheat/store well.`
     : `The user cooks fresh at each meal for ${answers.householdSize} people — variety across the week is welcome.`;
 
+  const favoritesLine = answers.favoriteMeals?.trim()
+    ? `The user's favorite dishes, which they'd like worked in wherever they fit: ${answers.favoriteMeals.trim()}.`
+    : '';
+
   return `You are a certified nutritionist and meal planning expert.
 
 Diet style: ${dietStyle === 'none' ? 'No dietary restrictions' : dietStyle}
@@ -46,6 +50,7 @@ ${sourceLine}
 ${cuisineLine}
 ${applianceLine}
 ${cookModeLine}
+${favoritesLine}
 
 Generate 10 to 12 candidate meal ideas covering these meal types: ${mealTypes.join(', ')}. Each candidate is a standalone recipe idea, not yet assigned to a specific day.
 
