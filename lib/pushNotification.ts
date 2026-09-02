@@ -55,6 +55,16 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
   }
 }
 
+// iOS Safari has documented WebKit bugs where serviceWorker.ready / pushManager.subscribe()
+// can stall indefinitely instead of rejecting - without a timeout that leaves the caller
+// awaiting forever with no error to show.
+function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error(message)), ms)),
+  ]);
+}
+
 // Request permission and subscribe to push notifications
 export async function subscribeToPushNotifications(
   userId: string, 
@@ -74,7 +84,11 @@ export async function subscribeToPushNotifications(
     // against it directly races the install/activate lifecycle on a fresh install and throws
     // "Subscription failed - no active Service Worker". navigator.serviceWorker.ready only
     // resolves once there's an active worker.
-    const registration = await navigator.serviceWorker.ready;
+    const registration = await withTimeout(
+      navigator.serviceWorker.ready,
+      15000,
+      'Timed out waiting for the service worker to activate'
+    );
 
     // Check if we already have a subscription
     let subscription = await registration.pushManager.getSubscription();
@@ -92,10 +106,14 @@ export async function subscribeToPushNotifications(
       // Convert the VAPID key to the format required by the push manager
       const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
       
-      subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: convertedVapidKey
-      });
+      subscription = await withTimeout(
+        registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: convertedVapidKey
+        }),
+        15000,
+        'Timed out subscribing to push notifications'
+      );
     }
 
     // Save the subscription to your server

@@ -41,7 +41,6 @@ export function EnableNotificationsPrompt() {
   const [platform, setPlatform] = useState<Platform | null>(null);
   const [showPrompt, setShowPrompt] = useState(false);
   const [showIosInstructions, setShowIosInstructions] = useState(false);
-  const [loading, setLoading] = useState(false);
 
   const saveSubscription = useCallback(async (subscription: Parameters<Parameters<typeof subscribeToPushNotifications>[1]>[0]) => {
     const { data } = await supabase.auth.getUser();
@@ -101,23 +100,26 @@ export function EnableNotificationsPrompt() {
     })();
   }, [supabase, saveSubscription]);
 
-  async function handleEnable() {
+  function handleEnable() {
     if (!userId) return;
-    setLoading(true);
-    try {
-      const success = await subscribeToPushNotifications(userId, saveSubscription);
-      if (success) {
-        toast({ description: "Notifications enabled — you'll get updates across every app." });
-        setShowPrompt(false);
-      } else {
-        toast({ title: "Couldn't enable notifications", description: 'Check your browser settings and try again.', variant: 'destructive' });
+    // Hide immediately on click rather than showing a blocking "Enabling…" state — the
+    // subscribe chain runs in the background and reports its result via toast, so a stall
+    // in it (iOS Safari's serviceWorker.ready/pushManager.subscribe are known to hang) can
+    // never leave the prompt stuck open.
+    setShowPrompt(false);
+    (async () => {
+      try {
+        const success = await subscribeToPushNotifications(userId, saveSubscription);
+        if (success) {
+          toast({ description: "Notifications enabled — you'll get updates across every app." });
+        } else {
+          toast({ title: "Couldn't enable notifications", description: 'Check your browser settings and try again.', variant: 'destructive' });
+        }
+      } catch (error) {
+        console.error('Error enabling notifications:', error);
+        toast({ title: 'Error', description: 'Something went wrong enabling notifications.', variant: 'destructive' });
       }
-    } catch (error) {
-      console.error('Error enabling notifications:', error);
-      toast({ title: 'Error', description: 'Something went wrong enabling notifications.', variant: 'destructive' });
-    } finally {
-      setLoading(false);
-    }
+    })();
   }
 
   function handleDismiss() {
@@ -161,8 +163,8 @@ export function EnableNotificationsPrompt() {
         </div>
       </div>
       <div className="flex items-center gap-2 shrink-0">
-        <Button onClick={handleEnable} size="sm" className="text-xs" disabled={loading}>
-          {loading ? 'Enabling…' : 'Enable'}
+        <Button onClick={handleEnable} size="sm" className="text-xs">
+          Enable
         </Button>
         <Button onClick={handleDismiss} variant="ghost" size="sm" className="p-1">
           <X className="w-4 h-4" />
