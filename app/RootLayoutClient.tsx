@@ -2,7 +2,8 @@
 import { SWRConfig } from "swr";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "react-hot-toast";
+import { GlobalErrorListener } from "@/components/GlobalErrorListener";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import PWAInstall from "@/components/PWAInstall";
 import PWAStatus from "@/components/PWAStatus";
@@ -69,8 +70,14 @@ export default function RootLayoutClient({
                 <OfflineBanner />
                 <ErrorBoundary>{children}</ErrorBoundary>
                 <DevErrorWatcher />
+                <GlobalErrorListener />
                 <SwitchLoader />
-                <Toaster />
+                <Toaster
+                  position="top-center"
+                  gutter={8}
+                  containerStyle={{ top: 'max(1rem, env(safe-area-inset-top))' }}
+                  toastOptions={{ className: 'w-[calc(100vw-2rem)] max-w-sm' }}
+                />
                 <PWAInstall />
                 <PWAStatus />
                 <PWAUpdateNotification />
