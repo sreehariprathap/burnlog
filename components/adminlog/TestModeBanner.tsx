@@ -2,7 +2,6 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { FlaskConical } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 
@@ -10,7 +9,6 @@ export const TEST_MODE_ACTIVE_KEY = 'adminlog:testModeActive';
 export const STASHED_SESSION_KEY = 'adminlog:stashedSession';
 
 export function TestModeBanner() {
-  const router = useRouter();
   const [active, setActive] = useState(false);
   const [exiting, setExiting] = useState(false);
 
@@ -29,9 +27,10 @@ export function TestModeBanner() {
       }
       sessionStorage.removeItem(TEST_MODE_ACTIVE_KEY);
       sessionStorage.removeItem(STASHED_SESSION_KEY);
-      setActive(false);
-      router.push('/adminlog/test-onboarding');
-      router.refresh();
+      // Hard navigation: every SWR cache in the app (profile, notifications,
+      // etc.) needs to start clean under the restored admin identity rather
+      // than carry over state fetched while impersonating the test account.
+      window.location.href = '/adminlog/test-onboarding';
     } finally {
       setExiting(false);
     }

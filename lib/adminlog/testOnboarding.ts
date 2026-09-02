@@ -36,13 +36,31 @@ export async function requireAdminCaller(
   return { id: profile.id, userId: profile.userId };
 }
 
+// The real /signup/profile page (left completely unmodified — see the
+// spec's non-goals) has no idea it's creating the test account's profile,
+// so the row it inserts always gets isTestAccount's schema default: false.
+// This looks the profile up by the test auth account's userId instead (the
+// one thing that's unambiguous), and lazily backfills isTestAccount = true
+// the first time it finds an untagged row — so every later read/delete can
+// still trust that flag as its safety anchor, without ever touching the
+// onboarding wizard.
 export async function findTestProfile(
   admin: SupabaseClient
 ): Promise<{ id: string; userId: string } | null> {
+  const { data: users } = await admin.auth.admin.listUsers();
+  const testUserId = users?.users.find((u) => u.email === TEST_ONBOARDING_EMAIL)?.id;
+  if (!testUserId) return null;
+
   const { data } = await admin
     .from('profiles')
-    .select('id, userId')
-    .eq('isTestAccount', true)
+    .select('id, userId, isTestAccount')
+    .eq('userId', testUserId)
     .maybeSingle();
-  return data ?? null;
+  if (!data) return null;
+
+  if (!data.isTestAccount) {
+    await admin.from('profiles').update({ isTestAccount: true }).eq('id', data.id);
+  }
+
+  return { id: data.id, userId: data.userId };
 }

@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { Loader2 } from 'lucide-react';
 import { useRequireAdmin } from '@/lib/adminlog/useRequireAdmin';
@@ -46,7 +45,6 @@ function buildSummary(data: TestOnboardingData): string[] {
 
 export default function TestOnboardingPage() {
   const { profile, loading } = useRequireAdmin();
-  const router = useRouter();
   const { data, mutate, isLoading } = useSWR('adminlog-test-onboarding', fetchTestOnboarding);
   const [starting, setStarting] = useState(false);
   const [resetting, setResetting] = useState(false);
@@ -71,7 +69,11 @@ export default function TestOnboardingPage() {
       if (verifyError) throw verifyError;
 
       sessionStorage.setItem(TEST_MODE_ACTIVE_KEY, '1');
-      router.push('/signup/profile');
+      // Hard navigation, not router.push: TestModeBanner is mounted once at
+      // the root layout and only reads sessionStorage on mount, and every
+      // SWR cache (e.g. the admin's own profile) needs to start clean under
+      // the swapped identity rather than carry over stale client state.
+      window.location.href = '/signup/profile';
     } catch (err) {
       console.error('Enter Test Mode failed:', err);
       setStarting(false);
