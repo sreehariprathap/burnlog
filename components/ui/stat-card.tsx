@@ -20,9 +20,8 @@ const DEFAULT_NEON = { firstColor: 'var(--primary)', secondColor: 'var(--chart-2
 
 /**
  * BurnLog's neon-bordered stat-card look, generalized for every app.
- * NeonGradientCard hardcodes z-10, which ties with TopBar's sticky z-10 and
- * loses on scroll (later DOM order wins the tie) — StatCard drops to z-0 by
- * default so the header always stays on top.
+ * NeonGradientCard itself defaults to the lowest stacking (z-0) and a fixed,
+ * contained glow blur — see that component for why.
  */
 export function StatCard({
   icon: Icon,
@@ -37,7 +36,7 @@ export function StatCard({
   const hasHeader = Boolean(title || Icon);
   return (
     <NeonGradientCard
-      className={cn('z-0', className)}
+      className={className}
       borderSize={borderSize}
       borderRadius={borderRadius}
       neonColors={neonColors}

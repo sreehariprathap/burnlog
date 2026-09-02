@@ -117,11 +117,19 @@ export const NeonGradientCard: React.FC<NeonGradientCardProps> = ({
           "--pseudo-element-background-image": `linear-gradient(0deg, ${neonColors.firstColor}, ${neonColors.secondColor})`,
           "--pseudo-element-width": `${dimensions.width + borderSize * 2}px`,
           "--pseudo-element-height": `${dimensions.height + borderSize * 2}px`,
-          "--after-blur": `${dimensions.width / 3}px`,
+          // Fixed, not proportional to card width — these cards now sit in
+          // tight grids everywhere (2-3 columns), and a width-scaled blur
+          // (the old `width / 3`) radiates far past a card's own edges,
+          // bleeding into neighbors instead of staying a contained glow.
+          "--after-blur": "10px",
         } as CSSProperties
       }
       className={cn(
-        "relative z-10 size-full rounded-(--border-radius)",
+        // Lowest stacking on purpose: these glowing borders must never sit
+        // above a sticky header or any other UI (see the BurnLog dashboard
+        // header-overlap fix) — z-0 keeps every card at the floor of the
+        // stacking order, everywhere this component is used.
+        "relative z-0 size-full rounded-(--border-radius)",
         className
       )}
       {...props}
@@ -135,7 +143,7 @@ export const NeonGradientCard: React.FC<NeonGradientCardProps> = ({
           "before:animate-background-position-spin",
           "after:absolute after:-top-(--border-size) after:-left-(--border-size) after:-z-10 after:block",
           "after:h-(--pseudo-element-height) after:w-(--pseudo-element-width) after:rounded-(--border-radius) after:blur-(--after-blur) after:content-['']",
-          "after:bg-[linear-gradient(0deg,var(--neon-first-color),var(--neon-second-color))] after:bg-size-[100%_200%] after:opacity-80",
+          "after:bg-[linear-gradient(0deg,var(--neon-first-color),var(--neon-second-color))] after:bg-size-[100%_200%] after:opacity-60",
           "after:animate-background-position-spin",
           "dark:bg-neutral-900",
           "wrap-break-word"
