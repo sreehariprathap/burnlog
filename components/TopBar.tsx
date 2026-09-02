@@ -14,6 +14,8 @@ import { SocialLogMark } from './SocialLogMark';
 import { ShoppingLogMark } from './ShoppingLogMark';
 import { LogbookMark } from './LogbookMark';
 import { TravelLogMark } from './TravelLogMark';
+import { LearnLogMark } from './LearnLogMark';
+import { NotificationBell } from './NotificationBell';
 import { AppId, getActiveApp, setEnabledApps, isAppId } from '@/lib/appMode';
 import { createClient } from '@/lib/supabase/client';
 
@@ -70,6 +72,8 @@ export function TopBar({ title, onClose, actions }: TopBarProps) {
             <ShoppingLogMark size={20} />
           ) : activeApp === 'travellog' ? (
             <TravelLogMark size={20} />
+          ) : activeApp === 'learnlog' ? (
+            <LearnLogMark size={20} />
           ) : (
             <BurnLogMark size={20} />
           )}
@@ -78,6 +82,7 @@ export function TopBar({ title, onClose, actions }: TopBarProps) {
       </div>
       <div className="flex items-center gap-4">
         <ThemeToggle />
+        <NotificationBell />
         {actions && <div className="flex items-center gap-2">{actions}</div>}
         {activeApp !== 'logbook' && <HeaderQuickInfo />}
         {onClose && (
