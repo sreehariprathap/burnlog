@@ -86,6 +86,8 @@ model Profile {
   socialVotes             SocialVote[]
   socialFollowersOf       SocialFollow[] @relation("SocialFollowFollowing")
   socialFollowing         SocialFollow[] @relation("SocialFollowFollower")
+  socialFollowRequestsSent     SocialFollowRequest[] @relation("SocialFollowRequestRequester")
+  socialFollowRequestsReceived SocialFollowRequest[] @relation("SocialFollowRequestTarget")
   socialMessageThreadsA   SocialMessageThread[] @relation("SocialMessageThreadParticipantA")
   socialMessageThreadsB   SocialMessageThread[] @relation("SocialMessageThreadParticipantB")
   socialMessagesSent      SocialMessage[]
@@ -527,6 +529,23 @@ model SocialFollow {
 
   @@unique([followerId, followingId])
   @@map("social_follows")
+}
+
+/// sociallog: a pending/accepted/declined request to follow a private account —
+/// converts into a SocialFollow row on accept; SocialFollow itself always means
+/// "confirmed follow" so existing follower-count/feed queries stay untouched.
+model SocialFollowRequest {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  requester   Profile   @relation("SocialFollowRequestRequester", fields: [requesterId], references: [id], onDelete: Cascade)
+  requesterId String    @db.Uuid
+  target      Profile   @relation("SocialFollowRequestTarget", fields: [targetId], references: [id], onDelete: Cascade)
+  targetId    String    @db.Uuid
+  status      String    @default("pending") // 'pending' | 'accepted' | 'declined'
+  createdAt   DateTime  @default(now())
+  respondedAt DateTime?
+
+  @@unique([requesterId, targetId])
+  @@map("social_follow_requests")
 }
 
 /// sociallog: a lightweight hashtag/topic, lowercase and unique

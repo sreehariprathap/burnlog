@@ -40,6 +40,8 @@ export const NOTIFICATION_TEMPLATES: NotificationTemplate[] = [
 
   // SocialLog
   { id: 'sociallog-new-follower', app: 'sociallog', label: 'New follower', title: 'New follower', message: '@maya_runs started following you.', url: '/sociallog' },
+  { id: 'sociallog-follow-request', app: 'sociallog', label: 'New follow request', title: 'New follow request', message: '@devon_builds wants to follow you.', url: '/sociallog' },
+  { id: 'sociallog-follow-accepted', app: 'sociallog', label: 'Follow request accepted', title: 'Follow request accepted', message: '@bindya_w accepted your follow request.', url: '/sociallog' },
   { id: 'sociallog-new-message', app: 'sociallog', label: 'New direct message', title: 'New message', message: 'devon_builds: "Hey, are you free this weekend?"', url: '/sociallog/messages' },
   { id: 'sociallog-new-comment', app: 'sociallog', label: 'Comment on your post', title: 'New comment', message: 'bindya_w commented on your post: "This is awesome!"', url: '/sociallog' },
 

@@ -17,7 +17,10 @@ export async function DELETE(_request: Request, { params }: { params: Promise<{ 
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
+    // Handles both unfollowing a confirmed follow and canceling a pending request
+    // to a private account — only one of these rows will ever exist for a pair.
     await admin.from('social_follows').delete().eq('followerId', me.id).eq('followingId', followingId);
+    await admin.from('social_follow_requests').delete().eq('requesterId', me.id).eq('targetId', followingId).eq('status', 'pending');
 
     return NextResponse.json({ ok: true });
   } catch (error) {

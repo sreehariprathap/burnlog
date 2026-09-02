@@ -9,6 +9,7 @@ import { SocialLogBottomNav } from '@/components/SocialLogBottomNav';
 import { Button } from '@/components/ui/button';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { ComposeBox } from './_components/ComposeBox';
+import { FollowRequestsBanner } from './_components/FollowRequestsBanner';
 import { FeedControls } from './_components/FeedControls';
 import { PostCard, type FeedPost } from './_components/PostCard';
 import { Loader2, RefreshCw, Sparkles, Users, FileText } from 'lucide-react';
@@ -47,6 +48,7 @@ export default function SocialLogDashboardPage() {
       />
       <main className="flex-1 container mx-auto max-w-2xl space-y-4 p-4 pb-24">
         <ComposeBox onPosted={() => mutate()} />
+        <FollowRequestsBanner />
         <div className="grid grid-cols-2 gap-3">
           <StatCard title="Followers" icon={Users}>
             <p className="text-2xl font-bold">{stats?.followers ?? 0}</p>

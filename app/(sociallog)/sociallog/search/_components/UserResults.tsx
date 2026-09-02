@@ -9,7 +9,8 @@ import { Loader2, Search, UserX } from 'lucide-react';
 import { apiFetch } from '@/lib/apiFetch';
 import { useToast } from '@/components/ui/use-toast';
 
-type UserResult = { id: string; username: string; firstName: string; avatarUrl: string | null; isFollowing: boolean };
+type RequestStatus = 'none' | 'pending' | 'accepted';
+type UserResult = { id: string; username: string; firstName: string; avatarUrl: string | null; isPrivate: boolean; requestStatus: RequestStatus };
 
 async function fetcher(url: string) {
   const res = await apiFetch(url);
@@ -17,18 +18,24 @@ async function fetcher(url: string) {
   return res.json();
 }
 
-function FollowButton({ userId, initialFollowing }: { userId: string; initialFollowing: boolean }) {
-  const [following, setFollowing] = useState(initialFollowing);
+function FollowButton({ userId, initialStatus }: { userId: string; initialStatus: RequestStatus }) {
+  const [status, setStatus] = useState<RequestStatus>(initialStatus);
   const [busy, setBusy] = useState(false);
   const { toast } = useToast();
 
   const toggle = async () => {
     setBusy(true);
-    if (following) {
+    if (status === 'accepted') {
       const res = await apiFetch(`/api/sociallog/follow/${userId}`, { method: 'DELETE' });
       if (res.ok) {
-        setFollowing(false);
+        setStatus('none');
         toast({ title: 'Unfollowed' });
+      }
+    } else if (status === 'pending') {
+      const res = await apiFetch(`/api/sociallog/follow/${userId}`, { method: 'DELETE' });
+      if (res.ok) {
+        setStatus('none');
+        toast({ title: 'Request canceled' });
       }
     } else {
       const res = await apiFetch('/api/sociallog/follow', {
@@ -37,16 +44,19 @@ function FollowButton({ userId, initialFollowing }: { userId: string; initialFol
         body: JSON.stringify({ followingId: userId }),
       });
       if (res.ok) {
-        setFollowing(true);
-        toast({ title: 'Followed' });
+        const body = await res.json();
+        setStatus(body.status === 'pending' ? 'pending' : 'accepted');
+        toast({ title: body.status === 'pending' ? 'Request sent' : 'Followed' });
       }
     }
     setBusy(false);
   };
 
+  const label = status === 'accepted' ? 'Following' : status === 'pending' ? 'Requested' : 'Follow';
+
   return (
-    <Button variant={following ? 'outline' : 'default'} size="sm" onClick={toggle} disabled={busy}>
-      {following ? 'Following' : 'Follow'}
+    <Button variant={status === 'none' ? 'default' : 'outline'} size="sm" onClick={toggle} disabled={busy}>
+      {label}
     </Button>
   );
 }
@@ -89,7 +99,7 @@ export function UserResults({ query }: { query: string }) {
               <p className="text-xs text-muted-foreground">{u.firstName}</p>
             </div>
           </div>
-          <FollowButton userId={u.id} initialFollowing={u.isFollowing} />
+          <FollowButton userId={u.id} initialStatus={u.requestStatus} />
         </div>
       ))}
     </div>
