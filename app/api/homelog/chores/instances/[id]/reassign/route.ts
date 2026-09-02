@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/serviceRole';
 import { getMyProfileId, getMyHouseholdMembership } from '@/lib/homelog/serverAuth';
+import { sendPushToUser } from '@/lib/pushNotification/server';
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -42,7 +43,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     const { data: chore } = await admin
       .from('household_chores')
-      .select('id, householdId')
+      .select('id, householdId, title')
       .eq('id', instance.choreId)
       .maybeSingle();
     if (!chore || chore.householdId !== membership.householdId) {
@@ -67,6 +68,27 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       .eq('id', id);
     if (updateError) {
       return NextResponse.json({ error: updateError.message }, { status: 400 });
+    }
+
+    // Notify the newly assigned member — best-effort, a failed push must
+    // never fail the reassignment itself. Skip notifying yourself.
+    if (body.assignedProfileId && body.assignedProfileId !== meId) {
+      try {
+        const { data: targetProfile } = await admin
+          .from('profiles')
+          .select('userId')
+          .eq('id', body.assignedProfileId)
+          .maybeSingle();
+        if (targetProfile?.userId) {
+          await sendPushToUser(admin, targetProfile.userId, {
+            title: 'Chore assigned to you',
+            message: chore.title ? `You were assigned: ${chore.title}` : 'A chore was assigned to you',
+            url: '/homelog/chores',
+          });
+        }
+      } catch (pushError) {
+        console.error('homelog chore reassign push send failed:', pushError);
+      }
     }
 
     return NextResponse.json({ success: true });

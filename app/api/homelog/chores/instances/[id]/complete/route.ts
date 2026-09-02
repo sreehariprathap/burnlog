@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/serviceRole';
 import { getMyProfileId, getMyHouseholdMembership } from '@/lib/homelog/serverAuth';
 import { nextOccurrenceAfter } from '@/lib/homelog/choreRecurrence';
+import { sendPushToUser } from '@/lib/pushNotification/server';
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -38,7 +39,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     const { data: chore } = await admin
       .from('household_chores')
-      .select('id, householdId, frequency, dayOfWeek, dayOfMonth, monthOfYear, autoRotate')
+      .select('id, householdId, title, frequency, dayOfWeek, dayOfMonth, monthOfYear, autoRotate')
       .eq('id', instance.choreId)
       .maybeSingle();
     if (!chore || chore.householdId !== membership.householdId) {
@@ -81,6 +82,27 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
           assignedProfileId: nextAssignee,
         },
       ]);
+
+      // Notify whoever the rotation just landed on — best-effort, and only
+      // when it's someone other than the person who just completed it.
+      if (nextAssignee && nextAssignee !== meId) {
+        try {
+          const { data: targetProfile } = await admin
+            .from('profiles')
+            .select('userId')
+            .eq('id', nextAssignee)
+            .maybeSingle();
+          if (targetProfile?.userId) {
+            await sendPushToUser(admin, targetProfile.userId, {
+              title: 'Chore assigned to you',
+              message: chore.title ? `You were assigned: ${chore.title}` : 'A chore was assigned to you',
+              url: '/homelog/chores',
+            });
+          }
+        } catch (pushError) {
+          console.error('homelog chore rotation push send failed:', pushError);
+        }
+      }
     }
 
     return NextResponse.json({ success: true });
