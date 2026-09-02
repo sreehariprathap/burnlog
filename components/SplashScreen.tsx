@@ -122,10 +122,10 @@ const SPLASH_CONTENT: Record<
     label: 'Loading LearnLog',
     text: 'learnlog',
     tagline: "Track what you're learning, becoming, and growing into",
-    darkTextColor: '#C4B5FD',
-    lightTextColor: '#5B21B6',
-    darkTaglineClass: 'text-violet-200/70',
-    lightTaglineClass: 'text-violet-900/60',
+    darkTextColor: '#FF8FA8',
+    lightTextColor: '#B3123F',
+    darkTaglineClass: 'text-rose-200/70',
+    lightTaglineClass: 'text-rose-900/60',
   },
 };
 
