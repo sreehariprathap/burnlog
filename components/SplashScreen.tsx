@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Image from 'next/image';
 import { KineticText } from '@/components/ui/kinetic-text';
 import { WavyBackground } from '@/components/kokonutui/wavy-background';
 import { LinesGradientShader } from '@/components/kokonutui/lines-gradient-shader';
@@ -211,13 +212,24 @@ export default function SplashScreen() {
       )}
 
       <div className="relative flex flex-col items-center animate-in fade-in zoom-in-95 duration-700">
-        <KineticText
-          text={content.text}
-          className={cn(
-            'justify-center text-[clamp(2.75rem,14vw,6rem)] leading-none tracking-tight select-none',
-          )}
-          style={{ color: isDark ? content.darkTextColor : content.lightTextColor }}
-        />
+        {appId === 'logbook' ? (
+          <Image
+            src="/icons/logbook-light.png"
+            alt="The LogBook"
+            width={1146}
+            height={348}
+            priority
+            className="h-auto w-[min(80vw,420px)] select-none"
+          />
+        ) : (
+          <KineticText
+            text={content.text}
+            className={cn(
+              'justify-center text-[clamp(2.75rem,14vw,6rem)] leading-none tracking-tight select-none',
+            )}
+            style={{ color: isDark ? content.darkTextColor : content.lightTextColor }}
+          />
+        )}
         <p
           className={cn(
             'mt-4 text-sm font-medium tracking-[0.3em] uppercase',
