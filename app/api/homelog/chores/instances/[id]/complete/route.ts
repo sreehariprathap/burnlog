@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/serviceRole';
 import { getMyProfileId, getMyHouseholdMembership } from '@/lib/homelog/serverAuth';
 import { nextOccurrenceAfter } from '@/lib/homelog/choreRecurrence';
+import { sendPushToUser } from '@/lib/pushNotification/server';
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -38,7 +39,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     const { data: chore } = await admin
       .from('household_chores')
-      .select('id, householdId, frequency, dayOfWeek, dayOfMonth, monthOfYear')
+      .select('id, householdId, title, frequency, dayOfWeek, dayOfMonth, monthOfYear, autoRotate')
       .eq('id', instance.choreId)
       .maybeSingle();
     if (!chore || chore.householdId !== membership.householdId) {
@@ -55,16 +56,23 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     const next = nextOccurrenceAfter(chore, new Date(instance.dueDate));
     if (next) {
-      const { data: members } = await admin
-        .from('household_members')
-        .select('profileId')
-        .eq('householdId', membership.householdId)
-        .order('joinedAt', { ascending: true });
+      // autoRotate: round-robin to the next household member (join order),
+      // same behavior every chore has always had. Otherwise carry the same
+      // assignee forward — reassigning a chore should stick until someone
+      // changes it again, not get silently rotated away.
+      let nextAssignee: string | null = instance.assignedProfileId;
+      if (chore.autoRotate) {
+        const { data: members } = await admin
+          .from('household_members')
+          .select('profileId')
+          .eq('householdId', membership.householdId)
+          .order('joinedAt', { ascending: true });
 
-      let nextAssignee: string | null = members?.[0]?.profileId ?? null;
-      if (members && members.length > 0 && instance.assignedProfileId) {
-        const currentIndex = members.findIndex((m) => m.profileId === instance.assignedProfileId);
-        nextAssignee = members[(currentIndex + 1 + members.length) % members.length].profileId;
+        nextAssignee = members?.[0]?.profileId ?? null;
+        if (members && members.length > 0 && instance.assignedProfileId) {
+          const currentIndex = members.findIndex((m) => m.profileId === instance.assignedProfileId);
+          nextAssignee = members[(currentIndex + 1 + members.length) % members.length].profileId;
+        }
       }
 
       await admin.from('household_chore_instances').insert([
@@ -74,6 +82,27 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
           assignedProfileId: nextAssignee,
         },
       ]);
+
+      // Notify whoever the rotation just landed on — best-effort, and only
+      // when it's someone other than the person who just completed it.
+      if (nextAssignee && nextAssignee !== meId) {
+        try {
+          const { data: targetProfile } = await admin
+            .from('profiles')
+            .select('userId')
+            .eq('id', nextAssignee)
+            .maybeSingle();
+          if (targetProfile?.userId) {
+            await sendPushToUser(admin, targetProfile.userId, {
+              title: 'Chore assigned to you',
+              message: chore.title ? `You were assigned: ${chore.title}` : 'A chore was assigned to you',
+              url: '/homelog/chores',
+            });
+          }
+        } catch (pushError) {
+          console.error('homelog chore rotation push send failed:', pushError);
+        }
+      }
     }
 
     return NextResponse.json({ success: true });

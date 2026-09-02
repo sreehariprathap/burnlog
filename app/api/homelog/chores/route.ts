@@ -79,6 +79,7 @@ export async function GET() {
         title: chore.title,
         category: chore.category,
         frequency: chore.frequency,
+        autoRotate: chore.autoRotate,
         instance: instance
           ? {
               id: instance.id,

@@ -802,6 +802,11 @@ model HouseholdChore {
   dayOfMonth  Int?
   monthOfYear Int?
   isActive    Boolean  @default(true)
+  // When true (the default, matching pre-existing behavior for every chore),
+  // completing a recurring instance round-robins assignment to the next
+  // household member. When false, the next instance keeps whoever the
+  // current one is assigned to.
+  autoRotate  Boolean  @default(true)
   createdAt   DateTime @default(now())
   instances   HouseholdChoreInstance[]
 
