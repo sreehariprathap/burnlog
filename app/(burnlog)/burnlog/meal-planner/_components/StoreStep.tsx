@@ -8,12 +8,31 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { ShoppingCart } from 'lucide-react';
-import { GROCERY_STORES, MANUAL_INGREDIENTS_OPTION, type MealPlannerWizardAnswers } from '@/lib/ai/types';
+import { GROCERY_STORE_DOMAINS, GROCERY_STORES, MANUAL_INGREDIENTS_OPTION, type MealPlannerWizardAnswers } from '@/lib/ai/types';
 
 type StoreStepProps = {
   initialAnswers?: Partial<MealPlannerWizardAnswers>;
   onContinue: (partial: Pick<MealPlannerWizardAnswers, 'store' | 'onHandIngredients'>) => void;
 };
+
+function StoreLogo({ store }: { store: string }) {
+  const domain = GROCERY_STORE_DOMAINS[store as keyof typeof GROCERY_STORE_DOMAINS];
+  const [failed, setFailed] = useState(false);
+
+  if (!domain || failed) {
+    return <ShoppingCart className="h-4 w-4 text-muted-foreground shrink-0" aria-hidden="true" />;
+  }
+
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      src={`https://logo.clearbit.com/${domain}`}
+      alt=""
+      className="h-4 w-4 shrink-0 rounded-sm object-contain"
+      onError={() => setFailed(true)}
+    />
+  );
+}
 
 export function StoreStep({ initialAnswers, onContinue }: StoreStepProps) {
   const [store, setStore] = useState(initialAnswers?.store ?? '');
@@ -47,9 +66,15 @@ export function StoreStep({ initialAnswers, onContinue }: StoreStepProps) {
             </SelectTrigger>
             <SelectContent className="max-h-64">
               {GROCERY_STORES.map((s) => (
-                <SelectItem key={s} value={s}>{s}</SelectItem>
+                <SelectItem key={s} value={s}>
+                  <StoreLogo store={s} />
+                  <span>{s}</span>
+                </SelectItem>
               ))}
-              <SelectItem value={MANUAL_INGREDIENTS_OPTION}>{MANUAL_INGREDIENTS_OPTION}</SelectItem>
+              <SelectItem value={MANUAL_INGREDIENTS_OPTION}>
+                <ShoppingCart className="h-4 w-4 text-muted-foreground shrink-0" aria-hidden="true" />
+                <span>{MANUAL_INGREDIENTS_OPTION}</span>
+              </SelectItem>
             </SelectContent>
           </Select>
         </div>

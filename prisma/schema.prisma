@@ -725,6 +725,7 @@ model GroceryList {
   items           Json
   estimatedBudget String?
   shoppingAt      DateTime?
+  planStartDate   DateTime?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @default(now()) @updatedAt
 

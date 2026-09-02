@@ -84,6 +84,40 @@ export const GROCERY_STORES = [
   'Local / Independent Market', 'Other',
 ] as const;
 
+/** Domain used to fetch a chain's logo via https://logo.clearbit.com/{domain}; omitted entries fall back to a generic icon. */
+export const GROCERY_STORE_DOMAINS: Partial<Record<(typeof GROCERY_STORES)[number], string>> = {
+  Walmart: 'walmart.com',
+  Target: 'target.com',
+  Costco: 'costco.com',
+  Kroger: 'kroger.com',
+  'Whole Foods': 'wholefoodsmarket.com',
+  "Trader Joe's": 'traderjoes.com',
+  Aldi: 'aldi.us',
+  Safeway: 'safeway.com',
+  Publix: 'publix.com',
+  'H-E-B': 'heb.com',
+  Wegmans: 'wegmans.com',
+  Meijer: 'meijer.com',
+  'Food Lion': 'foodlion.com',
+  Loblaws: 'loblaws.ca',
+  'No Frills': 'nofrills.ca',
+  FreshCo: 'freshco.com',
+  Sobeys: 'sobeys.com',
+  Metro: 'metro.ca',
+  'Real Canadian Superstore': 'realcanadiansuperstore.ca',
+  'Save-On-Foods': 'saveonfoods.com',
+  'T&T Supermarket': 'tnt-supermarket.com',
+  Tesco: 'tesco.com',
+  "Sainsbury's": 'sainsburys.co.uk',
+  Asda: 'asda.com',
+  Morrisons: 'morrisons.com',
+  Lidl: 'lidl.com',
+  'Aldi UK': 'aldi.co.uk',
+  Waitrose: 'waitrose.com',
+  'Amazon Fresh': 'amazon.com',
+  Instacart: 'instacart.com',
+};
+
 export const MANUAL_INGREDIENTS_OPTION = 'Manual — I already have ingredients';
 
 /** Identity key for the user's recurring meal-prep reminder in scheduled_reminders. */

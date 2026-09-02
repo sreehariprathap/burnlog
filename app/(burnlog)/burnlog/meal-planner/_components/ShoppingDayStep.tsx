@@ -25,6 +25,7 @@ export function ShoppingDayStep({ profileId, onDone }: ShoppingDayStepProps) {
   const supabase = createClient();
   const [date, setDate] = useState(todayLocalDateString());
   const [time, setTime] = useState('18:00');
+  const [startDate, setStartDate] = useState(todayLocalDateString());
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
@@ -32,6 +33,10 @@ export function ShoppingDayStep({ profileId, onDone }: ShoppingDayStepProps) {
   const handleSave = async () => {
     if (!date) {
       setError('Pick a date first.');
+      return;
+    }
+    if (!startDate || startDate < date) {
+      setError('The meal plan start date must be on or after your shopping date.');
       return;
     }
     setSaving(true);
@@ -44,10 +49,21 @@ export function ShoppingDayStep({ profileId, onDone }: ShoppingDayStepProps) {
       url: '/burnlog/meal-planner/grocery-list',
       remindAt: remindAt.toISOString(),
     });
-    setSaving(false);
     if (insertError) {
+      setSaving(false);
       setError('Failed to schedule your reminder. Please try again.');
       toast({ title: 'Could not schedule reminder', description: insertError.message, variant: 'destructive' });
+      return;
+    }
+
+    const { error: updateError } = await supabase
+      .from('grocery_lists')
+      .update({ shoppingAt: remindAt.toISOString(), planStartDate: new Date(`${startDate}T00:00`).toISOString() })
+      .eq('profileId', profileId);
+    setSaving(false);
+    if (updateError) {
+      setError('Failed to save your plan start date. Please try again.');
+      toast({ title: 'Could not save start date', description: updateError.message, variant: 'destructive' });
       return;
     }
     toast({ title: 'Reminder scheduled', description: 'We’ll remind you when it’s time to shop.' });
@@ -68,11 +84,32 @@ export function ShoppingDayStep({ profileId, onDone }: ShoppingDayStepProps) {
         )}
         <div className="space-y-2">
           <Label htmlFor="shopping-date">Date</Label>
-          <Input id="shopping-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} autoFocus />
+          <Input
+            id="shopping-date"
+            type="date"
+            value={date}
+            onChange={(e) => {
+              const next = e.target.value;
+              setDate(next);
+              if (startDate < next) setStartDate(next);
+            }}
+            autoFocus
+          />
         </div>
         <div className="space-y-2">
           <Label htmlFor="shopping-time">Time</Label>
           <Input id="shopping-time" type="time" value={time} onChange={(e) => setTime(e.target.value)} />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="plan-start-date">When should this meal plan start?</Label>
+          <Input
+            id="plan-start-date"
+            type="date"
+            min={date}
+            value={startDate}
+            onChange={(e) => setStartDate(e.target.value)}
+          />
+          <p className="text-xs text-muted-foreground">Must be on or after your shopping date.</p>
         </div>
         <div className="flex justify-end pt-2">
           <Button onClick={handleSave} disabled={saving}>

@@ -120,7 +120,10 @@ export async function POST(request: Request) {
           const { error: mealPlanError } = await supabase
             .from('meal_plan_entries')
             .upsert(rows, { onConflict: 'profileId,dayOfWeek,mealType' });
-          if (mealPlanError) console.error('finalize: meal_plan_entries upsert failed:', mealPlanError);
+          if (mealPlanError) {
+            console.error('finalize: meal_plan_entries upsert failed:', mealPlanError);
+            throw new AiRouteError('Could not save your meal plan. Please try again.', 500);
+          }
 
           const { error: groceryError } = await supabase
             .from('grocery_lists')
@@ -128,7 +131,10 @@ export async function POST(request: Request) {
               { profileId: profile.id, items: parsed.groceryList, estimatedBudget: parsed.estimatedBudget ?? null },
               { onConflict: 'profileId' }
             );
-          if (groceryError) console.error('finalize: grocery_lists upsert failed:', groceryError);
+          if (groceryError) {
+            console.error('finalize: grocery_lists upsert failed:', groceryError);
+            throw new AiRouteError('Could not save your grocery list. Please try again.', 500);
+          }
 
           const existingLifestyle = (profile.lifestyle ?? {}) as LifestyleAnswers;
           const { error: profileError } = await supabase
