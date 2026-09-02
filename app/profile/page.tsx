@@ -3,27 +3,20 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Image from 'next/image';
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Loader2, Info, AlertTriangle, Bell, Settings, Cpu, Bug } from 'lucide-react';
-import { OnboardingPageTogglesModal } from './_components/OnboardingPageTogglesModal';
+import { Loader2, Info, AlertTriangle } from 'lucide-react';
 import { ProfileAvatar } from './_components/ProfileAvatar';
-import { AiModelSettingsModal } from './_components/AiModelSettingsModal';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { TopBar } from '@/components/TopBar';
 import { LogbookBottomNav } from '@/components/LogbookBottomNav';
-import { sendRealTestNotification } from '@/lib/pushNotification';
 import { Switch } from '@/components/ui/switch';
 import { APPS, AppId, getDefaultApp, setDefaultApp, setEnabledApps } from '@/lib/appMode';
-import { isDevErrorModeEnabled, setDevErrorModeEnabled } from '@/lib/devErrorMode';
 import { useToast } from '@/components/ui/use-toast';
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { NOTIFICATION_TEMPLATES, templatesByApp, type NotificationTemplate } from '@/lib/notificationTemplates';
-import { PushEnableHelp } from '@/components/PushEnableHelp';
 
 // Client Component — no static <Metadata> export; page title stays the
 // default set by the root layout.
@@ -39,16 +32,6 @@ export default function ProfilePage() {
   const [profileNotFound, setProfileNotFound] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
   const [email, setEmail] = useState<string|null>(null);
-  const [testSending, setTestSending] = useState(false);
-  const [testPushFailed, setTestPushFailed] = useState(false);
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>(NOTIFICATION_TEMPLATES[0].id);
-  const [showPageToggles, setShowPageToggles] = useState(false);
-  const [showAiModelSettings, setShowAiModelSettings] = useState(false);
-  const [devErrorMode, setDevErrorMode] = useState(false);
-
-  useEffect(() => {
-    setDevErrorMode(isDevErrorModeEnabled());
-  }, []);
   const [userId, setUserId] = useState<string | null>(null);
   const [defaultApp, setDefaultAppState] = useState<AppId>('burnlog');
   const [usernameInput, setUsernameInput] = useState('');
@@ -188,26 +171,6 @@ export default function ProfilePage() {
     setSavingUsername(false);
   };
 
-  const handleSendTestPush = async () => {
-    const template = NOTIFICATION_TEMPLATES.find((t) => t.id === selectedTemplateId);
-    if (!template) return;
-    setTestSending(true);
-    setTestPushFailed(false);
-    try {
-      const result = await sendRealTestNotification({ title: template.title, message: template.message, url: template.url });
-      if (result.success) {
-        toast({ description: 'Test push sent — check for a real notification on this device.' });
-      } else {
-        toast({ title: 'Test push failed', description: result.error || 'Unknown error', variant: 'destructive' });
-        setTestPushFailed(true);
-      }
-    } catch (e: any) {
-      toast({ title: 'Test push failed', description: e?.message || 'Unknown error', variant: 'destructive' });
-      setTestPushFailed(true);
-    }
-    setTestSending(false);
-  };
-
   const handleLogout = async () => {
     setLoggingOut(true);
     try {
@@ -219,9 +182,6 @@ export default function ProfilePage() {
       setLoggingOut(false);
     }
   };
-
-  const selectedTemplate: NotificationTemplate | undefined = NOTIFICATION_TEMPLATES.find((t) => t.id === selectedTemplateId);
-  const groupedTemplates = templatesByApp();
 
   if (loading) return (
     <div className="h-screen flex items-center justify-center">
@@ -400,129 +360,9 @@ export default function ProfilePage() {
 
             {profile.isAdmin && (
               <div className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Bell className="w-5 h-5 text-warning" />
-                      Test Push Notifications
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <p className="text-sm text-muted-foreground">
-                      Admin tool - pick a notification type and send yourself a real push to verify delivery and copy.
-                    </p>
-
-                    <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Choose a notification type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {groupedTemplates.map((group) => (
-                          <SelectGroup key={group.app}>
-                            <SelectLabel>{group.label}</SelectLabel>
-                            {group.templates.map((t) => (
-                              <SelectItem key={t.id} value={t.id}>{t.label}</SelectItem>
-                            ))}
-                          </SelectGroup>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    {selectedTemplate && (
-                      <div className="rounded-lg border bg-muted/40 p-3 flex gap-3 items-start">
-                        <Image src="/icons/icon-48.png" alt="" width={48} height={48} className="w-8 h-8 rounded-md shrink-0" />
-                        <div className="min-w-0">
-                          <p className="text-sm font-semibold truncate">{selectedTemplate.title}</p>
-                          <p className="text-sm text-muted-foreground">{selectedTemplate.message}</p>
-                          <p className="text-xs text-muted-foreground/70 mt-1">Opens: {selectedTemplate.url}</p>
-                        </div>
-                      </div>
-                    )}
-
-                    <Button onClick={handleSendTestPush} disabled={testSending}>
-                      {testSending ? 'Sending...' : 'Send Test Push'}
-                    </Button>
-
-                    {testPushFailed && <PushEnableHelp />}
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {profile.isAdmin && (
-              <div className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Settings className="w-5 h-5 text-warning" />
-                      Onboarding Pages
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <p className="text-sm text-muted-foreground">
-                      Admin tool - control which advanced onboarding pages are shown to everyone
-                      in the AI setup flow.
-                    </p>
-                    <Button variant="outline" onClick={() => setShowPageToggles(true)}>
-                      <Settings className="w-4 h-4 mr-2" />
-                      Manage Pages
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {profile.isAdmin && (
-              <div className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Cpu className="w-5 h-5 text-warning" />
-                      AI Model Settings
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <p className="text-sm text-muted-foreground">
-                      Admin tool - choose which free OpenRouter model powers text and image AI features.
-                    </p>
-                    <Button variant="outline" onClick={() => setShowAiModelSettings(true)}>
-                      <Cpu className="w-4 h-4 mr-2" />
-                      Manage Models
-                    </Button>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
-
-            {profile.isAdmin && (
-              <div className="mt-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Bug className="w-5 h-5 text-warning" />
-                      Developer Error Alerts
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium">Show error details in a modal</p>
-                        <p className="text-xs text-muted-foreground">
-                          Admin tool - on this device, pop up the full message and stack trace for
-                          any error (render errors, failed API calls, uncaught exceptions) instead
-                          of only logging to the console.
-                        </p>
-                      </div>
-                      <Switch
-                        checked={devErrorMode}
-                        onCheckedChange={(checked) => {
-                          setDevErrorMode(checked);
-                          setDevErrorModeEnabled(checked);
-                        }}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
+                <Link href="/adminlog" className="text-sm text-primary underline">
+                  Open AdminLog →
+                </Link>
               </div>
             )}
 
@@ -538,8 +378,6 @@ export default function ProfilePage() {
           </>
         )}
       </main>
-      <OnboardingPageTogglesModal open={showPageToggles} onOpenChange={setShowPageToggles} />
-      <AiModelSettingsModal open={showAiModelSettings} onOpenChange={setShowAiModelSettings} />
       <LogbookBottomNav />
     </div>
   );
