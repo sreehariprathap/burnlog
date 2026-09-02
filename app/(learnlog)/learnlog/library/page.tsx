@@ -12,6 +12,8 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Star } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
+import { createTaskLogTask } from '@/lib/learnlog/crossApp';
 import type { LibraryItemRow } from '@/lib/learnlog/types';
 import { LibraryItemDrawer } from './_components/LibraryItemDrawer';
 
@@ -34,6 +36,7 @@ const STATUS_LABEL: Record<string, string> = {
 
 export default function LearnLogLibraryPage() {
   const { profile } = useCurrentProfile();
+  const { toast } = useToast();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { data: items, isLoading, mutate } = useSWR(
     profile ? ['learnlog-library', profile.id] : null,
@@ -41,6 +44,16 @@ export default function LearnLogLibraryPage() {
   );
 
   const loading = isLoading;
+
+  async function handleAddToTaskLog(item: LibraryItemRow) {
+    if (!profile) return;
+    try {
+      await createTaskLogTask(profile.id, `Read/study: ${item.title}`, 'life', item.title);
+      toast({ description: 'Added to TaskLog.' });
+    } catch (err) {
+      toast({ title: 'Could not add to TaskLog', description: err instanceof Error ? err.message : String(err), variant: 'destructive' });
+    }
+  }
 
   return (
     <div className="min-h-screen pb-24">
@@ -85,6 +98,9 @@ export default function LearnLogLibraryPage() {
                     <Star className="h-3 w-3 mr-0.5 fill-current" /> {item.rating}/5
                   </span>
                 )}
+              </div>
+              <div className="flex items-center gap-2 mt-2">
+                <Button size="sm" variant="outline" onClick={() => handleAddToTaskLog(item)}>Add to TaskLog</Button>
               </div>
             </CardContent>
           </Card>

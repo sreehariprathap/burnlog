@@ -11,6 +11,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Flame } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
+import { createTaskLogTask } from '@/lib/learnlog/crossApp';
 import type { SkillRow, SkillSessionRow, SkillMilestoneRow } from '@/lib/learnlog/types';
 import { LogSessionDrawer } from './_components/LogSessionDrawer';
 import { MilestoneList } from './_components/MilestoneList';
@@ -48,6 +50,7 @@ async function fetchMilestones(skillId: string): Promise<SkillMilestoneRow[]> {
 export default function SkillDetailPage() {
   const params = useParams<{ id: string }>();
   const skillId = params.id;
+  const { toast } = useToast();
   const [drawerOpen, setDrawerOpen] = useState(false);
 
   const { data: skill, isLoading: skillLoading, mutate: mutateSkill } = useSWR(
@@ -71,6 +74,15 @@ export default function SkillDetailPage() {
     );
   }
 
+  async function handleAddToTaskLog() {
+    try {
+      await createTaskLogTask(skill!.profileId, `Practice: ${skill!.name}`, 'life', skill!.name);
+      toast({ description: 'Added to TaskLog.' });
+    } catch (err) {
+      toast({ title: 'Could not add to TaskLog', description: err instanceof Error ? err.message : String(err), variant: 'destructive' });
+    }
+  }
+
   return (
     <div className="min-h-screen pb-24">
       <TopBar title={skill.name} />
@@ -90,6 +102,7 @@ export default function SkillDetailPage() {
         </Card>
 
         <Button onClick={() => setDrawerOpen(true)} className="w-full">Log a session</Button>
+        <Button variant="outline" className="w-full" onClick={handleAddToTaskLog}>Queue a practice session in TaskLog</Button>
 
         <MilestoneList skillId={skill.id} milestones={milestones ?? []} onChanged={() => mutateMilestones()} />
 
