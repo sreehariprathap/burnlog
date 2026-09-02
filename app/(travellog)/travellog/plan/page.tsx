@@ -12,6 +12,7 @@ import type { ItineraryRequest, Itinerary } from '@/lib/travellog/itinerary';
 import { acceptTravelPlan } from '@/lib/travellog/acceptPlan';
 import { TripIntakeForm } from './_components/TripIntakeForm';
 import { ItineraryReview } from './_components/ItineraryReview';
+import { TripInvitesBanner } from './_components/TripInvitesBanner';
 
 function PlanPageInner() {
   const { profile } = useCurrentProfile();
@@ -54,6 +55,9 @@ function PlanPageInner() {
   return (
     <div className="min-h-screen pb-24">
       <TopBar title="Plan" />
+      <div className="px-4 pt-4">
+        <TripInvitesBanner />
+      </div>
       <div className="p-4">
         {!generated ? (
           <TripIntakeForm initial={initial} onGenerated={(req, itinerary) => setGenerated({ req, itinerary })} />

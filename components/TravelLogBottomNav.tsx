@@ -4,7 +4,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'motion/react';
-import { MapIcon, SparklesIcon, PiggyBankIcon } from 'lucide-react';
+import { MapIcon, UsersIcon, SparklesIcon, PiggyBankIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TravelLogMark } from '@/components/TravelLogMark';
 import { ConfigMenu } from '@/components/ConfigMenu';
@@ -12,6 +12,7 @@ import { ConfigMenu } from '@/components/ConfigMenu';
 const tabs = [
   { href: '/travellog', label: 'Home', Icon: null },
   { href: '/travellog/map', label: 'Map', Icon: MapIcon },
+  { href: '/travellog/trips', label: 'Trips', Icon: UsersIcon },
   { href: '/travellog/plan', label: 'Plan', Icon: SparklesIcon },
   { href: '/travellog/suggestions', label: 'Suggest', Icon: PiggyBankIcon },
 ];

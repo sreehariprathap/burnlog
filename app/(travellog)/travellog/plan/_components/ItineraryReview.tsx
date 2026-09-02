@@ -21,12 +21,12 @@ function formatCurrency(amount: number, currency: string): string {
 type ItineraryReviewProps = {
   req: ItineraryRequest;
   itinerary: Itinerary;
-  onAccept: () => void;
-  onStartOver: () => void;
-  accepting: boolean;
+  onAccept?: () => void;
+  onStartOver?: () => void;
+  accepting?: boolean;
 };
 
-export function ItineraryReview({ req, itinerary, onAccept, onStartOver, accepting }: ItineraryReviewProps) {
+export function ItineraryReview({ req, itinerary, onAccept, onStartOver, accepting = false }: ItineraryReviewProps) {
   const [selectedDay, setSelectedDay] = useState(0);
   const [convertTo, setConvertTo] = useState(itinerary.currency);
   const [convertedTotal, setConvertedTotal] = useState<number | null>(null);
@@ -136,14 +136,20 @@ export function ItineraryReview({ req, itinerary, onAccept, onStartOver, accepti
         </CardContent>
       </Card>
 
-      <div className="flex gap-2">
-        <Button type="button" variant="outline" onClick={onStartOver} disabled={accepting}>
-          Start over
-        </Button>
-        <Button type="button" className="flex-1" onClick={onAccept} disabled={accepting}>
-          {accepting ? <Loader2 className="animate-spin w-5 h-5" /> : 'Accept trip plan'}
-        </Button>
-      </div>
+      {(onAccept || onStartOver) && (
+        <div className="flex gap-2">
+          {onStartOver && (
+            <Button type="button" variant="outline" onClick={onStartOver} disabled={accepting}>
+              Start over
+            </Button>
+          )}
+          {onAccept && (
+            <Button type="button" className="flex-1" onClick={onAccept} disabled={accepting}>
+              {accepting ? <Loader2 className="animate-spin w-5 h-5" /> : 'Accept trip plan'}
+            </Button>
+          )}
+        </div>
+      )}
     </div>
   );
 }
