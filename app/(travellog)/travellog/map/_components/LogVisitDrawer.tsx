@@ -1,12 +1,13 @@
 // app/(travellog)/travellog/map/_components/LogVisitDrawer.tsx
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { useToast } from '@/components/ui/use-toast';
 import { geocodePlace } from '@/lib/travellog/geocode';
@@ -33,6 +34,17 @@ export function LogVisitDrawer({ profileId, open, onOpenChange, onSaved }: LogVi
   const [saving, setSaving] = useState(false);
   const [placeError, setPlaceError] = useState<string | null>(null);
   const [coordError, setCoordError] = useState<string | null>(null);
+  const [tripPlanId, setTripPlanId] = useState<string>('none');
+  const [trips, setTrips] = useState<{ id: string; destination: string }[]>([]);
+
+  useEffect(() => {
+    if (!open) return;
+    fetch('/api/travellog/plans')
+      .then((res) => (res.ok ? res.json() : { plans: [] }))
+      .then((body) => {
+        setTrips((body.plans ?? []).map((p: { id: string; destination: string }) => ({ id: p.id, destination: p.destination })));
+      });
+  }, [open]);
 
   function reset() {
     setPlaceName('');
@@ -44,6 +56,7 @@ export function LogVisitDrawer({ profileId, open, onOpenChange, onSaved }: LogVi
     setNotes('');
     setPlaceError(null);
     setCoordError(null);
+    setTripPlanId('none');
   }
 
   async function handleLookup() {
@@ -82,6 +95,7 @@ export function LogVisitDrawer({ profileId, open, onOpenChange, onSaved }: LogVi
     try {
       const { error } = await supabase.from('travellog_visits').insert({
         profileId,
+        tripPlanId: tripPlanId === 'none' ? null : tripPlanId,
         placeName: placeName.trim(),
         country: country.trim() || 'Unknown',
         lat: parsedLat,
@@ -144,6 +158,20 @@ export function LogVisitDrawer({ profileId, open, onOpenChange, onSaved }: LogVi
               <Input id="departureDate" type="date" value={departureDate} onChange={(e) => setDepartureDate(e.target.value)} />
             </div>
           </div>
+          {trips.length > 0 && (
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="tripPlan">Part of a trip? (optional)</Label>
+              <Select value={tripPlanId} onValueChange={setTripPlanId}>
+                <SelectTrigger id="tripPlan"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Not part of a trip</SelectItem>
+                  {trips.map((t) => (
+                    <SelectItem key={t.id} value={t.id}>{t.destination}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div className="flex flex-col gap-2">
             <Label htmlFor="notes">Notes (optional)</Label>
             <Textarea id="notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
