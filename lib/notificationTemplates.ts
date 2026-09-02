@@ -52,6 +52,9 @@ export const NOTIFICATION_TEMPLATES: NotificationTemplate[] = [
   // TravelLog
   { id: 'travellog-trip-reminder', app: 'travellog', label: 'Upcoming trip reminder', title: 'Trip coming up', message: 'Your trip to Kyoto starts in 5 days.', url: '/travellog' },
   { id: 'travellog-suggestions-ready', app: 'travellog', label: 'New AI trip suggestions ready', title: 'New trip ideas ready', message: "We found 3 affordable trips that fit your free time this month.", url: '/travellog/suggestions' },
+  { id: 'travellog-trip-invite', app: 'travellog', label: 'New trip invite', title: 'New trip invite', message: 'Sam invited you to join the trip to Kyoto.', url: '/travellog/plan' },
+  { id: 'travellog-trip-invite-accepted', app: 'travellog', label: 'Trip invite accepted', title: 'Trip invite accepted', message: 'Jordan joined your trip.', url: '/travellog/trips' },
+  { id: 'travellog-trip-invite-declined', app: 'travellog', label: 'Trip invite declined', title: 'Trip invite declined', message: 'Jordan declined your trip invite.', url: '/travellog/trips' },
 
   // LearnLog
   { id: 'learnlog-practice-reminder', app: 'learnlog', label: 'Practice reminder (streak)', title: "Keep your streak alive", message: 'Log a Skiing session today to keep your 5-day streak.', url: '/learnlog/skills' },
