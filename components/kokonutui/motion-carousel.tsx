@@ -85,11 +85,13 @@ export function MotionCarousel({ slides, selectedIndex: controlledIndex, onSelec
               ref={(el) => {
                 slideRefs.current[index] = el;
               }}
-              // pb-3 is load-bearing, not spacing: it's included in the
-              // offsetHeight measurement above, so a StatCard's glow at the
-              // bottom of a slide has room to render before the viewport's
-              // overflow-hidden clips it flush against the measured height.
-              className="min-w-0 shrink-0 grow-0 basis-full self-start px-1 pb-3"
+              // p-3 isn't just spacing: the viewport's overflow-hidden
+              // (needed so off-screen slides stay hidden while swiping) clips
+              // flush against the active slide's own box on every edge — a
+              // StatCard's glow bleed needs a gutter on all four sides to
+              // avoid getting clipped, and this padding is also included in
+              // the offsetHeight measurement above that sizes the row's height.
+              className="min-w-0 shrink-0 grow-0 basis-full self-start p-3"
               animate={{ scale: index === activeIndex ? 1 : 0.94, opacity: index === activeIndex ? 1 : 0.7 }}
               transition={{ duration: 0.3 }}
             >
