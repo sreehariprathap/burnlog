@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Receipt } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,9 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '@/lib/financeCategories';
 import { ReceiptScanner } from './ReceiptScanner';
+import { StatementImportPanel } from './StatementImportPanel';
 import { useToast } from '@/components/ui/use-toast';
+import { useCurrentProfile } from '@/lib/useCurrentProfile';
 
 type LogTransactionModalProps = {
   profileId: string;
@@ -23,8 +25,37 @@ type TransactionType = 'income' | 'expense';
 export function LogTransactionModal({ profileId, onClose, onSaved }: LogTransactionModalProps) {
   const supabase = createClient();
   const { toast } = useToast();
-  const [tab, setTab] = useState<'manual' | 'photo'>('manual');
+  const { profile: currentProfile } = useCurrentProfile();
+  const [tab, setTab] = useState<'manual' | 'photo' | 'import'>('manual');
   const [showScanner, setShowScanner] = useState(false);
+  const [importEnabled, setImportEnabled] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const { data: toggle } = await supabase
+        .from('adminlog_toggles')
+        .select('key, type, globallyEnabled')
+        .eq('key', 'feature:moneylog-ai-import')
+        .maybeSingle();
+      // A missing toggle row means no admin has turned this on yet — default closed,
+      // unlike TopBar.tsx's app-toggle default-open rule, since this gates AI spend.
+      if (!toggle) return;
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: myProfile } = await supabase.from('profiles').select('id').eq('userId', user.id).single();
+      if (!myProfile) return;
+
+      const { data: override } = await supabase
+        .from('adminlog_toggle_overrides')
+        .select('enabled')
+        .eq('toggleKey', 'feature:moneylog-ai-import')
+        .eq('profileId', myProfile.id)
+        .maybeSingle();
+
+      setImportEnabled(override ? override.enabled : toggle.globallyEnabled);
+    })();
+  }, [supabase]);
   const [type, setType] = useState<TransactionType>('expense');
   const [category, setCategory] = useState<string>(EXPENSE_CATEGORIES[0].value);
   const [label, setLabel] = useState('');
@@ -111,10 +142,11 @@ export function LogTransactionModal({ profileId, onClose, onSaved }: LogTransact
           <DrawerTitle>Log Transaction</DrawerTitle>
         </DrawerHeader>
         <form className="px-4 pb-6 space-y-4 overflow-y-auto" onSubmit={handleSave}>
-          <Tabs value={tab} onValueChange={(v) => setTab(v as 'manual' | 'photo')}>
-            <TabsList className="grid grid-cols-2">
+          <Tabs value={tab} onValueChange={(v) => setTab(v as 'manual' | 'photo' | 'import')}>
+            <TabsList className={importEnabled ? 'grid grid-cols-3' : 'grid grid-cols-2'}>
               <TabsTrigger value="manual">Manual</TabsTrigger>
               <TabsTrigger value="photo">Scan Receipt</TabsTrigger>
+              {importEnabled && <TabsTrigger value="import">Import</TabsTrigger>}
             </TabsList>
             <TabsContent value="photo" className="pt-3">
               <Button type="button" className="w-full gap-2" onClick={() => setShowScanner(true)}>
@@ -202,11 +234,25 @@ export function LogTransactionModal({ profileId, onClose, onSaved }: LogTransact
                 />
               </div>
             </TabsContent>
+            {importEnabled && (
+              <TabsContent value="import" className="pt-3">
+                <StatementImportPanel
+                  profileId={profileId}
+                  isAdmin={Boolean(currentProfile?.isAdmin)}
+                  onImported={() => {
+                    setTab('manual');
+                    onSaved();
+                  }}
+                />
+              </TabsContent>
+            )}
           </Tabs>
 
-          <Button type="submit" disabled={saving} className="w-full">
-            {saving ? 'Saving...' : 'Save'}
-          </Button>
+          {tab !== 'import' && (
+            <Button type="submit" disabled={saving} className="w-full">
+              {saving ? 'Saving...' : 'Save'}
+            </Button>
+          )}
         </form>
       </DrawerContent>
     </Drawer>
