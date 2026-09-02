@@ -15,6 +15,7 @@ import { ShoppingLogMark } from './ShoppingLogMark';
 import { LogbookMark } from './LogbookMark';
 import { TravelLogMark } from './TravelLogMark';
 import { LearnLogMark } from './LearnLogMark';
+import { AdminLogMark } from './AdminLogMark';
 import { NotificationBell } from './NotificationBell';
 import { APPS, AppId, getActiveApp, setEnabledApps, isAppId } from '@/lib/appMode';
 import { createClient } from '@/lib/supabase/client';
@@ -39,7 +40,7 @@ export function TopBar({ title, onClose, actions }: TopBarProps) {
 
       const { data: profileRow } = await supabase
         .from('profiles')
-        .select('id, enabledApps')
+        .select('id, enabledApps, isAdmin')
         .eq('userId', session.user.id)
         .single();
       if (!profileRow) return;
@@ -55,6 +56,9 @@ export function TopBar({ title, onClose, actions }: TopBarProps) {
       const overrideByKey = new Map((overridesRes.data ?? []).map((o) => [o.toggleKey, o]));
 
       const resolved = (Object.keys(APPS) as AppId[]).filter((id) => {
+        // AdminLog isn't a user-toggleable app — it's gated purely on
+        // profiles.isAdmin, bypassing the enabledApps/Toggle machinery.
+        if (id === 'adminlog') return Boolean(profileRow.isAdmin);
         const toggle = toggleByKey.get(`app:${id}`);
         // An app with no Toggle row yet defaults to fully open (global on,
         // no override) — resolveToggle needs a row, so synthesize one.
@@ -95,6 +99,8 @@ export function TopBar({ title, onClose, actions }: TopBarProps) {
             <TravelLogMark size={20} />
           ) : activeApp === 'learnlog' ? (
             <LearnLogMark size={20} />
+          ) : activeApp === 'adminlog' ? (
+            <AdminLogMark size={20} />
           ) : (
             <BurnLogMark size={20} />
           )}

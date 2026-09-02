@@ -66,7 +66,7 @@ export function LogCardsGrid({ cards }: LogCardsGridProps) {
             onClick={() => switchTo(meta.appId)}
             neonColors={{ firstColor: tileColor, secondColor: `${tileColor}99` }}
             className={cn(
-              'relative overflow-hidden group',
+              'relative group',
               HERO_SPAN[card.app],
               disabled ? 'opacity-70' : 'cursor-pointer transition-transform active:scale-[0.98]'
             )}

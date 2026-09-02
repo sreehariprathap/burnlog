@@ -107,6 +107,15 @@ const SPLASH_CONTENT: Record<
     darkTaglineClass: 'text-rose-200/70',
     lightTaglineClass: 'text-rose-900/60',
   },
+  adminlog: {
+    label: 'Loading AdminLog',
+    text: 'adminlog',
+    tagline: 'Manage the app, from the app',
+    darkTextColor: '#94A3B8',
+    lightTextColor: '#334155',
+    darkTaglineClass: 'text-slate-200/70',
+    lightTaglineClass: 'text-slate-900/60',
+  },
 };
 
 export default function SplashScreen() {

@@ -64,4 +64,10 @@ export const APP_SWITCH_LOADING_STATES: Record<AppId, LoadingState[]> = {
     { text: 'Leveling up (theoretically)' },
     { text: 'Reordering your life goals alphabetically' },
   ],
+  adminlog: [
+    { text: 'Checking your badge at the door' },
+    { text: 'Dusting off the big red buttons' },
+    { text: 'Loading everyone else’s business' },
+    { text: 'Putting on the admin hat' },
+  ],
 };

@@ -13,6 +13,7 @@ import { SocialLogMark } from '@/components/SocialLogMark';
 import { ShoppingLogMark } from '@/components/ShoppingLogMark';
 import { TravelLogMark } from '@/components/TravelLogMark';
 import { LearnLogMark } from '@/components/LearnLogMark';
+import { AdminLogMark } from '@/components/AdminLogMark';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { APPS, AppId, getActiveApp, getDefaultApp, setDefaultApp, getEnabledApps } from '@/lib/appMode';
 import { useAppSwitch } from '@/lib/appSwitchContext';
@@ -42,6 +43,8 @@ function AppIcon({ id, size }: { id: AppId; size: number }) {
       return <TravelLogMark size={size} />;
     case 'learnlog':
       return <LearnLogMark size={size} />;
+    case 'adminlog':
+      return <AdminLogMark size={size} />;
     default:
       return <BurnLogMark size={size} />;
   }
