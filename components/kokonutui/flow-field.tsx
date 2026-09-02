@@ -54,6 +54,9 @@ export interface FlowFieldProps {
   hueRange?: number;
   saturation?: number;
   lightness?: number;
+  /** Opacity (0-1) applied to the particle canvas only, so overlaid children
+   * stay fully opaque even when the background is dialed down. Defaults to 1. */
+  canvasOpacity?: number;
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -150,6 +153,7 @@ export default function FlowField({
   hueRange,
   saturation,
   lightness,
+  canvasOpacity = 1,
 }: FlowFieldProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -277,6 +281,7 @@ export default function FlowField({
       <canvas
         aria-hidden="true"
         className="pointer-events-none absolute inset-0"
+        style={{ opacity: canvasOpacity }}
         ref={canvasRef}
       />
 

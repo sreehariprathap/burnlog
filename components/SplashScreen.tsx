@@ -187,6 +187,7 @@ export default function SplashScreen() {
         hueRange={60}
         saturation={85}
         lightness={isDark ? 62 : 45}
+        canvasOpacity={0.5}
       >
         <div className="relative flex flex-col items-center animate-in fade-in zoom-in-95 duration-700">
           {appId === 'logbook' ? (
