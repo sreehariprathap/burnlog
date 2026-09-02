@@ -114,6 +114,8 @@ model Profile {
   learnGroupInvitesSent      LearnGroupInvite[] @relation("LearnGroupInviteSender")
   learnGroupInvitesReceived  LearnGroupInvite[] @relation("LearnGroupInviteRecipient")
   Notification               Notification[]
+  toggleOverridesReceived    ToggleOverride[] @relation("ToggleOverrideProfile")
+  toggleOverridesSet         ToggleOverride[] @relation("ToggleOverrideSetBy")
 
   @@map("profiles")
 }
@@ -297,6 +299,36 @@ model OnboardingPageFlag {
   createdAt DateTime @default(now())
 
   @@map("onboarding_page_flags")
+}
+
+/// Unified on/off switch for both apps ('app:moneylog') and beta features
+/// ('feature:beta-x'). Global default plus optional per-user overrides.
+model Toggle {
+  key             String   @id
+  type            String                  // 'app' | 'feature'
+  label           String
+  globallyEnabled Boolean  @default(true)
+  createdAt       DateTime @default(now())
+
+  overrides ToggleOverride[]
+
+  @@map("adminlog_toggles")
+}
+
+model ToggleOverride {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  toggle       Toggle   @relation(fields: [toggleKey], references: [key], onDelete: Cascade)
+  toggleKey    String
+  profile      Profile  @relation("ToggleOverrideProfile", fields: [profileId], references: [id], onDelete: Cascade)
+  profileId    String   @db.Uuid
+  enabled      Boolean
+  note         String?
+  setByAdmin   Profile  @relation("ToggleOverrideSetBy", fields: [setByAdminId], references: [id])
+  setByAdminId String   @db.Uuid
+  createdAt    DateTime @default(now())
+
+  @@unique([toggleKey, profileId])
+  @@map("adminlog_toggle_overrides")
 }
 
 /// recurring income/expense templates — expanded into period ranges at read time, never materialized into rows

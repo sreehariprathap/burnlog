@@ -659,3 +659,56 @@ create policy "shoplog_media_owner_delete" on storage.objects
     bucket_id = 'shoplog-media'
     and (storage.foldername(name))[1] = auth.uid()::text
   );
+
+-- adminlog_toggles / adminlog_toggle_overrides ---------------------------
+-- Unified on/off switch for apps and beta features. Any authenticated user
+-- may read both tables (every client resolves its own effective toggle
+-- state); only an admin (profiles.isAdmin = true) may write. Same
+-- admin-gated shape as ai_model_settings.
+alter table adminlog_toggles enable row level security;
+
+create policy "adminlog_toggles_select_any_authenticated" on adminlog_toggles
+  for select
+  using (auth.uid() is not null);
+
+create policy "adminlog_toggles_admin_write" on adminlog_toggles
+  for insert
+  with check (
+    exists (select 1 from profiles where profiles."userId" = auth.uid() and profiles."isAdmin" = true)
+  );
+
+create policy "adminlog_toggles_admin_update" on adminlog_toggles
+  for update
+  using (
+    exists (select 1 from profiles where profiles."userId" = auth.uid() and profiles."isAdmin" = true)
+  )
+  with check (
+    exists (select 1 from profiles where profiles."userId" = auth.uid() and profiles."isAdmin" = true)
+  );
+
+alter table adminlog_toggle_overrides enable row level security;
+
+create policy "adminlog_toggle_overrides_select_any_authenticated" on adminlog_toggle_overrides
+  for select
+  using (auth.uid() is not null);
+
+create policy "adminlog_toggle_overrides_admin_write" on adminlog_toggle_overrides
+  for insert
+  with check (
+    exists (select 1 from profiles where profiles."userId" = auth.uid() and profiles."isAdmin" = true)
+  );
+
+create policy "adminlog_toggle_overrides_admin_update" on adminlog_toggle_overrides
+  for update
+  using (
+    exists (select 1 from profiles where profiles."userId" = auth.uid() and profiles."isAdmin" = true)
+  )
+  with check (
+    exists (select 1 from profiles where profiles."userId" = auth.uid() and profiles."isAdmin" = true)
+  );
+
+create policy "adminlog_toggle_overrides_admin_delete" on adminlog_toggle_overrides
+  for delete
+  using (
+    exists (select 1 from profiles where profiles."userId" = auth.uid() and profiles."isAdmin" = true)
+  );
