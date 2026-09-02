@@ -19,6 +19,7 @@ import { StreakBadge } from '@/components/logbook/StreakBadge';
 import { MorningBrief } from '@/components/logbook/MorningBrief';
 import { ActivityTimeline } from '@/components/logbook/ActivityTimeline';
 import { CorrelationInsight } from '@/components/logbook/CorrelationInsight';
+import { LearnLogSummaryCard } from '@/components/LearnLogSummaryCard';
 import { StreakCalendar } from './_components/StreakCalendar';
 import { WeeklySummary } from './_components/WeeklySummary';
 import { QuickAddFab } from './_components/QuickAddFab';
@@ -115,6 +116,8 @@ export default function LogbookPage() {
             </StatCard>
 
             <LogCardsGrid cards={data.cards} />
+
+            {profile && <LearnLogSummaryCard profileId={profile.id} />}
 
             <CorrelationInsight />
 
