@@ -16,8 +16,9 @@ import { LogbookMark } from './LogbookMark';
 import { TravelLogMark } from './TravelLogMark';
 import { LearnLogMark } from './LearnLogMark';
 import { NotificationBell } from './NotificationBell';
-import { AppId, getActiveApp, setEnabledApps, isAppId } from '@/lib/appMode';
+import { APPS, AppId, getActiveApp, setEnabledApps, isAppId } from '@/lib/appMode';
 import { createClient } from '@/lib/supabase/client';
+import { resolveToggle } from '@/lib/adminlog/resolveToggle';
 
 interface TopBarProps {
   title: string;
@@ -35,14 +36,34 @@ export function TopBar({ title, onClose, actions }: TopBarProps) {
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) return;
-      const { data } = await supabase
+
+      const { data: profileRow } = await supabase
         .from('profiles')
-        .select('enabledApps')
+        .select('id, enabledApps')
         .eq('userId', session.user.id)
         .single();
-      if (data?.enabledApps) {
-        setEnabledApps((data.enabledApps as string[]).filter((v): v is AppId => isAppId(v)));
-      }
+      if (!profileRow) return;
+
+      const rawEnabled = ((profileRow.enabledApps as string[]) ?? []).filter((v): v is AppId => isAppId(v));
+
+      const appToggleKeys = Object.keys(APPS).map((id) => `app:${id}`);
+      const [togglesRes, overridesRes] = await Promise.all([
+        supabase.from('adminlog_toggles').select('key, type, globallyEnabled').in('key', appToggleKeys),
+        supabase.from('adminlog_toggle_overrides').select('toggleKey, enabled').eq('profileId', profileRow.id),
+      ]);
+      const toggleByKey = new Map((togglesRes.data ?? []).map((t) => [t.key, t]));
+      const overrideByKey = new Map((overridesRes.data ?? []).map((o) => [o.toggleKey, o]));
+
+      const resolved = (Object.keys(APPS) as AppId[]).filter((id) => {
+        const toggle = toggleByKey.get(`app:${id}`);
+        // An app with no Toggle row yet defaults to fully open (global on,
+        // no override) — resolveToggle needs a row, so synthesize one.
+        const effectiveToggle = toggle ?? { key: `app:${id}`, type: 'app' as const, globallyEnabled: true };
+        const override = overrideByKey.get(`app:${id}`) ?? null;
+        return resolveToggle(effectiveToggle, override, { enabledApps: rawEnabled });
+      });
+
+      setEnabledApps(resolved);
     })();
   }, []);
 
