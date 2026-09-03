@@ -4,7 +4,6 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import { createClient } from '@/lib/supabase/client';
 import { TopBar } from '@/components/TopBar';
 import { TaskLogBottomNav } from '@/components/TaskLogBottomNav';
 import { Button } from '@/components/ui/button';
@@ -12,11 +11,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Target, RefreshCwIcon } from 'lucide-react';
 import type { TaskGoalRow } from '@/lib/tasklog/types';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
+import { goalsQuery } from '@/lib/tasklog/queries';
 import { AddGoalForm } from './_components/AddGoalForm';
 import { GoalCard } from './_components/GoalCard';
 
 export default function GoalsPage() {
-  const supabase = createClient();
   const { profile } = useCurrentProfile();
   const [refreshing, setRefreshing] = useState(false);
 
@@ -24,14 +23,10 @@ export default function GoalsPage() {
     data: goalData,
     isLoading,
     mutate: mutateGoals,
-  } = useSWR(profile ? ['tasklog-goals', profile.id] : null, async () => {
-    const { data } = await supabase
-      .from('task_goals')
-      .select('*')
-      .eq('profileId', profile!.id)
-      .order('createdAt', { ascending: false });
-    return (data as TaskGoalRow[]) || [];
-  });
+  } = useSWR<TaskGoalRow[]>(
+    profile ? goalsQuery(profile.id).key : null,
+    profile ? goalsQuery(profile.id).fetcher : null
+  );
 
   const goals = goalData ?? [];
 
