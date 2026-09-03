@@ -14,6 +14,7 @@ import { ShoppingLogMark } from '@/components/ShoppingLogMark';
 import { TravelLogMark } from '@/components/TravelLogMark';
 import { LearnLogMark } from '@/components/LearnLogMark';
 import { AdminLogMark } from '@/components/AdminLogMark';
+import { IntelLogMark } from '@/components/IntelLogMark';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { APPS, AppId, getActiveApp, getDefaultApp, setDefaultApp, getEnabledApps } from '@/lib/appMode';
 import { useAppSwitch } from '@/lib/appSwitchContext';
@@ -45,6 +46,8 @@ function AppIcon({ id, size }: { id: AppId; size: number }) {
       return <LearnLogMark size={size} />;
     case 'adminlog':
       return <AdminLogMark size={size} />;
+    case 'intellog':
+      return <IntelLogMark size={size} />;
     default:
       return <BurnLogMark size={size} />;
   }

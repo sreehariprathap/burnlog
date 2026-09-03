@@ -6,7 +6,7 @@ import { resolveTarget, DEFAULT_TARGETS } from '@/lib/dailyTargets';
 import { getMyHouseholdMembership } from '@/lib/homelog/serverAuth';
 import { format as formatDate, subDays } from 'date-fns';
 
-export type LifeScoreApp = Exclude<AppId, 'logbook' | 'adminlog'>;
+export type LifeScoreApp = Exclude<AppId, 'logbook' | 'adminlog' | 'intellog'>;
 
 export const LIFE_SCORE_APPS: LifeScoreApp[] = [
   'burnlog',

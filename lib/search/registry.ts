@@ -63,6 +63,7 @@ const APP_COLOR: Record<AppId, string> = {
   travellog: '#C2703A',
   learnlog: '#FF3366',
   adminlog: '#475569',
+  intellog: '#8B5CF6',
 };
 
 export function appSearchColor(app: AppId): string {

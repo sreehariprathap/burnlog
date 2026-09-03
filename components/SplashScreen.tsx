@@ -116,6 +116,15 @@ const SPLASH_CONTENT: Record<
     darkTaglineClass: 'text-slate-200/70',
     lightTaglineClass: 'text-slate-900/60',
   },
+  intellog: {
+    label: 'Loading IntelLog',
+    text: 'intellog',
+    tagline: 'Suggestions built from everything else you track',
+    darkTextColor: '#C4B5FD',
+    lightTextColor: '#5B21B6',
+    darkTaglineClass: 'text-violet-200/70',
+    lightTaglineClass: 'text-violet-900/60',
+  },
 };
 
 export default function SplashScreen() {

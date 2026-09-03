@@ -17,6 +17,7 @@ import { LogbookMark } from './LogbookMark';
 import { TravelLogMark } from './TravelLogMark';
 import { LearnLogMark } from './LearnLogMark';
 import { AdminLogMark } from './AdminLogMark';
+import { IntelLogMark } from './IntelLogMark';
 import { NotificationBell } from './NotificationBell';
 import { APPS, AppId, getActiveApp, setEnabledApps, isAppId } from '@/lib/appMode';
 import { createClient } from '@/lib/supabase/client';
@@ -104,6 +105,8 @@ export function TopBar({ title, onClose, actions }: TopBarProps) {
             <LearnLogMark size={20} />
           ) : activeApp === 'adminlog' ? (
             <AdminLogMark size={20} />
+          ) : activeApp === 'intellog' ? (
+            <IntelLogMark size={20} />
           ) : (
             <BurnLogMark size={20} />
           )}
