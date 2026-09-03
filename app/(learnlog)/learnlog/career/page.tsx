@@ -3,7 +3,6 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import { createClient } from '@/lib/supabase/client';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { TopBar } from '@/components/TopBar';
 import { LearnLogBottomNav } from '@/components/LearnLogBottomNav';
@@ -14,31 +13,11 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Share2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ShareGroupPanel } from '@/components/learnlog/ShareGroupPanel';
-import type { CareerRoleRow, CareerCertificationRow, CareerGoalRow } from '@/lib/learnlog/types';
+import type { CareerGoalRow } from '@/lib/learnlog/types';
+import { rolesQuery, certsQuery, goalsQuery } from '@/lib/learnlog/queries';
 import { RoleDrawer } from './_components/RoleDrawer';
 import { CertDrawer } from './_components/CertDrawer';
 import { GoalDrawer } from './_components/GoalDrawer';
-
-async function fetchRoles(profileId: string): Promise<CareerRoleRow[]> {
-  const supabase = createClient();
-  const { data, error } = await supabase.from('learnlog_career_roles').select('*').eq('profileId', profileId).order('startDate', { ascending: false });
-  if (error) throw error;
-  return (data ?? []) as CareerRoleRow[];
-}
-
-async function fetchCerts(profileId: string): Promise<CareerCertificationRow[]> {
-  const supabase = createClient();
-  const { data, error } = await supabase.from('learnlog_career_certifications').select('*').eq('profileId', profileId).order('earnedAt', { ascending: false });
-  if (error) throw error;
-  return (data ?? []) as CareerCertificationRow[];
-}
-
-async function fetchGoals(profileId: string): Promise<CareerGoalRow[]> {
-  const supabase = createClient();
-  const { data, error } = await supabase.from('learnlog_career_goals').select('*').eq('profileId', profileId).order('createdAt', { ascending: false });
-  if (error) throw error;
-  return (data ?? []) as CareerGoalRow[];
-}
 
 export default function LearnLogCareerPage() {
   const { profile } = useCurrentProfile();
@@ -47,9 +26,18 @@ export default function LearnLogCareerPage() {
   const [goalDrawerOpen, setGoalDrawerOpen] = useState(false);
   const [shareGoal, setShareGoal] = useState<CareerGoalRow | null>(null);
 
-  const { data: roles, mutate: mutateRoles } = useSWR(profile ? ['learnlog-roles', profile.id] : null, () => fetchRoles(profile!.id));
-  const { data: certs, mutate: mutateCerts } = useSWR(profile ? ['learnlog-certs', profile.id] : null, () => fetchCerts(profile!.id));
-  const { data: goals, mutate: mutateGoals } = useSWR(profile ? ['learnlog-goals', profile.id] : null, () => fetchGoals(profile!.id));
+  const { data: roles, mutate: mutateRoles } = useSWR(
+    profile ? rolesQuery(profile.id).key : null,
+    profile ? rolesQuery(profile.id).fetcher : null
+  );
+  const { data: certs, mutate: mutateCerts } = useSWR(
+    profile ? certsQuery(profile.id).key : null,
+    profile ? certsQuery(profile.id).fetcher : null
+  );
+  const { data: goals, mutate: mutateGoals } = useSWR(
+    profile ? goalsQuery(profile.id).key : null,
+    profile ? goalsQuery(profile.id).fetcher : null
+  );
 
   const today = new Date().toISOString().slice(0, 10);
 
