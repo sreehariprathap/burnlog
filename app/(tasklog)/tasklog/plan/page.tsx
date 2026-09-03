@@ -18,6 +18,7 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
 import { LANES, PRIORITIES, type IdeaRow, type TaskLane, type TaskRow } from '@/lib/tasklog/types';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
+import { inboxTasksQuery, ideasQuery, ideaTaskCountsQuery } from '@/lib/tasklog/queries';
 import { AddIdeaForm } from './_components/AddIdeaForm';
 import { IdeaCard } from './_components/IdeaCard';
 import { IdeaBreakdownReviewSheet, type BreakdownSuggestion } from './_components/IdeaBreakdownReviewSheet';
@@ -36,15 +37,10 @@ export default function PlanPage() {
     data: inboxData,
     isLoading,
     mutate: mutateInbox,
-  } = useSWR(profile ? ['tasklog-inbox', profile.id] : null, async () => {
-    const { data } = await supabase
-      .from('tasklog_tasks')
-      .select('*')
-      .eq('profileId', profile!.id)
-      .is('lane', null)
-      .order('createdAt', { ascending: false });
-    return (data as TaskRow[]) || [];
-  });
+  } = useSWR(
+    profile ? inboxTasksQuery(profile.id).key : null,
+    profile ? inboxTasksQuery(profile.id).fetcher : null
+  );
 
   const inboxTasks = inboxData ?? [];
 
@@ -142,28 +138,20 @@ export default function PlanPage() {
     data: ideaData,
     isLoading: ideasLoading,
     mutate: mutateIdeas,
-  } = useSWR(profile ? ['tasklog-ideas', profile.id] : null, async () => {
-    const { data } = await supabase
-      .from('tasklog_ideas')
-      .select('*')
-      .eq('profileId', profile!.id)
-      .order('createdAt', { ascending: false });
-    return (data as IdeaRow[]) || [];
-  });
+  } = useSWR(
+    profile ? ideasQuery(profile.id).key : null,
+    profile ? ideasQuery(profile.id).fetcher : null
+  );
 
   const ideas = ideaData ?? [];
 
   const {
     data: ideaTaskData,
     mutate: mutateIdeaTaskCounts,
-  } = useSWR(profile ? ['tasklog-idea-task-counts', profile.id] : null, async () => {
-    const { data } = await supabase
-      .from('tasklog_tasks')
-      .select('ideaId')
-      .eq('profileId', profile!.id)
-      .not('ideaId', 'is', null);
-    return (data as { ideaId: string }[]) || [];
-  });
+  } = useSWR(
+    profile ? ideaTaskCountsQuery(profile.id).key : null,
+    profile ? ideaTaskCountsQuery(profile.id).fetcher : null
+  );
 
   const ideaTaskCounts = new Map<string, number>();
   for (const row of ideaTaskData ?? []) {
