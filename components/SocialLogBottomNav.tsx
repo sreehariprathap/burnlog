@@ -7,6 +7,8 @@ import { SearchIcon, MessageCircleIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { SocialLogMark } from '@/components/SocialLogMark';
 import { ConfigMenu } from '@/components/ConfigMenu';
+import { usePreloadRoutes } from '@/lib/usePreloadRoutes';
+import { statsQuery, threadsQuery } from '@/lib/sociallog/queries';
 
 const tabs = [
   { href: '/sociallog', label: 'Home', Icon: null },
@@ -17,6 +19,12 @@ const tabs = [
 export function SocialLogBottomNav() {
   const pathname = usePathname();
   const isConfigActive = pathname === '/sociallog/config' || pathname.startsWith('/sociallog/config/');
+
+  // Warms Home's stats and Messages' thread list. Search has no
+  // page-level query (search-as-you-type, no stable key to preload).
+  // Session-scoped server-side like ShoppingLog — no useCurrentProfile()
+  // gate needed for the preload call itself.
+  usePreloadRoutes([statsQuery(), threadsQuery()]);
 
   return (
     <nav
@@ -29,6 +37,7 @@ export function SocialLogBottomNav() {
           <Link
             key={href}
             href={href}
+            prefetch
             className={cn(
               'relative flex flex-col items-center rounded-full px-3 py-2 text-xs transition-colors',
               isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
