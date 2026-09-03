@@ -31,7 +31,7 @@ export function buildStatementImportPrompt({ bank, accountType, periodStart, per
 Statement details:
 - Bank/institution: ${bank}
 - Account type: ${accountType}
-- Period: ${periodStart} to ${periodEnd}
+- Expected period (approximate — read the statement's own dates, don't filter by this): ${periodStart} to ${periodEnd}
 
 Return ONLY a valid JSON object (no markdown, no code fences, no commentary) with this exact shape:
 {
@@ -52,7 +52,7 @@ Rules:
 - "type" is "expense" for money going out (purchases, fees, bill payments) and "income" for money coming in (deposits, refunds). Do NOT count credit-card-payment or balance-transfer lines as income.
 - Pick the closest matching category from the list above; use "other_expense" or "other_income" if nothing fits well.
 - "amount" is always a positive number, regardless of type.
-- Only include transactions dated between ${periodStart} and ${periodEnd}.
+- Include every transaction dated on the statement, even if its date falls outside the expected period above — the statement's actual dates are the source of truth, not that estimate.
 - If you cannot read any transactions from the attached file(s), return {"transactions": []}.`;
 }
 

@@ -16,6 +16,7 @@ export const EXPENSE_CATEGORIES = [
   { value: 'insurance', label: 'Insurance' },
   { value: 'subscriptions', label: 'Subscriptions' },
   { value: 'groceries', label: 'Groceries' },
+  { value: 'outside_food', label: 'Outside Food / Dining Out' },
   { value: 'transportation', label: 'Transportation' },
   { value: 'shopping', label: 'Shopping' },
   { value: 'debt_payment', label: 'Debt Payment' },

@@ -67,6 +67,7 @@ export function LogTransactionModal({ profileId, onClose, onSaved }: LogTransact
   }, [supabase]);
   const [type, setType] = useState<TransactionType>('expense');
   const [category, setCategory] = useState<string>(EXPENSE_CATEGORIES[0].value);
+  const [customCategory, setCustomCategory] = useState('');
   const [label, setLabel] = useState('');
   const [amount, setAmount] = useState('');
   const [date, setDate] = useState(() => new Date().toISOString().slice(0, 10));
@@ -100,6 +101,8 @@ export function LogTransactionModal({ profileId, onClose, onSaved }: LogTransact
     setAmountError(null);
     setCategoryError(null);
 
+    const resolvedCategory = category === 'custom' ? customCategory.trim() : category;
+
     let hasError = false;
     if (!label.trim()) {
       setLabelError('Please enter a label');
@@ -109,8 +112,8 @@ export function LogTransactionModal({ profileId, onClose, onSaved }: LogTransact
       setAmountError('Please enter a valid amount');
       hasError = true;
     }
-    if (!category) {
-      setCategoryError('Please choose a category');
+    if (!resolvedCategory) {
+      setCategoryError(category === 'custom' ? 'Please name your category' : 'Please choose a category');
       hasError = true;
     }
     if (hasError) return;
@@ -121,7 +124,7 @@ export function LogTransactionModal({ profileId, onClose, onSaved }: LogTransact
         {
           profileId,
           type,
-          category,
+          category: resolvedCategory,
           label: label.trim(),
           amount: Number(amount),
           date: new Date(date).toISOString(),
@@ -196,7 +199,16 @@ export function LogTransactionModal({ profileId, onClose, onSaved }: LogTransact
                     {categories.map((c) => (
                       <option key={c.value} value={c.value}>{c.label}</option>
                     ))}
+                    <option value="custom">Custom…</option>
                   </select>
+                  {category === 'custom' && (
+                    <Input
+                      placeholder="Category name"
+                      autoFocus
+                      value={customCategory}
+                      onChange={(e) => setCustomCategory(e.target.value)}
+                    />
+                  )}
                   {categoryError && <p className="text-sm text-destructive">{categoryError}</p>}
                 </div>
                 <div className="space-y-1">

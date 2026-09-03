@@ -45,7 +45,7 @@ const insightTabs: TabItem[] = [
   { id: 'cashflow', icon: TrendingUp, label: 'Cashflow', color: 'var(--chart-2)' },
   { id: 'expenses', icon: ArrowDownCircle, label: 'Expenses', color: 'var(--chart-3)' },
   { id: 'income', icon: ArrowUpCircle, label: 'Income', color: 'var(--chart-4)' },
-  { id: 'benchmark', icon: Users, label: 'vs Peers', color: 'var(--chart-5)' },
+  { id: 'benchmark', icon: Users, label: 'Benchmarks', color: 'var(--chart-5)' },
 ];
 
 const cashflowChartConfig = {
@@ -211,9 +211,10 @@ export default function FinanceInsightsClient({ recurringItems, transactions }: 
   const benchmarkSlide = (
     <Card>
       <CardHeader>
-        <CardTitle>Budget usage vs peers</CardTitle>
+        <CardTitle>Benchmarks</CardTitle>
       </CardHeader>
       <CardContent>
+        <p className="text-sm font-medium mb-2">Budget used vs peers</p>
         <BenchmarkAreaChart app="moneylog" metric="budgetPct" label="Budget used" unit="%" />
       </CardContent>
     </Card>

@@ -32,6 +32,13 @@ function toReviewRows(transactions: ParsedStatementTransaction[]): ReviewRow[] {
   return transactions.map((t) => ({ ...t, id: crypto.randomUUID() }));
 }
 
+/** min/max of the scanned transaction dates — replaces the user's pre-scan guess once we know what the statement actually contains. */
+function detectPeriod(transactions: ParsedStatementTransaction[]): { start: string; end: string } | null {
+  const dates = transactions.map((t) => t.date).filter(Boolean).sort();
+  if (dates.length === 0) return null;
+  return { start: dates[0], end: dates[dates.length - 1] };
+}
+
 export function StatementImportPanel({ profileId, isAdmin, onImported }: StatementImportPanelProps) {
   const supabase = createClient();
   const { toast } = useToast();
@@ -91,6 +98,11 @@ export function StatementImportPanel({ profileId, isAdmin, onImported }: Stateme
         return;
       }
       setRows(toReviewRows(data.transactions));
+      const detected = detectPeriod(data.transactions);
+      if (detected) {
+        setPeriodStart(detected.start);
+        setPeriodEnd(detected.end);
+      }
       setStep('review');
     } catch {
       setExtractError('Network error. Please try again.');
@@ -109,6 +121,11 @@ export function StatementImportPanel({ profileId, isAdmin, onImported }: Stateme
     try {
       const transactions = parseStatementJson(pastedJson);
       setRows(toReviewRows(transactions));
+      const detected = detectPeriod(transactions);
+      if (detected) {
+        setPeriodStart(detected.start);
+        setPeriodEnd(detected.end);
+      }
       setStep('review');
     } catch (err) {
       setParseError(err instanceof Error ? err.message : 'Could not parse that JSON');
@@ -161,6 +178,11 @@ export function StatementImportPanel({ profileId, isAdmin, onImported }: Stateme
     return (
       <div className="space-y-3">
         <p className="text-sm font-medium">Review {rows.length} transaction{rows.length === 1 ? '' : 's'}</p>
+        {rows.length > 0 && (
+          <p className="text-xs text-muted-foreground">
+            Statement period detected: {periodStart} to {periodEnd}
+          </p>
+        )}
         <div className="space-y-2 max-h-80 overflow-y-auto">
           {rows.map((row) => {
             const categories = row.type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;

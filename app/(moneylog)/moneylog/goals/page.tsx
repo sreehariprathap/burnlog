@@ -53,11 +53,19 @@ export default function FinancialGoalsPage() {
     setGoals((prev) => [goal, ...prev]);
   }
 
+  function handleGoalUpdated(goal: FinancialGoalRow) {
+    setGoals((prev) => prev.map((g) => (g.id === goal.id ? goal : g)));
+  }
+
   return (
     <div className="pb-24">
       <TopBar title="Financial Goals" />
       <div className="px-4 py-4 flex flex-col gap-4">
-        {loading ? <Skeleton className="h-40 w-full" /> : <FinancialGoalsList goals={goals} profileId={profileId} />}
+        {loading ? (
+          <Skeleton className="h-40 w-full" />
+        ) : (
+          <FinancialGoalsList goals={goals} profileId={profileId} onGoalUpdated={handleGoalUpdated} />
+        )}
         {profileId && <AddFinancialGoalForm profileId={profileId} onGoalAdded={handleGoalAdded} />}
       </div>
       <MoneyLogBottomNav />

@@ -66,17 +66,17 @@ export function CurrencyTransferCard({
         </motion.p>
       </AnimatePresence>
 
-      <div className="flex w-full items-center justify-between gap-4 rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm">
-        <div className="flex flex-col">
+      <div className="flex w-full items-center justify-between gap-2 rounded-lg border border-border bg-muted/40 px-4 py-3 text-sm">
+        <div className="flex min-w-0 flex-1 flex-col">
           <span className="text-xs text-muted-foreground">From</span>
-          <span className="font-medium truncate max-w-[9rem]">{fromLabel}</span>
+          <span className="block truncate font-medium">{fromLabel}</span>
         </div>
-        <span className={cn('font-semibold tabular-nums', status === 'error' && 'text-muted-foreground line-through')}>
+        <span className={cn('shrink-0 font-semibold tabular-nums', status === 'error' && 'text-muted-foreground line-through')}>
           {formatCurrency(amount)}
         </span>
-        <div className="flex flex-col items-end">
+        <div className="flex min-w-0 flex-1 flex-col items-end text-right">
           <span className="text-xs text-muted-foreground">To</span>
-          <span className="font-medium truncate max-w-[9rem]">{toLabel}</span>
+          <span className="block w-full truncate font-medium">{toLabel}</span>
         </div>
       </div>
 
