@@ -4,12 +4,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ChevronDownIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { OpenRouterModel } from '@/lib/intellog/openrouterModels';
+import type { CuratedModelOption } from '@/lib/ai/curatedModels';
 
 const MAX_VISIBLE_RESULTS = 50;
 
 interface IntelChatModelPickerProps {
-  models: OpenRouterModel[];
+  models: CuratedModelOption[];
   /** null = no per-thread choice yet, falls back to the admin-configured default. */
   selectedModel: string | null;
   onSelect: (modelId: string) => void;
@@ -122,7 +122,10 @@ export function IntelChatModelPicker({ models, selectedModel, onSelect }: IntelC
                     )}
                   >
                     <span className="truncate">{m.name}</span>
-                    <span className="truncate text-xs text-muted-foreground">{m.id}</span>
+                    <span className="flex w-full items-center justify-between gap-2 text-xs text-muted-foreground">
+                      <span className="truncate">{m.id}</span>
+                      <span className="shrink-0">{m.isFree ? 'Free' : 'Paid'}</span>
+                    </span>
                   </button>
                 ))}
               </div>

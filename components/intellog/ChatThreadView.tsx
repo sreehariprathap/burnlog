@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/apiFetch';
 import { IntelChatPromptBar } from './IntelChatPromptBar';
 import { MarkdownMessage } from './MarkdownMessage';
-import type { OpenRouterModel } from '@/lib/intellog/openrouterModels';
+import type { CuratedModelOption } from '@/lib/ai/curatedModels';
 
 interface ChatMessage {
   id: string;
@@ -27,7 +27,7 @@ export function ChatThreadView({ threadId: initialThreadId }: ChatThreadViewProp
   // re-creating a second one.
   const activeThreadIdRef = useRef<string | null>(initialThreadId);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
-  const [models, setModels] = useState<OpenRouterModel[]>([]);
+  const [models, setModels] = useState<CuratedModelOption[]>([]);
   const [selectedModel, setSelectedModel] = useState<string | null>(null);
   const [loading, setLoading] = useState(Boolean(initialThreadId));
   const [notFound, setNotFound] = useState(false);
