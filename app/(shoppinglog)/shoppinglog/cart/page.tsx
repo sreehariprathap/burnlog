@@ -16,31 +16,12 @@ import { apiFetch } from '@/lib/apiFetch';
 import { useToast } from '@/components/ui/use-toast';
 import { formatCurrency } from '@/lib/format';
 import { usePayment } from '@/lib/moneylog/paymentContext';
-
-type CartItem = {
-  cartItemId: string;
-  quantity: number;
-  listing: {
-    id: string;
-    title: string;
-    price: number;
-    stockQuantity: number;
-    status: string;
-    seller: { id: string; username: string } | null;
-    coverImageUrl: string | null;
-  };
-};
-
-async function fetcher(url: string) {
-  const res = await apiFetch(url);
-  if (!res.ok) throw new Error('Failed to load cart');
-  return res.json();
-}
+import { cartQuery, type CartItem } from '@/lib/shoppinglog/queries';
 
 export default function CartPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { data, isLoading, mutate } = useSWR<{ items: CartItem[] }>('/api/shoppinglog/cart', fetcher);
+  const { data, isLoading, mutate } = useSWR<{ items: CartItem[] }>(cartQuery().key, cartQuery().fetcher);
   const [checkingOut, setCheckingOut] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
 
