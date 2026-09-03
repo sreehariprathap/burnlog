@@ -26,6 +26,7 @@ export function PlanViewToggle({ view, onChange }: PlanViewToggleProps) {
       items={PLAN_VIEW_TABS}
       selectedIndex={selectedIndex}
       onSelect={(index) => onChange(INDEX_TO_VIEW[index])}
+      showLabels
     />
   );
 }

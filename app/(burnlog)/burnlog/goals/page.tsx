@@ -130,7 +130,7 @@ export default function GoalsPage() {
       />
       {!loading && (
         <div className="sticky top-14 z-10 border-b bg-background/80 px-4 py-2 backdrop-blur">
-          <SmoothTabs items={goalTabs} selectedIndex={selectedIndex} onSelect={setSelectedIndex} />
+          <SmoothTabs items={goalTabs} selectedIndex={selectedIndex} onSelect={setSelectedIndex} showLabels />
         </div>
       )}
       <div className='px-4 py-2 flex flex-col gap-2'>
