@@ -4,7 +4,6 @@
 import { useRef } from 'react';
 import Link from 'next/link';
 import useSWR from 'swr';
-import { createClient } from '@/lib/supabase/client';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { TopBar } from '@/components/TopBar';
 import { LearnLogBottomNav } from '@/components/LearnLogBottomNav';
@@ -14,30 +13,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { FlameIcon, type FlameIconHandle } from '@/components/ui/flame';
 import { useMountAnimation } from '@/lib/useMountAnimation';
 import { GroupInvitesBanner } from '@/components/learnlog/GroupInvitesBanner';
-import type { SkillRow, LibraryItemRow, CareerGoalRow } from '@/lib/learnlog/types';
-
-async function fetchHomeData(profileId: string) {
-  const supabase = createClient();
-  const [skillsRes, libraryRes, goalsRes] = await Promise.all([
-    supabase.from('learnlog_skills').select('*').eq('profileId', profileId).order('currentStreak', { ascending: false }),
-    supabase.from('learnlog_library_items').select('*').eq('profileId', profileId).eq('status', 'IN_PROGRESS').order('updatedAt', { ascending: false }).limit(1),
-    supabase.from('learnlog_career_goals').select('*').eq('profileId', profileId).eq('status', 'active').order('targetDate', { ascending: true }).limit(1),
-  ]);
-  if (skillsRes.error) throw skillsRes.error;
-  if (libraryRes.error) throw libraryRes.error;
-  if (goalsRes.error) throw goalsRes.error;
-  return {
-    skills: (skillsRes.data ?? []) as SkillRow[],
-    inProgressBook: (libraryRes.data?.[0] ?? null) as LibraryItemRow | null,
-    nextGoal: (goalsRes.data?.[0] ?? null) as CareerGoalRow | null,
-  };
-}
+import { homeDataQuery } from '@/lib/learnlog/queries';
 
 export default function LearnLogHomePage() {
   const { profile, loading: profileLoading } = useCurrentProfile();
   const { data, isLoading } = useSWR(
-    profile ? ['learnlog-home', profile.id] : null,
-    () => fetchHomeData(profile!.id)
+    profile ? homeDataQuery(profile.id).key : null,
+    profile ? homeDataQuery(profile.id).fetcher : null
   );
 
   const flameIconRef = useRef<FlameIconHandle>(null);
