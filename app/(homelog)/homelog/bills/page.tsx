@@ -17,43 +17,7 @@ import { Receipt, RefreshCw } from 'lucide-react';
 import { useHouseholdMe } from '@/lib/homelog/useHouseholdMe';
 import { useToast } from '@/components/ui/use-toast';
 import { formatCurrency } from '@/lib/format';
-
-interface ExpenseSplitInfo {
-  profileId: string;
-  name: string;
-  shareAmount: number;
-}
-
-interface ExpenseInfo {
-  id: string;
-  label: string;
-  category: string;
-  totalAmount: number;
-  paidByProfileId: string;
-  paidByName: string;
-  date: string;
-  splits: ExpenseSplitInfo[];
-}
-
-interface BalanceInfo {
-  memberA: string;
-  memberAName: string;
-  memberB: string;
-  memberBName: string;
-  net: number;
-}
-
-async function fetchExpenses(): Promise<ExpenseInfo[]> {
-  const res = await fetch('/api/homelog/expenses');
-  const body = await res.json();
-  return body.expenses ?? [];
-}
-
-async function fetchBalances(): Promise<BalanceInfo[]> {
-  const res = await fetch('/api/homelog/balances');
-  const body = await res.json();
-  return body.balances ?? [];
-}
+import { expensesQuery, balancesQuery } from '@/lib/homelog/queries';
 
 export default function BillsPage() {
   const { toast } = useToast();
@@ -64,12 +28,18 @@ export default function BillsPage() {
     data: expenseData,
     isLoading: expensesLoading,
     mutate: refreshExpenses,
-  } = useSWR(hasHousehold ? 'homelog-expenses' : null, fetchExpenses);
+  } = useSWR(
+    hasHousehold ? expensesQuery().key : null,
+    hasHousehold ? expensesQuery().fetcher : null
+  );
   const {
     data: balanceData,
     isLoading: balancesLoading,
     mutate: refreshBalances,
-  } = useSWR(hasHousehold ? 'homelog-balances' : null, fetchBalances);
+  } = useSWR(
+    hasHousehold ? balancesQuery().key : null,
+    hasHousehold ? balancesQuery().fetcher : null
+  );
 
   const expenses = expenseData ?? [];
   const balances = balanceData ?? [];
