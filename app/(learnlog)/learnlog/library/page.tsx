@@ -3,7 +3,6 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import { createClient } from '@/lib/supabase/client';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { TopBar } from '@/components/TopBar';
 import { LearnLogBottomNav } from '@/components/LearnLogBottomNav';
@@ -17,18 +16,8 @@ import { useToast } from '@/components/ui/use-toast';
 import { createTaskLogTask, logToMoneyLog } from '@/lib/learnlog/crossApp';
 import { ShareGroupPanel } from '@/components/learnlog/ShareGroupPanel';
 import type { LibraryItemRow } from '@/lib/learnlog/types';
+import { libraryItemsQuery } from '@/lib/learnlog/queries';
 import { LibraryItemDrawer } from './_components/LibraryItemDrawer';
-
-async function fetchLibraryItems(profileId: string): Promise<LibraryItemRow[]> {
-  const supabase = createClient();
-  const { data, error } = await supabase
-    .from('learnlog_library_items')
-    .select('*')
-    .eq('profileId', profileId)
-    .order('createdAt', { ascending: false });
-  if (error) throw error;
-  return (data ?? []) as LibraryItemRow[];
-}
 
 const STATUS_LABEL: Record<string, string> = {
   WANT: 'Want to read/take',
@@ -42,8 +31,8 @@ export default function LearnLogLibraryPage() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [shareItem, setShareItem] = useState<LibraryItemRow | null>(null);
   const { data: items, isLoading, mutate } = useSWR(
-    profile ? ['learnlog-library', profile.id] : null,
-    () => fetchLibraryItems(profile!.id)
+    profile ? libraryItemsQuery(profile.id).key : null,
+    profile ? libraryItemsQuery(profile.id).fetcher : null
   );
 
   const loading = isLoading;
