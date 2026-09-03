@@ -54,7 +54,7 @@ model Profile {
   Session        Session[]
   IntelSnapshot   IntelSnapshot[]
   IntelSuggestion IntelSuggestion[]
-  IntelChatThread IntelChatThread?
+  IntelChatThread IntelChatThread[]
   WorkoutPlan    WorkoutPlan[]
   WeightEntry    WeightEntry[]
   CalorieBurn    CalorieBurn[]
@@ -425,14 +425,19 @@ model IntelSuggestion {
   @@map("intel_suggestions")
 }
 
-/// one persistent chat thread per profile — the app-switcher AI assistant
+/// one AI chat thread per conversation — a profile can have many (IntelLog chat)
 model IntelChatThread {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  profileId String   @unique @db.Uuid
+  profileId String   @db.Uuid
+  title     String?
+  modelId   String?
   createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
 
   messages IntelChatMessage[]
+
+  @@index([profileId, updatedAt])
   @@map("intel_chat_threads")
 }
 

@@ -24,6 +24,8 @@ const PHASE_TO_ORB_STATE: Record<Phase, AIState> = {
   submitting: 'thinking',
 };
 
+const THREAD_STORAGE_KEY = 'intellog-chat-thread-id';
+
 interface AppSwitcherChatProps {
   open: boolean;
 }
@@ -36,14 +38,21 @@ export function AppSwitcherChat({ open }: AppSwitcherChatProps) {
   const [phase, setPhase] = useState<Phase>('idle');
   const [failedMessage, setFailedMessage] = useState<string | null>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const threadIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!open || loaded) return;
     (async () => {
-      const res = await apiFetch('/api/intellog/chat');
-      if (res.ok) {
-        const data = await res.json();
-        setMessages(data.messages ?? []);
+      const storedId = typeof window !== 'undefined' ? window.localStorage.getItem(THREAD_STORAGE_KEY) : null;
+      if (storedId) {
+        const res = await apiFetch(`/api/intellog/chat/${storedId}`);
+        if (res.ok) {
+          const data = await res.json();
+          threadIdRef.current = storedId;
+          setMessages(data.messages ?? []);
+        } else {
+          window.localStorage.removeItem(THREAD_STORAGE_KEY);
+        }
       }
       setLoaded(true);
     })();
@@ -69,13 +78,20 @@ export function AppSwitcherChat({ open }: AppSwitcherChatProps) {
     setPhase('submitting');
 
     try {
-      const res = await apiFetch('/api/intellog/chat', {
+      const endpoint = threadIdRef.current
+        ? `/api/intellog/chat/${threadIdRef.current}`
+        : '/api/intellog/chat/new';
+      const res = await apiFetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: trimmed }),
       });
       if (!res.ok) throw new Error('request failed');
       const data = await res.json();
+      if (data.threadId) {
+        threadIdRef.current = data.threadId;
+        window.localStorage.setItem(THREAD_STORAGE_KEY, data.threadId);
+      }
       setMessages((prev) => [...prev, data.message]);
       setPhase('done');
       setTimeout(() => setPhase('idle'), 1200);
