@@ -45,7 +45,7 @@ export async function GET(request: Request) {
 
     for (const [metric, value] of Object.entries(snap.metrics as Record<string, number>)) {
       const groupKey = `${cohortKey}|${snap.app}|${metric}`;
-      const group = groups.get(groupKey) ?? { cohortKey, app: snap.app, metric, values: [] };
+      const group = groups.get(groupKey) ?? { cohortKey, app: snap.app, metric, values: [] as number[] };
       group.values.push(value);
       groups.set(groupKey, group);
     }
