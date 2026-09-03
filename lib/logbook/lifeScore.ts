@@ -1,5 +1,10 @@
 // lib/logbook/lifeScore.ts
 import type { AppId } from '@/lib/appMode';
+import type { SupabaseClient } from '@supabase/supabase-js';
+import { getPeriodRange, expandRecurringInRange, type RecurringItemRow } from '@/lib/financePeriods';
+import { resolveTarget, DEFAULT_TARGETS } from '@/lib/dailyTargets';
+import { getMyHouseholdMembership } from '@/lib/homelog/serverAuth';
+import { format as formatDate, subDays } from 'date-fns';
 
 export type LifeScoreApp = Exclude<AppId, 'logbook' | 'adminlog'>;
 
@@ -49,11 +54,6 @@ export function averageMode(
 export function streakToPct(currentStreak: number): number {
   return Math.min(100, currentStreak * 10);
 }
-
-import type { SupabaseClient } from '@supabase/supabase-js';
-import { getPeriodRange, expandRecurringInRange, type RecurringItemRow } from '@/lib/financePeriods';
-import { resolveTarget, DEFAULT_TARGETS } from '@/lib/dailyTargets';
-import { getMyHouseholdMembership } from '@/lib/homelog/serverAuth';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -230,4 +230,62 @@ export async function computeAppScoresForDay(
   ]);
 
   return { burnlog, tasklog, moneylog, homelog, sociallog, shoppinglog, travellog, learnlog };
+}
+
+function rangeForDate(dateStr: string): { start: string; end: string } {
+  const start = new Date(`${dateStr}T00:00:00.000Z`);
+  const end = subDays(start, -1);
+  return { start: start.toISOString(), end: end.toISOString() };
+}
+
+/**
+ * Lazily compute-and-store a snapshot for a past date (never "today").
+ * Idempotent via the profileId+date unique constraint.
+ */
+export async function getOrCreateSnapshotForDate(
+  supabase: SupabaseClient,
+  profileId: string,
+  date: string,
+  enabledApps: LifeScoreApp[]
+) {
+  const { data: existing } = await supabase
+    .from('life_score_snapshots')
+    .select('date, engagementScore, streakScore, goalScore')
+    .eq('profileId', profileId)
+    .eq('date', date)
+    .maybeSingle();
+
+  if (existing) return existing;
+
+  const range = rangeForDate(date);
+  const dayScores = await computeAppScoresForDay(supabase, profileId, range, date);
+
+  const engagementScore = averageMode(dayScores, 'engagement', enabledApps);
+  const streakScore = averageMode(dayScores, 'streak', enabledApps);
+  const goalScore = averageMode(dayScores, 'goal', enabledApps);
+
+  const { data: inserted, error } = await supabase
+    .from('life_score_snapshots')
+    .upsert(
+      { profileId, date, engagementScore, streakScore, goalScore },
+      { onConflict: 'profileId,date' }
+    )
+    .select('date, engagementScore, streakScore, goalScore')
+    .single();
+
+  if (error) throw error;
+  return inserted;
+}
+
+export async function getLifeScoreTrend(supabase: SupabaseClient, profileId: string, days = 30) {
+  const since = formatDate(subDays(new Date(), days), 'yyyy-MM-dd');
+  const { data, error } = await supabase
+    .from('life_score_snapshots')
+    .select('date, engagementScore, streakScore, goalScore')
+    .eq('profileId', profileId)
+    .gte('date', since)
+    .order('date', { ascending: true });
+
+  if (error) throw error;
+  return (data as Array<{ date: string; engagementScore: number | null; streakScore: number | null; goalScore: number | null }>) || [];
 }
