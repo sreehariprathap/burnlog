@@ -70,4 +70,10 @@ export const APP_SWITCH_LOADING_STATES: Record<AppId, LoadingState[]> = {
     { text: 'Loading everyone else’s business' },
     { text: 'Putting on the admin hat' },
   ],
+  intellog: [
+    { text: 'Connecting the dots between your apps' },
+    { text: 'Comparing notes with your cohort' },
+    { text: 'Politely not reading anyone else’s data' },
+    { text: 'Drafting a suggestion or three' },
+  ],
 };

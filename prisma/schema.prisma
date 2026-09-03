@@ -51,6 +51,8 @@ model Profile {
   LifeScoreSnapshot LifeScoreSnapshot[]
   Workout        Workout[]
   Session        Session[]
+  IntelSnapshot   IntelSnapshot[]
+  IntelSuggestion IntelSuggestion[]
   WorkoutPlan    WorkoutPlan[]
   WeightEntry    WeightEntry[]
   CalorieBurn    CalorieBurn[]
@@ -369,6 +371,55 @@ model ErrorLog {
   resolvedByAdminId String?   @db.Uuid
 
   @@map("adminlog_error_logs")
+}
+
+/// per-profile, per-app, per-day summary metrics — the only per-user data the AI reads (IntelLog)
+model IntelSnapshot {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId String   @db.Uuid
+  app       String
+  date      DateTime @db.Date
+  metrics   Json
+  createdAt DateTime @default(now())
+
+  @@unique([profileId, app, date])
+  @@index([profileId, date])
+  @@map("intel_snapshots")
+}
+
+/// anonymized aggregate percentiles per cohort, published only when sampleSize >= 20 (IntelLog)
+model IntelCohortStat {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cohortKey  String
+  app        String
+  metric     String
+  date       DateTime @db.Date
+  p25        Float
+  p50        Float
+  p75        Float
+  sampleSize Int
+
+  @@unique([cohortKey, app, metric, date])
+  @@map("intel_cohort_stats")
+}
+
+/// AI-generated suggestion shown in the IntelLog feed
+model IntelSuggestion {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile     Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId   String    @db.Uuid
+  app         String
+  kind        String
+  title       String
+  body        String
+  deepLink    String
+  status      String    @default("new")
+  createdAt   DateTime  @default(now())
+  respondedAt DateTime?
+
+  @@index([profileId, status, createdAt])
+  @@map("intel_suggestions")
 }
 
 model Invite {

@@ -2,7 +2,7 @@
 import OpenAI from 'openai';
 import { BODY_PARTS, type BodyPart, type LifestyleAnswers, type WorkoutPlanEntry } from './types';
 
-const client = new OpenAI({
+export const client = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
   apiKey: process.env.NEXT_OPENROUTER_KEY,
 });
