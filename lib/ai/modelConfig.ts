@@ -23,6 +23,7 @@ export const AI_FEATURES = [
   { slot: 'tasklog-breakdown', label: 'Goal Breakdown', description: 'Break a goal into concrete, actionable tasks.', app: 'tasklog', kind: 'text' },
   { slot: 'tasklog-parse-quick-add', label: 'Quick Add Parsing', description: 'Parse a freeform quick-add entry into a structured task.', app: 'tasklog', kind: 'text' },
   { slot: 'travellog-suggestions', label: 'Trip Suggestions', description: 'Suggest affordable trip ideas based on free time, budget, and holidays.', app: 'travellog', kind: 'text' },
+  { slot: 'travellog-weekly-suggestions', label: 'Weekly Trip Suggestions', description: 'Generate the weekly trip-suggestion batch from travel history and free time.', app: 'travellog', kind: 'text' },
   { slot: 'estimate-food-calories', label: 'Estimate Food Calories', description: 'Estimate calories from a freeform food description.', app: 'burnlog', kind: 'text' },
   { slot: 'categorize-task', label: 'Categorize Task', description: 'Triage and categorize a task on the personal task list.', app: 'tasklog', kind: 'text' },
   { slot: 'tasklog-idea-breakdown', label: 'Idea Breakdown', description: 'Turn a raw idea into an actionable short plan.', app: 'tasklog', kind: 'text' },
