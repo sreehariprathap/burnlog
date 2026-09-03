@@ -270,7 +270,7 @@ export default function BoardPage() {
         <div className="px-4"><Skeleton className="h-64 w-full" /></div>
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCorners} onDragEnd={handleDragEnd}>
-          <div className="flex gap-3 overflow-x-auto px-4 pb-4">
+          <div className="flex flex-col gap-3 px-4 pb-4">
             {LANES.map((lane) => {
               const laneTasks = tasksInLane(lane.id);
               return (

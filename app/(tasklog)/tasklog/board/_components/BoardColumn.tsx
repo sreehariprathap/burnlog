@@ -15,7 +15,7 @@ export function BoardColumn({ lane, children }: BoardColumnProps) {
   const isEmpty = Array.isArray(children) ? children.length === 0 : !children;
 
   return (
-    <div className="flex w-64 shrink-0 flex-col gap-2 rounded-lg bg-muted/40 p-2">
+    <div className="flex w-full flex-col gap-2 rounded-lg bg-muted/40 p-2">
       <p className="px-1 text-sm font-semibold text-muted-foreground">{lane.label}</p>
       <div ref={setNodeRef} className="flex min-h-24 flex-col gap-2">
         {isEmpty ? (

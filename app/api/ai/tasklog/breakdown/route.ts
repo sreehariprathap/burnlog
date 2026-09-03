@@ -60,7 +60,7 @@ export async function POST(request: Request) {
             throw new AiRouteError('AI returned no response', 502);
           }
 
-          let parsed: { tasks?: Array<{ title?: string; category?: string; priority?: string; suggestedDueDate?: string | null }> };
+          let parsed: { tasks?: Array<{ title?: string; description?: string; category?: string; priority?: string; suggestedDueDate?: string | null }> };
           try {
             parsed = JSON.parse(content);
           } catch {
@@ -75,6 +75,7 @@ export async function POST(request: Request) {
             .filter((t) => t.title && t.title.trim())
             .map((t) => ({
               title: t.title!.trim(),
+              description: t.description?.trim() || '',
               category: t.category === 'work' ? 'work' : 'life',
               priority: (['low', 'medium', 'high'].includes(t.priority || '') ? t.priority : 'medium') as 'low' | 'medium' | 'high',
               suggestedDueDate: t.suggestedDueDate && t.suggestedDueDate !== 'null' ? t.suggestedDueDate : null,

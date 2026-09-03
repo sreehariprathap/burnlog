@@ -29,6 +29,7 @@ export function TaskLogOnboardingFlow() {
   const [goalDrafts, setGoalDrafts] = useState<GoalDraft[]>([]);
   const [processingIndex, setProcessingIndex] = useState(0);
   const [currentGoalId, setCurrentGoalId] = useState<string | null>(null);
+  const [currentGoalTitle, setCurrentGoalTitle] = useState<string>('');
   const [suggestions, setSuggestions] = useState<BreakdownSuggestion[]>([]);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [goalCount, setGoalCount] = useState(0);
@@ -65,6 +66,7 @@ export function TaskLogOnboardingFlow() {
       if (!res.ok) throw new Error(body.error || 'Failed to generate tasks');
       setSuggestions(body.tasks);
       setCurrentGoalId(goal.id);
+      setCurrentGoalTitle(goal.title);
       setProcessingIndex(index);
       setReviewOpen(true);
     } catch (err) {
@@ -84,9 +86,11 @@ export function TaskLogOnboardingFlow() {
           profileId: profile.id,
           goalId: currentGoalId,
           title: s.title,
+          notes: s.description || null,
           category: s.category,
           priority: s.priority,
           dueDate: s.suggestedDueDate || null,
+          tags: [currentGoalTitle],
         }))
       );
       if (insertError) {

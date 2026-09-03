@@ -6,12 +6,14 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerFooter } from '
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import type { IdeaRow, TaskCategory, TaskPriority } from '@/lib/tasklog/types';
 
 export interface BreakdownSuggestion {
   title: string;
+  description?: string;
   category: TaskCategory;
   priority: TaskPriority;
   suggestedDueDate?: string | null;
@@ -73,6 +75,10 @@ export function IdeaBreakdownReviewSheet({ open, onOpenChange, idea, onConfirm }
     setItems((prev) => prev.map((item, i) => (i === index ? { ...item, title } : item)));
   }
 
+  function updateDescription(index: number, description: string) {
+    setItems((prev) => prev.map((item, i) => (i === index ? { ...item, description } : item)));
+  }
+
   function toggleSelected(index: number) {
     setItems((prev) => prev.map((item, i) => (i === index ? { ...item, selected: !item.selected } : item)));
   }
@@ -84,6 +90,7 @@ export function IdeaBreakdownReviewSheet({ open, onOpenChange, idea, onConfirm }
         .filter((item) => item.selected)
         .map((item) => ({
           title: item.title,
+          description: item.description,
           category: item.category,
           priority: item.priority,
           suggestedDueDate: item.suggestedDueDate,
@@ -108,28 +115,41 @@ export function IdeaBreakdownReviewSheet({ open, onOpenChange, idea, onConfirm }
         <DrawerHeader>
           <DrawerTitle>Review idea plan</DrawerTitle>
         </DrawerHeader>
-        <div className="flex max-h-96 flex-col gap-3 overflow-y-auto px-4">
+        <div className="flex max-h-[32rem] flex-col gap-3 overflow-y-auto px-4">
           {loading && <p className="text-sm text-muted-foreground">Generating plan…</p>}
           {error && <p className="text-sm text-destructive">{error}</p>}
           {!loading && plan && <p className="rounded-md border bg-muted/50 p-3 text-sm">{plan}</p>}
           {!loading &&
             items.map((item, index) => (
-              <div key={index} className="flex items-center gap-2 rounded-md border p-2">
+              <div key={index} className="flex items-start gap-2 rounded-md border p-2">
                 <Checkbox
                   checked={item.selected}
                   onCheckedChange={() => toggleSelected(index)}
                   aria-label={`Include task "${item.title}"`}
+                  className="mt-1.5"
                 />
-                <Label htmlFor={`idea-breakdown-title-${index}`} className="sr-only">Task title</Label>
-                <Input
-                  id={`idea-breakdown-title-${index}`}
-                  value={item.title}
-                  onChange={(e) => updateTitle(index, e.target.value)}
-                  className="h-8 flex-1"
-                  autoComplete="off"
-                  autoFocus={index === 0}
-                />
-                <span className="text-xs capitalize text-muted-foreground">{item.priority}</span>
+                <div className="flex-1 space-y-1.5">
+                  <Label htmlFor={`idea-breakdown-title-${index}`} className="sr-only">Task title</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      id={`idea-breakdown-title-${index}`}
+                      value={item.title}
+                      onChange={(e) => updateTitle(index, e.target.value)}
+                      className="h-8 flex-1"
+                      autoComplete="off"
+                      autoFocus={index === 0}
+                    />
+                    <span className="shrink-0 text-xs capitalize text-muted-foreground">{item.priority}</span>
+                  </div>
+                  <Label htmlFor={`idea-breakdown-description-${index}`} className="sr-only">Task description</Label>
+                  <Textarea
+                    id={`idea-breakdown-description-${index}`}
+                    value={item.description ?? ''}
+                    onChange={(e) => updateDescription(index, e.target.value)}
+                    placeholder="Description (optional)"
+                    className="min-h-16 text-sm"
+                  />
+                </div>
               </div>
             ))}
         </div>

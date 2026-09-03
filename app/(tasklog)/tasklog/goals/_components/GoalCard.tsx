@@ -81,9 +81,11 @@ export function GoalCard({ goal }: GoalCardProps) {
             profileId: goal.profileId,
             goalId: goal.id,
             title: s.title,
+            notes: s.description || null,
             category: s.category,
             priority: s.priority,
             dueDate: s.suggestedDueDate || null,
+            tags: [goal.title],
           }))
         );
         if (insertError) throw insertError;

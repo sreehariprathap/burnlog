@@ -221,9 +221,11 @@ export default function PlanPage() {
             profileId: profile.id,
             ideaId: breakdownIdea.id,
             title: t.title,
+            notes: t.description || null,
             category: t.category,
             priority: t.priority,
             dueDate: t.suggestedDueDate || null,
+            tags: [breakdownIdea.title],
           }))
         );
         if (insertError) throw insertError;

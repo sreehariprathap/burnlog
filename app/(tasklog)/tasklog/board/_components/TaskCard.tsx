@@ -52,6 +52,13 @@ export function TaskCard({ task, onClick }: TaskCardProps) {
             <span className="rounded-full bg-muted px-2 py-0.5 capitalize">{task.category}</span>
             {task.dueDate && <span>{displayDueDate(task.dueDate)}</span>}
           </div>
+          {task.tags.length > 0 && (
+            <div className="flex flex-wrap gap-1">
+              {task.tags.map((tag) => (
+                <span key={tag} className="rounded-full bg-primary/10 px-2 py-0.5 text-xs text-primary">{tag}</span>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -17,10 +17,10 @@ Idea title: ${title}
 Idea notes: ${notes || 'None provided'}
 Idea category: ${category}
 
-Write a short plan (2-4 sentences) describing a sensible approach to move this idea forward, then generate 4 to 8 concrete tasks that would make meaningful progress on it. Each task should be a single, specific action (not vague).
+Write a short plan (2-4 sentences) describing a sensible approach to move this idea forward, then generate 4 to 8 concrete tasks that would make meaningful progress on it. Each task should be a single, specific action (not vague), with a one-to-two sentence description explaining what doing it actually involves.
 
 Respond with ONLY a JSON object, no markdown, in this exact shape:
-{"plan": "...", "tasks": [{"title": "...", "category": "life or work", "priority": "low, medium, or high", "suggestedDueDate": "YYYY-MM-DD or null"}]}`;
+{"plan": "...", "tasks": [{"title": "...", "description": "...", "category": "life or work", "priority": "low, medium, or high", "suggestedDueDate": "YYYY-MM-DD or null"}]}`;
 }
 
 export async function POST(request: Request) {
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
 
           let parsed: {
             plan?: string;
-            tasks?: Array<{ title?: string; category?: string; priority?: string; suggestedDueDate?: string | null }>;
+            tasks?: Array<{ title?: string; description?: string; category?: string; priority?: string; suggestedDueDate?: string | null }>;
           };
           try {
             parsed = JSON.parse(content);
@@ -89,6 +89,7 @@ export async function POST(request: Request) {
             .filter((t) => t.title && t.title.trim())
             .map((t) => ({
               title: t.title!.trim(),
+              description: t.description?.trim() || '',
               category: t.category === 'work' ? 'work' : 'life',
               priority: (['low', 'medium', 'high'].includes(t.priority || '') ? t.priority : 'medium') as 'low' | 'medium' | 'high',
               suggestedDueDate: t.suggestedDueDate && t.suggestedDueDate !== 'null' ? t.suggestedDueDate : null,

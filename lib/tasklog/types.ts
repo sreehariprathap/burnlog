@@ -8,6 +8,8 @@ export interface TaskRow {
   id: string;
   profileId: string;
   goalId: string | null;
+  ideaId: string | null;
+  tags: string[];
   title: string;
   notes: string | null;
   category: TaskCategory;
