@@ -18,6 +18,7 @@ import { StatCard } from '@/components/ui/stat-card';
 import { apiFetch } from '@/lib/apiFetch';
 import { CategoryChips, type Category } from './_components/CategoryChips';
 import { ListingCard, type ListingSummary } from './_components/ListingCard';
+import { categoriesQuery, statsQuery } from '@/lib/shoppinglog/queries';
 
 async function fetcher(url: string) {
   const res = await apiFetch(url);
@@ -40,7 +41,7 @@ export default function ShoppingLogBrowsePage() {
     return () => clearTimeout(handle);
   }, [query]);
 
-  const { data: categoryData } = useSWR<{ categories: Category[] }>('/api/shoppinglog/categories', fetcher);
+  const { data: categoryData } = useSWR<{ categories: Category[] }>(categoriesQuery().key, categoriesQuery().fetcher);
 
   const params = new URLSearchParams();
   if (debouncedQuery) params.set('q', debouncedQuery);
@@ -52,8 +53,8 @@ export default function ShoppingLogBrowsePage() {
     fetcher
   );
   const { data: stats } = useSWR<{ activeListings: number; ordersThisMonth: number }>(
-    '/api/shoppinglog/stats',
-    fetcher
+    statsQuery().key,
+    statsQuery().fetcher
   );
 
   return (
