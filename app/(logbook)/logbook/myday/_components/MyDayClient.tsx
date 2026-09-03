@@ -14,17 +14,8 @@ import { DayTimeline } from '@/components/myday/DayTimeline';
 import { UnscheduledTray } from '@/components/myday/UnscheduledTray';
 import { AddBlockSheet } from '@/components/myday/AddBlockSheet';
 import { MyDayCalendarDialog } from '@/components/myday/MyDayCalendarDialog';
-import type { MyDayBlock, MyDayData, MyDayUnscheduledItem } from '@/lib/myday/types';
-
-function todayKey(): string {
-  return formatDate(new Date(), 'yyyy-MM-dd');
-}
-
-async function fetchMyDay(date: string): Promise<MyDayData> {
-  const res = await fetch(`/api/myday?date=${date}`);
-  if (!res.ok) throw new Error('Failed to load MyDay');
-  return res.json();
-}
+import type { MyDayBlock, MyDayUnscheduledItem } from '@/lib/myday/types';
+import { myDayQuery, todayKey } from '@/lib/logbook/queries';
 
 type SheetState =
   | { mode: 'closed' }
@@ -37,7 +28,10 @@ export function MyDayClient() {
   const searchParams = useSearchParams();
   const date = searchParams.get('date') ?? todayKey();
   const { profile } = useCurrentProfile();
-  const { data, isLoading, error, mutate } = useSWR(profile ? `myday-${date}` : null, () => fetchMyDay(date));
+  const { data, isLoading, error, mutate } = useSWR(
+    profile ? myDayQuery(date).key : null,
+    profile ? myDayQuery(date).fetcher : null
+  );
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [sheet, setSheet] = useState<SheetState>({ mode: 'closed' });
 
