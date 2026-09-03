@@ -7,6 +7,8 @@ import { PlusCircleIcon, ShoppingCartIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ShoppingLogMark } from '@/components/ShoppingLogMark';
 import { ConfigMenu } from '@/components/ConfigMenu';
+import { usePreloadRoutes } from '@/lib/usePreloadRoutes';
+import { categoriesQuery, statsQuery, myListingsQuery, cartQuery } from '@/lib/shoppinglog/queries';
 
 const tabs = [
   { href: '/shoppinglog', label: 'Browse', Icon: null },
@@ -17,6 +19,12 @@ const tabs = [
 export function ShoppingLogBottomNav() {
   const pathname = usePathname();
   const isConfigActive = pathname === '/shoppinglog/config' || pathname.startsWith('/shoppinglog/config/');
+
+  // Warms Browse's categories/stats, Sell's categories (shared)/my listings,
+  // and the Cart. No useCurrentProfile() needed here — every one of this
+  // app's queries is session-scoped server-side via the API route, not
+  // parameterized by profileId client-side.
+  usePreloadRoutes([categoriesQuery(), statsQuery(), myListingsQuery(), cartQuery()]);
 
   return (
     <nav
@@ -29,6 +37,7 @@ export function ShoppingLogBottomNav() {
           <Link
             key={href}
             href={href}
+            prefetch
             className={cn(
               'relative flex flex-col items-center rounded-full px-3 py-2 text-xs transition-colors',
               isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
