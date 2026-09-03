@@ -17,34 +17,13 @@ import { Switch } from '@/components/ui/switch';
 import { ListTodo, RefreshCw } from 'lucide-react';
 import { useHouseholdMe } from '@/lib/homelog/useHouseholdMe';
 import { useToast } from '@/components/ui/use-toast';
+import { choresQuery } from '@/lib/homelog/queries';
 
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const MONTHS = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
-
-interface ChoreInstanceInfo {
-  id: string;
-  dueDate: string;
-  assignedProfileId: string | null;
-  assignedName: string | null;
-}
-
-interface ChoreInfo {
-  id: string;
-  title: string;
-  category: string;
-  frequency: string;
-  autoRotate: boolean;
-  instance: ChoreInstanceInfo | null;
-}
-
-async function fetchChores(): Promise<ChoreInfo[]> {
-  const res = await fetch('/api/homelog/chores');
-  const body = await res.json();
-  return body.chores ?? [];
-}
 
 export default function ChoresPage() {
   const { toast } = useToast();
@@ -53,7 +32,10 @@ export default function ChoresPage() {
     data: chores,
     isLoading: choresLoading,
     mutate: refresh,
-  } = useSWR(!householdLoading && household ? 'homelog-chores' : null, fetchChores);
+  } = useSWR(
+    !householdLoading && household ? choresQuery().key : null,
+    !householdLoading && household ? choresQuery().fetcher : null
+  );
 
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('cleaning');
