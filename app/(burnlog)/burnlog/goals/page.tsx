@@ -2,7 +2,7 @@
 // Note: this page is a Client Component ("use client"), so a `metadata` export
 // isn't possible here — it would need a server wrapper to set the page title.
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import useSWR from 'swr';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -12,7 +12,8 @@ import { CalorieTracker } from './_components/CalorieTracker';
 import { WeightTracker } from './_components/WeightTracker';
 import { AddGoalForm } from './_components/AddGoalForm';
 import { GoalsList } from './_components/GoalsList';
-import { createClient } from '@/lib/supabase/client';
+import { useCurrentProfile } from '@/lib/useCurrentProfile';
+import { fitnessGoalsQuery, type FitnessGoal } from '@/lib/burnlog/queries';
 import { TopBar } from '@/components/TopBar';
 import { BottomNav } from '@/components/BottomNav';
 import { MotionCarousel } from '@/components/kokonutui/motion-carousel';
@@ -20,14 +21,7 @@ import { SmoothTabs, type TabItem } from '@/components/kokonutui/smooth-tabs';
 import { Target, Scale, Flame, Utensils, HeartPulse, RefreshCw } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 
-export type Goal = {
-  id: string;
-  goalType: string;
-  targetValue: number;
-  createdAt: string;
-};
-
-const supabase = createClient();
+export type Goal = FitnessGoal;
 
 const goalTabs: TabItem[] = [
   { id: 'goals', icon: Target, label: 'Goals', color: 'var(--chart-1)' },
@@ -40,36 +34,14 @@ const goalTabs: TabItem[] = [
 
 export default function GoalsPage() {
   const { toast } = useToast();
-  const [userId, setUserId] = useState<string | null>(null);
+  const { profile, loading: profileLoading } = useCurrentProfile();
+  const userId = profile?.userId ?? null;
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data }) => setUserId(data?.user?.id ?? null));
-  }, []);
-
-  const { data: goals = [], isLoading: loading, mutate: mutateGoals } = useSWR<Goal[]>(
-    userId ? ['burnlog-goals', userId] : null,
-    async () => {
-      // First get the profile ID
-      const { data: profileData } = await supabase
-        .from('profiles')
-        .select('id')
-        .eq('userId', userId!)
-        .single();
-      if (!profileData) {
-        console.error('Profile not found');
-        return [];
-      }
-
-      // Then get the goals for this profile
-      const { data, error } = await supabase
-        .from('fitness_goals')
-        .select('*')
-        .eq('profileId', profileData.id);
-      if (error) throw error;
-      return (data as Goal[]) ?? [];
-    },
+  const { data: goals = [], isLoading: goalsLoading, mutate: mutateGoals } = useSWR<Goal[]>(
+    profile ? fitnessGoalsQuery(profile.id).key : null,
+    profile ? fitnessGoalsQuery(profile.id).fetcher : null,
     {
       onError: (error) => {
         toast({
@@ -80,6 +52,7 @@ export default function GoalsPage() {
       },
     }
   );
+  const loading = profileLoading || goalsLoading;
 
   const handleRefresh = async () => {
     if (!userId) return;
