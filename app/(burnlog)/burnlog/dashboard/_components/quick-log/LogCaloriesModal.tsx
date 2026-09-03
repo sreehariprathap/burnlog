@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import { createClient } from '@/lib/supabase/client';
 import { Loader2, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,8 +9,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
-import { FoodScanner } from '@/app/(burnlog)/burnlog/goals/_components/FoodScanner';
 import { useToast } from '@/components/ui/use-toast';
+
+const FoodScanner = dynamic(
+  () => import('@/app/(burnlog)/burnlog/goals/_components/FoodScanner').then((mod) => mod.FoodScanner),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+        <Loader2 className="size-6 animate-spin text-white" />
+      </div>
+    ),
+  }
+);
 
 const MEAL_TYPES = [
   { value: 'breakfast', label: 'Breakfast' },

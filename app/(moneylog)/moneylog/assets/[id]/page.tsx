@@ -2,9 +2,9 @@
 'use client';
 
 import { useParams, useRouter } from 'next/navigation';
+import dynamic from 'next/dynamic';
 import useSWR from 'swr';
 import { Loader2, Archive } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { format } from 'date-fns';
 import { TopBar } from '@/components/TopBar';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -12,6 +12,11 @@ import { Button } from '@/components/ui/button';
 import { apiFetch } from '@/lib/apiFetch';
 import { useToast } from '@/components/ui/use-toast';
 import { formatCurrency } from '@/lib/format';
+
+const AssetValueChart = dynamic(
+  () => import('./_components/AssetValueChart').then((mod) => mod.AssetValueChart),
+  { ssr: false, loading: () => <div className="h-full w-full animate-pulse rounded-lg bg-muted" /> }
+);
 
 type Entry = { id: string; value: number; date: string; notes: string | null };
 
@@ -64,15 +69,7 @@ export default function AssetDetailPage() {
                 <CardTitle>Value Over Time</CardTitle>
               </CardHeader>
               <CardContent className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={chartData}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip formatter={(value: number) => formatCurrency(value)} />
-                    <Line type="monotone" dataKey="value" stroke="var(--primary)" />
-                  </LineChart>
-                </ResponsiveContainer>
+                <AssetValueChart data={chartData} />
               </CardContent>
             </Card>
             <div className="space-y-2">

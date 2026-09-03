@@ -1,18 +1,27 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { createClient } from '@/lib/supabase/client';
-import { Receipt } from 'lucide-react';
+import { Receipt, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { INCOME_CATEGORIES, EXPENSE_CATEGORIES } from '@/lib/financeCategories';
-import { ReceiptScanner } from './ReceiptScanner';
 import { StatementImportPanel } from './StatementImportPanel';
 import { useToast } from '@/components/ui/use-toast';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
+
+const ReceiptScanner = dynamic(() => import('./ReceiptScanner').then((mod) => mod.ReceiptScanner), {
+  ssr: false,
+  loading: () => (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <Loader2 className="size-6 animate-spin text-white" />
+    </div>
+  ),
+});
 
 type LogTransactionModalProps = {
   profileId: string;

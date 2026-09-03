@@ -4,6 +4,7 @@
 // isn't possible here — it would need a server wrapper to set the page title.
 
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import useSWR from 'swr';
 import { createClient } from '@/lib/supabase/client';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
@@ -15,7 +16,6 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { SetGoalsPrompt } from './_components/SetGoalsPrompt';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BMIWidget } from './_components/BMIWidget';
-import { WorkoutPieChart } from './_components/WorkoutPieChart';
 import { GoalProgressWidget } from './_components/GoalProgressWidget';
 import { ShortcutWidget } from './_components/ShortcutWidget';
 import { MealPrepBanner } from './_components/MealPrepBanner';
@@ -23,6 +23,11 @@ import { DailyRingsWidget } from './_components/DailyRingsWidget';
 import { WaterIntakeTracker } from '@/components/kokonutui/water-intake-tracker';
 import { ConsistencyTracker } from './_components/ConsistencyTracker';
 import { QuickLogFab } from './_components/QuickLogFab';
+
+const WorkoutPieChart = dynamic(
+  () => import('./_components/WorkoutPieChart').then((mod) => mod.WorkoutPieChart),
+  { ssr: false, loading: () => <Skeleton className="h-[250px] w-full" /> }
+);
 
 interface FitnessGoal {
   id: string;

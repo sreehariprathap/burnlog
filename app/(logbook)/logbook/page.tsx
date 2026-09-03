@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import dynamic from 'next/dynamic';
 import useSWR from 'swr';
 import { RefreshCw } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
@@ -14,7 +15,10 @@ import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 import { GreetingBanner } from '@/components/logbook/GreetingBanner';
 import { DayScoreRing } from '@/components/logbook/DayScoreRing';
-import { LifeScoreTrend } from '@/components/logbook/LifeScoreTrend';
+const LifeScoreTrend = dynamic(
+  () => import('@/components/logbook/LifeScoreTrend').then((mod) => mod.LifeScoreTrend),
+  { ssr: false, loading: () => <Skeleton className="h-48 w-full" /> }
+);
 import { LogCardsGrid } from '@/components/logbook/LogCardsGrid';
 import { StreakBadge } from '@/components/logbook/StreakBadge';
 import { MorningBrief } from '@/components/logbook/MorningBrief';

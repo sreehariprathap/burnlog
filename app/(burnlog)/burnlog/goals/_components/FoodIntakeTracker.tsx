@@ -1,14 +1,23 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Utensils, Camera } from 'lucide-react';
-import { FoodScanner } from './FoodScanner';
+import { Utensils, Camera, Loader2 } from 'lucide-react';
+
+const FoodScanner = dynamic(() => import('./FoodScanner').then((mod) => mod.FoodScanner), {
+  ssr: false,
+  loading: () => (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+      <Loader2 className="size-6 animate-spin text-white" />
+    </div>
+  ),
+});
 import { useToast } from '@/components/ui/use-toast';
 import { formatCalories } from '@/lib/format';
 
