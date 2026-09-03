@@ -7,12 +7,20 @@ import { CalendarClock } from 'lucide-react';
 import { LogbookMark } from '@/components/LogbookMark';
 import { ProfileMenu } from '@/components/ProfileMenu';
 import { cn } from '@/lib/utils';
+import { useCurrentProfile } from '@/lib/useCurrentProfile';
+import { usePreloadRoutes } from '@/lib/usePreloadRoutes';
+import { todayQuery, myDayQuery, todayKey } from '@/lib/logbook/queries';
 
 export function LogbookBottomNav() {
   const pathname = usePathname();
   const isHomeActive = pathname === '/logbook';
   const isMyDayActive = pathname.startsWith('/logbook/myday');
   const isProfileActive = pathname === '/profile' || pathname.startsWith('/profile/');
+
+  // Warms Home's (and, since it shares the same key, /logbook/morning's)
+  // today data, plus MyDay's default (today's date) view.
+  const { profile } = useCurrentProfile();
+  usePreloadRoutes(profile ? [todayQuery(), myDayQuery(todayKey())] : []);
 
   return (
     <nav
@@ -21,6 +29,7 @@ export function LogbookBottomNav() {
     >
       <Link
         href="/logbook"
+        prefetch
         aria-label="Logbook"
         aria-current={isHomeActive ? 'page' : undefined}
         className={cn(
@@ -34,6 +43,7 @@ export function LogbookBottomNav() {
       </Link>
       <Link
         href="/logbook/myday"
+        prefetch
         aria-label="MyDay"
         aria-current={isMyDayActive ? 'page' : undefined}
         className={cn(
