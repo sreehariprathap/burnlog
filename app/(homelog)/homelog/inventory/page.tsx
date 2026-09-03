@@ -17,40 +17,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useHouseholdMe } from '@/lib/homelog/useHouseholdMe';
 import { useToast } from '@/components/ui/use-toast';
-
-interface InventoryItem {
-  id: string;
-  name: string;
-  category: string;
-  quantity: number;
-  lowStockThreshold: number;
-  status: 'in_stock' | 'low' | 'out';
-}
-
-interface ShoppingItem {
-  id: string;
-  label: string;
-  addedByName: string;
-  inventoryItemId: string | null;
-}
+import { inventoryQuery, shoppingListQuery, type InventoryItem } from '@/lib/homelog/queries';
 
 const STATUS_LABEL: Record<InventoryItem['status'], string> = {
   in_stock: 'In stock',
   low: 'Low',
   out: 'Out',
 };
-
-async function fetchInventory(): Promise<InventoryItem[]> {
-  const res = await fetch('/api/homelog/inventory');
-  const body = await res.json();
-  return body.items ?? [];
-}
-
-async function fetchShoppingList(): Promise<ShoppingItem[]> {
-  const res = await fetch('/api/homelog/shopping-list');
-  const body = await res.json();
-  return body.items ?? [];
-}
 
 export default function InventoryPage() {
   const { toast } = useToast();
@@ -61,12 +34,18 @@ export default function InventoryPage() {
     data: items,
     isLoading: itemsLoading,
     mutate: refreshItems,
-  } = useSWR(hasHousehold ? 'homelog-inventory' : null, fetchInventory);
+  } = useSWR(
+    hasHousehold ? inventoryQuery().key : null,
+    hasHousehold ? inventoryQuery().fetcher : null
+  );
   const {
     data: shoppingItems,
     isLoading: shoppingLoading,
     mutate: refreshShopping,
-  } = useSWR(hasHousehold ? 'homelog-shopping-list' : null, fetchShoppingList);
+  } = useSWR(
+    hasHousehold ? shoppingListQuery().key : null,
+    hasHousehold ? shoppingListQuery().fetcher : null
+  );
 
   const loading = householdLoading || itemsLoading || shoppingLoading;
 
