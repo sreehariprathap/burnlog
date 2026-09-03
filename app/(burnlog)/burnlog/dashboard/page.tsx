@@ -6,8 +6,8 @@
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import useSWR from 'swr';
-import { createClient } from '@/lib/supabase/client';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
+import { fitnessGoalsQuery, type FitnessGoal } from '@/lib/burnlog/queries';
 import { CalendarRange, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { TopBar } from '@/components/TopBar';
@@ -29,23 +29,13 @@ const WorkoutPieChart = dynamic(
   { ssr: false, loading: () => <Skeleton className="h-[250px] w-full" /> }
 );
 
-interface FitnessGoal {
-  id: string;
-  goalType: string;
-  targetValue: number | string;
-}
-
 export default function DashboardPage() {
-  const supabase = createClient();
   const { profile: userProfile, loading: profileLoading } = useCurrentProfile() as { profile: any; loading: boolean };
   const [refreshKey, setRefreshKey] = useState(0);
 
-  const { data: goals, isLoading: goalsLoading, mutate: mutateGoals } = useSWR(
-    userProfile ? ['burnlog-fitness-goals', userProfile.id] : null,
-    async () => {
-      const { data } = await supabase.from('fitness_goals').select('*').eq('profileId', userProfile.id);
-      return (data as FitnessGoal[]) || [];
-    }
+  const { data: goals, isLoading: goalsLoading, mutate: mutateGoals } = useSWR<FitnessGoal[]>(
+    userProfile ? fitnessGoalsQuery(userProfile.id).key : null,
+    userProfile ? fitnessGoalsQuery(userProfile.id).fetcher : null
   );
   const [refreshing, setRefreshing] = useState(false);
 
