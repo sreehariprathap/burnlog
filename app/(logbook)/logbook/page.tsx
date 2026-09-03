@@ -24,6 +24,8 @@ import { StreakCalendar } from './_components/StreakCalendar';
 import { WeeklySummary } from './_components/WeeklySummary';
 import { QuickAddFab } from './_components/QuickAddFab';
 import type { LogbookToday } from '@/lib/logbook/today';
+import type { LifeScoreMode } from '@/lib/logbook/lifeScore';
+import { createClient } from '@/lib/supabase/client';
 
 // Client Component — page metadata (title) is set via the root layout's
 // default; add a Metadata export here if this is ever converted to a
@@ -40,8 +42,19 @@ export default function LogbookPage() {
   const { data, isLoading, error, mutate } = useSWR(profile ? 'logbook-today' : null, fetchLogbookToday);
   const { toast } = useToast();
   const [refreshing, setRefreshing] = useState(false);
+  const supabase = createClient();
 
   const loading = profileLoading || isLoading;
+
+  async function handleModeChange(mode: LifeScoreMode) {
+    if (!profile) return;
+    const { error } = await supabase.from('profiles').update({ lifeScoreMode: mode }).eq('id', profile.id);
+    if (error) {
+      toast({ title: 'Could not change mode', description: error.message, variant: 'destructive' });
+      return;
+    }
+    await mutate();
+  }
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -112,7 +125,11 @@ export default function LogbookPage() {
             <MorningBrief />
 
             <StatCard>
-              <DayScoreRing score={data.dayScore} />
+              <DayScoreRing
+                score={data.dayScore}
+                mode={data.lifeScoreMode}
+                onModeChange={handleModeChange}
+              />
             </StatCard>
 
             <LogCardsGrid cards={data.cards} />
