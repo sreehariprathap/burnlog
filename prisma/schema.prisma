@@ -43,6 +43,7 @@ model Profile {
   lastTaskLogStreakDate    DateTime? @db.Date
   currency                 String    @default("CAD")
   country                  String?
+  weeklyTripSuggestionsEnabled Boolean   @default(true)
   learnLogCity             String?
   learnLogAiEnabled        Boolean   @default(true)
   lifeScoreMode            String    @default("engagement") // 'engagement' | 'streak' | 'goal'
@@ -105,6 +106,7 @@ model Profile {
   shopReviews             ShopReview[]
   MydayBlock              MydayBlock[]
   TravelVisit             TravelVisit[]
+  TravelSuggestion        TravelSuggestion[]
   TravelPlan              TravelPlan[]
   TravelPlanMember             TravelPlanMember[]
   travelPlanInvitesSent        TravelPlanInvite[] @relation("TravelPlanInviteSender")
@@ -881,6 +883,23 @@ model TravelVisit {
   plan          TravelPlan? @relation(fields: [tripPlanId], references: [id])
 
   @@map("travellog_visits")
+}
+
+model TravelSuggestion {
+  id          String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile     Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId   String   @db.Uuid
+  destination String
+  country     String
+  startDate   DateTime @db.Date
+  endDate     DateTime @db.Date
+  windowLabel String
+  reason      String
+  weekOf      DateTime @db.Date
+  createdAt   DateTime @default(now())
+
+  @@index([profileId, weekOf])
+  @@map("travellog_weekly_suggestions")
 }
 
 /// an AI-generated day-by-day trip itinerary; the full itinerary JSON is stored as-is, keyed by day/activity — see docs/superpowers/specs/2026-09-01-icemyvacation-planner-design.md for its shape
