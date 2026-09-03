@@ -3,7 +3,6 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import { createClient } from '@/lib/supabase/client';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { TopBar } from '@/components/TopBar';
 import { LearnLogBottomNav } from '@/components/LearnLogBottomNav';
@@ -12,26 +11,15 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Plus } from 'lucide-react';
-import type { ReflectionRow } from '@/lib/learnlog/types';
+import { reflectionsQuery } from '@/lib/learnlog/queries';
 import { ReflectionDrawer } from './_components/ReflectionDrawer';
-
-async function fetchReflections(profileId: string): Promise<ReflectionRow[]> {
-  const supabase = createClient();
-  const { data, error } = await supabase
-    .from('learnlog_reflections')
-    .select('*')
-    .eq('profileId', profileId)
-    .order('createdAt', { ascending: false });
-  if (error) throw error;
-  return (data ?? []) as ReflectionRow[];
-}
 
 export default function LearnLogReflectionsPage() {
   const { profile } = useCurrentProfile();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { data: reflections, isLoading, mutate } = useSWR(
-    profile ? ['learnlog-reflections', profile.id] : null,
-    () => fetchReflections(profile!.id)
+    profile ? reflectionsQuery(profile.id).key : null,
+    profile ? reflectionsQuery(profile.id).fetcher : null
   );
 
   return (
