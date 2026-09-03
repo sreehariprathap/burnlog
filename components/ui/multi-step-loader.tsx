@@ -31,8 +31,8 @@ function LoaderCore({
           <motion.div
             key={index}
             className="text-left flex gap-2 items-center"
-            initial={{ opacity: 0, y: -(currentState * 32) }}
-            animate={{ opacity, y: -(currentState * 32) }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity }}
             transition={{ duration: 0.4 }}
           >
             <div>
@@ -101,7 +101,7 @@ export function MultiStepLoader({
           exit={{ opacity: 0 }}
           className="w-full h-full fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-sm bg-background/90"
         >
-          <div className="flex flex-col items-center gap-6">
+          <div className="flex flex-col items-center gap-10">
             {icon && <div>{icon}</div>}
             <div className="relative">
               <LoaderCore loadingStates={loadingStates} currentState={currentState} />

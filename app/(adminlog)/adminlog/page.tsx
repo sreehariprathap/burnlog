@@ -11,6 +11,7 @@ const SECTIONS = [
   { href: '/adminlog/invites', label: 'Invites', description: 'Send and track invites to new users.' },
   { href: '/adminlog/tools', label: 'Admin Tools', description: 'Test push notifications, onboarding pages.' },
   { href: '/adminlog/ai-models', label: 'AI Model Mapping', description: 'Choose which OpenRouter model powers each AI feature across the app.' },
+  { href: '/adminlog/ai-model-test', label: 'AI Model Test', description: 'Ask a fixed test question to any free model and compare latency, throughput, and response quality.' },
   { href: '/adminlog/test-onboarding', label: 'Test Onboarding', description: 'Run the real onboarding flow as a disposable test account.' },
 ];
 

@@ -39,7 +39,7 @@ export const AI_FEATURES = [
 
 export type ModelSlot = (typeof AI_FEATURES)[number]['slot'];
 
-export const DEFAULT_TEXT_MODEL = 'google/gemma-4-26b-a4b-it:free';
+export const DEFAULT_TEXT_MODEL = 'openrouter/free';
 export const DEFAULT_VISION_MODEL = 'google/gemini-flash-1.5';
 
 export const DEFAULT_MODELS = Object.fromEntries(
