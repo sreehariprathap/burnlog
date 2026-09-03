@@ -24,6 +24,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/components/ui/use-toast';
 import { LANES, type TaskLane, type TaskRow } from '@/lib/tasklog/types';
 import { markTaskComplete } from '@/lib/tasklog/completeTask';
+import { boardTasksQuery } from '@/lib/tasklog/queries';
 import { useCurrentProfile, refreshCurrentProfile } from '@/lib/useCurrentProfile';
 import type { StreakProfile } from '@/lib/tasklog/streak';
 import { TaskCard } from './_components/TaskCard';
@@ -55,15 +56,10 @@ export default function BoardPage() {
     data: taskData,
     isLoading,
     mutate: mutateTasks,
-  } = useSWR(profile ? ['tasklog-board', profile.id] : null, async () => {
-    const { data } = await supabase
-      .from('tasklog_tasks')
-      .select('*')
-      .eq('profileId', profile!.id)
-      .not('lane', 'is', null)
-      .order('position', { ascending: true });
-    return (data as TaskRow[]) || [];
-  });
+  } = useSWR(
+    profile ? boardTasksQuery(profile.id).key : null,
+    profile ? boardTasksQuery(profile.id).fetcher : null
+  );
 
   const tasks = taskData ?? [];
 
