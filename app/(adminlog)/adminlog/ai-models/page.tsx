@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AI_FEATURES, DEFAULT_MODELS, DEFAULT_TEXT_MODEL, type ModelSlot } from '@/lib/ai/modelConfig';
 import { APPS, type AppId } from '@/lib/appMode';
 
-type CatalogEntry = { id: string; name: string };
+type CatalogEntry = { id: string; name: string; isFree: boolean };
 type Catalog = { text: CatalogEntry[]; vision: CatalogEntry[] };
 
 function appLabel(app: string): string {
@@ -90,8 +90,10 @@ export default function AiModelsPage() {
       <div>
         <h1 className="text-2xl font-semibold">AI Model Mapping</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Pick which free OpenRouter model powers each AI feature. Text features default to{' '}
-          {DEFAULT_TEXT_MODEL}; photo/document features default to a free vision-capable model.
+          Pick which OpenRouter model powers each AI feature, from the models curated in{' '}
+          <a href="/adminlog/model-gather" className="underline">Model Gather</a>. Text features
+          default to {DEFAULT_TEXT_MODEL}; photo/document features default to a free
+          vision-capable model.
         </p>
       </div>
 
@@ -122,7 +124,9 @@ export default function AiModelsPage() {
                       </SelectTrigger>
                       <SelectContent>
                         {options.map((opt) => (
-                          <SelectItem key={opt.id} value={opt.id}>{opt.name}</SelectItem>
+                          <SelectItem key={opt.id} value={opt.id}>
+                            {opt.name} · {opt.isFree ? 'Free' : 'Paid'}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
