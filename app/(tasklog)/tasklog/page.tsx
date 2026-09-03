@@ -18,6 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { todayDateString, type TaskRow } from '@/lib/tasklog/types';
 import { markTaskComplete } from '@/lib/tasklog/completeTask';
+import { todayTasksQuery } from '@/lib/tasklog/queries';
 import { useCurrentProfile, refreshCurrentProfile } from '@/lib/useCurrentProfile';
 import type { StreakProfile } from '@/lib/tasklog/streak';
 import { useToast } from '@/components/ui/use-toast';
@@ -71,15 +72,10 @@ export default function TaskLogDashboardPage() {
     data: todayTasks,
     isLoading,
     mutate: refreshToday,
-  } = useSWR(profile ? ['tasklog-today', profile.id] : null, async () => {
-    const { data } = await supabase
-      .from('tasklog_tasks')
-      .select('*')
-      .eq('profileId', profile!.id)
-      .or(`dueDate.eq.${today},plannedForToday.eq.true`)
-      .order('dueDate', { ascending: true });
-    return (data as TaskRow[]) || [];
-  });
+  } = useSWR(
+    profile ? todayTasksQuery(profile.id).key : null,
+    profile ? todayTasksQuery(profile.id).fetcher : null
+  );
 
   const tasks = todayTasks ?? [];
   const overdue = tasks.filter((t) => t.dueDate && t.dueDate < today && !t.completedAt);
