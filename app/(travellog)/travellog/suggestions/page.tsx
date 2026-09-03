@@ -15,6 +15,7 @@ import { computeFreeWindows, type FreeWindow } from '@/lib/travellog/freeTime';
 import { computeAverageMonthlySurplus } from '@/lib/travellog/affordability';
 import { fetchUpcomingHolidays, type Holiday } from '@/lib/travellog/holidays';
 import type { TripSuggestion } from '@/lib/travellog/suggestions';
+import { WeeklyTripStack, type TripCardItem } from '@/components/travellog/WeeklyTripStack';
 
 const HORIZON_DAYS = 60;
 
@@ -38,6 +39,7 @@ export default function TravelLogSuggestionsPage() {
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [suggestions, setSuggestions] = useState<TripSuggestion[] | null>(null);
   const [generating, setGenerating] = useState(false);
+  const [weeklySuggestions, setWeeklySuggestions] = useState<TripCardItem[]>([]);
 
   useEffect(() => {
     if (!profile || !profile.country) {
@@ -80,6 +82,36 @@ export default function TravelLogSuggestionsPage() {
       cancelled = true;
     };
   }, [profile, supabase]);
+
+  useEffect(() => {
+    if (!profile) return;
+    let cancelled = false;
+
+    (async () => {
+      const { data } = await supabase
+        .from('travellog_weekly_suggestions')
+        .select('id, destination, country, startDate, endDate, windowLabel, reason')
+        .eq('profileId', profile.id)
+        .order('createdAt', { ascending: true });
+
+      if (!cancelled) {
+        setWeeklySuggestions((data as TripCardItem[]) || []);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [profile, supabase]);
+
+  function handlePlanWeeklyTrip(item: TripCardItem) {
+    const params = new URLSearchParams({
+      destination: item.destination,
+      startDate: item.startDate,
+      endDate: item.endDate,
+    });
+    router.push(`/travellog/plan?${params.toString()}`);
+  }
 
   async function handleGenerate() {
     if (!profile) return;
@@ -127,6 +159,12 @@ export default function TravelLogSuggestionsPage() {
     <div className="min-h-screen pb-24">
       <TopBar title="Suggestions" />
       <div className="p-4 flex flex-col gap-4">
+        {weeklySuggestions.length > 0 && (
+          <div className="flex flex-col gap-2">
+            <h2 className="text-sm font-semibold text-muted-foreground">This week&apos;s picks</h2>
+            <WeeklyTripStack items={weeklySuggestions} onSelect={handlePlanWeeklyTrip} />
+          </div>
+        )}
         {!profileLoading && !profile?.country ? (
           <Card>
             <CardContent className="pt-6 flex flex-col items-center gap-3 text-center">
