@@ -1,9 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import Image from 'next/image';
 import { KineticText } from '@/components/ui/kinetic-text';
 import { DottedGlowBackground } from '@/components/ui/dotted-glow-background';
+import { BackgroundPaths } from '@/components/ui/background-paths';
+import { AuroraLogbookMark } from '@/components/ui/aurora-logbook-mark';
 import { cn } from '@/lib/utils';
 import { getDefaultApp, type AppId } from '@/lib/appMode';
 
@@ -181,20 +182,20 @@ export default function SplashScreen() {
         className="relative flex h-full min-h-0 w-full items-center justify-center overflow-hidden"
         style={{ backgroundColor: `rgb(${isDark ? SPLASH_DARK_BG : SPLASH_LIGHT_BG})` }}
       >
-        <DottedGlowBackground
-          opacity={0.7}
-          color={isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.35)'}
-          glowColor={isDark ? content.darkTextColor : content.lightTextColor}
-        />
+        {appId === 'logbook' ? (
+          <BackgroundPaths opacity={0.3} className="absolute inset-0" />
+        ) : (
+          <DottedGlowBackground
+            opacity={0.7}
+            color={isDark ? 'rgba(255,255,255,0.45)' : 'rgba(0,0,0,0.35)'}
+            glowColor={isDark ? content.darkTextColor : content.lightTextColor}
+          />
+        )}
         <div className="relative z-10 flex flex-col items-center animate-in fade-in zoom-in-95 duration-700">
           {appId === 'logbook' ? (
-            <Image
-              src="/icons/logbook-light.png"
-              alt="The LogBook"
-              width={1146}
-              height={348}
-              priority
-              className="h-auto w-[min(80vw,420px)] select-none"
+            <AuroraLogbookMark
+              className="w-[min(80vw,420px)] select-none"
+              indigo={isDark ? content.darkTextColor : content.lightTextColor}
             />
           ) : (
             <KineticText

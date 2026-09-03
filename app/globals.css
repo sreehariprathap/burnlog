@@ -82,7 +82,20 @@
     opacity: 1;}
   100% {
     transform: scale(2);
-    opacity: 0;}}}
+    opacity: 0;}}
+  --animate-aurora: aurora 7s ease-in-out infinite;
+  @keyframes aurora {
+  0% {
+    background-position: 0% 50%;
+    }
+  50% {
+    background-position: 100% 50%;
+    }
+  100% {
+    background-position: 0% 50%;
+    }
+  }
+}
 
 :root {
   --radius: 0.625rem;
