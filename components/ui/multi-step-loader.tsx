@@ -59,6 +59,8 @@ interface MultiStepLoaderProps {
   loading: boolean;
   duration?: number;
   loop?: boolean;
+  /** Optional visual rendered above the checklist, e.g. an app-specific mark. */
+  icon?: React.ReactNode;
 }
 
 export function MultiStepLoader({
@@ -66,6 +68,7 @@ export function MultiStepLoader({
   loading,
   duration = 550,
   loop = false,
+  icon,
 }: MultiStepLoaderProps) {
   const [currentState, setCurrentState] = useState(0);
 
@@ -98,8 +101,11 @@ export function MultiStepLoader({
           exit={{ opacity: 0 }}
           className="w-full h-full fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-sm bg-background/90"
         >
-          <div className="relative">
-            <LoaderCore loadingStates={loadingStates} currentState={currentState} />
+          <div className="flex flex-col items-center gap-6">
+            {icon && <div>{icon}</div>}
+            <div className="relative">
+              <LoaderCore loadingStates={loadingStates} currentState={currentState} />
+            </div>
           </div>
         </motion.div>
       )}

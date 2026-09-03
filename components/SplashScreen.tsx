@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import { KineticText } from '@/components/ui/kinetic-text';
+import SiriOrb from '@/components/smoothui/siri-orb';
 import { DottedGlowBackground } from '@/components/ui/dotted-glow-background';
 import { cn } from '@/lib/utils';
 import { getDefaultApp, type AppId } from '@/lib/appMode';
@@ -196,6 +197,8 @@ export default function SplashScreen() {
               priority
               className="h-auto w-[min(80vw,420px)] select-none"
             />
+          ) : appId === 'intellog' ? (
+            <SiriOrb state="idle" size="160px" />
           ) : (
             <KineticText
               text={content.text}
