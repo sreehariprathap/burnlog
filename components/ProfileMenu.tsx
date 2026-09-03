@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { motion } from 'motion/react';
@@ -32,6 +32,10 @@ export function ProfileMenu({ isActive }: ProfileMenuProps) {
       setLoggingOut(false);
     }
   };
+
+  useEffect(() => {
+    router.prefetch('/profile');
+  }, [router]);
 
   return (
     <DropdownMenu>

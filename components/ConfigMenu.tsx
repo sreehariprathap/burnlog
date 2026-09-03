@@ -20,6 +20,7 @@ export function ConfigMenu({ href, isActive, navId }: ConfigMenuProps) {
   return (
     <Link
       href={href}
+      prefetch
       className={cn(
         'relative flex flex-col items-center rounded-full px-3 py-2 text-xs transition-colors',
         isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
