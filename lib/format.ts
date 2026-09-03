@@ -39,7 +39,13 @@ const relativeFormatter = new Intl.RelativeTimeFormat("en", { numeric: "auto" })
  * absolute date once the gap exceeds a week.
  */
 export function formatRelative(date: Date | string): string {
-  const d = typeof date === "string" ? new Date(date) : date;
+  // Postgres timestamps come back without a "Z" suffix (e.g.
+  // "2026-09-02T19:06:27.397"); new Date() on that string parses it as
+  // local time instead of UTC, throwing every relative time off by the
+  // local UTC offset (e.g. "in 7 hours" for something that just happened).
+  const d = typeof date === "string"
+    ? new Date(/[zZ]|[+-]\d\d:\d\d$/.test(date) ? date : `${date}Z`)
+    : date;
   const diffMs = d.getTime() - Date.now();
   let diffSeconds = diffMs / 1000;
 
