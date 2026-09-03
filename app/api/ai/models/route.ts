@@ -1,42 +1,23 @@
+// app/api/ai/models/route.ts
 import { NextResponse } from 'next/server';
-
-type OpenRouterModel = {
-  id: string;
-  name: string;
-  pricing?: { prompt?: string; completion?: string };
-  architecture?: { input_modalities?: string[] };
-};
-
-function isFree(model: OpenRouterModel): boolean {
-  if (model.id.endsWith(':free')) return true;
-  const prompt = model.pricing?.prompt;
-  const completion = model.pricing?.completion;
-  return prompt === '0' && completion === '0';
-}
-
-function isVision(model: OpenRouterModel): boolean {
-  return model.architecture?.input_modalities?.includes('image') ?? false;
-}
+import { createClient } from '@/lib/supabase/server';
+import { createServiceRoleClient } from '@/lib/supabase/serviceRole';
+import { listCuratedModels } from '@/lib/ai/curatedModels';
 
 export async function GET() {
   try {
-    const res = await fetch('https://openrouter.ai/api/v1/models');
-    if (!res.ok) {
-      return NextResponse.json({ error: 'Failed to fetch model catalog from OpenRouter' }, { status: 502 });
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
-    const body = await res.json();
-    const models = (body?.data ?? []) as OpenRouterModel[];
+    const admin = createServiceRoleClient();
+    const models = await listCuratedModels(admin);
 
-    const free = models.filter(isFree);
-    const vision = free
-      .filter(isVision)
-      .map((m) => ({ id: m.id, name: m.name }))
-      .sort((a, b) => a.name.localeCompare(b.name));
-    const text = free
-      .filter((m) => !isVision(m))
-      .map((m) => ({ id: m.id, name: m.name }))
-      .sort((a, b) => a.name.localeCompare(b.name));
+    const toEntry = (m: (typeof models)[number]) => ({ id: m.id, name: m.name, isFree: m.isFree });
+    const text = models.filter((m) => m.modality === 'text').map(toEntry);
+    const vision = models.filter((m) => m.modality === 'vision').map(toEntry);
 
     return NextResponse.json({ text, vision });
   } catch (error) {
