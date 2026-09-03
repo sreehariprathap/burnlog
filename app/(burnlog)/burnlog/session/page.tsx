@@ -2,10 +2,12 @@
 // NOTE: this is a Client Component ('use client'), so `export const metadata` can't live here —
 // it would need a Server Component wrapper (e.g. a server layout.tsx) to set the page <title>.
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import useSWR from 'swr';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { useCurrentProfile } from '@/lib/useCurrentProfile';
+import { workoutPlanQuery, dateSessionQuery } from '@/lib/burnlog/queries';
 
 import { TopBar } from '@/components/TopBar';
 import { SessionLogger } from './_components/SessionLogger';
@@ -30,76 +32,46 @@ import { DailyRingsWidget } from '@/app/(burnlog)/burnlog/dashboard/_components/
 import { ProgramView } from './_components/ProgramView';
 
 export default function SessionsPage() {
-  const supabase = createClient();
   const router = useRouter();
   const [day, setDay] = useState<number>(new Date().getDay());
   const [logging, setLogging] = useState<boolean>(false);
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [showHistory, setShowHistory] = useState<boolean>(false);
-  const [userId, setUserId] = useState<string | null>(null);
   const [view, setView] = useState<'day' | 'month' | 'program'>('day');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [ringsRefreshKey, setRingsRefreshKey] = useState(0);
 
-  // 1️⃣ Get the current auth user (cheap — no DB round trip)
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => setUserId(user?.id ?? null));
-  }, [supabase]);
-
-  // 2️⃣ Profile + lifestyle/water settings, cached across tab switches
-  const { data: profileData } = useSWR(
-    userId ? ['burnlog-session-profile', userId] : null,
-    async () => {
-      const { data } = await supabase
-        .from('profiles')
-        .select('id, lifestyle, currentStreak, waterUnit, glassSizeMl, waterGoalMl')
-        .eq('userId', userId!)
-        .single();
-      return data;
-    }
-  );
+  // 1️⃣ Profile + lifestyle/water settings — shared cache across every app page
+  const { profile: profileData, loading: profileLoading } = useCurrentProfile();
   const profileId: string | null = profileData?.id ?? null;
   const lifestyle = (profileData?.lifestyle as LifestyleAnswers | null) ?? null;
-  const currentStreak = profileData?.currentStreak ?? 0;
-  const waterUnit = (profileData?.waterUnit as 'glasses' | 'liters') ?? 'glasses';
-  const glassSizeMl = profileData?.glassSizeMl ?? 250;
-  const waterGoalMl = profileData?.waterGoalMl ?? 2000;
+  const currentStreak = (profileData?.currentStreak as number | undefined) ?? 0;
+  const waterUnit = (profileData?.waterUnit as 'glasses' | 'liters' | undefined) ?? 'glasses';
+  const glassSizeMl = (profileData?.glassSizeMl as number | undefined) ?? 250;
+  const waterGoalMl = (profileData?.waterGoalMl as number | undefined) ?? 2000;
 
-  // 3️⃣ Plan for the selected weekday, cached per (profile, day)
-  const { data: planData, isLoading: loadingPlan, mutate: mutatePlan } = useSWR<PlanDay | null>(
-    profileId ? ['burnlog-workout-plan', profileId, day] : null,
-    async () => {
-      const { data } = await supabase
-        .from('workout_plans')
-        .select('dayOfWeek, bodyPart, repeatWeekly')
-        .eq('profileId', profileId!)
-        .eq('dayOfWeek', day)
-        .single();
-      return data ? { dayIndex: data.dayOfWeek, bodyPart: data.bodyPart, repeatWeekly: data.repeatWeekly } : null;
-    }
+  // 2️⃣ Plan for the selected weekday, cached per (profile, day) — same key
+  // the BottomNav preloader warms via workoutPlanQuery, see Task 8
+  const { data: planData, isLoading: loadingPlanFetch, mutate: mutatePlan } = useSWR<PlanDay | null>(
+    profileId ? workoutPlanQuery(profileId, day).key : null,
+    profileId ? workoutPlanQuery(profileId, day).fetcher : null
   );
   const plan = planData ?? null;
+  const loadingPlan = profileLoading || loadingPlanFetch;
 
-  // 3️⃣-B The logged session for the selected date (non-today dates only)
+  // 2️⃣-B The logged session for the selected date (non-today dates only)
   const today = new Date();
   const wantsDateSession = !!profileId && !isSameLocalDay(selectedDate, today);
   const { data: dateSessionData } = useSWR(
-    wantsDateSession ? ['burnlog-date-session', profileId, toLocalDateString(selectedDate)] : null,
-    async () => {
-      const { data } = await supabase
-        .from('sessions')
-        .select('sessionData')
-        .eq('profileId', profileId!)
-        .eq('date', toLocalDateString(selectedDate))
-        .maybeSingle();
-      return data ? (data.sessionData as { completed: boolean; bodyPart?: string; duration?: number; notes?: string }) : null;
-    }
+    wantsDateSession ? dateSessionQuery(profileId!, toLocalDateString(selectedDate)).key : null,
+    wantsDateSession ? dateSessionQuery(profileId!, toLocalDateString(selectedDate)).fetcher : null
   );
   const dateSession = wantsDateSession ? (dateSessionData ?? null) : null;
 
-  // 4️⃣ Upsert a new plan
+  // 3️⃣ Upsert a new plan
   const handleSaved = async (newPlan: PlanDay & { repeatWeekly: boolean }) => {
     if (!profileId) return;
+    const supabase = createClient();
     const { error } = await supabase
       .from('workout_plans')
       .upsert(
