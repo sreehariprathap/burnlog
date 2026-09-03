@@ -31,10 +31,15 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
-    const body = await request.json();
-    if (!isValidLifestyleAnswers(body)) {
+    const rawBody = await request.json();
+    const customInstructions =
+      typeof (rawBody as { customInstructions?: unknown } | null)?.customInstructions === 'string'
+        ? (rawBody as { customInstructions: string }).customInstructions
+        : undefined;
+    if (!isValidLifestyleAnswers(rawBody)) {
       return NextResponse.json({ error: 'Invalid lifestyle answers' }, { status: 400 });
     }
+    const body = rawBody;
 
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
@@ -56,12 +61,12 @@ export async function POST(request: Request) {
         body,
         async () => {
           try {
-            const plan = await generateWorkoutPlan(profile, body, model);
+            const plan = await generateWorkoutPlan(profile, body, model, customInstructions);
             return { plan };
           } catch (firstError) {
             console.error('AI plan generation failed, retrying once:', firstError);
             try {
-              const plan = await generateWorkoutPlan(profile, body, model);
+              const plan = await generateWorkoutPlan(profile, body, model, customInstructions);
               return { plan };
             } catch (secondError) {
               console.error('AI plan generation failed on retry:', secondError);

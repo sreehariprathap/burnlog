@@ -45,7 +45,11 @@ const GOAL_LABEL: Record<string, string> = {
   athletic_performance: 'athletic performance',
 };
 
-function buildMealPlanPrompt(lifestyle: LifestyleAnswers, profile: { age: number; weight: number }): string {
+export function buildMealPlanPrompt(
+  lifestyle: LifestyleAnswers,
+  profile: { age: number; weight: number },
+  customInstructions?: string
+): string {
   const nutrition = lifestyle.nutrition;
   const grocery = lifestyle.grocery;
   const goal = GOAL_LABEL[lifestyle.goalFocus] ?? lifestyle.goalFocus;
@@ -87,7 +91,7 @@ ${grocery?.shoppingFrequency === 'weekly' || grocery?.shoppingFrequency === 'mul
   : 'Prefer ingredients with longer shelf life since the user shops infrequently.'}
 
 After the meal plan, generate a consolidated grocery list grouped by category (Produce, Protein, Dairy/Alternatives, Grains/Carbs, Pantry/Spices, Frozen).
-
+${customInstructions ? `\nAdditional instructions from the user (follow these unless they conflict with the rules above): ${customInstructions}\n` : ''}
 Respond ONLY with a valid JSON object (no markdown) in this exact shape:
 {
   "weekPlan": [
@@ -137,18 +141,22 @@ export async function POST(request: Request) {
     MODEL = await getModel(supabase, 'text');
 
     const lifestyle = (profile.lifestyle ?? {}) as LifestyleAnswers;
+    // No body is sent when the user hasn't opened the Ask-AI box - request.json()
+    // throws on an empty body, so fall back to {} rather than treating it as an error.
+    const { customInstructions } = (await request.json().catch(() => ({}))) as { customInstructions?: string };
 
     try {
       const responsePayload = await runAiJob(
         supabase,
         profile.id,
         { jobType: 'meal-plan', app: 'burnlog', model: MODEL },
-        { age: profile.age, weight: profile.weight, lifestyle },
+        { age: profile.age, weight: profile.weight, lifestyle, customInstructions },
         async () => {
-          const prompt = buildMealPlanPrompt(lifestyle, {
-            age: profile.age ?? 30,
-            weight: profile.weight ?? 70,
-          });
+          const prompt = buildMealPlanPrompt(
+            lifestyle,
+            { age: profile.age ?? 30, weight: profile.weight ?? 70 },
+            customInstructions
+          );
 
           const completion = await client.chat.completions.create({
             model: MODEL,

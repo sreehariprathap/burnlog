@@ -137,7 +137,7 @@ function buildWorkoutTypeGuidance(lifestyle: LifestyleAnswers): string {
   return parts.join(' ');
 }
 
-function buildPrompt(profile: ProfileContext, lifestyle: LifestyleAnswers): string {
+export function buildPrompt(profile: ProfileContext, lifestyle: LifestyleAnswers, customInstructions?: string): string {
   const restDays = 7 - lifestyle.preferredTrainingDays;
   const environmentContext = buildEnvironmentContext(lifestyle);
   const commuteContext = buildCommuteContext(lifestyle);
@@ -174,7 +174,7 @@ gym-only types (Push/Pull/Legs) to a user who trains at home or bodyweight-only.
 scheduling the same body part on consecutive days. Take injuries or limitations into account.
 
 Each entry's "bodyPart" must be exactly one of: ${BODY_PARTS.join(', ')}.
-
+${customInstructions ? `\nAdditional instructions from the user (follow these unless they conflict with the rules above): ${customInstructions}\n` : ''}
 Respond with ONLY a JSON object of this exact shape, no other text, no markdown code fences:
 {"plan":[{"dayOfWeek":0,"bodyPart":"Rest"},{"dayOfWeek":1,"bodyPart":"Bodyweight"}, ... one entry for every day 0-6]}`;
 }
@@ -217,12 +217,13 @@ function validatePlan(raw: unknown): WorkoutPlanEntry[] {
 export async function generateWorkoutPlan(
   profile: ProfileContext,
   lifestyle: LifestyleAnswers,
-  model: string
+  model: string,
+  customInstructions?: string
 ): Promise<WorkoutPlanEntry[]> {
   const completion = await client.chat.completions.create({
     model,
     temperature: 0.4,
-    messages: [{ role: 'user', content: buildPrompt(profile, lifestyle) }],
+    messages: [{ role: 'user', content: buildPrompt(profile, lifestyle, customInstructions) }],
     response_format: { type: 'json_object' },
   });
 

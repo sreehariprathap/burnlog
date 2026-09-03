@@ -10,7 +10,7 @@ const client = new OpenAI({
   apiKey: process.env.NEXT_OPENROUTER_KEY,
 });
 
-function buildPrompt(title: string, description: string, category: string): string {
+export function buildPrompt(title: string, description: string, category: string, customInstructions?: string): string {
   return `You are a productivity coach breaking a goal into concrete, actionable tasks.
 
 Goal title: ${title}
@@ -18,7 +18,7 @@ Goal description: ${description || 'None provided'}
 Goal category: ${category}
 
 Generate 4 to 8 concrete tasks that would make meaningful progress on this goal. Each task should be a single, specific action (not vague).
-
+${customInstructions ? `\nAdditional instructions from the user (follow these unless they conflict with the rules above): ${customInstructions}\n` : ''}
 Respond with ONLY a JSON object, no markdown, in this exact shape:
 {"tasks": [{"title": "...", "category": "life or work", "priority": "low, medium, or high", "suggestedDueDate": "YYYY-MM-DD or null"}]}`;
 }
@@ -32,10 +32,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
-    const { title, description, category } = (await request.json()) as {
+    const { title, description, category, customInstructions } = (await request.json()) as {
       title?: string;
       description?: string | null;
       category?: string;
+      customInstructions?: string;
     };
     if (!title || !title.trim()) {
       return NextResponse.json({ error: 'Missing goal title' }, { status: 400 });
@@ -62,7 +63,7 @@ export async function POST(request: Request) {
           const completion = await client.chat.completions.create({
             model: MODEL,
             temperature: 0.5,
-            messages: [{ role: 'user', content: buildPrompt(title, description || '', category || 'life') }],
+            messages: [{ role: 'user', content: buildPrompt(title, description || '', category || 'life', customInstructions) }],
             response_format: { type: 'json_object' },
           });
 
