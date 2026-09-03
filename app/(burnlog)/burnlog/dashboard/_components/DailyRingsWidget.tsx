@@ -1,9 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { motion } from 'motion/react';
-import { Flame, Utensils, Timer, Footprints, Activity } from 'lucide-react';
+import { Flame, Utensils, Timer, Footprints } from 'lucide-react';
+import { ActivityIcon, type ActivityIconHandle } from '@/components/ui/activity';
+import { useMountAnimation } from '@/lib/useMountAnimation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { resolveTarget, getTodayRange } from '@/lib/dailyTargets';
@@ -40,6 +42,8 @@ export function DailyRingsWidget({ profileId, refreshKey }: DailyRingsWidgetProp
   const [loading, setLoading] = useState(true);
   const [goals, setGoals] = useState<Goal[]>([]);
   const [metrics, setMetrics] = useState<Metrics>({ burn: 0, eat: 0, workoutMinutes: 0, steps: 0 });
+  const activityIconRef = useRef<ActivityIconHandle>(null);
+  useMountAnimation(activityIconRef);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -155,7 +159,7 @@ export function DailyRingsWidget({ profileId, refreshKey }: DailyRingsWidgetProp
             </svg>
 
             <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5">
-              <Activity className="h-3.5 w-3.5 text-muted-foreground" />
+              <ActivityIcon ref={activityIconRef} size={14} className="text-muted-foreground" />
               <span className={cn('text-xl font-bold tabular-nums', dayScore >= 100 ? 'text-success' : 'text-foreground')}>
                 {dayScore}%
               </span>

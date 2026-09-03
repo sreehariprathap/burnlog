@@ -3,7 +3,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Check, Flame, X, Calendar, PartyPopper } from 'lucide-react';
+import { Check, X, Calendar, PartyPopper } from 'lucide-react';
+import { FlameIcon, type FlameIconHandle } from '@/components/ui/flame';
+import { useMountAnimation } from '@/lib/useMountAnimation';
 import { cn } from '@/lib/utils';
 import { computeLevel } from '@/lib/leveling';
 import { computeConsistencyWeek, getWeekId, getWeekRange, WEEKLY_CONSISTENCY_BONUS_XP } from '@/lib/consistency';
@@ -33,6 +35,8 @@ export function ConsistencyTracker({
   const [activeDates, setActiveDates] = useState<Set<string> | null>(null);
   const [achievement, setAchievement] = useState<{ stats: string[] } | null>(null);
   const awardInFlight = useRef(false);
+  const flameIconRef = useRef<FlameIconHandle>(null);
+  useMountAnimation(flameIconRef);
 
   useEffect(() => {
     let cancelled = false;
@@ -101,7 +105,7 @@ export function ConsistencyTracker({
         <CardTitle className="text-base">This Week</CardTitle>
         {currentStreak > 0 && (
           <span className="flex items-center gap-1 text-sm font-semibold text-warning">
-            <Flame className="size-4" />
+            <FlameIcon ref={flameIconRef} size={16} />
             {currentStreak} day{currentStreak === 1 ? '' : 's'}
           </span>
         )}

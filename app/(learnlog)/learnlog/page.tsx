@@ -1,6 +1,7 @@
 // app/(learnlog)/learnlog/page.tsx
 'use client';
 
+import { useRef } from 'react';
 import Link from 'next/link';
 import useSWR from 'swr';
 import { createClient } from '@/lib/supabase/client';
@@ -10,7 +11,8 @@ import { LearnLogBottomNav } from '@/components/LearnLogBottomNav';
 import { Card, CardContent } from '@/components/ui/card';
 import { StatCard } from '@/components/ui/stat-card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Flame } from 'lucide-react';
+import { FlameIcon, type FlameIconHandle } from '@/components/ui/flame';
+import { useMountAnimation } from '@/lib/useMountAnimation';
 import { GroupInvitesBanner } from '@/components/learnlog/GroupInvitesBanner';
 import type { SkillRow, LibraryItemRow, CareerGoalRow } from '@/lib/learnlog/types';
 
@@ -38,6 +40,9 @@ export default function LearnLogHomePage() {
     () => fetchHomeData(profile!.id)
   );
 
+  const flameIconRef = useRef<FlameIconHandle>(null);
+  useMountAnimation(flameIconRef);
+
   const loading = profileLoading || isLoading;
   const skills = data?.skills ?? [];
   const topSkill = skills[0] ?? null;
@@ -62,7 +67,7 @@ export default function LearnLogHomePage() {
             <StatCard className="text-center">
               <p className="text-2xl font-bold flex items-center justify-center gap-1">
                 {topSkill?.currentStreak ?? 0}
-                {(topSkill?.currentStreak ?? 0) > 0 && <Flame className="h-4 w-4" />}
+                {(topSkill?.currentStreak ?? 0) > 0 && <FlameIcon ref={flameIconRef} size={16} />}
               </p>
               <p className="text-xs text-muted-foreground">Best streak</p>
             </StatCard>

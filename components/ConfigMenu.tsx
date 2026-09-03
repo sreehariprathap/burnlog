@@ -1,10 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { motion } from 'motion/react';
 import { Settings, LogOut } from 'lucide-react';
+import { SettingsIcon, type SettingsIconHandle } from '@/components/ui/settings';
 import {
   DropdownMenu,
   DropdownMenuTrigger,
@@ -13,6 +14,7 @@ import {
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
+import { useMountAnimation } from '@/lib/useMountAnimation';
 
 type ConfigMenuProps = {
   href: string;
@@ -24,6 +26,8 @@ export function ConfigMenu({ href, isActive, navId }: ConfigMenuProps) {
   const router = useRouter();
   const supabase = createClient();
   const [loggingOut, setLoggingOut] = useState(false);
+  const settingsRef = useRef<SettingsIconHandle>(null);
+  useMountAnimation(settingsRef);
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -52,7 +56,7 @@ export function ConfigMenu({ href, isActive, navId }: ConfigMenuProps) {
               transition={{ type: 'spring', stiffness: 400, damping: 30 }}
             />
           )}
-          <Settings className="relative z-10 mb-0.5 h-5 w-5" />
+          <SettingsIcon ref={settingsRef} size={20} className="relative z-10 mb-0.5" />
           <span className="relative z-10">Config</span>
         </button>
       </DropdownMenuTrigger>

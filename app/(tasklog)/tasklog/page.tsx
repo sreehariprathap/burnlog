@@ -2,10 +2,12 @@
 // Client Component — metadata is exported from a server layout/page elsewhere; not applicable here.
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import useSWR from 'swr';
 import { createClient } from '@/lib/supabase/client';
-import { CheckIcon, FlameIcon, RefreshCwIcon, Cloud } from 'lucide-react';
+import { CheckIcon, RefreshCwIcon, Cloud } from 'lucide-react';
+import { FlameIcon as AnimatedFlameIcon, type FlameIconHandle } from '@/components/ui/flame';
+import { useMountAnimation } from '@/lib/useMountAnimation';
 import { TopBar } from '@/components/TopBar';
 import { TaskLogBottomNav } from '@/components/TaskLogBottomNav';
 import { Card, CardContent } from '@/components/ui/card';
@@ -60,6 +62,8 @@ export default function TaskLogDashboardPage() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickerCandidates, setPickerCandidates] = useState<TaskRow[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const flameIconRef = useRef<FlameIconHandle>(null);
+  useMountAnimation(flameIconRef);
 
   const today = todayDateString();
 
@@ -170,7 +174,7 @@ export default function TaskLogDashboardPage() {
         <StatCard>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <FlameIcon className="h-5 w-5 text-primary" />
+              <AnimatedFlameIcon ref={flameIconRef} size={20} className="text-primary" />
               <div>
                 <p className="text-sm font-semibold">{Number(profile?.taskLogCurrentStreak ?? 0)} day streak</p>
                 <p className="text-xs text-muted-foreground">Best: {Number(profile?.taskLogLongestStreak ?? 0)}</p>

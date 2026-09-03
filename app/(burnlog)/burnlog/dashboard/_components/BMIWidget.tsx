@@ -1,6 +1,8 @@
 'use client';
 
-import { Activity } from 'lucide-react';
+import { useRef } from 'react';
+import { ActivityIcon, type ActivityIconHandle } from '@/components/ui/activity';
+import { useMountAnimation } from '@/lib/useMountAnimation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 type BMI = {
@@ -15,6 +17,9 @@ type BMIWidgetProps = {
 };
 
 export function BMIWidget({ height, weight }: BMIWidgetProps) {
+  const activityIconRef = useRef<ActivityIconHandle>(null);
+  useMountAnimation(activityIconRef);
+
   // Calculate BMI: weight (kg) / height^2 (m)
   const heightInMeters = height / 100;
   const bmi = weight / (heightInMeters * heightInMeters);
@@ -46,7 +51,7 @@ export function BMIWidget({ height, weight }: BMIWidgetProps) {
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle>BMI</CardTitle>
-          <Activity className="w-5 h-5 text-warning" />
+          <ActivityIcon ref={activityIconRef} size={20} className="text-warning" />
         </div>
       </CardHeader>
       <CardContent>
