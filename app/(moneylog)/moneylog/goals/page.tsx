@@ -1,60 +1,40 @@
 // app/(moneylog)/moneylog/goals/page.tsx
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import useSWR from 'swr';
 import { TopBar } from '@/components/TopBar';
 import { MoneyLogBottomNav } from '@/components/MoneyLogBottomNav';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AddFinancialGoalForm } from './_components/AddFinancialGoalForm';
 import { FinancialGoalsList } from './_components/FinancialGoalsList';
 import type { FinancialGoalRow } from '@/lib/financeGoalProgress';
+import { useCurrentProfile } from '@/lib/useCurrentProfile';
+import { financialGoalsQuery } from '@/lib/moneylog/queries';
 import { useToast } from '@/components/ui/use-toast';
 
 // Client Component — cannot export `metadata`; page title is set via TopBar below.
 export default function FinancialGoalsPage() {
-  const supabase = createClient();
   const { toast } = useToast();
-  const [profileId, setProfileId] = useState<string | null>(null);
-  const [goals, setGoals] = useState<FinancialGoalRow[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { profile, loading: profileLoading } = useCurrentProfile();
+  const profileId = profile?.id ?? null;
 
-  const fetchGoals = useCallback(
-    async (id: string) => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('financial_goals')
-        .select('*')
-        .eq('profileId', id)
-        .order('createdAt', { ascending: false });
-      if (error) {
-        toast({ title: 'Failed to load goals', description: error.message, variant: 'destructive' });
-      }
-      setGoals((data as FinancialGoalRow[]) || []);
-      setLoading(false);
-    },
-    [supabase, toast]
+  const { data: goals = [], isLoading: goalsLoading, mutate: mutateGoals } = useSWR<FinancialGoalRow[]>(
+    profile ? financialGoalsQuery(profile.id).key : null,
+    profile ? financialGoalsQuery(profile.id).fetcher : null,
+    {
+      onError: (error) => {
+        toast({ title: 'Failed to load goals', description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' });
+      },
+    }
   );
-
-  useEffect(() => {
-    (async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
-      const { data: profile } = await supabase.from('profiles').select('id').eq('userId', user.id).single();
-      if (!profile) return;
-      setProfileId(profile.id);
-      fetchGoals(profile.id);
-    })();
-  }, [supabase, fetchGoals]);
+  const loading = profileLoading || goalsLoading;
 
   function handleGoalAdded(goal: FinancialGoalRow) {
-    setGoals((prev) => [goal, ...prev]);
+    mutateGoals([goal, ...goals], { revalidate: false });
   }
 
   function handleGoalUpdated(goal: FinancialGoalRow) {
-    setGoals((prev) => prev.map((g) => (g.id === goal.id ? goal : g)));
+    mutateGoals(goals.map((g) => (g.id === goal.id ? goal : g)), { revalidate: false });
   }
 
   return (
