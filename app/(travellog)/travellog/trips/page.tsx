@@ -8,25 +8,10 @@ import { TravelLogBottomNav } from '@/components/TravelLogBottomNav';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { apiFetch } from '@/lib/apiFetch';
-
-interface TripSummary {
-  id: string;
-  destination: string;
-  startDate: string;
-  endDate: string;
-  status: string;
-  myRole: 'owner' | 'member';
-}
-
-async function fetcher(url: string) {
-  const res = await apiFetch(url);
-  if (!res.ok) throw new Error('Failed to load trips');
-  return res.json();
-}
+import { tripsQuery, type TripSummary } from '@/lib/travellog/queries';
 
 export default function TravelLogTripsPage() {
-  const { data, isLoading } = useSWR<{ plans: TripSummary[] }>('/api/travellog/plans', fetcher);
+  const { data, isLoading } = useSWR<{ plans: TripSummary[] }>(tripsQuery().key, tripsQuery().fetcher);
 
   return (
     <div className="min-h-screen pb-24">
