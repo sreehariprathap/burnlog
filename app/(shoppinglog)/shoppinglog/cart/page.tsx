@@ -3,6 +3,7 @@
 // Client Component — page metadata isn't applicable here (see layout.tsx for shared app metadata).
 
 import { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
@@ -161,10 +162,9 @@ export default function CartPage() {
             {group.items.map((item) => (
               <Card key={item.cartItemId}>
                 <CardContent className="flex items-center gap-3 p-3">
-                  <div className="size-16 shrink-0 overflow-hidden rounded-md bg-muted">
+                  <div className="relative size-16 shrink-0 overflow-hidden rounded-md bg-muted">
                     {item.listing.coverImageUrl ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={item.listing.coverImageUrl} alt={item.listing.title} className="h-full w-full object-cover" />
+                      <Image src={item.listing.coverImageUrl} alt={item.listing.title} fill sizes="64px" className="object-cover" />
                     ) : null}
                   </div>
                   <div className="flex-1 min-w-0">

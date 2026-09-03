@@ -1,5 +1,6 @@
 // app/(shoppinglog)/shoppinglog/_components/ListingCard.tsx
 import Link from 'next/link';
+import Image from 'next/image';
 import { Star } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -23,8 +24,13 @@ export function ListingCard({ listing }: { listing: ListingSummary }) {
       <Card className="overflow-hidden py-0">
         <div className="relative aspect-square bg-muted">
           {listing.coverImageUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={listing.coverImageUrl} alt={listing.title} className="h-full w-full object-cover" />
+            <Image
+              src={listing.coverImageUrl}
+              alt={listing.title}
+              fill
+              sizes="(max-width: 640px) 50vw, 25vw"
+              className="object-cover"
+            />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-xs text-muted-foreground">
               No photo

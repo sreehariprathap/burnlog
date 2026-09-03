@@ -2,6 +2,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -180,8 +181,7 @@ export function ListingForm({
           <div className="flex flex-wrap gap-2">
             {images.map((url) => (
               <div key={url} className="relative size-20">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={url} alt="" className="h-full w-full rounded-md object-cover" />
+                <Image src={url} alt="" fill sizes="80px" className="rounded-md object-cover" />
                 <button
                   type="button"
                   onClick={() => setImages((prev) => prev.filter((u) => u !== url))}

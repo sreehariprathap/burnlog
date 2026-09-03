@@ -3,6 +3,7 @@
 // Client Component — page metadata isn't applicable here (see layout.tsx for shared app metadata).
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { useParams, useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { Heart, Star, ShoppingCart, Loader2, RefreshCw } from 'lucide-react';
@@ -143,10 +144,16 @@ export default function ListingDetailPage() {
         }
       />
       <main className="flex-1 container mx-auto max-w-2xl space-y-4 p-4 pb-24">
-        <div className="aspect-square overflow-hidden rounded-lg bg-muted">
+        <div className="relative aspect-square overflow-hidden rounded-lg bg-muted">
           {listing.images.length > 0 ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={listing.images[imageIndex]} alt={listing.title} className="h-full w-full object-cover" />
+            <Image
+              src={listing.images[imageIndex]}
+              alt={listing.title}
+              fill
+              sizes="(max-width: 768px) 100vw, 600px"
+              priority
+              className="object-cover"
+            />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-sm text-muted-foreground">No photos</div>
           )}
@@ -158,11 +165,10 @@ export default function ListingDetailPage() {
                 key={url}
                 type="button"
                 onClick={() => setImageIndex(i)}
-                className={cn('h-16 w-16 shrink-0 overflow-hidden rounded-md border-2', i === imageIndex ? 'border-primary' : 'border-transparent')}
+                className={cn('relative h-16 w-16 shrink-0 overflow-hidden rounded-md border-2', i === imageIndex ? 'border-primary' : 'border-transparent')}
                 aria-label={`Show photo ${i + 1}`}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={url} alt="" className="h-full w-full object-cover" />
+                <Image src={url} alt="" fill sizes="64px" className="object-cover" />
               </button>
             ))}
           </div>
