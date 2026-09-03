@@ -11,6 +11,7 @@ import { AiLoading } from '@/components/kokonutui/ai-loading';
 import { toLocalDateString } from '@/lib/date';
 import { formatCalories } from '@/lib/format';
 import { useToast } from '@/components/ui/use-toast';
+import { AskAiInput } from '@/components/ai/AskAiInput';
 
 type MealEntry = {
   id: string;
@@ -120,27 +121,39 @@ export function MealChecklist({ profileId, dayOfWeek, selectedDate }: MealCheckl
     }
   }
 
-  async function handleGenerate() {
+  /** Returns whether generation succeeded, so callers can decide how to react to a failure. */
+  async function handleGenerate(customInstructions?: string): Promise<boolean> {
     setGenerating(true);
     setError(null);
     try {
-      const res = await fetch('/api/ai/meal-plan', { method: 'POST' });
+      const res = await fetch('/api/ai/meal-plan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customInstructions }),
+      });
       const data = await res.json();
       if (!res.ok || data.error) {
         const message = data.error ?? 'Failed to generate meal plan. Please try again.';
         setError(message);
         toast({ title: 'Meal plan generation failed', description: message, variant: 'destructive' });
-        return;
+        return false;
       }
       await fetchEntries();
       toast({ title: 'Meal plan ready', description: 'Your 7-day meal plan has been generated.' });
+      return true;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Network error. Please try again.';
       setError(message);
       toast({ title: 'Meal plan generation failed', description: message, variant: 'destructive' });
+      return false;
     } finally {
       setGenerating(false);
     }
+  }
+
+  async function handleAskAiSubmit(instructions: string) {
+    const ok = await handleGenerate(instructions);
+    if (!ok) throw new Error('Failed to generate meal plan');
   }
 
   if (loading) {
@@ -181,7 +194,7 @@ export function MealChecklist({ profileId, dayOfWeek, selectedDate }: MealCheckl
               {error}
             </div>
           )}
-          <Button onClick={handleGenerate} className="w-full gap-2" size="lg">
+          <Button onClick={() => handleGenerate()} className="w-full gap-2" size="lg">
             <Sparkles className="h-4 w-4" />
             Generate My Meal Plan
           </Button>
@@ -198,9 +211,16 @@ export function MealChecklist({ profileId, dayOfWeek, selectedDate }: MealCheckl
             <UtensilsCrossed className="h-5 w-5" />
             Meals
           </CardTitle>
-          <Button variant="ghost" size="sm" onClick={handleGenerate} title="Regenerate">
-            <RefreshCw className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="sm" onClick={() => handleGenerate()} title="Regenerate">
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+            <AskAiInput
+              label="Ask AI"
+              placeholder="e.g. I'm out of eggs this week"
+              onSubmit={handleAskAiSubmit}
+            />
+          </div>
         </div>
       </CardHeader>
       <CardContent className="space-y-3 pt-2">

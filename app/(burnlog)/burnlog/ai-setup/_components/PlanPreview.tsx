@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2 } from 'lucide-react';
 import { BODY_PARTS, type WorkoutPlanEntry } from '@/lib/ai/types';
+import { AskAiInput } from '@/components/ai/AskAiInput';
 
 const DAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
@@ -14,6 +15,7 @@ type PlanPreviewProps = {
   onChange: (plan: WorkoutPlanEntry[]) => void;
   onSave: () => void;
   onRegenerate: () => void;
+  onAskAi: (customInstructions: string) => Promise<void>;
   onCancel: () => void;
 };
 
@@ -24,6 +26,7 @@ export function PlanPreview({
   onChange,
   onSave,
   onRegenerate,
+  onAskAi,
   onCancel,
 }: PlanPreviewProps) {
   const setDayBodyPart = (dayOfWeek: number, bodyPart: WorkoutPlanEntry['bodyPart']) => {
@@ -70,11 +73,16 @@ export function PlanPreview({
           <Button variant="outline" onClick={onCancel} disabled={saving || regenerating}>
             Cancel
           </Button>
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2">
             <Button variant="outline" onClick={onRegenerate} disabled={saving || regenerating}>
               {regenerating && <Loader2 className="animate-spin h-4 w-4 mr-2" />}
               Regenerate
             </Button>
+            <AskAiInput
+              label="Ask AI"
+              placeholder="e.g. keep sessions under 30 minutes"
+              onSubmit={onAskAi}
+            />
             <Button onClick={onSave} disabled={saving || regenerating}>
               {saving && <Loader2 className="animate-spin h-4 w-4 mr-2" />}
               Save Plan

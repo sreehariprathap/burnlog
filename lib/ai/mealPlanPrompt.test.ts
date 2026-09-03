@@ -1,13 +1,6 @@
-import { describe, it, expect, vi } from 'vitest';
-import type { LifestyleAnswers } from '@/lib/ai/types';
-
-vi.mock('openai', () => ({
-  default: class {
-    chat = { completions: { create: vi.fn() } };
-  },
-}));
-
-const { buildMealPlanPrompt } = await import('./route');
+import { describe, it, expect } from 'vitest';
+import { buildMealPlanPrompt } from './mealPlanPrompt';
+import type { LifestyleAnswers } from './types';
 
 const lifestyle: LifestyleAnswers = {
   jobType: 'desk',
