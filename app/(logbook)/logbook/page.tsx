@@ -28,23 +28,20 @@ import { LearnLogSummaryCard } from '@/components/LearnLogSummaryCard';
 import { StreakCalendar } from './_components/StreakCalendar';
 import { WeeklySummary } from './_components/WeeklySummary';
 import { QuickAddFab } from './_components/QuickAddFab';
-import type { LogbookToday } from '@/lib/logbook/today';
 import type { LifeScoreMode } from '@/lib/logbook/lifeScore';
 import { createClient } from '@/lib/supabase/client';
+import { todayQuery } from '@/lib/logbook/queries';
 
 // Client Component — page metadata (title) is set via the root layout's
 // default; add a Metadata export here if this is ever converted to a
 // Server Component wrapper.
 
-async function fetchLogbookToday(): Promise<LogbookToday> {
-  const res = await fetch('/api/logbook/today');
-  if (!res.ok) throw new Error('Failed to load logbook data');
-  return res.json();
-}
-
 export default function LogbookPage() {
   const { profile, loading: profileLoading } = useCurrentProfile();
-  const { data, isLoading, error, mutate } = useSWR(profile ? 'logbook-today' : null, fetchLogbookToday);
+  const { data, isLoading, error, mutate } = useSWR(
+    profile ? todayQuery().key : null,
+    profile ? todayQuery().fetcher : null
+  );
   const { toast } = useToast();
   const [refreshing, setRefreshing] = useState(false);
   const supabase = createClient();
