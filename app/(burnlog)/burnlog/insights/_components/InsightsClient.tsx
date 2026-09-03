@@ -3,14 +3,12 @@
 
 import { useMemo, useState } from 'react';
 import {
-  LineChart,
+  ComposedChart,
+  Area,
   Line,
   XAxis,
   YAxis,
   CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
 } from 'recharts';
 import { format, parseISO, differenceInDays, addDays } from 'date-fns';
 import Link from 'next/link';
@@ -18,7 +16,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { SmoothTabs, type TabItem } from '@/components/kokonutui/smooth-tabs';
 import { MotionCarousel } from '@/components/kokonutui/motion-carousel';
-import { Scale, Flame, Utensils, Heart, HeartPulse, TrendingUp, Zap, Repeat, BarChart3 } from 'lucide-react';
+import { BenchmarkAreaChart } from '@/components/insights/BenchmarkAreaChart';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+  type ChartConfig,
+} from '@/components/ui/chart';
+import { Scale, Flame, Utensils, Heart, HeartPulse, TrendingUp, Zap, Repeat, BarChart3, Users } from 'lucide-react';
 
 // Types
 interface WeightEntry {
@@ -295,6 +302,10 @@ function MetricSlide({
   const longestStreak = useMemo(() => calculateLongestStreak(chartData), [chartData]);
   const averageMetric = useMemo(() => calculateAverage(chartData, metric, meta.dataKey), [chartData, metric, meta.dataKey]);
   const EmptyStateIcon = METRIC_EMPTY_STATE[metric].IconComponent;
+  const seriesName = meta.title.split(' Over Time')[0];
+  const chartConfig = {
+    [meta.dataKey]: { label: seriesName, color: 'var(--chart-1)' },
+  } satisfies ChartConfig;
 
   return (
     <div className="flex flex-col gap-4">
@@ -305,23 +316,35 @@ function MetricSlide({
         <CardContent>
           <div style={{ width: '100%', height: 260 }}>
             {chartData.length > 0 ? (
-              <ResponsiveContainer>
-                <LineChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
+              <ChartContainer config={chartConfig} className="h-full w-full aspect-auto">
+                <ComposedChart data={chartData} margin={{ top: 10, right: 20, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                   <XAxis dataKey="date" tickFormatter={(date) => format(parseISO(date), 'MMM d')} tick={{ fontSize: 11 }} />
                   <YAxis label={{ value: meta.yAxisLabel, angle: -90, position: 'insideLeft', style: { fontSize: 11 } }} tick={{ fontSize: 11 }} />
-                  <Tooltip
-                    labelFormatter={(date) => format(parseISO(date), 'MMM d, yyyy')}
-                    formatter={(value) => [value, meta.unit]}
+                  <ChartTooltip
+                    content={
+                      <ChartTooltipContent
+                        labelFormatter={(date) => format(parseISO(date as string), 'MMM d, yyyy')}
+                        formatter={(value, name) => [`${value} ${meta.unit}`, name === meta.dataKey ? seriesName : String(name)]}
+                      />
+                    }
                   />
-                  <Legend />
-                  <Line
-                    type="monotone"
+                  <ChartLegend content={<ChartLegendContent />} />
+                  <defs>
+                    <linearGradient id={`fill-${meta.dataKey}`} x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor={`var(--color-${meta.dataKey})`} stopOpacity={0.8} />
+                      <stop offset="95%" stopColor={`var(--color-${meta.dataKey})`} stopOpacity={0.1} />
+                    </linearGradient>
+                  </defs>
+                  <Area
+                    type="natural"
                     dataKey={meta.dataKey}
-                    stroke="var(--chart-1)"
+                    stroke={`var(--color-${meta.dataKey})`}
+                    fill={`url(#fill-${meta.dataKey})`}
+                    fillOpacity={0.4}
                     activeDot={{ r: 6 }}
                     strokeWidth={2}
-                    name={meta.title.split(' Over Time')[0]}
+                    name={seriesName}
                   />
                   {metric === 'weight' && weightGoal && (
                     <Line
@@ -334,8 +357,8 @@ function MetricSlide({
                       dot={false}
                     />
                   )}
-                </LineChart>
-              </ResponsiveContainer>
+                </ComposedChart>
+              </ChartContainer>
             ) : (
               <div className="flex flex-col items-center justify-center gap-2 h-full text-center px-4">
                 <EmptyStateIcon className="w-8 h-8 text-muted-foreground" aria-hidden="true" />
@@ -408,6 +431,7 @@ const insightTabs: TabItem[] = [
   { id: 'calories', icon: Flame, label: 'Calories', color: 'var(--chart-2)' },
   { id: 'food', icon: Utensils, label: 'Food', color: 'var(--chart-3)' },
   { id: 'stamina', icon: HeartPulse, label: 'Stamina', color: 'var(--chart-4)' },
+  { id: 'benchmark', icon: Users, label: 'vs Peers', color: 'var(--chart-5)' },
 ];
 
 const METRICS: MetricKey[] = ['weight', 'calories', 'food', 'stamina'];
@@ -479,9 +503,19 @@ export default function InsightsClient({
       <MotionCarousel
         selectedIndex={selectedIndex}
         onSelect={setSelectedIndex}
-        slides={METRICS.map((metric) => (
-          <MetricSlide key={metric} metric={metric} chartData={dataByMetric[metric]} weightGoal={weightGoal} />
-        ))}
+        slides={[
+          ...METRICS.map((metric) => (
+            <MetricSlide key={metric} metric={metric} chartData={dataByMetric[metric]} weightGoal={weightGoal} />
+          )),
+          <Card key="benchmark">
+            <CardHeader>
+              <CardTitle className="text-lg">Workouts per week vs peers</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <BenchmarkAreaChart app="burnlog" metric="workoutsPerWeek" label="Workouts/week" unit="workouts" />
+            </CardContent>
+          </Card>,
+        ]}
       />
     </div>
   );

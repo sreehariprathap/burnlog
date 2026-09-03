@@ -3,8 +3,8 @@
 
 import { useMemo, useState } from 'react';
 import {
-  LineChart,
-  Line,
+  AreaChart,
+  Area,
   BarChart,
   Bar,
   XAxis,
@@ -22,7 +22,16 @@ import { categoryLabel } from '@/lib/financeCategories';
 import { formatCurrency } from '@/lib/format';
 import { SmoothTabs, type TabItem } from '@/components/kokonutui/smooth-tabs';
 import { MotionCarousel } from '@/components/kokonutui/motion-carousel';
-import { LayoutGrid, TrendingUp, ArrowDownCircle, ArrowUpCircle } from 'lucide-react';
+import { BenchmarkAreaChart } from '@/components/insights/BenchmarkAreaChart';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
+  type ChartConfig,
+} from '@/components/ui/chart';
+import { LayoutGrid, TrendingUp, ArrowDownCircle, ArrowUpCircle, Users } from 'lucide-react';
 
 interface FinanceInsightsClientProps {
   recurringItems: RecurringItemRow[];
@@ -36,7 +45,14 @@ const insightTabs: TabItem[] = [
   { id: 'cashflow', icon: TrendingUp, label: 'Cashflow', color: 'var(--chart-2)' },
   { id: 'expenses', icon: ArrowDownCircle, label: 'Expenses', color: 'var(--chart-3)' },
   { id: 'income', icon: ArrowUpCircle, label: 'Income', color: 'var(--chart-4)' },
+  { id: 'benchmark', icon: Users, label: 'vs Peers', color: 'var(--chart-5)' },
 ];
+
+const cashflowChartConfig = {
+  income: { label: 'Income', color: 'var(--success)' },
+  expense: { label: 'Expense', color: 'var(--destructive)' },
+  net: { label: 'Net', color: 'var(--info)' },
+} satisfies ChartConfig;
 
 export default function FinanceInsightsClient({ recurringItems, transactions }: FinanceInsightsClientProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -122,18 +138,34 @@ export default function FinanceInsightsClient({ recurringItems, transactions }: 
         <CardTitle>Cashflow (last {MONTHS_BACK} months)</CardTitle>
       </CardHeader>
       <CardContent className="h-64">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={monthlySeries}>
+        <ChartContainer config={cashflowChartConfig} className="h-full w-full aspect-auto">
+          <AreaChart data={monthlySeries}>
             <CartesianGrid strokeDasharray="3 3" />
             <XAxis dataKey="month" />
             <YAxis />
-            <Tooltip formatter={(value: number) => formatCurrency(value)} />
-            <Legend />
-            <Line type="monotone" dataKey="income" stroke="var(--success)" />
-            <Line type="monotone" dataKey="expense" stroke="var(--destructive)" />
-            <Line type="monotone" dataKey="net" stroke="var(--info)" />
-          </LineChart>
-        </ResponsiveContainer>
+            <ChartTooltip
+              content={<ChartTooltipContent formatter={(value, name) => [formatCurrency(Number(value)), String(name)]} />}
+            />
+            <ChartLegend content={<ChartLegendContent />} />
+            <defs>
+              <linearGradient id="fillIncome" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="var(--color-income)" stopOpacity={0.5} />
+                <stop offset="95%" stopColor="var(--color-income)" stopOpacity={0.05} />
+              </linearGradient>
+              <linearGradient id="fillExpense" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="var(--color-expense)" stopOpacity={0.5} />
+                <stop offset="95%" stopColor="var(--color-expense)" stopOpacity={0.05} />
+              </linearGradient>
+              <linearGradient id="fillNet" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="var(--color-net)" stopOpacity={0.5} />
+                <stop offset="95%" stopColor="var(--color-net)" stopOpacity={0.05} />
+              </linearGradient>
+            </defs>
+            <Area type="monotone" dataKey="income" stroke="var(--color-income)" fill="url(#fillIncome)" fillOpacity={0.4} />
+            <Area type="monotone" dataKey="expense" stroke="var(--color-expense)" fill="url(#fillExpense)" fillOpacity={0.4} />
+            <Area type="monotone" dataKey="net" stroke="var(--color-net)" fill="url(#fillNet)" fillOpacity={0.4} />
+          </AreaChart>
+        </ChartContainer>
       </CardContent>
     </Card>
   );
@@ -176,6 +208,17 @@ export default function FinanceInsightsClient({ recurringItems, transactions }: 
     </Card>
   );
 
+  const benchmarkSlide = (
+    <Card>
+      <CardHeader>
+        <CardTitle>Budget usage vs peers</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <BenchmarkAreaChart app="moneylog" metric="budgetPct" label="Budget used" unit="%" />
+      </CardContent>
+    </Card>
+  );
+
   return (
     <div className="flex flex-col gap-4">
       <div className="sticky top-14 z-10 -mx-4 border-b bg-background/80 px-4 py-2 backdrop-blur">
@@ -184,7 +227,7 @@ export default function FinanceInsightsClient({ recurringItems, transactions }: 
       <MotionCarousel
         selectedIndex={selectedIndex}
         onSelect={setSelectedIndex}
-        slides={[overviewSlide, cashflowSlide, expensesSlide, incomeSlide]}
+        slides={[overviewSlide, cashflowSlide, expensesSlide, incomeSlide, benchmarkSlide]}
       />
     </div>
   );
