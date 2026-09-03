@@ -20,43 +20,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { StatCard } from '@/components/ui/stat-card';
 import { ListTodo, Scale } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-interface PendingInvite {
-  id: string;
-  householdId: string;
-  householdName: string;
-  invitedByUsername: string;
-  createdAt: string;
-}
-
-async function fetchPendingInvites(): Promise<PendingInvite[]> {
-  const res = await fetch('/api/homelog/invites');
-  const body = await res.json();
-  return body.invites ?? [];
-}
-
-interface ChoreWithInstance {
-  id: string;
-  instance: { dueDate: string } | null;
-}
-
-interface BalanceRow {
-  memberA: string;
-  memberB: string;
-  net: number;
-}
-
-async function fetchChoresForStats(): Promise<ChoreWithInstance[]> {
-  const res = await fetch('/api/homelog/chores');
-  const body = await res.json();
-  return body.chores ?? [];
-}
-
-async function fetchBalancesForStats(): Promise<BalanceRow[]> {
-  const res = await fetch('/api/homelog/balances');
-  const body = await res.json();
-  return body.balances ?? [];
-}
+import { invitesQuery, choresQuery, balancesQuery } from '@/lib/homelog/queries';
 
 export default function HomeLogPage() {
   const { toast } = useToast();
@@ -65,13 +29,16 @@ export default function HomeLogPage() {
   const { household, members, myRole, isLoading, refresh } = useHouseholdMe();
   const { profile } = useCurrentProfile();
   const { data: pendingInvites, mutate: mutateInvites } = useSWR(
-    !isLoading && !household ? 'homelog-invites' : null,
-    fetchPendingInvites
+    !isLoading && !household ? invitesQuery().key : null,
+    !isLoading && !household ? invitesQuery().fetcher : null
   );
-  const { data: choresForStats } = useSWR(household ? 'homelog-chores' : null, fetchChoresForStats);
+  const { data: choresForStats } = useSWR(
+    household ? choresQuery().key : null,
+    household ? choresQuery().fetcher : null
+  );
   const { data: balancesForStats } = useSWR(
-    household ? 'homelog-balances' : null,
-    fetchBalancesForStats
+    household ? balancesQuery().key : null,
+    household ? balancesQuery().fetcher : null
   );
 
   const todayStr = new Date().toISOString().slice(0, 10);
