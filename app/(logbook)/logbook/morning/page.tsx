@@ -13,16 +13,10 @@ import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { CorrelationInsight } from '@/components/logbook/CorrelationInsight';
 import { dismissMorningBriefToday } from '@/lib/logbook/morningDismiss';
 import { formatCalories, formatCurrency } from '@/lib/format';
-import type { LogbookToday } from '@/lib/logbook/today';
+import { todayQuery } from '@/lib/logbook/queries';
 
 // Client Component — no static <Metadata> export; this page is reached via
 // in-app navigation only, so the parent /logbook title carries over.
-
-async function fetchLogbookToday(): Promise<LogbookToday> {
-  const res = await fetch('/api/logbook/today');
-  if (!res.ok) throw new Error('Failed to load logbook data');
-  return res.json();
-}
 
 function greeting(): string {
   const hour = new Date().getHours();
@@ -34,7 +28,10 @@ function greeting(): string {
 export default function MorningBriefPage() {
   const router = useRouter();
   const { profile, loading: profileLoading } = useCurrentProfile();
-  const { data, isLoading } = useSWR(profile ? 'logbook-today' : null, fetchLogbookToday);
+  const { data, isLoading } = useSWR(
+    profile ? todayQuery().key : null,
+    profile ? todayQuery().fetcher : null
+  );
 
   // Landing on this page counts as having seen today's brief, whether the
   // visit came from the /logbook teaser or a direct link.
