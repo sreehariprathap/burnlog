@@ -55,7 +55,7 @@ describe('fetchFinancialGoals', () => {
 
 describe('fetchRecurringItems', () => {
   it('returns the profile\'s active recurring items', async () => {
-    const items = [{ id: 'r1', type: 'expense', category: 'rent', label: 'Rent', amount: 1500, frequency: 'monthly', dayOfWeek: null, dayOfMonth: 1, monthOfYear: null }];
+    const items = [{ id: 'r1', type: 'expense', category: 'rent', label: 'Rent', amount: 1500, frequency: 'monthly', dayOfWeek: null, dayOfMonth: 1, monthOfYear: null, startDate: '2026-01-01', endDate: null, isActive: true, createdAt: '2026-01-01' }];
     const supabase = fakeSupabase({ data: items, error: null });
     const result = await fetchRecurringItems(supabase, 'profile-1');
     expect(result).toEqual(items);

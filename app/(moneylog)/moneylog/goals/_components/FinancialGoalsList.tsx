@@ -1,9 +1,11 @@
 // app/(moneylog)/moneylog/goals/_components/FinancialGoalsList.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
+import useSWR from 'swr';
 import { createClient } from '@/lib/supabase/client';
 import { startOfMonth, endOfMonth } from 'date-fns';
+import { recurringItemsQuery, allFinanceTransactionsQuery } from '@/lib/moneylog/queries';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { StatCard } from '@/components/ui/stat-card';
 import { StatRing } from '@/components/ui/stat-ring';
@@ -31,10 +33,15 @@ function goalTypeLabel(goalType: string): string {
 }
 
 export function FinancialGoalsList({ goals, profileId, onGoalUpdated }: FinancialGoalsListProps) {
-  const supabase = createClient();
   const { toast } = useToast();
-  const [recurringItems, setRecurringItems] = useState<RecurringItemRow[]>([]);
-  const [transactions, setTransactions] = useState<{ type: string; category: string; amount: number; date: string }[]>([]);
+  const { data: recurringItems = [] } = useSWR(
+    profileId ? recurringItemsQuery(profileId).key : null,
+    profileId ? recurringItemsQuery(profileId).fetcher : null
+  );
+  const { data: transactions = [] } = useSWR(
+    profileId ? allFinanceTransactionsQuery(profileId).key : null,
+    profileId ? allFinanceTransactionsQuery(profileId).fetcher : null
+  );
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editLabel, setEditLabel] = useState('');
   const [editTargetValue, setEditTargetValue] = useState('');
@@ -60,6 +67,7 @@ export function FinancialGoalsList({ goals, profileId, onGoalUpdated }: Financia
     const needsDate = goal.goalType === 'savings_target' || goal.goalType === 'debt_payoff';
 
     setSavingEdit(true);
+    const supabase = createClient();
     const { data, error } = await supabase
       .from('financial_goals')
       .update({
@@ -81,20 +89,6 @@ export function FinancialGoalsList({ goals, profileId, onGoalUpdated }: Financia
     toast({ title: 'Goal updated' });
     setEditingId(null);
   }
-
-  useEffect(() => {
-    if (!profileId) return;
-    (async () => {
-      const [recurringRes, transactionsRes] = await Promise.all([
-        supabase.from('recurring_items').select('*').eq('profileId', profileId).eq('isActive', true),
-        supabase.from('finance_transactions').select('*').eq('profileId', profileId),
-      ]);
-      setRecurringItems((recurringRes.data as RecurringItemRow[]) || []);
-      setTransactions(
-        (transactionsRes.data as { type: string; category: string; amount: number; date: string }[]) || []
-      );
-    })();
-  }, [profileId, supabase]);
 
   if (goals.length === 0) {
     return (

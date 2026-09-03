@@ -38,6 +38,10 @@ export function financialGoalsQuery(profileId: string) {
   };
 }
 
+// Full recurring_items row shape (matches lib/financePeriods.ts's
+// RecurringItemRow, which expandRecurringInRange requires) — narrower
+// consumers like plan/page.tsx's PlanRecurringItem (= RecurringItemDraft +
+// id) still accept this structurally, since it's a superset of their fields.
 export type RecurringItem = {
   id: string;
   type: 'income' | 'expense';
@@ -48,6 +52,10 @@ export type RecurringItem = {
   dayOfWeek: number | null;
   dayOfMonth: number | null;
   monthOfYear: number | null;
+  startDate: string;
+  endDate: string | null;
+  isActive: boolean;
+  createdAt: string;
 };
 
 export async function fetchRecurringItems(supabase: SupabaseClient, profileId: string): Promise<RecurringItem[]> {
