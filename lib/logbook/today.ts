@@ -4,6 +4,14 @@ import { subDays, format as formatDate } from 'date-fns';
 import { getPeriodRange, expandRecurringInRange, type RecurringItemRow } from '@/lib/financePeriods';
 import { getTodayRange, resolveTarget, DEFAULT_TARGETS } from '@/lib/dailyTargets';
 import { getMyHouseholdMembership } from '@/lib/homelog/serverAuth';
+import {
+  computeAppScoresForDay,
+  averageMode,
+  getOrCreateSnapshotForDate,
+  LIFE_SCORE_APPS,
+  type LifeScoreApp,
+  type LifeScoreMode,
+} from './lifeScore';
 
 export interface LogbookCard {
   app: 'burnlog' | 'tasklog' | 'moneylog' | 'homelog' | 'sociallog' | 'shoppinglog';
@@ -24,6 +32,7 @@ export interface LogbookActivityEvent {
 export interface LogbookToday {
   dayScore: number | null;
   yesterdayScore: number | null;
+  lifeScoreMode: LifeScoreMode;
   cards: LogbookCard[];
   streak: number;
   streakApps: string[];
@@ -43,29 +52,6 @@ function getYesterdayRange(): { start: string; end: string } {
   const end = start;
   const startDate = subDays(new Date(start), 1);
   return { start: startDate.toISOString(), end };
-}
-
-async function computeYesterdayScore(supabase: SupabaseClient, profileId: string): Promise<number | null> {
-  const { start, end } = getYesterdayRange();
-
-  // plannedForToday always means "today", so it can't identify yesterday's planned
-  // tasks in hindsight — dueDate is the only historically-stable signal available.
-  const [goalsRes, burnRes, taskRes] = await Promise.all([
-    supabase.from('fitness_goals').select('goalType, targetValue').eq('profileId', profileId),
-    supabase.from('calorie_burns').select('caloriesBurned').eq('profileId', profileId).gte('date', start).lt('date', end),
-    supabase.from('tasklog_tasks').select('id, completedAt').eq('profileId', profileId).eq('dueDate', dayKey(start)),
-  ]);
-
-  const goals = (goalsRes.data as { goalType: string; targetValue: number }[]) || [];
-  const target = resolveTarget(goals, 'calories_burned') || DEFAULT_TARGETS.calories_burned;
-  const burned = ((burnRes.data as { caloriesBurned: number }[]) || []).reduce((s, r) => s + (r.caloriesBurned || 0), 0);
-  const burnPct = target > 0 ? Math.min(100, Math.round((burned / target) * 100)) : null;
-
-  const taskRows = (taskRes.data as { id: string; completedAt: string | null }[]) || [];
-  const taskPct = taskRows.length > 0 ? Math.round((taskRows.filter((r) => r.completedAt).length / taskRows.length) * 100) : null;
-
-  const components = [burnPct, taskPct].filter((p): p is number => p !== null);
-  return components.length > 0 ? Math.round(components.reduce((s, p) => s + p, 0) / components.length) : null;
 }
 
 async function computeBurnlogCard(supabase: SupabaseClient, profileId: string): Promise<{ card: LogbookCard; burnedToday: number }> {
@@ -429,7 +415,22 @@ async function computeActivity(
 export async function getLogbookToday(supabase: SupabaseClient, profileId: string): Promise<LogbookToday> {
   const today = dayKey(new Date());
 
-  const [burnlog, tasklog, moneylog, homelog, sociallog, shoppinglog, streakInfo, activity, yesterdayScore] =
+  const { data: profileRow } = await supabase
+    .from('profiles')
+    .select('enabledApps, lifeScoreMode')
+    .eq('id', profileId)
+    .single();
+
+  const enabledApps = (((profileRow as { enabledApps: string[] } | null)?.enabledApps) || []).filter(
+    (a): a is LifeScoreApp => LIFE_SCORE_APPS.includes(a as LifeScoreApp)
+  );
+  const lifeScoreMode = ((profileRow as { lifeScoreMode: LifeScoreMode } | null)?.lifeScoreMode) || 'engagement';
+
+  const { start: todayStart, end: todayEnd } = getTodayRange();
+  const { start: yesterdayStart } = getYesterdayRange();
+  const yesterdayStr = dayKey(yesterdayStart);
+
+  const [burnlog, tasklog, moneylog, homelog, sociallog, shoppinglog, streakInfo, activity, todayAppScores, yesterdaySnapshot] =
     await Promise.all([
       computeBurnlogCard(supabase, profileId),
       computeTasklogCard(supabase, profileId, today),
@@ -439,15 +440,19 @@ export async function getLogbookToday(supabase: SupabaseClient, profileId: strin
       computeShoppinglogCard(supabase, profileId),
       computeStreak(supabase, profileId),
       computeActivity(supabase, profileId),
-      computeYesterdayScore(supabase, profileId),
+      computeAppScoresForDay(supabase, profileId, { start: todayStart, end: todayEnd }, today),
+      enabledApps.length > 0
+        ? getOrCreateSnapshotForDate(supabase, profileId, yesterdayStr, enabledApps)
+        : Promise.resolve(null),
     ]);
 
-  const scoreComponents = [burnlog.card.pct, tasklog.card.pct, moneylog.card.pct, homelog.card.pct].filter(
-    (pct): pct is number => pct !== null
-  );
-  const dayScore = scoreComponents.length > 0
-    ? Math.round(scoreComponents.reduce((s, p) => s + p, 0) / scoreComponents.length)
-    : null;
+  const dayScore = averageMode(todayAppScores, lifeScoreMode, enabledApps);
+  const yesterdayScore =
+    lifeScoreMode === 'engagement'
+      ? yesterdaySnapshot?.engagementScore ?? null
+      : lifeScoreMode === 'streak'
+      ? yesterdaySnapshot?.streakScore ?? null
+      : yesterdaySnapshot?.goalScore ?? null;
 
   const insight = buildInsight({
     burnedToday: burnlog.burnedToday,
@@ -461,6 +466,7 @@ export async function getLogbookToday(supabase: SupabaseClient, profileId: strin
   return {
     dayScore,
     yesterdayScore,
+    lifeScoreMode,
     cards: [burnlog.card, tasklog.card, moneylog.card, homelog.card, sociallog.card, shoppinglog.card],
     streak: streakInfo.streak,
     streakApps: streakInfo.streakApps,

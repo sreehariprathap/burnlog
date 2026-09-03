@@ -45,8 +45,10 @@ model Profile {
   country                  String?
   learnLogCity             String?
   learnLogAiEnabled        Boolean   @default(true)
+  lifeScoreMode            String    @default("engagement") // 'engagement' | 'streak' | 'goal'
 
   FitnessGoal    FitnessGoal[]
+  LifeScoreSnapshot LifeScoreSnapshot[]
   Workout        Workout[]
   Session        Session[]
   WorkoutPlan    WorkoutPlan[]
@@ -570,6 +572,22 @@ model Friendship {
 
   @@unique([requesterId, addresseeId])
   @@map("friendships")
+}
+
+/// one row per user per past day — written lazily the first time that day
+/// is asked for as "yesterday"; today is always computed live, never stored
+model LifeScoreSnapshot {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile         Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId       String   @db.Uuid
+  date            DateTime @db.Date
+  engagementScore Int?
+  streakScore     Int?
+  goalScore       Int?
+  createdAt       DateTime @default(now())
+
+  @@unique([profileId, date])
+  @@map("life_score_snapshots")
 }
 
 /// sociallog: a post — original text/media, or an auto-generated cross-app activity card
