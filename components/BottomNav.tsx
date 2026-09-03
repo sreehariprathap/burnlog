@@ -12,6 +12,9 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ConfigMenu } from '@/components/ConfigMenu';
+import { useCurrentProfile } from '@/lib/useCurrentProfile';
+import { usePreloadRoutes } from '@/lib/usePreloadRoutes';
+import { fitnessGoalsQuery, workoutPlanQuery } from '@/lib/burnlog/queries';
 
 const tabs = [
   { href: '/burnlog/dashboard', label: 'Home', Icon: HomeIcon },
@@ -23,6 +26,18 @@ const tabs = [
 export function BottomNav() {
   const pathname = usePathname();
   const isConfigActive = pathname === '/burnlog/dashboard/config' || pathname.startsWith('/burnlog/dashboard/config/');
+
+  // Warms the caches Dashboard, Goals, and Session read from (Insights
+  // stays server-rendered — see the spec's "out of scope" note — so it
+  // isn't preloadable via this mechanism) so switching tabs after this nav
+  // has been mounted a moment renders from cache instead of a fresh fetch.
+  const { profile } = useCurrentProfile();
+  const today = new Date().getDay();
+  usePreloadRoutes(
+    profile
+      ? [fitnessGoalsQuery(profile.id), workoutPlanQuery(profile.id, today)]
+      : []
+  );
 
   return (
     <nav
