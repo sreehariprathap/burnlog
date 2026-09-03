@@ -143,7 +143,10 @@ README (linked above) for routes, data models, and key files.
 ### Cross-cutting features (shared across all apps)
 
 - Single login/signup/profile shared across all nine apps
-- App switcher with per-app theming (`lib/appMode.ts` registry)
+- App switcher with per-app theming (`lib/appMode.ts` registry) and a
+  persistent AI chat (Siri orb + text input) above the app grid, answering
+  questions using the user's own cross-app data (IntelLog snapshots/cohort
+  stats) as context
 - Per-app Config pages, each with "Export config as JSON"
 - AI-assisted flows (OpenAI/OpenRouter): BurnLog onboarding & meal planning,
   MoneyLog insights, TravelLog planning & suggestions, LearnLog onboarding
