@@ -3,6 +3,7 @@
 // isn't possible here — it would need a server wrapper to set the page title.
 
 import { useEffect, useState } from 'react';
+import useSWR from 'swr';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StaminaTracker } from './_components/StaminaTracker';
@@ -39,49 +40,26 @@ const goalTabs: TabItem[] = [
 
 export default function GoalsPage() {
   const { toast } = useToast();
-  const [goals, setGoals] = useState<Goal[]>([]);
-  const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState<string | null>(null);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
 
-  const handleRefresh = async () => {
-    if (!userId) return;
-    setRefreshing(true);
-    try {
-      await fetchGoals(userId);
-    } finally {
-      setRefreshing(false);
-    }
-  };
-
   useEffect(() => {
-    const getUser = async () => {
-      const { data } = await supabase.auth.getUser();
-      if (data?.user) {
-        setUserId(data.user.id);
-        fetchGoals(data.user.id);
-      } else {
-        setLoading(false);
-      }
-    };
-    getUser();
+    supabase.auth.getUser().then(({ data }) => setUserId(data?.user?.id ?? null));
   }, []);
 
-  const fetchGoals = async (userId: string) => {
-    setLoading(true);
-    try {
+  const { data: goals = [], isLoading: loading, mutate: mutateGoals } = useSWR<Goal[]>(
+    userId ? ['burnlog-goals', userId] : null,
+    async () => {
       // First get the profile ID
       const { data: profileData } = await supabase
         .from('profiles')
         .select('id')
-        .eq('userId', userId)
+        .eq('userId', userId!)
         .single();
-
       if (!profileData) {
         console.error('Profile not found');
-        setLoading(false);
-        return;
+        return [];
       }
 
       // Then get the goals for this profile
@@ -89,28 +67,32 @@ export default function GoalsPage() {
         .from('fitness_goals')
         .select('*')
         .eq('profileId', profileData.id);
+      if (error) throw error;
+      return (data as Goal[]) ?? [];
+    },
+    {
+      onError: (error) => {
+        toast({
+          title: 'Failed to load goals',
+          description: error instanceof Error ? error.message : 'Please try again.',
+          variant: 'destructive',
+        });
+      },
+    }
+  );
 
-      if (error) {
-        throw error;
-      }
-
-      if (data) {
-        setGoals(data as Goal[]);
-      }
-    } catch (error) {
-      console.error('Error fetching goals:', error);
-      toast({
-        title: 'Failed to load goals',
-        description: error instanceof Error ? error.message : 'Please try again.',
-        variant: 'destructive',
-      });
+  const handleRefresh = async () => {
+    if (!userId) return;
+    setRefreshing(true);
+    try {
+      await mutateGoals();
     } finally {
-      setLoading(false);
+      setRefreshing(false);
     }
   };
 
   const handleGoalAdded = (newGoal: Goal) => {
-    setGoals((currentGoals) => [...currentGoals, newGoal]);
+    mutateGoals([...goals, newGoal], { revalidate: false });
   };
 
   return (

@@ -76,6 +76,22 @@ function buildEnvironmentContext(lifestyle: LifestyleAnswers): string {
     lines.push(`- Nearby park/open area: ${home.nearbyPark ? 'Yes' : 'No'}`);
   }
 
+  if (eq.resources) {
+    const r = eq.resources;
+    const has: string[] = [];
+    const missing: string[] = [];
+    if (r.hasGymMembership) has.push('gym membership'); else missing.push('gym membership');
+    if (r.hasSwimmingAccess) has.push('pool access'); else missing.push('pool access');
+    if (r.hasWalkingShoes) has.push('walking/running shoes'); else missing.push('walking/running shoes');
+    if (r.hasBike) has.push('a bike'); else missing.push('a bike');
+    if (r.hasSportsEquipment) has.push('sports gear'); else missing.push('sports gear');
+    if (has.length > 0) lines.push(`- Has: ${has.join(', ')}`);
+    if (missing.length > 0) lines.push(`- Does not have: ${missing.join(', ')} — do not assume these are available`);
+    if (r.enjoysSports) {
+      lines.push(`- Enjoys sports/games${r.hasPlayPartners ? ' and has people to play with' : ' but has no one to play with yet — favor solo-friendly sports/cardio'}`);
+    }
+  }
+
   return lines.join('\n');
 }
 
@@ -123,6 +139,24 @@ function buildWorkoutTypeGuidance(lifestyle: LifestyleAnswers): string {
 
   if (loc === 'outdoor' || eq?.homeEnvironment?.nearbyPark || eq?.homeEnvironment?.hasOutdoorSpace) {
     parts.push('Use "Outdoor Cardio" for outdoor days — running, cycling, HIIT in a park, hill sprints, etc.');
+  }
+
+  const resources = eq?.resources;
+  if (resources?.hasSwimmingAccess) {
+    parts.push('The user has pool access — swimming is a valid "Cardio" day option.');
+  }
+  if (resources?.hasBike) {
+    parts.push('The user has a bike — cycling is a valid "Outdoor Cardio"/"Cardio" day option.');
+  }
+  if (resources?.hasWalkingShoes && !isActiveCommuter) {
+    parts.push('The user has walking/running shoes — a walk or jog is a valid light "Cardio" day option.');
+  }
+  if (resources?.enjoysSports) {
+    parts.push(
+      resources.hasPlayPartners
+        ? 'The user enjoys sports and has people to play with — you may suggest a "Cardio" day framed around a sport (e.g. basketball, soccer, tennis) as a fun alternative to standard cardio.'
+        : 'The user enjoys sports but has no one to play with yet — favor solo-friendly cardio over team-sport suggestions.'
+    );
   }
 
   if (isActiveCommuter && lifestyle.commuteDetails && lifestyle.commuteDetails.distanceKm >= 2) {

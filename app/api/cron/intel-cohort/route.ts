@@ -12,7 +12,7 @@ export async function GET(request: Request) {
   const supabase = createServiceRoleClient();
   const date = new Date().toISOString().slice(0, 10);
 
-  const { data: profiles, error: profilesError } = await supabase.from('profiles').select('id, age');
+  const { data: profiles, error: profilesError } = await supabase.from('profiles').select('id, age, country');
   if (profilesError) {
     console.error('intel-cohort: failed to load profiles', profilesError);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -35,13 +35,14 @@ export async function GET(request: Request) {
   }
 
   const ageByProfile = new Map((profiles ?? []).map((p: { id: string; age: number }) => [p.id, p.age]));
+  const countryByProfile = new Map((profiles ?? []).map((p: { id: string; country: string | null }) => [p.id, p.country]));
 
   // group values by cohortKey|app|metric
   const groups = new Map<string, { cohortKey: string; app: string; metric: string; values: number[] }>();
   for (const snap of snapshots ?? []) {
     const age = ageByProfile.get(snap.profileId);
     if (age === undefined) continue;
-    const cohortKey = buildCohortKey(goalTypeByProfile.get(snap.profileId) ?? null, age);
+    const cohortKey = buildCohortKey(goalTypeByProfile.get(snap.profileId) ?? null, age, countryByProfile.get(snap.profileId));
 
     for (const [metric, value] of Object.entries(snap.metrics as Record<string, number>)) {
       const groupKey = `${cohortKey}|${snap.app}|${metric}`;

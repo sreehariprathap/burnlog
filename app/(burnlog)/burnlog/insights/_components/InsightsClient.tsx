@@ -431,7 +431,7 @@ const insightTabs: TabItem[] = [
   { id: 'calories', icon: Flame, label: 'Calories', color: 'var(--chart-2)' },
   { id: 'food', icon: Utensils, label: 'Food', color: 'var(--chart-3)' },
   { id: 'stamina', icon: HeartPulse, label: 'Stamina', color: 'var(--chart-4)' },
-  { id: 'benchmark', icon: Users, label: 'vs Peers', color: 'var(--chart-5)' },
+  { id: 'benchmark', icon: Users, label: 'Benchmarks', color: 'var(--chart-5)' },
 ];
 
 const METRICS: MetricKey[] = ['weight', 'calories', 'food', 'stamina'];
@@ -509,10 +509,17 @@ export default function InsightsClient({
           )),
           <Card key="benchmark">
             <CardHeader>
-              <CardTitle className="text-lg">Workouts per week vs peers</CardTitle>
+              <CardTitle className="text-lg">Benchmarks</CardTitle>
             </CardHeader>
-            <CardContent>
-              <BenchmarkAreaChart app="burnlog" metric="workoutsPerWeek" label="Workouts/week" unit="workouts" />
+            <CardContent className="space-y-6">
+              <div>
+                <p className="text-sm font-medium mb-2">Workouts per week</p>
+                <BenchmarkAreaChart app="burnlog" metric="workoutsPerWeek" label="Workouts/week" unit="workouts" />
+              </div>
+              <div>
+                <p className="text-sm font-medium mb-2">Calories burned per week</p>
+                <BenchmarkAreaChart app="burnlog" metric="caloriesBurnedPerWeek" label="Calories/week" unit="kcal" />
+              </div>
             </CardContent>
           </Card>,
         ]}

@@ -15,10 +15,11 @@ import { buildWorkoutExercises } from '@/lib/exercises';
 type PushPullLegLoggerProps = {
   bodyPart: 'Push' | 'Pull' | 'Legs';
   userEquipment: string[];
+  initialChecks?: Record<string, Record<string, boolean>>;
   onEnd: (exerciseLog: Record<string, Record<string, boolean>>) => void;
 };
 
-export function PushPullLegLogger({ bodyPart, userEquipment, onEnd }: PushPullLegLoggerProps) {
+export function PushPullLegLogger({ bodyPart, userEquipment, initialChecks, onEnd }: PushPullLegLoggerProps) {
   const [infoExercise, setInfoExercise] = useState<string | null>(null);
 
   // Build exercise list from the master DB, filtered by what the user actually has
@@ -33,7 +34,7 @@ export function PushPullLegLogger({ bodyPart, userEquipment, onEnd }: PushPullLe
     const init: any = {};
     muscles.forEach((m) => {
       init[m] = {};
-      exercisesByMuscle[m].forEach((ex) => { init[m][ex] = false; });
+      exercisesByMuscle[m].forEach((ex) => { init[m][ex] = initialChecks?.[m]?.[ex] ?? false; });
     });
     return init;
   });

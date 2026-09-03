@@ -51,10 +51,24 @@ export type HomeEnvironment = {
   spaceSize: 'small' | 'medium' | 'large';
 };
 
+// what a user already has access to, beyond gym/home equipment — feeds the
+// "Plan My Workout" wizard's suggestions and (hasPlayPartners) a future
+// peer-finder feature
+export type ResourceAnswers = {
+  hasGymMembership: boolean;
+  hasSwimmingAccess: boolean;
+  hasWalkingShoes: boolean;
+  hasBike: boolean;
+  hasSportsEquipment: boolean;
+  enjoysSports: boolean;
+  hasPlayPartners: boolean;
+};
+
 export type EquipmentAnswers = {
   trainingLocation: 'commercial_gym' | 'home_gym' | 'bodyweight_only' | 'mixed' | 'outdoor';
   availableEquipment: string[];
   homeEnvironment?: HomeEnvironment;
+  resources?: ResourceAnswers;
 };
 
 export type CommuteDetails = {

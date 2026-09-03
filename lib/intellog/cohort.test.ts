@@ -15,12 +15,12 @@ describe('ageBucket', () => {
 });
 
 describe('buildCohortKey', () => {
-  it('combines goal type and age bucket', () => {
-    expect(buildCohortKey('lose_weight', 28)).toBe('goal:lose_weight|age:25-34');
+  it('combines goal type, age bucket, and country', () => {
+    expect(buildCohortKey('lose_weight', 28, 'CA')).toBe('goal:lose_weight|age:25-34|country:CA');
   });
 
-  it('falls back to "general" when goalType is null', () => {
-    expect(buildCohortKey(null, 40)).toBe('goal:general|age:35-44');
+  it('falls back to "general" when goalType is null, and "any" when country is omitted', () => {
+    expect(buildCohortKey(null, 40)).toBe('goal:general|age:35-44|country:any');
   });
 });
 

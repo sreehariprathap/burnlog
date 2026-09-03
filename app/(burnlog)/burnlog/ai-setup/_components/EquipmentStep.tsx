@@ -7,7 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dumbbell, Home, Zap, Shuffle } from 'lucide-react';
-import { EQUIPMENT_OPTIONS, type EquipmentAnswers, type HomeEnvironment } from '@/lib/ai/types';
+import { EQUIPMENT_OPTIONS, type EquipmentAnswers, type HomeEnvironment, type ResourceAnswers } from '@/lib/ai/types';
 
 type EquipmentStepProps = {
   onContinue: (answers: EquipmentAnswers) => void;
@@ -23,6 +23,18 @@ export function EquipmentStep({ onContinue, onSkip }: EquipmentStepProps) {
   const [hasOutdoorSpace, setHasOutdoorSpace] = useState(false);
   const [nearbyPark, setNearbyPark] = useState(false);
   const [spaceSize, setSpaceSize] = useState<HomeEnvironment['spaceSize']>('medium');
+  const [resources, setResources] = useState<ResourceAnswers>({
+    hasGymMembership: false,
+    hasSwimmingAccess: false,
+    hasWalkingShoes: false,
+    hasBike: false,
+    hasSportsEquipment: false,
+    enjoysSports: false,
+    hasPlayPartners: false,
+  });
+
+  const toggleResource = (key: keyof ResourceAnswers) =>
+    setResources((prev) => ({ ...prev, [key]: !prev[key] }));
 
   const isHome = trainingLocation === 'home_gym' || trainingLocation === 'bodyweight_only';
   const isOutdoor = trainingLocation === 'outdoor';
@@ -40,7 +52,7 @@ export function EquipmentStep({ onContinue, onSkip }: EquipmentStepProps) {
       isHome || trainingLocation === 'mixed'
         ? { hasOutdoorSpace, nearbyPark, spaceSize }
         : undefined;
-    onContinue({ trainingLocation, availableEquipment, homeEnvironment });
+    onContinue({ trainingLocation, availableEquipment, homeEnvironment, resources });
   };
 
   return (
@@ -93,6 +105,41 @@ export function EquipmentStep({ onContinue, onSkip }: EquipmentStepProps) {
             </div>
           </div>
         )}
+
+        <div className="space-y-3 border rounded-lg p-4 bg-muted/30">
+          <p className="text-sm font-medium">What do you have access to?</p>
+
+          <label className="flex items-center space-x-3">
+            <Checkbox checked={resources.hasGymMembership} onCheckedChange={() => toggleResource('hasGymMembership')} />
+            <span className="text-sm">I have a gym membership</span>
+          </label>
+          <label className="flex items-center space-x-3">
+            <Checkbox checked={resources.hasSwimmingAccess} onCheckedChange={() => toggleResource('hasSwimmingAccess')} />
+            <span className="text-sm">I have access to a pool</span>
+          </label>
+          <label className="flex items-center space-x-3">
+            <Checkbox checked={resources.hasWalkingShoes} onCheckedChange={() => toggleResource('hasWalkingShoes')} />
+            <span className="text-sm">I have walking/running shoes</span>
+          </label>
+          <label className="flex items-center space-x-3">
+            <Checkbox checked={resources.hasBike} onCheckedChange={() => toggleResource('hasBike')} />
+            <span className="text-sm">I have a bike</span>
+          </label>
+          <label className="flex items-center space-x-3">
+            <Checkbox checked={resources.hasSportsEquipment} onCheckedChange={() => toggleResource('hasSportsEquipment')} />
+            <span className="text-sm">I have sports gear (ball, racket, etc.)</span>
+          </label>
+          <label className="flex items-center space-x-3">
+            <Checkbox checked={resources.enjoysSports} onCheckedChange={() => toggleResource('enjoysSports')} />
+            <span className="text-sm">I enjoy sports and games</span>
+          </label>
+          {resources.enjoysSports && (
+            <label className="flex items-center space-x-3 pl-6">
+              <Checkbox checked={resources.hasPlayPartners} onCheckedChange={() => toggleResource('hasPlayPartners')} />
+              <span className="text-sm">I have people to play with</span>
+            </label>
+          )}
+        </div>
 
         {(isHome || trainingLocation === 'mixed' || isOutdoor) && (
           <div className="space-y-3 border rounded-lg p-4 bg-muted/30">

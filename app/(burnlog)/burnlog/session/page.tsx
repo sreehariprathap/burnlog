@@ -2,7 +2,9 @@
 // NOTE: this is a Client Component ('use client'), so `export const metadata` can't live here —
 // it would need a Server Component wrapper (e.g. a server layout.tsx) to set the page <title>.
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
+import useSWR from 'swr';
+import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 
 import { TopBar } from '@/components/TopBar';
@@ -29,116 +31,71 @@ import { ProgramView } from './_components/ProgramView';
 
 export default function SessionsPage() {
   const supabase = createClient();
+  const router = useRouter();
   const [day, setDay] = useState<number>(new Date().getDay());
-  const [plan, setPlan] = useState<PlanDay | null>(null);
   const [logging, setLogging] = useState<boolean>(false);
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [showHistory, setShowHistory] = useState<boolean>(false);
   const [userId, setUserId] = useState<string | null>(null);
-  const [profileId, setProfileId] = useState<string | null>(null);
-  const [lifestyle, setLifestyle] = useState<LifestyleAnswers | null>(null);
-  const [loadingPlan, setLoadingPlan] = useState<boolean>(true);
   const [view, setView] = useState<'day' | 'month' | 'program'>('day');
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [currentStreak, setCurrentStreak] = useState<number>(0);
-  const [waterUnit, setWaterUnit] = useState<'glasses' | 'liters'>('glasses');
-  const [glassSizeMl, setGlassSizeMl] = useState<number>(250);
-  const [waterGoalMl, setWaterGoalMl] = useState<number>(2000);
-  const [dateSession, setDateSession] = useState<{ completed: boolean; bodyPart?: string; duration?: number; notes?: string } | null>(null);
   const [ringsRefreshKey, setRingsRefreshKey] = useState(0);
 
-  // 1️⃣ Get current user
+  // 1️⃣ Get the current auth user (cheap — no DB round trip)
   useEffect(() => {
-    const fetchUserAndProfile = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        setUserId(user.id);
-        
-        // Fetch the profile ID associated with this user
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('id, lifestyle, currentStreak, waterUnit, glassSizeMl, waterGoalMl')
-          .eq('userId', user.id)
-          .single();
-
-        if (profileData) {
-          setProfileId(profileData.id);
-          setCurrentStreak(profileData.currentStreak ?? 0);
-          setWaterUnit((profileData.waterUnit as 'glasses' | 'liters') ?? 'glasses');
-          setGlassSizeMl(profileData.glassSizeMl ?? 250);
-          setWaterGoalMl(profileData.waterGoalMl ?? 2000);
-          if (profileData.lifestyle) {
-            setLifestyle(profileData.lifestyle as LifestyleAnswers);
-          }
-        }
-      }
-    };
-    
-    fetchUserAndProfile();
+    supabase.auth.getUser().then(({ data: { user } }) => setUserId(user?.id ?? null));
   }, [supabase]);
-  
-  // 2️⃣ Fetch plan for a given weekday & user
-  const fetchPlan = useCallback(async () => {
-    if (!profileId) {
-      setPlan(null);
-      setLoadingPlan(false);
-      return;
+
+  // 2️⃣ Profile + lifestyle/water settings, cached across tab switches
+  const { data: profileData } = useSWR(
+    userId ? ['burnlog-session-profile', userId] : null,
+    async () => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('id, lifestyle, currentStreak, waterUnit, glassSizeMl, waterGoalMl')
+        .eq('userId', userId!)
+        .single();
+      return data;
     }
+  );
+  const profileId: string | null = profileData?.id ?? null;
+  const lifestyle = (profileData?.lifestyle as LifestyleAnswers | null) ?? null;
+  const currentStreak = profileData?.currentStreak ?? 0;
+  const waterUnit = (profileData?.waterUnit as 'glasses' | 'liters') ?? 'glasses';
+  const glassSizeMl = profileData?.glassSizeMl ?? 250;
+  const waterGoalMl = profileData?.waterGoalMl ?? 2000;
 
-    setLoadingPlan(true);
-    const { data } = await supabase
-      .from('workout_plans')
-      .select('dayOfWeek, bodyPart, repeatWeekly')
-      .eq('profileId', profileId)
-      .eq('dayOfWeek', day)
-      .single();
-
-    if (data) {
-      setPlan({
-        dayIndex: data.dayOfWeek,
-        bodyPart: data.bodyPart,
-        repeatWeekly: data.repeatWeekly
-      });
-    } else {
-      setPlan(null);
+  // 3️⃣ Plan for the selected weekday, cached per (profile, day)
+  const { data: planData, isLoading: loadingPlan, mutate: mutatePlan } = useSWR<PlanDay | null>(
+    profileId ? ['burnlog-workout-plan', profileId, day] : null,
+    async () => {
+      const { data } = await supabase
+        .from('workout_plans')
+        .select('dayOfWeek, bodyPart, repeatWeekly')
+        .eq('profileId', profileId!)
+        .eq('dayOfWeek', day)
+        .single();
+      return data ? { dayIndex: data.dayOfWeek, bodyPart: data.bodyPart, repeatWeekly: data.repeatWeekly } : null;
     }
-    setTimeout(() => {
-      setLoadingPlan(false);
-    }, 1000);
-  }, [day, profileId, supabase]);
+  );
+  const plan = planData ?? null;
 
-  // 3️⃣ Reload whenever the profile or day changes
-  useEffect(() => {
-    fetchPlan();
-  }, [fetchPlan]);
-
-  // 3️⃣-B Fetch the logged session for the selected date (non-today dates only)
-  useEffect(() => {
-    setDateSession(null);
-
-    const today = new Date();
-    if (isSameLocalDay(selectedDate, today) || !profileId) {
-      return;
-    }
-
-    let cancelled = false;
-    (async () => {
+  // 3️⃣-B The logged session for the selected date (non-today dates only)
+  const today = new Date();
+  const wantsDateSession = !!profileId && !isSameLocalDay(selectedDate, today);
+  const { data: dateSessionData } = useSWR(
+    wantsDateSession ? ['burnlog-date-session', profileId, toLocalDateString(selectedDate)] : null,
+    async () => {
       const { data } = await supabase
         .from('sessions')
         .select('sessionData')
-        .eq('profileId', profileId)
+        .eq('profileId', profileId!)
         .eq('date', toLocalDateString(selectedDate))
         .maybeSingle();
-
-      if (!cancelled) {
-        setDateSession(data ? (data.sessionData as { completed: boolean; bodyPart?: string; duration?: number; notes?: string }) : null);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [supabase, profileId, selectedDate]);
+      return data ? (data.sessionData as { completed: boolean; bodyPart?: string; duration?: number; notes?: string }) : null;
+    }
+  );
+  const dateSession = wantsDateSession ? (dateSessionData ?? null) : null;
 
   // 4️⃣ Upsert a new plan
   const handleSaved = async (newPlan: PlanDay & { repeatWeekly: boolean }) => {
@@ -158,7 +115,7 @@ export default function SessionsPage() {
       console.error('Plan save failed:', error);
       throw error;
     }
-    fetchPlan();
+    mutatePlan();
   };
 
   // 5️⃣ Session logger
@@ -166,6 +123,7 @@ export default function SessionsPage() {
     return (
       <SessionLogger
         plan={plan}
+        profileId={profileId}
         lifestyle={lifestyle}
         onEnd={() => {
           setLogging(false);
@@ -241,6 +199,7 @@ export default function SessionsPage() {
               plan={plan}
               onStart={() => setLogging(true)}
               onAdd={() => setShowAddModal(true)}
+              onPlanWizard={() => router.push('/burnlog/ai-setup?returnTo=/burnlog/session')}
             />
 
             {/* Show workout checklist when a plan exists but not yet started */}

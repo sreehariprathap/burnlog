@@ -8,7 +8,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Sparkles, GlassWater, Flame, Utensils } from 'lucide-react';
+import { Loader2, GlassWater, Flame, Utensils } from 'lucide-react';
 import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AppConfigShell } from '@/components/AppConfigShell';
@@ -23,7 +23,6 @@ export default function BurnLogConfigPage() {
 
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [disablingAi, setDisablingAi] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -42,16 +41,17 @@ export default function BurnLogConfigPage() {
     })();
   }, [supabase, router]);
 
-  const handleDisableAi = async () => {
-    setDisablingAi(true);
-    const { error } = await supabase.from('profiles').update({ aiEnabled: false }).eq('id', profile.id);
+  const handleHealthMetricChange = async (field: 'age' | 'height' | 'weight', value: number) => {
+    if (!profile) return;
+    const min = field === 'age' ? 1 : field === 'height' ? 50 : 20;
+    const max = field === 'age' ? 120 : field === 'height' ? 250 : 400;
+    const safeValue = Math.min(max, Math.max(min, value));
+    const { error } = await supabase.from('profiles').update({ [field]: safeValue }).eq('id', profile.id);
     if (!error) {
-      setProfile((prev: any) => ({ ...prev, aiEnabled: false }));
-      toast({ description: 'AI insights disabled' });
+      setProfile((prev: any) => ({ ...prev, [field]: safeValue }));
     } else {
-      toast({ title: 'Could not disable AI insights', description: error.message, variant: 'destructive' });
+      toast({ title: 'Could not save health metric', description: error.message, variant: 'destructive' });
     }
-    setDisablingAi(false);
   };
 
   const handleWaterSettingChange = async (field: 'waterUnit' | 'glassSizeMl' | 'waterGoalMl', value: string | number) => {
@@ -130,7 +130,33 @@ export default function BurnLogConfigPage() {
     >
       <Card>
         <CardHeader><CardTitle>Health Metrics</CardTitle></CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-3 gap-3">
+            <div>
+              <Label htmlFor="age" className="text-xs font-normal text-muted-foreground">Age</Label>
+              <input
+                id="age" type="number" min={1} max={120} defaultValue={profile.age}
+                onBlur={(e) => handleHealthMetricChange('age', Number(e.target.value))}
+                className="w-full rounded-md border bg-background px-2 py-1 text-right mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="height" className="text-xs font-normal text-muted-foreground">Height (cm)</Label>
+              <input
+                id="height" type="number" min={50} max={250} defaultValue={profile.height}
+                onBlur={(e) => handleHealthMetricChange('height', Number(e.target.value))}
+                className="w-full rounded-md border bg-background px-2 py-1 text-right mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="weight" className="text-xs font-normal text-muted-foreground">Weight (kg)</Label>
+              <input
+                id="weight" type="number" min={20} max={400} defaultValue={profile.weight}
+                onBlur={(e) => handleHealthMetricChange('weight', Number(e.target.value))}
+                className="w-full rounded-md border bg-background px-2 py-1 text-right mt-1"
+              />
+            </div>
+          </div>
           <Accordion type="single" collapsible>
             <AccordionItem value="bmi">
               <AccordionTrigger>BMI: {bmi} ({bmiCategory})</AccordionTrigger>
@@ -177,31 +203,6 @@ export default function BurnLogConfigPage() {
             <span>Current streak: <strong>{profile.currentStreak}</strong> day{profile.currentStreak === 1 ? '' : 's'}</span>
             <span>Longest: <strong>{profile.longestStreak}</strong> day{profile.longestStreak === 1 ? '' : 's'}</span>
           </div>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="w-5 h-5 text-warning" />
-            AI Insights
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            {profile.aiEnabled
-              ? 'AI-powered suggestions are enabled for your account.'
-              : 'Enable AI to get a personalized workout plan based on your lifestyle.'}
-          </p>
-          {profile.aiEnabled ? (
-            <Button variant="outline" onClick={handleDisableAi} disabled={disablingAi}>
-              {disablingAi ? 'Disabling...' : 'Disable AI Insights'}
-            </Button>
-          ) : (
-            <Button onClick={() => router.push('/burnlog/ai-setup?returnTo=/burnlog/dashboard/config')}>
-              Enable AI Insights
-            </Button>
-          )}
         </CardContent>
       </Card>
 

@@ -14,9 +14,10 @@ type PlanCardProps = {
   plan: PlanDay | null;
   onStart: () => void;
   onAdd: () => void;
+  onPlanWizard?: () => void;
 };
 
-export function PlanCard({ plan, onStart, onAdd }: PlanCardProps) {
+export function PlanCard({ plan, onStart, onAdd, onPlanWizard }: PlanCardProps) {
   return (
     <Card>
       <CardHeader>
@@ -25,13 +26,16 @@ export function PlanCard({ plan, onStart, onAdd }: PlanCardProps) {
           {plan?.repeatWeekly && <Repeat className="h-4 w-4 text-muted-foreground" />}
         </CardTitle>
       </CardHeader>
-      <CardContent className="flex justify-center">
+      <CardContent className="flex flex-col items-center gap-2">
         {plan ? (
           <Button onClick={onStart}>Start Session</Button>
         ) : (
-          <Button variant="outline" onClick={onAdd}>
-            + Add Workout
-          </Button>
+          <>
+            {onPlanWizard && <Button onClick={onPlanWizard}>Plan My Workout</Button>}
+            <Button variant="outline" onClick={onAdd}>
+              + Add Workout Manually
+            </Button>
+          </>
         )}
       </CardContent>
     </Card>

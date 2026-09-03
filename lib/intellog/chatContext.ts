@@ -60,7 +60,7 @@ export async function assembleProfileContext(
   windowStart.setDate(windowStart.getDate() - windowDays);
 
   const [profileRes, snapshotsRes] = await Promise.all([
-    supabase.from('profiles').select('age').eq('id', profileId).single(),
+    supabase.from('profiles').select('age, country').eq('id', profileId).single(),
     supabase
       .from('intel_snapshots')
       .select('app, date, metrics')
@@ -78,8 +78,9 @@ export async function assembleProfileContext(
     .limit(1)
     .maybeSingle();
 
-  const age = (profileRes.data as { age: number } | null)?.age ?? 30;
-  const cohortKey = buildCohortKey((goalRow as { goalType: string } | null)?.goalType ?? null, age);
+  const profileRow = profileRes.data as { age: number; country: string | null } | null;
+  const age = profileRow?.age ?? 30;
+  const cohortKey = buildCohortKey((goalRow as { goalType: string } | null)?.goalType ?? null, age, profileRow?.country);
 
   const { data: cohortStats } = await supabase
     .from('intel_cohort_stats')

@@ -10,8 +10,8 @@ export function ageBucket(age: number): string {
   return '55+';
 }
 
-export function buildCohortKey(goalType: string | null, age: number): string {
-  return `goal:${goalType ?? 'general'}|age:${ageBucket(age)}`;
+export function buildCohortKey(goalType: string | null, age: number, country?: string | null): string {
+  return `goal:${goalType ?? 'general'}|age:${ageBucket(age)}|country:${country ?? 'any'}`;
 }
 
 export function computePercentiles(values: number[]): { p25: number; p50: number; p75: number } | null {

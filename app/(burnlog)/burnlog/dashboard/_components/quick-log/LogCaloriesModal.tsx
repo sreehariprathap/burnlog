@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { createClient } from '@/lib/supabase/client';
 import { Loader2, Camera } from 'lucide-react';
@@ -36,6 +36,17 @@ type LogCaloriesModalProps = {
   onSaved: () => void;
 };
 
+type FoodFavorite = {
+  id: string;
+  name: string;
+  mealType: string | null;
+  calories: number;
+  protein: number | null;
+  carbs: number | null;
+  fat: number | null;
+  useCount: number;
+};
+
 export function LogCaloriesModal({ profileId, onClose, onSaved }: LogCaloriesModalProps) {
   const supabase = createClient();
   const { toast } = useToast();
@@ -52,6 +63,32 @@ export function LogCaloriesModal({ profileId, onClose, onSaved }: LogCaloriesMod
   const [estimating, setEstimating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [favorites, setFavorites] = useState<FoodFavorite[]>([]);
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from('food_favorites')
+        .select('id,name,mealType,calories,protein,carbs,fat,useCount')
+        .eq('profileId', profileId)
+        .order('useCount', { ascending: false })
+        .order('lastUsedAt', { ascending: false })
+        .limit(8);
+      setFavorites(data ?? []);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profileId]);
+
+  const handleUseFavorite = (favorite: FoodFavorite) => {
+    setFoodName(favorite.name);
+    setCalories(String(favorite.calories));
+    setProtein(favorite.protein != null ? String(favorite.protein) : '');
+    setCarbs(favorite.carbs != null ? String(favorite.carbs) : '');
+    setFat(favorite.fat != null ? String(favorite.fat) : '');
+    setItemsNote('');
+    if (favorite.mealType) setMealType(favorite.mealType);
+    setTab('manual');
+  };
 
   const handleScanResult = (result: {
     foodName: string;
@@ -132,6 +169,31 @@ export function LogCaloriesModal({ profileId, onClose, onSaved }: LogCaloriesMod
       ]);
 
       if (insertError) throw insertError;
+
+      const trimmedName = foodName.trim();
+      const { data: existingFavorite } = await supabase
+        .from('food_favorites')
+        .select('id,useCount')
+        .eq('profileId', profileId)
+        .eq('name', trimmedName)
+        .maybeSingle();
+      const favoritePayload = {
+        mealType,
+        calories: Number(calories),
+        protein: protein ? Number(protein) : null,
+        carbs: carbs ? Number(carbs) : null,
+        fat: fat ? Number(fat) : null,
+        lastUsedAt: new Date().toISOString(),
+      };
+      if (existingFavorite) {
+        await supabase
+          .from('food_favorites')
+          .update({ ...favoritePayload, useCount: existingFavorite.useCount + 1 })
+          .eq('id', existingFavorite.id);
+      } else {
+        await supabase.from('food_favorites').insert([{ profileId, name: trimmedName, ...favoritePayload }]);
+      }
+
       toast({ title: 'Calories logged', description: `${foodName} — ${calories} kcal saved.` });
       onSaved();
     } catch (err) {
@@ -154,6 +216,23 @@ export function LogCaloriesModal({ profileId, onClose, onSaved }: LogCaloriesMod
           <DrawerTitle>Log Calories</DrawerTitle>
         </DrawerHeader>
         <div className="px-4 pb-6 space-y-4 overflow-y-auto">
+          {favorites.length > 0 && (
+            <div className="space-y-1">
+              <Label className="text-xs text-muted-foreground">Quick add</Label>
+              <div className="flex flex-wrap gap-2">
+                {favorites.map((favorite) => (
+                  <button
+                    key={favorite.id}
+                    type="button"
+                    onClick={() => handleUseFavorite(favorite)}
+                    className="text-sm px-3 py-1.5 rounded-full border border-border hover:bg-muted transition-colors"
+                  >
+                    {favorite.name} · {favorite.calories} kcal
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
           <Tabs value={tab} onValueChange={(v) => setTab(v as 'manual' | 'describe' | 'photo')}>
             <TabsList className="grid grid-cols-3">
               <TabsTrigger value="manual">Manual</TabsTrigger>

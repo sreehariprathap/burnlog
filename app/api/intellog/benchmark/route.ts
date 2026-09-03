@@ -24,7 +24,7 @@ export async function GET(request: Request) {
     const admin = createServiceRoleClient();
     const { data: profile } = await admin
       .from('profiles')
-      .select('id, age')
+      .select('id, age, country')
       .eq('userId', user.id)
       .single();
     if (!profile) {
@@ -36,7 +36,7 @@ export async function GET(request: Request) {
       .select('goalType')
       .eq('profileId', profile.id)
       .maybeSingle();
-    const cohortKey = buildCohortKey(goal?.goalType ?? null, profile.age);
+    const cohortKey = buildCohortKey(goal?.goalType ?? null, profile.age, profile.country);
 
     const windowStart = new Date();
     windowStart.setDate(windowStart.getDate() - WINDOW_DAYS);

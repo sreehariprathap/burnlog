@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { PlanDay } from './PlanCard';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Trophy } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
@@ -37,6 +38,9 @@ export function CompletionTracker({ plan, exerciseLog, onComplete }: CompletionT
   const [completed, setCompleted] = useState<boolean>(true);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [achievement, setAchievement] = useState<{ stats: string[]; celebrate: boolean } | null>(null);
+  const hasExercises = !!exerciseLog && Object.keys(exerciseLog).length > 0;
+  const [saveAsTemplate, setSaveAsTemplate] = useState(hasExercises);
+  const [templateName, setTemplateName] = useState(`${plan.bodyPart} workout`);
 
   const handleSubmit = async () => {
     try {
@@ -95,6 +99,29 @@ export function CompletionTracker({ plan, exerciseLog, onComplete }: CompletionT
           variant: "destructive"
         });
         return;
+      }
+
+      if (saveAsTemplate && hasExercises && templateName.trim()) {
+        const trimmedName = templateName.trim();
+        const { data: existingTemplate } = await supabase
+          .from('workout_templates')
+          .select('id,useCount')
+          .eq('profileId', profileData.id)
+          .eq('name', trimmedName)
+          .maybeSingle();
+        const templatePayload = {
+          bodyPart: plan.bodyPart,
+          exercises: exerciseLog,
+          lastUsedAt: new Date().toISOString(),
+        };
+        if (existingTemplate) {
+          await supabase
+            .from('workout_templates')
+            .update({ ...templatePayload, useCount: existingTemplate.useCount + 1 })
+            .eq('id', existingTemplate.id);
+        } else {
+          await supabase.from('workout_templates').insert([{ profileId: profileData.id, name: trimmedName, ...templatePayload }]);
+        }
       }
 
       const caloriesBurned = exerciseLog?.caloriesBurned;
@@ -238,6 +265,28 @@ export function CompletionTracker({ plan, exerciseLog, onComplete }: CompletionT
             </div>
           </div>
           
+          {hasExercises && (
+            <div className="space-y-2 rounded-md border p-3">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="saveAsTemplate"
+                  checked={saveAsTemplate}
+                  onCheckedChange={(checked) => setSaveAsTemplate(!!checked)}
+                />
+                <Label htmlFor="saveAsTemplate" className="font-medium">
+                  Save as a reusable workout
+                </Label>
+              </div>
+              {saveAsTemplate && (
+                <Input
+                  value={templateName}
+                  onChange={(e) => setTemplateName(e.target.value)}
+                  placeholder="Name this workout"
+                />
+              )}
+            </div>
+          )}
+
           <div>
             <Label htmlFor="notes" className="block mb-2">Notes (optional)</Label>
             <textarea

@@ -35,6 +35,7 @@ export function BottomNav() {
           <Link
             key={href}
             href={href}
+            prefetch
             className={cn(
               'relative flex flex-col items-center rounded-full px-2 py-2 text-xs transition-colors',
               isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'

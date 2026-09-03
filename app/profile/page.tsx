@@ -9,7 +9,7 @@ import { useRouter } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
-import { Loader2, Info, AlertTriangle } from 'lucide-react';
+import { Loader2, Info, AlertTriangle, Sparkles } from 'lucide-react';
 import { ProfileAvatar } from './_components/ProfileAvatar';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { TopBar } from '@/components/TopBar';
@@ -40,6 +40,7 @@ export default function ProfilePage() {
   const [usernameStatus, setUsernameStatus] = useState<'idle' | 'checking' | 'available' | 'taken' | 'invalid'>('idle');
   const [savingUsername, setSavingUsername] = useState(false);
   const [usernameSaveError, setUsernameSaveError] = useState<string | null>(null);
+  const [disablingAi, setDisablingAi] = useState(false);
 
   useEffect(() => {
     setDefaultAppState(getDefaultApp());
@@ -94,7 +95,7 @@ export default function ProfilePage() {
         const userId = session.user.id;
         const { data, error: profErr } = await supabase
           .from('profiles')
-          .select('id,firstName,lastName,age,height,weight,activityLevel,isAdmin,avatarUrl,username,enabledApps')
+          .select('id,firstName,lastName,age,height,weight,activityLevel,isAdmin,avatarUrl,username,enabledApps,aiEnabled')
           .eq('userId', userId)
           .single();
 
@@ -171,6 +172,19 @@ export default function ProfilePage() {
       toast({ description: 'Username saved' });
     }
     setSavingUsername(false);
+  };
+
+  const handleDisableAi = async () => {
+    if (!profile) return;
+    setDisablingAi(true);
+    const { error } = await supabase.from('profiles').update({ aiEnabled: false }).eq('id', profile.id);
+    if (!error) {
+      setProfile((prev: any) => ({ ...prev, aiEnabled: false }));
+      toast({ description: 'AI insights disabled' });
+    } else {
+      toast({ title: 'Could not disable AI insights', description: error.message, variant: 'destructive' });
+    }
+    setDisablingAi(false);
   };
 
   const handleLogout = async () => {
@@ -355,6 +369,32 @@ export default function ProfilePage() {
                       </div>
                     );
                   })()}
+                </CardContent>
+              </Card>
+
+              {/* AI Insights */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-warning" />
+                    AI Insights
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <p className="text-sm text-muted-foreground">
+                    {profile.aiEnabled
+                      ? 'AI-powered suggestions are enabled across your apps.'
+                      : 'Enable AI to get personalized suggestions based on your activity.'}
+                  </p>
+                  {profile.aiEnabled ? (
+                    <Button variant="outline" onClick={handleDisableAi} disabled={disablingAi}>
+                      {disablingAi ? 'Disabling...' : 'Disable AI Insights'}
+                    </Button>
+                  ) : (
+                    <Button onClick={() => router.push('/burnlog/ai-setup?returnTo=/profile')}>
+                      Enable AI Insights
+                    </Button>
+                  )}
                 </CardContent>
               </Card>
 
