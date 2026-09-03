@@ -11,11 +11,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import useSWR from 'swr';
 import { computeFreeWindows, type FreeWindow } from '@/lib/travellog/freeTime';
 import { computeAverageMonthlySurplus } from '@/lib/travellog/affordability';
 import { fetchUpcomingHolidays, type Holiday } from '@/lib/travellog/holidays';
 import type { TripSuggestion } from '@/lib/travellog/suggestions';
 import { WeeklyTripStack, type TripCardItem } from '@/components/travellog/WeeklyTripStack';
+import { weeklySuggestionsQuery } from '@/lib/travellog/queries';
 
 const HORIZON_DAYS = 60;
 
@@ -39,7 +41,11 @@ export default function TravelLogSuggestionsPage() {
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [suggestions, setSuggestions] = useState<TripSuggestion[] | null>(null);
   const [generating, setGenerating] = useState(false);
-  const [weeklySuggestions, setWeeklySuggestions] = useState<TripCardItem[]>([]);
+
+  const { data: weeklySuggestions = [] } = useSWR<TripCardItem[]>(
+    profile ? weeklySuggestionsQuery(profile.id).key : null,
+    profile ? weeklySuggestionsQuery(profile.id).fetcher : null
+  );
 
   useEffect(() => {
     if (!profile || !profile.country) {
@@ -76,27 +82,6 @@ export default function TravelLogSuggestionsPage() {
       setHolidays(holidaysResult);
       setSurplus(surplusResult);
       setSignalsLoading(false);
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [profile, supabase]);
-
-  useEffect(() => {
-    if (!profile) return;
-    let cancelled = false;
-
-    (async () => {
-      const { data } = await supabase
-        .from('travellog_weekly_suggestions')
-        .select('id, destination, country, startDate, endDate, windowLabel, reason')
-        .eq('profileId', profile.id)
-        .order('createdAt', { ascending: true });
-
-      if (!cancelled) {
-        setWeeklySuggestions((data as TripCardItem[]) || []);
-      }
     })();
 
     return () => {
