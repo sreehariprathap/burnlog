@@ -64,6 +64,8 @@ begin
     'meal_plan_checkins',
     'grocery_lists',
     'scheduled_reminders',
+    'food_favorites',
+    'workout_templates',
     'task_goals',
     'tasklog_tasks',
     'tasklog_ideas',

@@ -60,6 +60,8 @@ model Profile {
   CalorieBurn    CalorieBurn[]
   FoodIntake     FoodIntake[]
   StaminaSession     StaminaSession[]
+  FoodFavorite       FoodFavorite[]
+  WorkoutTemplate    WorkoutTemplate[]
   RecurringItem      RecurringItem[]
   FinanceTransaction FinanceTransaction[]
   paymentsAsPayer Payment[] @relation("PaymentPayer")
@@ -223,6 +225,44 @@ model FoodIntake {
   notes     String?
 
   @@map("food_intakes")
+}
+
+/// a food/drink a user logs often (e.g. "Coffee") — saved once, then reused
+/// with a single tap instead of re-entering macros every time
+model FoodFavorite {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile    Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId  String   @db.Uuid
+  name       String
+  mealType   String? // last-used meal type, offered as the default next time
+  calories   Int
+  protein    Float?
+  carbs      Float?
+  fat        Float?
+  useCount   Int      @default(1)
+  lastUsedAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  @@unique([profileId, name])
+  @@map("food_favorites")
+}
+
+/// a named, reusable set of exercises a user repeats often — saved from a
+/// completed session, then reused to prefill SessionLogger without
+/// re-selecting exercises from scratch
+model WorkoutTemplate {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile    Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId  String   @db.Uuid
+  name       String
+  bodyPart   String
+  exercises  Json // exerciseLog shape produced by the body-part session logger
+  useCount   Int      @default(1)
+  lastUsedAt DateTime @default(now())
+  createdAt  DateTime @default(now())
+
+  @@unique([profileId, name])
+  @@map("workout_templates")
 }
 
 /// web push subscriptions
@@ -536,6 +576,18 @@ model Asset {
   category   String // 'bank' | 'investment' | 'cash' | 'debt' | 'other'
   createdAt  DateTime @default(now())
   archivedAt DateTime?
+
+  // principal contributed so far — lets the UI show unrealized income
+  // (latest balance - investedValue) instead of just a raw balance
+  investedValue      Float?
+  // assumed/target annual growth rate (%), a manual input for projections —
+  // not derived from balance history
+  expectedGrowthRate Float?
+  // recurring "Systematic Investment Plan" contribution, purely descriptive
+  // (not wired into RecurringItem automation)
+  sipEnabled         Boolean  @default(false)
+  sipAmount          Float?
+  sipFrequency       String? // 'weekly' | 'biweekly' | 'monthly' | 'yearly'
 
   balanceEntries AssetBalanceEntry[]
 
@@ -892,6 +944,9 @@ model Task {
   cost            Float?
   costCategory    String?
   costLoggedAt    DateTime?
+  // auto-populated from the originating idea/goal's title when a task is
+  // created via a plan breakdown, so its origin stays visible on the board
+  tags            String[] @default([])
 
   @@map("tasklog_tasks")
 }
