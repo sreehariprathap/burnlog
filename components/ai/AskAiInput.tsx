@@ -153,6 +153,7 @@ function Dock({ label }: { label: string }) {
             ) : (
               <motion.div
                 animate={{ opacity: 1 }}
+                className="flex h-8 w-8 shrink-0 items-center justify-center overflow-visible"
                 exit={shouldReduceMotion ? { opacity: 0, transition: { duration: 0 } } : { opacity: 0 }}
                 initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
                 key="siri-orb"
@@ -258,7 +259,7 @@ function Panel({
         {open ? (
           <motion.div
             animate={{ opacity: 1 }}
-            className="absolute top-2 left-3"
+            className="absolute top-4 left-5 flex h-8 w-8 items-center justify-center overflow-visible"
             exit={shouldReduceMotion ? { opacity: 0, transition: { duration: 0 } } : { opacity: 0 }}
             initial={shouldReduceMotion ? { opacity: 1 } : { opacity: 0 }}
             transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.2 }}

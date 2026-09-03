@@ -9,6 +9,7 @@ import PWAInstall from "@/components/PWAInstall";
 import PWAStatus from "@/components/PWAStatus";
 import PWAUpdateNotification from "@/components/PWAUpdateNotification";
 import SplashScreen from "@/components/SplashScreen";
+import { KeyboardFocusScroll } from "@/components/KeyboardFocusScroll";
 import { AppSwitchProvider } from "@/lib/appSwitchContext";
 import { PaymentProvider } from "@/lib/moneylog/paymentContext";
 import { SwitchLoader } from "@/components/SwitchLoader";
@@ -68,6 +69,7 @@ export default function RootLayoutClient({
             <AppSwitchProvider>
               <PaymentProvider>
                 <SplashScreen />
+                <KeyboardFocusScroll />
                 <OfflineBanner />
                 <TestModeBanner />
                 <ErrorBoundary>{children}</ErrorBoundary>

@@ -3,11 +3,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
-
-const RING_COLORS = [
-  "var(--primary)", "var(--chart-2)", "var(--success)",
-  "var(--chart-3)", "var(--warning)", "var(--chart-4)",
-];
+import SiriOrb from "@/components/smoothui/siri-orb";
 
 const DEFAULT_TASKS = [
   "Reviewing your profile",
@@ -40,33 +36,11 @@ export function AiLoading({ tasks = DEFAULT_TASKS }: { tasks?: string[] }) {
     return () => clearInterval(interval);
   }, [paused, tasks.length]);
 
-  const progress = ((visibleIndex + 1) / tasks.length) * 100;
-
   return (
     <div ref={containerRef} className="flex flex-col items-center gap-4 py-8">
-      <div className="relative h-24 w-24">
-        <svg viewBox="0 0 100 100" className="h-full w-full">
-          {RING_COLORS.map((color, i) => {
-            const r = 46 - i * 6;
-            const circumference = 2 * Math.PI * r;
-            const offset = circumference * (1 - progress / 100);
-            return (
-              <circle
-                key={color}
-                cx="50"
-                cy="50"
-                r={r}
-                fill="none"
-                strokeWidth="2.5"
-                strokeDasharray={circumference}
-                strokeDashoffset={offset}
-                strokeLinecap="round"
-                opacity={0.85}
-                style={{ stroke: color, transition: "stroke-dashoffset 0.6s ease" }}
-              />
-            );
-          })}
-        </svg>
+      {/* Padded so the orb's blurred glow has room to fade instead of hitting a hard edge. */}
+      <div className="flex h-32 w-32 items-center justify-center overflow-visible">
+        <SiriOrb state="thinking" size="96px" />
       </div>
 
       <div className="w-full max-w-xs overflow-hidden rounded-md border bg-muted/30 font-mono text-xs">

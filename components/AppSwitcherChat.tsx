@@ -146,7 +146,12 @@ export function AppSwitcherChat({ open }: AppSwitcherChatProps) {
             send(input);
           }}
         >
-          <button type="button" onClick={() => setExpanded((v) => !v)} aria-label="Toggle chat">
+          <button
+            type="button"
+            onClick={() => setExpanded((v) => !v)}
+            aria-label="Toggle chat"
+            className="flex h-8 w-8 shrink-0 items-center justify-center overflow-visible"
+          >
             <SiriOrb state={PHASE_TO_ORB_STATE[phase]} size="24px" />
           </button>
           <input

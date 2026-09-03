@@ -95,8 +95,8 @@ export default function IntelLogPage() {
       <TopBar title="IntelLog" />
       <div className="flex flex-col gap-4 px-4 py-4">
         {!data ? (
-          <div className="flex h-40 w-full items-center justify-center">
-            <SiriOrb state="thinking" size="64px" />
+          <div className="flex h-40 w-full items-center justify-center overflow-visible">
+            <SiriOrb state="thinking" size="80px" />
           </div>
         ) : (
           <>
