@@ -2,6 +2,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import useSWR from 'swr';
 import { Loader2, Play } from 'lucide-react';
 import { ReelViewer, type Reel } from './ReelViewer';
@@ -46,14 +47,14 @@ export function ReelsGrid() {
                     stored thumbnail, and fall back to a play-icon-only tile
                     (no broken image) until a thumbnail exists. */}
                 {r.mediaThumbnailUrl && (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={r.mediaThumbnailUrl} alt="" className="h-full w-full object-cover" />
+                  <Image src={r.mediaThumbnailUrl} alt="" fill sizes="(max-width: 640px) 33vw, 200px" className="object-cover" />
                 )}
                 <Play className="absolute right-1 top-1 size-4 text-white drop-shadow" fill="white" />
               </>
             ) : (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={r.mediaThumbnailUrl ?? r.mediaUrl ?? undefined} alt="" className="h-full w-full object-cover" />
+              (r.mediaThumbnailUrl ?? r.mediaUrl) && (
+                <Image src={r.mediaThumbnailUrl ?? r.mediaUrl!} alt="" fill sizes="(max-width: 640px) 33vw, 200px" className="object-cover" />
+              )
             )}
           </button>
         ))}

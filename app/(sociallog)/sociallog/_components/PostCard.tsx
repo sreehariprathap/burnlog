@@ -2,6 +2,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -113,12 +114,15 @@ export function PostCard({ post, currentProfileId }: { post: FeedPost; currentPr
         {post.body && <p className="mt-3 whitespace-pre-wrap text-sm">{post.body}</p>}
 
         {post.mediaUrl && post.mediaType === 'image' && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={post.mediaUrl}
-            alt={post.body ? post.body.slice(0, 120) : `Photo posted by @${post.author.username}`}
-            className="mt-3 max-h-96 w-full rounded-lg object-cover"
-          />
+          <div className="relative mt-3 aspect-[4/3] w-full overflow-hidden rounded-lg">
+            <Image
+              src={post.mediaUrl}
+              alt={post.body ? post.body.slice(0, 120) : `Photo posted by @${post.author.username}`}
+              fill
+              sizes="(max-width: 640px) 100vw, 600px"
+              className="object-cover"
+            />
+          </div>
         )}
         {post.mediaUrl && post.mediaType === 'video' && (
           <video src={post.mediaUrl} controls className="mt-3 max-h-96 w-full rounded-lg" />

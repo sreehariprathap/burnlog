@@ -2,6 +2,7 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import Image from 'next/image';
 import { X, ChevronLeft, ChevronRight } from 'lucide-react';
 
 export type Reel = {
@@ -45,14 +46,17 @@ export function ReelViewer({ reels, startIndex, onClose }: { reels: Reel[]; star
           <ChevronRight className="size-8" />
         </button>
       )}
-      <div className="max-h-[80vh] max-w-[90vw]">
-        {reel.mediaType === 'video' ? (
+      {reel.mediaType === 'video' ? (
+        <div className="max-h-[80vh] max-w-[90vw]">
           <video src={reel.mediaUrl ?? undefined} controls autoPlay className="max-h-[80vh] max-w-[90vw] rounded-lg" />
-        ) : (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={reel.mediaUrl ?? undefined} alt="" className="max-h-[80vh] max-w-[90vw] rounded-lg object-contain" />
-        )}
-      </div>
+        </div>
+      ) : (
+        reel.mediaUrl && (
+          <div className="relative h-[80vh] w-[90vw]">
+            <Image src={reel.mediaUrl} alt="" fill sizes="90vw" priority className="rounded-lg object-contain" />
+          </div>
+        )
+      )}
       <div className="mt-3 text-center text-white">
         <p className="text-sm font-semibold">@{reel.author.username}</p>
         {reel.body && <p className="text-xs text-white/80">{reel.body}</p>}
