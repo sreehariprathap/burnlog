@@ -3,6 +3,7 @@
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
 import { AppConfigShell } from '@/components/AppConfigShell';
 import { TravelLogBottomNav } from '@/components/TravelLogBottomNav';
 import { createClient } from '@/lib/supabase/client';
@@ -26,6 +27,17 @@ export default function TravelLogConfigPage() {
     toast({ description: 'Country updated' });
   };
 
+  const handleWeeklyToggle = async (checked: boolean) => {
+    if (!profile) return;
+    const { error } = await supabase.from('profiles').update({ weeklyTripSuggestionsEnabled: checked }).eq('id', profile.id);
+    if (error) {
+      toast({ title: 'Could not save setting', description: error.message, variant: 'destructive' });
+      return;
+    }
+    refreshCurrentProfile();
+    toast({ description: checked ? 'Weekly trip suggestions enabled' : 'Weekly trip suggestions disabled' });
+  };
+
   return (
     <AppConfigShell
       appName="TravelLog"
@@ -45,6 +57,17 @@ export default function TravelLogConfigPage() {
               ))}
             </SelectContent>
           </Select>
+          <div className="flex items-center justify-between pt-4">
+            <div>
+              <Label htmlFor="weekly-suggestions" className="font-medium">Weekly trip suggestions</Label>
+              <p className="text-xs text-muted-foreground">Get a new set of trip ideas every week based on your travel history and free time.</p>
+            </div>
+            <Switch
+              id="weekly-suggestions"
+              checked={(profile?.weeklyTripSuggestionsEnabled as boolean) ?? true}
+              onCheckedChange={handleWeeklyToggle}
+            />
+          </div>
         </CardContent>
       </Card>
     </AppConfigShell>
