@@ -14,18 +14,13 @@ import { useToast } from '@/components/ui/use-toast';
 import { ListingForm, type ListingFormValues } from '../_components/ListingForm';
 import { ListingCard, type ListingSummary } from '../_components/ListingCard';
 import type { Category } from '../_components/CategoryChips';
-
-async function fetcher(url: string) {
-  const res = await apiFetch(url);
-  if (!res.ok) throw new Error('Failed to load');
-  return res.json();
-}
+import { categoriesQuery, myListingsQuery } from '@/lib/shoppinglog/queries';
 
 export default function SellPage() {
   const router = useRouter();
   const { toast } = useToast();
-  const { data: categoryData } = useSWR<{ categories: Category[] }>('/api/shoppinglog/categories', fetcher);
-  const { data: myListingsData, mutate } = useSWR<{ listings: ListingSummary[] }>('/api/shoppinglog/listings?mine=1', fetcher);
+  const { data: categoryData } = useSWR<{ categories: Category[] }>(categoriesQuery().key, categoriesQuery().fetcher);
+  const { data: myListingsData, mutate } = useSWR<{ listings: ListingSummary[] }>(myListingsQuery().key, myListingsQuery().fetcher);
 
   const handleCreate = async (values: ListingFormValues) => {
     const res = await apiFetch('/api/shoppinglog/listings', {
