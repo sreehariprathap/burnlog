@@ -11,26 +11,13 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Loader2, PenSquare, RefreshCw } from 'lucide-react';
 import { NewMessageDialog } from './_components/NewMessageDialog';
-import { apiFetch } from '@/lib/apiFetch';
 import { formatRelative } from '@/lib/format';
 import { ChatEmptyIllustration } from '@/components/sociallog/ChatEmptyIllustration';
-
-type Thread = {
-  id: string;
-  otherParticipant: { id: string; username: string; firstName: string; avatarUrl: string | null };
-  lastMessageAt: string;
-  lastMessageBody: string | null;
-};
-
-async function fetcher(url: string) {
-  const res = await apiFetch(url);
-  if (!res.ok) throw new Error('Failed to load threads');
-  return res.json();
-}
+import { threadsQuery, type Thread } from '@/lib/sociallog/queries';
 
 export default function SocialLogMessagesPage() {
   const router = useRouter();
-  const { data, isLoading, mutate } = useSWR<{ threads: Thread[] }>('/api/sociallog/messages/threads', fetcher);
+  const { data, isLoading, mutate } = useSWR<{ threads: Thread[] }>(threadsQuery().key, threadsQuery().fetcher);
   const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
