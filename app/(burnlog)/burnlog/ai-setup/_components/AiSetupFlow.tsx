@@ -84,13 +84,14 @@ export function AiSetupFlow() {
     })();
   }, [supabase, router]);
 
-  const requestPlan = async (answers: LifestyleAnswers) => {
+  /** Returns whether generation succeeded, so callers can decide how to react to a failure. */
+  const requestPlan = async (answers: LifestyleAnswers, customInstructions?: string): Promise<boolean> => {
     setErrorMessage(null);
     try {
       const response = await fetch('/api/ai/workout-plan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(answers),
+        body: JSON.stringify(customInstructions ? { ...answers, customInstructions } : answers),
       });
       const body = await response.json();
       if (!response.ok) {
@@ -98,9 +99,11 @@ export function AiSetupFlow() {
       }
       setPlan(body.plan as WorkoutPlanEntry[]);
       setStep('preview');
+      return true;
     } catch (err) {
       setErrorMessage(err instanceof Error ? err.message : 'Failed to generate a plan');
       setStep('error');
+      return false;
     }
   };
 
@@ -192,6 +195,14 @@ export function AiSetupFlow() {
     setRegenerating(true);
     await requestPlan(lifestyle);
     setRegenerating(false);
+  };
+
+  const handleAskAi = async (customInstructions: string) => {
+    if (!lifestyle) return;
+    setRegenerating(true);
+    const ok = await requestPlan(lifestyle, customInstructions);
+    setRegenerating(false);
+    if (!ok) throw new Error('Failed to generate a plan');
   };
 
   const handleRetry = async () => {
@@ -336,6 +347,7 @@ export function AiSetupFlow() {
           onChange={setPlan}
           onSave={handleSave}
           onRegenerate={handleRegenerate}
+          onAskAi={handleAskAi}
           onCancel={handleSkip}
         />
       )}

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { KineticText } from '@/components/ui/kinetic-text';
+import SiriOrb from '@/components/smoothui/siri-orb';
 import { DottedGlowBackground } from '@/components/ui/dotted-glow-background';
 import { BackgroundPaths } from '@/components/ui/background-paths';
 import { AuroraLogbookMark } from '@/components/ui/aurora-logbook-mark';
@@ -197,6 +198,8 @@ export default function SplashScreen() {
               className="w-[min(80vw,420px)] select-none"
               indigo={isDark ? content.darkTextColor : content.lightTextColor}
             />
+          ) : appId === 'intellog' ? (
+            <SiriOrb state="idle" size="160px" />
           ) : (
             <KineticText
               text={content.text}
