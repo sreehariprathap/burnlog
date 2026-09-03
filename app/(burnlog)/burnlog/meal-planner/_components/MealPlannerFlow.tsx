@@ -4,6 +4,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { Loader2, PartyPopper } from 'lucide-react';
 import { StoreStep } from './StoreStep';
 import { HouseholdStep } from './HouseholdStep';
@@ -25,6 +26,7 @@ export function MealPlannerFlow() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = createClient();
+  const { profile, loading: profileLoading } = useCurrentProfile();
 
   const [step, setStep] = useState<WizardStep>('loading');
   const [profileId, setProfileId] = useState<string | null>(null);
@@ -38,46 +40,37 @@ export function MealPlannerFlow() {
   const [estimatedBudget, setEstimatedBudget] = useState('');
   const { toast } = useToast();
 
+  // Auth/profile-existence redirects already happen in middleware.ts for
+  // every non-public route, including this one — this effect only seeds
+  // the wizard's initial state once the (already-cached, likely already
+  // warm) profile arrives. Guarded on `step === 'loading'` so a background
+  // SWR revalidation of the profile later doesn't reset wizard progress
+  // the user has already made.
   useEffect(() => {
-    (async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.replace('/login');
-        return;
-      }
-      const { data: profile } = await supabase
-        .from('profiles')
-        .select('id, lifestyle')
-        .eq('userId', user.id)
-        .single();
+    if (step !== 'loading' || profileLoading || !profile) return;
 
-      if (!profile) {
-        router.replace('/signup/profile');
-        return;
-      }
-      setProfileId(profile.id);
-      const lifestyle = (profile.lifestyle ?? null) as LifestyleAnswers | null;
-      setInitialLifestyle(lifestyle);
+    setProfileId(profile.id);
+    const lifestyle = (profile.lifestyle ?? null) as LifestyleAnswers | null;
+    setInitialLifestyle(lifestyle);
 
-      // A search deep-link (e.g. "set your favorite meals") jumps straight
-      // to the preferences step, skipping store/household — those need a
-      // safe fallback since there's no way to revisit them later in this
-      // wizard.
-      const jumpToPreferences = searchParams.get('step') === 'preferences';
+    // A search deep-link (e.g. "set your favorite meals") jumps straight
+    // to the preferences step, skipping store/household — those need a
+    // safe fallback since there's no way to revisit them later in this
+    // wizard.
+    const jumpToPreferences = searchParams.get('step') === 'preferences';
 
-      setAnswers((prev) => ({
-        ...prev,
-        ...(jumpToPreferences ? { store: 'Other', onHandIngredients: [] } : {}),
-        mealsPerDay: lifestyle?.nutrition?.mealsPerDay ?? 3,
-        householdSize: lifestyle?.mealPlanning?.householdSize ?? 1,
-        cookMode: lifestyle?.mealPlanning?.cookMode ?? 'fresh_daily',
-        cuisinePreferences: lifestyle?.mealPlanning?.cuisinePreferences ?? [],
-        surpriseMe: lifestyle?.mealPlanning?.surpriseMe ?? false,
-        appliances: lifestyle?.mealPlanning?.kitchenAppliances,
-      }));
-      setStep(jumpToPreferences ? 'preferences' : 'store');
-    })();
-  }, [supabase, router, searchParams]);
+    setAnswers((prev) => ({
+      ...prev,
+      ...(jumpToPreferences ? { store: 'Other', onHandIngredients: [] } : {}),
+      mealsPerDay: lifestyle?.nutrition?.mealsPerDay ?? 3,
+      householdSize: lifestyle?.mealPlanning?.householdSize ?? 1,
+      cookMode: lifestyle?.mealPlanning?.cookMode ?? 'fresh_daily',
+      cuisinePreferences: lifestyle?.mealPlanning?.cuisinePreferences ?? [],
+      surpriseMe: lifestyle?.mealPlanning?.surpriseMe ?? false,
+      appliances: lifestyle?.mealPlanning?.kitchenAppliances,
+    }));
+    setStep(jumpToPreferences ? 'preferences' : 'store');
+  }, [step, profile, profileLoading, searchParams]);
 
   useEffect(() => {
     if (step !== 'generating-candidates') return;
