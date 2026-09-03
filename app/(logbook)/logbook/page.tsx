@@ -14,6 +14,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils';
 import { GreetingBanner } from '@/components/logbook/GreetingBanner';
 import { DayScoreRing } from '@/components/logbook/DayScoreRing';
+import { LifeScoreTrend } from '@/components/logbook/LifeScoreTrend';
 import { LogCardsGrid } from '@/components/logbook/LogCardsGrid';
 import { StreakBadge } from '@/components/logbook/StreakBadge';
 import { MorningBrief } from '@/components/logbook/MorningBrief';
@@ -131,6 +132,8 @@ export default function LogbookPage() {
                 onModeChange={handleModeChange}
               />
             </StatCard>
+
+            <LifeScoreTrend mode={data.lifeScoreMode} />
 
             <LogCardsGrid cards={data.cards} />
 
