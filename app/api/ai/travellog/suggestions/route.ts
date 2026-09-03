@@ -38,7 +38,7 @@ export async function POST(request: Request) {
       holidays: body.holidays ?? [],
     };
 
-    MODEL = await getModel(supabase, 'text');
+    MODEL = await getModel(supabase, 'travellog-suggestions');
 
     const { data: profile } = await supabase
       .from('profiles')

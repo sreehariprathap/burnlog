@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       budgetCurrency: body.budgetCurrency || 'USD',
     };
 
-    MODEL = await getModel(supabase, 'text');
+    MODEL = await getModel(supabase, 'travellog-itinerary');
 
     const { data: profile } = await supabase
       .from('profiles')

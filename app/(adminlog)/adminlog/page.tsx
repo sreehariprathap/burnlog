@@ -9,7 +9,8 @@ const SECTIONS = [
   { href: '/adminlog/toggles', label: 'App & Feature Toggles', description: 'Turn apps and beta features on/off globally or per-user.' },
   { href: '/adminlog/errors', label: 'Error Log', description: 'Browse persisted client, server, and background job errors.' },
   { href: '/adminlog/invites', label: 'Invites', description: 'Send and track invites to new users.' },
-  { href: '/adminlog/tools', label: 'Admin Tools', description: 'Test push notifications, onboarding pages, AI model settings.' },
+  { href: '/adminlog/tools', label: 'Admin Tools', description: 'Test push notifications, onboarding pages.' },
+  { href: '/adminlog/ai-models', label: 'AI Model Mapping', description: 'Choose which OpenRouter model powers each AI feature across the app.' },
   { href: '/adminlog/test-onboarding', label: 'Test Onboarding', description: 'Run the real onboarding flow as a disposable test account.' },
 ];
 

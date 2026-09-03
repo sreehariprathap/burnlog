@@ -36,7 +36,7 @@ export async function POST(request: Request) {
       careerFocus: body.careerFocus,
     };
 
-    MODEL = await getModel(supabase, 'text');
+    MODEL = await getModel(supabase, 'learnlog-onboarding');
 
     const { data: profile } = await supabase
       .from('profiles')

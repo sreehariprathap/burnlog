@@ -15,7 +15,7 @@ export async function GET(request: Request) {
   }
 
   const supabase = createServiceRoleClient();
-  const model = await getModel(supabase, 'text');
+  const model = await getModel(supabase, 'intel-suggest');
   const today = new Date();
   const windowStart = new Date(today);
   windowStart.setDate(windowStart.getDate() - 30);

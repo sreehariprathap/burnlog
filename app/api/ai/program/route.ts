@@ -30,7 +30,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
-    model = await getModel(supabase, 'text');
+    model = await getModel(supabase, 'program');
 
     try {
       const responsePayload = await runAiJob(

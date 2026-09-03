@@ -134,7 +134,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
-    MODEL = await getModel(supabase, 'text');
+    MODEL = await getModel(supabase, 'meal-plan');
 
     const lifestyle = (profile.lifestyle ?? {}) as LifestyleAnswers;
 

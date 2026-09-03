@@ -70,7 +70,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No meals to finalize' }, { status: 400 });
     }
 
-    MODEL = await getModel(supabase, 'text');
+    MODEL = await getModel(supabase, 'meal-plan-finalize');
 
     try {
       const responsePayload = await runAiJob(

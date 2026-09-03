@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing household name' }, { status: 400 });
     }
 
-    MODEL = await getModel(supabase, 'text');
+    MODEL = await getModel(supabase, 'suggest-chores');
 
     const { data: profile } = await supabase
       .from('profiles')

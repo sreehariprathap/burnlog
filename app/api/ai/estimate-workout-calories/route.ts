@@ -19,7 +19,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
-    MODEL = await getModel(supabase, 'text');
+    MODEL = await getModel(supabase, 'estimate-workout-calories');
 
     const body = await request.json();
     const { activityType, durationMinutes, distanceKm, description } = body as {

@@ -41,7 +41,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Missing idea title' }, { status: 400 });
     }
 
-    MODEL = await getModel(supabase, 'text');
+    MODEL = await getModel(supabase, 'tasklog-idea-breakdown');
 
     const { data: profile } = await supabase
       .from('profiles')

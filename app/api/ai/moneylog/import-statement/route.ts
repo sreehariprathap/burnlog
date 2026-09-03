@@ -51,7 +51,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'PDF must be under 10 MB' }, { status: 400 });
     }
 
-    MODEL = await getModel(supabase, 'vision');
+    MODEL = await getModel(supabase, 'moneylog-import-statement');
     const base64Data = pdfBase64.includes(',') ? pdfBase64.split(',')[1] : pdfBase64;
     const prompt = buildStatementImportPrompt({ bank, accountType, periodStart, periodEnd });
 
