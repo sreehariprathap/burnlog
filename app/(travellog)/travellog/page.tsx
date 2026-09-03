@@ -2,31 +2,20 @@
 'use client';
 
 import useSWR from 'swr';
-import { createClient } from '@/lib/supabase/client';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { TopBar } from '@/components/TopBar';
 import { TravelLogBottomNav } from '@/components/TravelLogBottomNav';
 import { Card, CardContent } from '@/components/ui/card';
 import { StatCard } from '@/components/ui/stat-card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { isExplored, type TravelVisitRow } from '@/lib/travellog/types';
-
-async function fetchVisits(profileId: string): Promise<TravelVisitRow[]> {
-  const supabase = createClient();
-  const { data, error } = await supabase
-    .from('travellog_visits')
-    .select('*')
-    .eq('profileId', profileId)
-    .order('arrivalDate', { ascending: true });
-  if (error) throw error;
-  return (data ?? []) as TravelVisitRow[];
-}
+import { isExplored } from '@/lib/travellog/types';
+import { visitsQuery } from '@/lib/travellog/queries';
 
 export default function TravelLogHomePage() {
   const { profile, loading: profileLoading } = useCurrentProfile();
   const { data: visits, isLoading } = useSWR(
-    profile ? ['travellog-visits', profile.id] : null,
-    () => fetchVisits(profile!.id)
+    profile ? visitsQuery(profile.id).key : null,
+    profile ? visitsQuery(profile.id).fetcher : null
   );
 
   const loading = profileLoading || isLoading;

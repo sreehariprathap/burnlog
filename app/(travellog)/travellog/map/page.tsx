@@ -3,34 +3,23 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
-import { createClient } from '@/lib/supabase/client';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { TopBar } from '@/components/TopBar';
 import { TravelLogBottomNav } from '@/components/TravelLogBottomNav';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { isExplored, type TravelVisitRow } from '@/lib/travellog/types';
+import { isExplored } from '@/lib/travellog/types';
+import { visitsQuery } from '@/lib/travellog/queries';
 import { LogVisitDrawer } from './_components/LogVisitDrawer';
 import WorldMap from '@/components/ui/world-map';
-
-async function fetchVisits(profileId: string): Promise<TravelVisitRow[]> {
-  const supabase = createClient();
-  const { data, error } = await supabase
-    .from('travellog_visits')
-    .select('*')
-    .eq('profileId', profileId)
-    .order('arrivalDate', { ascending: true });
-  if (error) throw error;
-  return (data ?? []) as TravelVisitRow[];
-}
 
 export default function TravelLogMapPage() {
   const { profile } = useCurrentProfile();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const { data: visits, isLoading, mutate } = useSWR(
-    profile ? ['travellog-visits', profile.id] : null,
-    () => fetchVisits(profile!.id)
+    profile ? visitsQuery(profile.id).key : null,
+    profile ? visitsQuery(profile.id).fetcher : null
   );
 
   const sorted = visits ?? [];
