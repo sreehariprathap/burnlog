@@ -8,6 +8,16 @@ import { KanbanSquareIcon, InboxIcon, TargetIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { TaskLogMark } from '@/components/TaskLogMark';
 import { ConfigMenu } from '@/components/ConfigMenu';
+import { useCurrentProfile } from '@/lib/useCurrentProfile';
+import { usePreloadRoutes } from '@/lib/usePreloadRoutes';
+import {
+  todayTasksQuery,
+  boardTasksQuery,
+  inboxTasksQuery,
+  ideasQuery,
+  ideaTaskCountsQuery,
+  goalsQuery,
+} from '@/lib/tasklog/queries';
 
 const tabs = [
   { href: '/tasklog', label: 'Home', Icon: null },
@@ -20,6 +30,22 @@ export function TaskLogBottomNav() {
   const pathname = usePathname();
   const isConfigActive = pathname === '/tasklog/config' || pathname.startsWith('/tasklog/config/');
 
+  // Warms every nav tab's data: Home, Board, Plan (which itself needs all
+  // three of inboxTasksQuery/ideasQuery/ideaTaskCountsQuery), and Goals.
+  const { profile } = useCurrentProfile();
+  usePreloadRoutes(
+    profile
+      ? [
+          todayTasksQuery(profile.id),
+          boardTasksQuery(profile.id),
+          inboxTasksQuery(profile.id),
+          ideasQuery(profile.id),
+          ideaTaskCountsQuery(profile.id),
+          goalsQuery(profile.id),
+        ]
+      : []
+  );
+
   return (
     <nav
       className="fixed bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-1 rounded-full border border-white/10 bg-background/40 px-2 py-2 shadow-lg backdrop-blur-md"
@@ -31,6 +57,7 @@ export function TaskLogBottomNav() {
           <Link
             key={href}
             href={href}
+            prefetch
             aria-current={isActive ? 'page' : undefined}
             className={cn(
               'relative flex flex-col items-center rounded-full px-3 py-2 text-xs transition-colors',
