@@ -1,7 +1,8 @@
 // app/(moneylog)/moneylog/plan/page.tsx
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useState } from 'react';
+import useSWR from 'swr';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
 import { TopBar } from '@/components/TopBar';
@@ -12,6 +13,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { RecurringItemForm } from '@/components/moneylog/RecurringItemForm';
 import { RecurringItemsList } from './_components/RecurringItemsList';
 import type { RecurringItemDraft } from '@/lib/recurringItemDraft';
+import { useCurrentProfile } from '@/lib/useCurrentProfile';
+import { recurringItemsQuery } from '@/lib/moneylog/queries';
 import { useToast } from '@/components/ui/use-toast';
 
 export interface PlanRecurringItem extends RecurringItemDraft {
@@ -20,46 +23,25 @@ export interface PlanRecurringItem extends RecurringItemDraft {
 
 // Client Component — cannot export `metadata`; page title is set via TopBar below.
 export default function PlanPage() {
-  const supabase = createClient();
   const { toast } = useToast();
-  const [profileId, setProfileId] = useState<string | null>(null);
-  const [items, setItems] = useState<PlanRecurringItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { profile, loading: profileLoading } = useCurrentProfile();
+  const profileId = profile?.id ?? null;
   const [showForm, setShowForm] = useState(false);
 
-  const fetchItems = useCallback(
-    async (id: string) => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('recurring_items')
-        .select('*')
-        .eq('profileId', id)
-        .eq('isActive', true)
-        .order('createdAt', { ascending: false });
-      if (error) {
-        toast({ title: 'Failed to load recurring items', description: error.message, variant: 'destructive' });
-      }
-      setItems((data as PlanRecurringItem[]) || []);
-      setLoading(false);
-    },
-    [supabase, toast]
+  const { data: items = [], isLoading: itemsLoading, mutate: mutateItems } = useSWR<PlanRecurringItem[]>(
+    profile ? recurringItemsQuery(profile.id).key : null,
+    profile ? recurringItemsQuery(profile.id).fetcher : null,
+    {
+      onError: (error) => {
+        toast({ title: 'Failed to load recurring items', description: error instanceof Error ? error.message : 'Please try again.', variant: 'destructive' });
+      },
+    }
   );
-
-  useEffect(() => {
-    (async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return;
-      const { data: profile } = await supabase.from('profiles').select('id').eq('userId', user.id).single();
-      if (!profile) return;
-      setProfileId(profile.id);
-      fetchItems(profile.id);
-    })();
-  }, [supabase, fetchItems]);
+  const loading = profileLoading || itemsLoading;
 
   async function handleAdd(draft: RecurringItemDraft) {
     if (!profileId) return;
+    const supabase = createClient();
     const { data, error } = await supabase
       .from('recurring_items')
       .insert([{ ...draft, profileId }])
@@ -69,18 +51,19 @@ export default function PlanPage() {
       toast({ title: 'Failed to add item', description: error.message, variant: 'destructive' });
       return;
     }
-    setItems((prev) => [data as PlanRecurringItem, ...prev]);
+    mutateItems([data as PlanRecurringItem, ...items], { revalidate: false });
     setShowForm(false);
     toast({ title: 'Recurring item added' });
   }
 
   async function handleDelete(id: string) {
+    const supabase = createClient();
     const { error } = await supabase.from('recurring_items').update({ isActive: false }).eq('id', id);
     if (error) {
       toast({ title: 'Failed to delete item', description: error.message, variant: 'destructive' });
       return;
     }
-    setItems((prev) => prev.filter((item) => item.id !== id));
+    mutateItems(items.filter((item) => item.id !== id), { revalidate: false });
     toast({ title: 'Recurring item deleted' });
   }
 
