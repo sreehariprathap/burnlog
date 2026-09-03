@@ -16,6 +16,7 @@ import { LearnLogMark } from '@/components/LearnLogMark';
 import { AdminLogMark } from '@/components/AdminLogMark';
 import { IntelLogMark } from '@/components/IntelLogMark';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import { AppSwitcherChat } from '@/components/AppSwitcherChat';
 import { APPS, AppId, getActiveApp, getDefaultApp, setDefaultApp, getEnabledApps } from '@/lib/appMode';
 import { useAppSwitch } from '@/lib/appSwitchContext';
 
@@ -111,6 +112,7 @@ export function AppSwitcher({ open, onOpenChange }: AppSwitcherProps) {
         <DrawerHeader>
           <DrawerTitle>Apps</DrawerTitle>
         </DrawerHeader>
+        <AppSwitcherChat open={open} />
         <div className="grid grid-cols-4 gap-4 p-4 pb-8 overflow-y-auto">
           {visibleApps.map((app, index) => (
             <motion.button
