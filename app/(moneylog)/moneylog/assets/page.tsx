@@ -7,22 +7,16 @@ import { Plus, Loader2 } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
 import { MoneyLogBottomNav } from '@/components/MoneyLogBottomNav';
 import { Button } from '@/components/ui/button';
-import { apiFetch } from '@/lib/apiFetch';
+import { assetsQuery, type AssetsSummary } from '@/lib/moneylog/queries';
 import { NetWorthSummaryCard } from './_components/NetWorthSummaryCard';
 import { AssetListItem, type AssetSummary } from './_components/AssetListItem';
 import { AddAssetDrawer } from './_components/AddAssetDrawer';
 import { UpdateBalanceDrawer } from './_components/UpdateBalanceDrawer';
 
-async function fetcher(url: string) {
-  const res = await apiFetch(url);
-  if (!res.ok) throw new Error('Failed to load assets');
-  return res.json();
-}
-
 export default function AssetsPage() {
-  const { data, isLoading, mutate } = useSWR<{ assets: AssetSummary[]; netWorth: number }>(
-    '/api/moneylog/assets',
-    fetcher
+  const { data, isLoading, mutate } = useSWR<AssetsSummary>(
+    assetsQuery().key,
+    assetsQuery().fetcher
   );
   const [addOpen, setAddOpen] = useState(false);
   const [updating, setUpdating] = useState<AssetSummary | null>(null);
