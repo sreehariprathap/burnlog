@@ -111,7 +111,7 @@ export function TopBar({ title, onClose, actions }: TopBarProps) {
             <BurnLogMark size={20} />
           )}
         </button>
-        <h1 className="text-lg font-semibold">{title}</h1>
+        <h1 className="font-header text-lg font-semibold">{title}</h1>
       </div>
       <div className="flex items-center gap-4">
         <ThemeToggle />

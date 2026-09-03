@@ -1,6 +1,6 @@
 "use client";
 import { SWRConfig } from "swr";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Quicksand, Figtree, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
 import { GlobalErrorListener } from "@/components/GlobalErrorListener";
@@ -19,8 +19,16 @@ import { OfflineBanner } from "@/components/OfflineBanner";
 import { TestModeBanner } from "@/components/adminlog/TestModeBanner";
 import { EnableNotificationsPrompt } from "@/components/EnableNotificationsPrompt";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+// Quicksand: page/section headings app-wide. Figtree: default body/UI text.
+// Momo Trust Display (the TopBar title font) isn't in next/font/google's
+// bundled font list yet, so it's loaded via a plain <link> below instead.
+const quicksand = Quicksand({
+  variable: "--font-quicksand",
+  subsets: ["latin"],
+});
+
+const figtree = Figtree({
+  variable: "--font-figtree",
   subsets: ["latin"],
 });
 
@@ -50,11 +58,15 @@ export default function RootLayoutClient({
         <link rel="shortcut icon" href="/icons/icon-192.png" />
         <link rel="manifest" href="/manifest.webmanifest" />
 
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
+        <link href="https://fonts.googleapis.com/css2?family=Momo+Trust+Display&display=swap" rel="stylesheet" />
+
         <title>LogBook</title>
         <meta name="description" content="Your daily digest across every app you track life with — fitness, money, tasks, home, social, shopping, and travel, all in one place." />
       </head>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`${quicksand.variable} ${figtree.variable} ${geistMono.variable} antialiased`}
         suppressHydrationWarning
       >
         <SWRConfig
