@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Loader2, Bell, Settings, Cpu, Bug } from 'lucide-react';
+import { Loader2, Bell, Settings, Bug } from 'lucide-react';
 import { useRequireAdmin } from '@/lib/adminlog/useRequireAdmin';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,7 +14,6 @@ import { NOTIFICATION_TEMPLATES, templatesByApp, type NotificationTemplate } fro
 import { PushEnableHelp } from '@/components/PushEnableHelp';
 import { isDevErrorModeEnabled, setDevErrorModeEnabled } from '@/lib/devErrorMode';
 import { OnboardingPageTogglesModal } from './_components/OnboardingPageTogglesModal';
-import { AiModelSettingsModal } from './_components/AiModelSettingsModal';
 
 export default function AdminToolsPage() {
   const { profile, loading: profileLoading } = useRequireAdmin();
@@ -24,7 +23,6 @@ export default function AdminToolsPage() {
   const [testPushFailed, setTestPushFailed] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>(NOTIFICATION_TEMPLATES[0].id);
   const [showPageToggles, setShowPageToggles] = useState(false);
-  const [showAiModelSettings, setShowAiModelSettings] = useState(false);
   const [devErrorMode, setDevErrorMode] = useState(() => isDevErrorModeEnabled());
 
   const handleSendTestPush = async () => {
@@ -132,24 +130,6 @@ export default function AdminToolsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Cpu className="w-5 h-5 text-warning" />
-            AI Model Settings
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <p className="text-sm text-muted-foreground">
-            Admin tool - choose which free OpenRouter model powers text and image AI features.
-          </p>
-          <Button variant="outline" onClick={() => setShowAiModelSettings(true)}>
-            <Cpu className="w-4 h-4 mr-2" />
-            Manage Models
-          </Button>
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
             <Bug className="w-5 h-5 text-warning" />
             Developer Error Alerts
           </CardTitle>
@@ -176,7 +156,6 @@ export default function AdminToolsPage() {
       </Card>
 
       <OnboardingPageTogglesModal open={showPageToggles} onOpenChange={setShowPageToggles} />
-      <AiModelSettingsModal open={showAiModelSettings} onOpenChange={setShowAiModelSettings} />
     </div>
   );
 }

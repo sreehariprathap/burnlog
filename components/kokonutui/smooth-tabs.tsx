@@ -23,7 +23,7 @@ type SmoothTabsProps = {
 
 export function SmoothTabs({ items, selectedIndex, onSelect, className, showLabels }: SmoothTabsProps) {
   return (
-    <div className={cn("flex items-center gap-1 overflow-x-auto", className)}>
+    <div className={cn("flex items-center justify-center gap-1 overflow-x-auto sm:justify-start", className)}>
       {items.map((item, index) => {
         const isActive = index === selectedIndex;
         const Icon = item.icon;
@@ -56,8 +56,8 @@ export function SmoothTabs({ items, selectedIndex, onSelect, className, showLabe
             {showLabels && (
               <span
                 className={cn(
-                  "relative z-10 text-sm font-medium",
-                  isActive ? "text-white" : "text-muted-foreground"
+                  "relative z-10 text-sm font-medium sm:inline",
+                  isActive ? "inline text-white" : "hidden text-muted-foreground"
                 )}
               >
                 {item.label}

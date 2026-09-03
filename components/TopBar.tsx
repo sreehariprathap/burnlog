@@ -1,8 +1,9 @@
 // components/TopBar.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
-import { X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { XIcon, type XIconHandle } from '@/components/ui/x';
+import { useMountAnimation } from '@/lib/useMountAnimation';
 import { ThemeToggle } from './ThemeToggle';
 import { AppSwitcher } from './AppSwitcher';
 import { HeaderQuickInfo } from './HeaderQuickInfo';
@@ -31,6 +32,8 @@ interface TopBarProps {
 export function TopBar({ title, onClose, actions }: TopBarProps) {
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [activeApp, setActiveAppState] = useState<AppId>('logbook');
+  const closeIconRef = useRef<XIconHandle>(null);
+  useMountAnimation(closeIconRef);
 
   useEffect(() => {
     setActiveAppState(getActiveApp());
@@ -121,7 +124,7 @@ export function TopBar({ title, onClose, actions }: TopBarProps) {
             onClick={onClose}
             aria-label="Close"
           >
-            <X size={24} />
+            <XIcon ref={closeIconRef} size={24} />
           </button>
         )}
       </div>

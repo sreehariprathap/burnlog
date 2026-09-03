@@ -20,7 +20,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
-    VISION_MODEL = await getModel(supabase, 'vision');
+    VISION_MODEL = await getModel(supabase, 'scan-receipt');
 
     const body = await request.json();
     const { imageBase64 } = body as { imageBase64: string };

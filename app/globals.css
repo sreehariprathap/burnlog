@@ -82,7 +82,20 @@
     opacity: 1;}
   100% {
     transform: scale(2);
-    opacity: 0;}}}
+    opacity: 0;}}
+  --animate-aurora: aurora 7s ease-in-out infinite;
+  @keyframes aurora {
+  0% {
+    background-position: 0% 50%;
+    }
+  50% {
+    background-position: 100% 50%;
+    }
+  100% {
+    background-position: 0% 50%;
+    }
+  }
+}
 
 :root {
   --radius: 0.625rem;
@@ -893,3 +906,17 @@
 ::view-transition-old(root), ::view-transition-new(root) {
     animation: none;
     mix-blend-mode: normal;}
+
+/* Sweeping highlight driven by the --x custom property the PowerOffSlide
+   component animates via requestAnimationFrame. */
+.loading-shimmer {
+  background-image: linear-gradient(
+    90deg,
+    var(--muted-foreground) 0%,
+    var(--foreground) var(--x, 50%),
+    var(--muted-foreground) 100%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}

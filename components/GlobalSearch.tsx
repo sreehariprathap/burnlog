@@ -3,12 +3,14 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Search, X } from 'lucide-react';
+import { X } from 'lucide-react';
+import { SearchIcon, type SearchIconHandle } from '@/components/ui/search';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { APPS, getActiveApp } from '@/lib/appMode';
 import { useAppSwitch } from '@/lib/appSwitchContext';
 import { SEARCH_REGISTRY, appSearchColor, type SearchItem } from '@/lib/search/registry';
+import { useMountAnimation } from '@/lib/useMountAnimation';
 
 function useDebounce<T>(value: T, delayMs: number): T {
   const [debounced, setDebounced] = useState(value);
@@ -38,6 +40,8 @@ export function GlobalSearch({ onNavigate, placeholder }: GlobalSearchProps) {
   const [highlighted, setHighlighted] = useState(0);
   const debouncedQuery = useDebounce(query, 150);
   const inputRef = useRef<HTMLInputElement>(null);
+  const searchIconRef = useRef<SearchIconHandle>(null);
+  useMountAnimation(searchIconRef);
 
   const filtered = useMemo(() => {
     const q = debouncedQuery.trim().toLowerCase();
@@ -87,7 +91,7 @@ export function GlobalSearch({ onNavigate, placeholder }: GlobalSearchProps) {
   return (
     <div className="flex flex-col gap-2">
       <div className="flex items-center gap-2 rounded-lg border bg-muted px-3">
-        <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
+        <SearchIcon ref={searchIconRef} size={16} className="shrink-0 text-muted-foreground" />
         <Input
           ref={inputRef}
           value={query}

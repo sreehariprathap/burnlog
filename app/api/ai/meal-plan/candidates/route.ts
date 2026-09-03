@@ -86,7 +86,7 @@ export async function POST(request: Request) {
     const answers = (await request.json()) as MealPlannerWizardAnswers;
     const lifestyle = (profile.lifestyle ?? {}) as LifestyleAnswers;
 
-    MODEL = await getModel(supabase, 'text');
+    MODEL = await getModel(supabase, 'meal-plan-candidates');
 
     try {
       const responsePayload = await runAiJob(

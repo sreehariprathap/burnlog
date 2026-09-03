@@ -14,6 +14,7 @@ import { ProfileAvatar } from './_components/ProfileAvatar';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { TopBar } from '@/components/TopBar';
 import { LogbookBottomNav } from '@/components/LogbookBottomNav';
+import { LogoutOverlay } from '@/components/LogoutOverlay';
 import { Switch } from '@/components/ui/switch';
 import { APPS, AppId, getDefaultApp, setDefaultApp, setEnabledApps } from '@/lib/appMode';
 import { useToast } from '@/components/ui/use-toast';
@@ -31,6 +32,7 @@ export default function ProfilePage() {
   const [error, setError] = useState<string|null>(null);
   const [profileNotFound, setProfileNotFound] = useState(false);
   const [loggingOut, setLoggingOut] = useState(false);
+  const [logoutOverlayOpen, setLogoutOverlayOpen] = useState(false);
   const [email, setEmail] = useState<string|null>(null);
   const [userId, setUserId] = useState<string | null>(null);
   const [defaultApp, setDefaultAppState] = useState<AppId>('burnlog');
@@ -367,10 +369,20 @@ export default function ProfilePage() {
             )}
 
             <div className="mt-6 text-center">
+              {/* Mobile: opens the slide-to-confirm overlay. Desktop: plain button. */}
+              <Button
+                variant="destructive"
+                onClick={() => setLogoutOverlayOpen(true)}
+                disabled={loggingOut}
+                className="md:hidden"
+              >
+                {loggingOut ? <Loader2 className="animate-spin w-5 h-5" /> : 'Log Out'}
+              </Button>
               <Button
                 variant="destructive"
                 onClick={handleLogout}
                 disabled={loggingOut}
+                className="hidden md:inline-flex"
               >
                 {loggingOut ? <Loader2 className="animate-spin w-5 h-5" /> : 'Log Out'}
               </Button>
@@ -378,6 +390,11 @@ export default function ProfilePage() {
           </>
         )}
       </main>
+      <LogoutOverlay
+        open={logoutOverlayOpen}
+        onOpenChange={setLogoutOverlayOpen}
+        onConfirm={handleLogout}
+      />
       <LogbookBottomNav />
     </div>
   );

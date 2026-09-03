@@ -2,10 +2,13 @@
 'use client';
 // Client Component — page metadata isn't applicable here (see layout.tsx for shared app metadata).
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import useSWR from 'swr';
 import Link from 'next/link';
-import { Heart, Loader2, RefreshCw, SearchX, Store, Package } from 'lucide-react';
+import { Loader2, SearchX, Store, Package } from 'lucide-react';
+import { RefreshCWIcon, type RefreshCCWIconWIcon } from '@/components/ui/refresh-cw';
+import { HeartIcon, type HeartIconHandle } from '@/components/ui/heart';
+import { useMountAnimation } from '@/lib/useMountAnimation';
 import { TopBar } from '@/components/TopBar';
 import { ShoppingLogBottomNav } from '@/components/ShoppingLogBottomNav';
 import { Input } from '@/components/ui/input';
@@ -23,6 +26,10 @@ async function fetcher(url: string) {
 }
 
 export default function ShoppingLogBrowsePage() {
+  const refreshIconRef = useRef<RefreshCCWIconWIcon>(null);
+  const heartIconRef = useRef<HeartIconHandle>(null);
+  useMountAnimation(refreshIconRef);
+  useMountAnimation(heartIconRef);
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [categorySlug, setCategorySlug] = useState<string | null>(null);
@@ -56,11 +63,11 @@ export default function ShoppingLogBrowsePage() {
         actions={
           <div className="flex items-center gap-1">
             <Button type="button" variant="ghost" size="icon" aria-label="Refresh" onClick={() => mutate()}>
-              <RefreshCw className="size-4" />
+              <RefreshCWIcon ref={refreshIconRef} size={16} />
             </Button>
             <Link href="/shoppinglog/favorites">
               <Button variant="ghost" size="icon" aria-label="Favorites">
-                <Heart className="size-5" />
+                <HeartIcon ref={heartIconRef} size={20} />
               </Button>
             </Link>
           </div>

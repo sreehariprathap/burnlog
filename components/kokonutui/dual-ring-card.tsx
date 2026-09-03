@@ -1,8 +1,12 @@
 // components/kokonutui/dual-ring-card.tsx
 'use client';
 
+import { useRef } from 'react';
 import { motion } from 'motion/react';
-import { TrendingUp, TrendingDown, Scale } from 'lucide-react';
+import { Scale } from 'lucide-react';
+import { TrendingUpIcon, type TrendingUpIconHandle } from '@/components/ui/trending-up';
+import { TrendingDownIcon, type TrendingDownIconHandle } from '@/components/ui/trending-down';
+import { useMountAnimation } from '@/lib/useMountAnimation';
 import { cn } from '@/lib/utils';
 import type { RingSegment } from './segmented-ring-card';
 
@@ -36,18 +40,26 @@ function buildArcs(segments: RingSegment[], total: number, radius: number) {
   return { arcs, circumference, hasData, positive };
 }
 
-function RingLegend({ title, icon: Icon, iconClassName, segments, total }: {
+function RingLegend({ title, variant, iconClassName, segments, total }: {
   title: string;
-  icon: typeof TrendingUp;
+  variant: 'income' | 'expense';
   iconClassName: string;
   segments: RingSegment[];
   total: number;
 }) {
+  const upRef = useRef<TrendingUpIconHandle>(null);
+  const downRef = useRef<TrendingDownIconHandle>(null);
+  useMountAnimation(upRef);
+  useMountAnimation(downRef);
   const positive = segments.filter((s) => s.value > 0);
   return (
     <div className="flex-1 space-y-1.5 min-w-0">
       <span className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
-        <Icon className={cn('h-3.5 w-3.5', iconClassName)} />
+        {variant === 'income' ? (
+          <TrendingUpIcon ref={upRef} size={14} className={iconClassName} />
+        ) : (
+          <TrendingDownIcon ref={downRef} size={14} className={iconClassName} />
+        )}
         {title}
       </span>
       {positive.length > 0 ? (
@@ -170,9 +182,9 @@ export function DualRingCard({
       </div>
 
       <div className="flex w-full gap-4">
-        <RingLegend title="Income" icon={TrendingUp} iconClassName="text-success" segments={incomeSegments} total={incomeTotal} />
+        <RingLegend title="Income" variant="income" iconClassName="text-success" segments={incomeSegments} total={incomeTotal} />
         <div className="w-px self-stretch bg-border" />
-        <RingLegend title="Expenses" icon={TrendingDown} iconClassName="text-destructive" segments={expenseSegments} total={expenseTotal} />
+        <RingLegend title="Expenses" variant="expense" iconClassName="text-destructive" segments={expenseSegments} total={expenseTotal} />
       </div>
     </div>
   );

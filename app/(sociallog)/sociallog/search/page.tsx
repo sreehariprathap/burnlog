@@ -3,6 +3,8 @@
 // Client Component — page metadata isn't applicable here (see layout.tsx for shared app metadata).
 
 import { useState } from 'react';
+import Link from 'next/link';
+import { TrophyIcon } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
 import { SocialLogBottomNav } from '@/components/SocialLogBottomNav';
 import { Input } from '@/components/ui/input';
@@ -18,7 +20,14 @@ export default function SocialLogSearchPage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <TopBar title="Search" />
+      <TopBar
+        title="Search"
+        actions={
+          <Link href="/sociallog/leaderboard" aria-label="Life Score leaderboard">
+            <TrophyIcon className="h-5 w-5" />
+          </Link>
+        }
+      />
       <main className="flex-1 container mx-auto max-w-2xl space-y-4 p-4 pb-24">
         <Tabs value={tab} onValueChange={(v) => setTab(v as typeof tab)}>
           <TabsList className="w-full">

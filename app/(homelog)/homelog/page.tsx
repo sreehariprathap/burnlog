@@ -2,9 +2,10 @@
 'use client';
 // Client Component — page metadata isn't applicable here (see layout.tsx for shared app metadata).
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import useSWR from 'swr';
-import { RefreshCw } from 'lucide-react';
+import { RefreshCWIcon, type RefreshCCWIconWIcon } from '@/components/ui/refresh-cw';
+import { useMountAnimation } from '@/lib/useMountAnimation';
 import { TopBar } from '@/components/TopBar';
 import { HomeLogBottomNav } from '@/components/HomeLogBottomNav';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -59,6 +60,8 @@ async function fetchBalancesForStats(): Promise<BalanceRow[]> {
 
 export default function HomeLogPage() {
   const { toast } = useToast();
+  const refreshIconRef = useRef<RefreshCCWIconWIcon>(null);
+  useMountAnimation(refreshIconRef);
   const { household, members, myRole, isLoading, refresh } = useHouseholdMe();
   const { profile } = useCurrentProfile();
   const { data: pendingInvites, mutate: mutateInvites } = useSWR(
@@ -215,7 +218,7 @@ export default function HomeLogPage() {
         title="HomeLog"
         actions={
           <Button type="button" variant="ghost" size="icon" aria-label="Refresh" onClick={() => refresh()}>
-            <RefreshCw className="h-4 w-4" />
+            <RefreshCWIcon ref={refreshIconRef} size={16} />
           </Button>
         }
       />

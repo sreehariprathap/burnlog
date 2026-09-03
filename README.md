@@ -38,8 +38,10 @@ README (linked above) for routes, data models, and key files.
 
 ### LogBook (hub)
 
-- Today digest — per-day score ring, streak badge, morning brief, activity
-  timeline, and a grid of summary cards (one per enabled sub-app)
+- Today digest — per-day Life Score ring (switchable Today/Streak/Goal mode,
+  averaged across all enabled sub-apps), a 30-day trend chart, streak badge,
+  morning brief, activity timeline, and a grid of summary cards (one per
+  enabled sub-app)
 - Morning brief flow (`/logbook/morning`)
 - My Day — lightweight time-blocked day planner, independent of TaskLog's
   kanban board
@@ -110,7 +112,9 @@ README (linked above) for routes, data models, and key files.
 ### SocialLog (social feed)
 
 - Home feed — posts with topics, votes, comments
-- Friends/follows and leaderboards
+- Friends/follows
+- Life Score leaderboard (`/sociallog/leaderboard`) — mutual follows ranked
+  by daily engagement score, linked from Search
 - Search — find other users by username
 - Direct messaging — threads and messages between users
 - Config — SocialLog-specific settings, export config as JSON

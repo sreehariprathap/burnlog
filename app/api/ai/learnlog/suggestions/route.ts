@@ -38,7 +38,7 @@ export async function POST(request: Request) {
       upcomingDestination: body.upcomingDestination ?? null,
     };
 
-    MODEL = await getModel(supabase, 'text');
+    MODEL = await getModel(supabase, 'learnlog-suggestions');
 
     const { data: profile } = await supabase
       .from('profiles')

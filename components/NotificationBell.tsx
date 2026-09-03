@@ -1,15 +1,16 @@
 // components/NotificationBell.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
-import { Bell } from 'lucide-react';
+import { BellIcon, type BellIconHandle } from '@/components/ui/bell';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { createClient } from '@/lib/supabase/client';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { apiFetch } from '@/lib/apiFetch';
 import { formatRelative } from '@/lib/format';
+import { useMountAnimation } from '@/lib/useMountAnimation';
 
 interface NotificationRow {
   id: string;
@@ -31,6 +32,8 @@ export function NotificationBell() {
   const { profile } = useCurrentProfile();
   const [open, setOpen] = useState(false);
   const { data, mutate } = useSWR('notifications', fetchNotifications);
+  const bellRef = useRef<BellIconHandle>(null);
+  useMountAnimation(bellRef);
 
   useEffect(() => {
     if (!profile) return;
@@ -69,7 +72,7 @@ export function NotificationBell() {
   return (
     <>
       <button type="button" onClick={handleOpen} aria-label="Notifications" className="relative flex items-center justify-center">
-        <Bell size={20} />
+        <BellIcon ref={bellRef} size={20} />
         {unreadCount > 0 && (
           <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-destructive px-1 text-[10px] font-semibold text-white">
             {unreadCount > 9 ? '9+' : unreadCount}

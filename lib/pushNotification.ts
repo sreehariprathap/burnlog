@@ -45,6 +45,16 @@ export async function registerServiceWorker(): Promise<ServiceWorkerRegistration
     return null;
   }
 
+  // next-pwa only builds/serves a fresh sw.js in production (see next.config.ts's
+  // `disable: NODE_ENV === 'development'`) — public/sw.js on disk is whatever was last
+  // built for prod, referencing hashed asset URLs that 404 against the dev server. The
+  // dev server still serves that stale file as a static asset, so registering it there
+  // installs a worker that can never activate, hanging `serviceWorker.ready` until timeout.
+  if (process.env.NODE_ENV === 'development') {
+    console.warn('Service worker registration is disabled in development');
+    return null;
+  }
+
   try {
     const registration = await navigator.serviceWorker.register('/sw.js');
     console.log('Service Worker registered with scope:', registration.scope);
