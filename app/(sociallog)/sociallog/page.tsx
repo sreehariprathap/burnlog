@@ -15,6 +15,7 @@ import { PostCard, type FeedPost } from './_components/PostCard';
 import { Loader2, RefreshCw, Sparkles, Users, FileText } from 'lucide-react';
 import { apiFetch } from '@/lib/apiFetch';
 import { StatCard } from '@/components/ui/stat-card';
+import { statsQuery } from '@/lib/sociallog/queries';
 
 async function fetcher(url: string) {
   const res = await apiFetch(url);
@@ -32,8 +33,8 @@ export default function SocialLogDashboardPage() {
     fetcher
   );
   const { data: stats } = useSWR<{ followers: number; posts: number }>(
-    profile ? '/api/sociallog/stats' : null,
-    fetcher
+    profile ? statsQuery().key : null,
+    profile ? statsQuery().fetcher : null
   );
 
   return (
