@@ -1,7 +1,8 @@
 // app/api/intellog/chat/models/route.ts
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { getModelsList } from '@/lib/intellog/openrouterModels';
+import { createServiceRoleClient } from '@/lib/supabase/serviceRole';
+import { listCuratedModels } from '@/lib/ai/curatedModels';
 
 export async function GET() {
   try {
@@ -11,7 +12,8 @@ export async function GET() {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
-    const models = await getModelsList();
+    const admin = createServiceRoleClient();
+    const models = await listCuratedModels(admin);
     return NextResponse.json({ models });
   } catch (error) {
     console.error('intellog chat models GET error:', error);

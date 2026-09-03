@@ -4,13 +4,13 @@
 import { useRef, useState } from 'react';
 import { ArrowUpIcon } from 'lucide-react';
 import { IntelChatModelPicker } from './IntelChatModelPicker';
-import type { OpenRouterModel } from '@/lib/intellog/openrouterModels';
+import type { CuratedModelOption } from '@/lib/ai/curatedModels';
 
 const MIN_HEIGHT_PX = 72;
 const MAX_HEIGHT_PX = 300;
 
 interface IntelChatPromptBarProps {
-  models: OpenRouterModel[];
+  models: CuratedModelOption[];
   selectedModel: string | null;
   onModelChange: (modelId: string) => void;
   onSend: (text: string) => void;

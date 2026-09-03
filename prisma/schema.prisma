@@ -127,6 +127,7 @@ model Profile {
   toggleOverridesReceived    ToggleOverride[] @relation("ToggleOverrideProfile")
   toggleOverridesSet         ToggleOverride[] @relation("ToggleOverrideSetBy")
   errorLogsResolved          ErrorLog[]       @relation("ErrorLogResolvedBy")
+  curatedModelsAdded         CuratedModel[]   @relation("CuratedModelAddedBy")
   invitesSent                Invite[]         @relation("InviteSentBy")
   aiJobs                     AiJob[]
 
@@ -339,6 +340,24 @@ model AiModelSetting {
   updatedAt DateTime @default(now())
 
   @@map("ai_model_settings")
+}
+
+/// an OpenRouter model an admin has curated as available app-wide — the
+/// source of truth for every model picker (AdminLog's per-feature Select
+/// dropdowns, IntelLog chat's model picker)
+model CuratedModel {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  modelId        String   @unique // OpenRouter model id, e.g. "openai/gpt-4o-mini"
+  name           String
+  provider       String   // parsed from modelId's prefix before "/", e.g. "openai"
+  modality       String   // 'text' | 'vision'
+  isFree         Boolean
+  contextLength  Int?
+  addedByAdmin   Profile  @relation("CuratedModelAddedBy", fields: [addedByAdminId], references: [id])
+  addedByAdminId String   @db.Uuid
+  addedAt        DateTime @default(now())
+
+  @@map("ai_model_catalog")
 }
 
 /// log of every AI job (request) run across the app, for the AI Jobs panel
