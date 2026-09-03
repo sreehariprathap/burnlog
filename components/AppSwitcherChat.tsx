@@ -7,6 +7,7 @@ import SiriOrb from '@/components/smoothui/siri-orb';
 import SmoothButton from '@/components/smoothui/smooth-button';
 import type { AIState } from '@/components/smoothui/ai-core';
 import { apiFetch } from '@/lib/apiFetch';
+import { MarkdownMessage } from '@/components/intellog/MarkdownMessage';
 
 interface ChatMessage {
   id: string;
@@ -37,6 +38,7 @@ export function AppSwitcherChat({ open }: AppSwitcherChatProps) {
   const [input, setInput] = useState('');
   const [phase, setPhase] = useState<Phase>('idle');
   const [failedMessage, setFailedMessage] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   const listRef = useRef<HTMLDivElement>(null);
   const threadIdRef = useRef<string | null>(null);
 
@@ -67,6 +69,7 @@ export function AppSwitcherChat({ open }: AppSwitcherChatProps) {
     if (!trimmed) return;
 
     setFailedMessage(null);
+    setSuggestions([]);
     setInput('');
     const optimisticUser: ChatMessage = {
       id: `local-${Date.now()}`,
@@ -93,6 +96,7 @@ export function AppSwitcherChat({ open }: AppSwitcherChatProps) {
         window.localStorage.setItem(THREAD_STORAGE_KEY, data.threadId);
       }
       setMessages((prev) => [...prev, data.message]);
+      setSuggestions(data.suggestions ?? []);
       setPhase('done');
       setTimeout(() => setPhase('idle'), 1200);
     } catch {
@@ -130,18 +134,17 @@ export function AppSwitcherChat({ open }: AppSwitcherChatProps) {
                   Ask anything about your apps — spending, streaks, tasks, trips.
                 </p>
               )}
-              {messages.map((m) => (
-                <div
-                  key={m.id}
-                  className={
-                    m.role === 'user'
-                      ? 'ml-auto max-w-[80%] rounded-2xl bg-primary px-3 py-1.5 text-sm text-primary-foreground'
-                      : 'mr-auto max-w-[80%] rounded-2xl bg-muted px-3 py-1.5 text-sm'
-                  }
-                >
-                  {m.content}
-                </div>
-              ))}
+              {messages.map((m) =>
+                m.role === 'user' ? (
+                  <div key={m.id} className="ml-auto max-w-[80%] rounded-2xl bg-primary px-3 py-1.5 text-sm text-primary-foreground">
+                    {m.content}
+                  </div>
+                ) : (
+                  <div key={m.id} className="mr-auto max-w-[80%] rounded-2xl bg-muted px-3 py-1.5">
+                    <MarkdownMessage content={m.content} />
+                  </div>
+                )
+              )}
               {failedMessage && (
                 <button
                   type="button"
@@ -150,6 +153,20 @@ export function AppSwitcherChat({ open }: AppSwitcherChatProps) {
                 >
                   Failed to send — tap to retry
                 </button>
+              )}
+              {phase !== 'submitting' && suggestions.length > 0 && (
+                <div className="mr-auto flex max-w-[95%] flex-wrap gap-1.5">
+                  {suggestions.map((s) => (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => send(s)}
+                      className="rounded-full border bg-background px-2.5 py-1 text-xs text-foreground hover:bg-accent"
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
               )}
             </motion.div>
           )}

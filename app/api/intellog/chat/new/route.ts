@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     const history: ChatHistoryMessage[] = [{ role: 'user', content: trimmedMessage }];
 
     try {
-      const reply = await generateChatReply(admin, profileId, systemPrompt, history, effectiveModel);
+      const { reply, suggestions } = await generateChatReply(admin, profileId, systemPrompt, history, effectiveModel);
 
       const { data: assistantMessage, error: insertAssistantError } = await admin
         .from('intel_chat_messages')
@@ -60,7 +60,7 @@ export async function POST(request: Request) {
 
       await admin.from('intel_chat_threads').update({ updatedAt: new Date().toISOString() }).eq('id', threadId);
 
-      return NextResponse.json({ threadId, message: assistantMessage });
+      return NextResponse.json({ threadId, message: assistantMessage, suggestions });
     } catch (err) {
       if (err instanceof AiRouteError) {
         return NextResponse.json({ error: err.message, threadId }, { status: err.status });

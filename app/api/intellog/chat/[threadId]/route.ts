@@ -107,7 +107,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ thr
     const systemPrompt = buildSystemPrompt(appContexts);
 
     try {
-      const reply = await generateChatReply(admin, profileId, systemPrompt, history, effectiveModel);
+      const { reply, suggestions } = await generateChatReply(admin, profileId, systemPrompt, history, effectiveModel);
 
       const { data: assistantMessage, error: insertAssistantError } = await admin
         .from('intel_chat_messages')
@@ -118,7 +118,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ thr
 
       await admin.from('intel_chat_threads').update({ updatedAt: new Date().toISOString() }).eq('id', threadId);
 
-      return NextResponse.json({ message: assistantMessage });
+      return NextResponse.json({ message: assistantMessage, suggestions });
     } catch (err) {
       if (err instanceof AiRouteError) {
         return NextResponse.json({ error: err.message }, { status: err.status });

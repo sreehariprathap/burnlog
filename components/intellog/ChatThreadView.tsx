@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { apiFetch } from '@/lib/apiFetch';
 import { IntelChatPromptBar } from './IntelChatPromptBar';
+import { MarkdownMessage } from './MarkdownMessage';
 import type { OpenRouterModel } from '@/lib/intellog/openrouterModels';
 
 interface ChatMessage {
@@ -32,6 +33,7 @@ export function ChatThreadView({ threadId: initialThreadId }: ChatThreadViewProp
   const [notFound, setNotFound] = useState(false);
   const [sending, setSending] = useState(false);
   const [failedMessage, setFailedMessage] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -62,6 +64,7 @@ export function ChatThreadView({ threadId: initialThreadId }: ChatThreadViewProp
 
   async function handleSend(text: string) {
     setFailedMessage(null);
+    setSuggestions([]);
     const optimisticUser: ChatMessage = {
       id: `local-${Date.now()}`,
       role: 'user',
@@ -87,6 +90,7 @@ export function ChatThreadView({ threadId: initialThreadId }: ChatThreadViewProp
         router.replace(`/intellog/chat/${data.threadId}`);
       }
       setMessages((prev) => [...prev, data.message]);
+      setSuggestions(data.suggestions ?? []);
     } catch {
       setFailedMessage(text);
     } finally {
@@ -120,22 +124,35 @@ export function ChatThreadView({ threadId: initialThreadId }: ChatThreadViewProp
             Ask anything about your apps, or pick a model and chat about anything else.
           </p>
         )}
-        {messages.map((m) => (
-          <div
-            key={m.id}
-            className={
-              m.role === 'user'
-                ? 'ml-auto max-w-[80%] rounded-2xl bg-primary px-3 py-2 text-sm text-primary-foreground'
-                : 'mr-auto max-w-[80%] rounded-2xl bg-muted px-3 py-2 text-sm'
-            }
-          >
-            {m.content}
-          </div>
-        ))}
+        {messages.map((m) =>
+          m.role === 'user' ? (
+            <div key={m.id} className="ml-auto max-w-[80%] rounded-2xl bg-primary px-3 py-2 text-sm text-primary-foreground">
+              {m.content}
+            </div>
+          ) : (
+            <div key={m.id} className="mr-auto max-w-[80%] rounded-2xl bg-muted px-3 py-2">
+              <MarkdownMessage content={m.content} />
+            </div>
+          )
+        )}
         {failedMessage && (
           <button type="button" onClick={retry} className="ml-auto text-xs text-destructive underline">
             Failed to send — tap to retry
           </button>
+        )}
+        {!sending && suggestions.length > 0 && (
+          <div className="mr-auto flex max-w-[90%] flex-wrap gap-2">
+            {suggestions.map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => handleSend(s)}
+                className="rounded-full border bg-background px-3 py-1.5 text-xs text-foreground hover:bg-accent"
+              >
+                {s}
+              </button>
+            ))}
+          </div>
         )}
       </div>
       <IntelChatPromptBar
