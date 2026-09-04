@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { mapTmdbResult, genreIdsToNames, MOVIE_GENRES, TV_GENRES } from './tmdb';
+import { mapTmdbResult, genreIdsToNames, MOVIE_GENRES, TV_GENRES, fetchTrailerKey, discoverTmdb } from './tmdb';
 
 describe('mapTmdbResult', () => {
   it('maps a movie result, deriving mediaType, releaseYear, and genre names', () => {
@@ -74,5 +74,64 @@ describe('genre tables', () => {
   it('MOVIE_GENRES and TV_GENRES both include Drama at the same id (18)', () => {
     expect(MOVIE_GENRES[18]).toBe('Drama');
     expect(TV_GENRES[18]).toBe('Drama');
+  });
+});
+
+describe('fetchTrailerKey', () => {
+  function fakeFetch(results: unknown[]): typeof fetch {
+    return (async () =>
+      new Response(JSON.stringify({ results }), { status: 200 })) as unknown as typeof fetch;
+  }
+
+  it('prefers an official YouTube Trailer', async () => {
+    const results = [
+      { site: 'YouTube', type: 'Teaser', official: true, key: 'teaser-key' },
+      { site: 'YouTube', type: 'Trailer', official: false, key: 'unofficial-key' },
+      { site: 'YouTube', type: 'Trailer', official: true, key: 'official-key' },
+    ];
+    const key = await fetchTrailerKey(550, 'movie', fakeFetch(results));
+    expect(key).toBe('official-key');
+  });
+
+  it('falls back to any Trailer if no official one exists', async () => {
+    const results = [{ site: 'YouTube', type: 'Trailer', official: false, key: 'unofficial-key' }];
+    const key = await fetchTrailerKey(550, 'movie', fakeFetch(results));
+    expect(key).toBe('unofficial-key');
+  });
+
+  it('falls back to a Teaser if no Trailer exists at all', async () => {
+    const results = [{ site: 'YouTube', type: 'Teaser', official: false, key: 'teaser-key' }];
+    const key = await fetchTrailerKey(550, 'movie', fakeFetch(results));
+    expect(key).toBe('teaser-key');
+  });
+
+  it('ignores non-YouTube results and returns null if nothing usable is found', async () => {
+    const results = [{ site: 'Vimeo', type: 'Trailer', official: true, key: 'vimeo-key' }];
+    const key = await fetchTrailerKey(550, 'movie', fakeFetch(results));
+    expect(key).toBeNull();
+  });
+});
+
+describe('discoverTmdb with originalLanguage', () => {
+  it('includes with_original_language when provided', async () => {
+    let capturedUrl = '';
+    const fetchImpl = (async (url: string) => {
+      capturedUrl = url;
+      return new Response(JSON.stringify({ results: [] }), { status: 200 });
+    }) as unknown as typeof fetch;
+
+    await discoverTmdb({ mediaType: 'movie', genreIds: [], originalLanguage: 'ko' }, fetchImpl);
+    expect(capturedUrl).toContain('with_original_language=ko');
+  });
+
+  it('defaults minRating to 0 when omitted', async () => {
+    let capturedUrl = '';
+    const fetchImpl = (async (url: string) => {
+      capturedUrl = url;
+      return new Response(JSON.stringify({ results: [] }), { status: 200 });
+    }) as unknown as typeof fetch;
+
+    await discoverTmdb({ mediaType: 'movie', genreIds: [] }, fetchImpl);
+    expect(capturedUrl).toContain('vote_average.gte=0');
   });
 });

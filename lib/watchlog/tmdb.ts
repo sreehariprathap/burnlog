@@ -94,20 +94,75 @@ export async function trendingTmdb(
 export interface DiscoverFilters {
   mediaType: MediaType;
   genreIds: number[];
-  minRating: number;
+  minRating?: number;
+  originalLanguage?: string;
 }
 
-/** Filtered discovery used by the AI mood-suggestion flow. */
+/** Filtered discovery used by the AI mood-suggestion flow and Discover's browse rows. */
 export async function discoverTmdb(filters: DiscoverFilters, fetchImpl: typeof fetch = fetch): Promise<TmdbItem[]> {
   const params = new URLSearchParams({
     sort_by: 'popularity.desc',
-    'vote_average.gte': String(filters.minRating),
+    'vote_average.gte': String(filters.minRating ?? 0),
     'vote_count.gte': '50',
   });
   if (filters.genreIds.length > 0) params.set('with_genres', filters.genreIds.join(','));
+  if (filters.originalLanguage) params.set('with_original_language', filters.originalLanguage);
 
   const json = (await tmdbFetch(`/discover/${filters.mediaType}?${params.toString()}`, fetchImpl)) as {
     results?: unknown[];
   };
   return (json.results ?? []).map((r) => mapTmdbResult(r, filters.mediaType));
 }
+
+interface RawTmdbVideo {
+  site?: unknown;
+  type?: unknown;
+  official?: unknown;
+  key?: unknown;
+}
+
+/** Best available YouTube trailer/teaser key for a title, or null if none exists. */
+export async function fetchTrailerKey(
+  tmdbId: number,
+  mediaType: MediaType,
+  fetchImpl: typeof fetch = fetch
+): Promise<string | null> {
+  const json = (await tmdbFetch(`/${mediaType}/${tmdbId}/videos`, fetchImpl)) as { results?: unknown[] };
+  const videos = (json.results ?? []).filter(
+    (v): v is RawTmdbVideo => (v as RawTmdbVideo).site === 'YouTube'
+  );
+
+  const officialTrailer = videos.find((v) => v.type === 'Trailer' && v.official === true);
+  const anyTrailer = videos.find((v) => v.type === 'Trailer');
+  const anyTeaser = videos.find((v) => v.type === 'Teaser');
+  const best = officialTrailer ?? anyTrailer ?? anyTeaser;
+  return typeof best?.key === 'string' ? best.key : null;
+}
+
+export interface BrowseGenreRow {
+  label: string;
+  movieGenreId: number;
+  tvGenreId?: number;
+}
+
+/** Discover's genre browse rows — Horror and Romance have no direct TMDB TV
+ * genre equivalent, so those rows are movie-only. */
+export const BROWSE_GENRE_ROWS: BrowseGenreRow[] = [
+  { label: 'Action', movieGenreId: 28, tvGenreId: 10759 },
+  { label: 'Comedy', movieGenreId: 35, tvGenreId: 35 },
+  { label: 'Drama', movieGenreId: 18, tvGenreId: 18 },
+  { label: 'Documentary', movieGenreId: 99, tvGenreId: 99 },
+  { label: 'Animation', movieGenreId: 16, tvGenreId: 16 },
+  { label: 'Horror', movieGenreId: 27 },
+  { label: 'Romance', movieGenreId: 10749 },
+];
+
+export interface RegionalRow {
+  label: string;
+  originalLanguage: string;
+}
+
+export const REGIONAL_ROWS: RegionalRow[] = [
+  { label: 'Korean', originalLanguage: 'ko' },
+  { label: 'Hindi', originalLanguage: 'hi' },
+];
