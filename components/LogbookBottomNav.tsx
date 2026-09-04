@@ -7,6 +7,7 @@ import { CalendarClock } from 'lucide-react';
 import { LogbookMark } from '@/components/LogbookMark';
 import { ProfileMenu } from '@/components/ProfileMenu';
 import { cn } from '@/lib/utils';
+import { Tappable } from '@/components/ui/tappable';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { usePreloadRoutes } from '@/lib/usePreloadRoutes';
 import { todayQuery, myDayQuery, todayKey } from '@/lib/logbook/queries';
@@ -33,13 +34,15 @@ export function LogbookBottomNav() {
         aria-label="Logbook"
         aria-current={isHomeActive ? 'page' : undefined}
         className={cn(
-          'relative flex flex-col items-center rounded-full px-3 py-2 text-xs transition-colors',
+          'relative rounded-full transition-colors',
           isHomeActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
         )}
       >
         {isHomeActive && <span className="absolute inset-0 rounded-full bg-primary/10" />}
-        <LogbookMark size={20} className="relative z-10 mb-0.5" />
-        <span className="relative z-10">Logbook</span>
+        <Tappable className="relative z-10 flex flex-col items-center px-3 py-2 text-xs">
+          <LogbookMark size={20} className="mb-0.5" />
+          <span>Logbook</span>
+        </Tappable>
       </Link>
       <Link
         href="/logbook/myday"
@@ -47,13 +50,15 @@ export function LogbookBottomNav() {
         aria-label="MyDay"
         aria-current={isMyDayActive ? 'page' : undefined}
         className={cn(
-          'relative flex flex-col items-center rounded-full px-3 py-2 text-xs transition-colors',
+          'relative rounded-full transition-colors',
           isMyDayActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
         )}
       >
         {isMyDayActive && <span className="absolute inset-0 rounded-full bg-primary/10" />}
-        <CalendarClock size={20} className="relative z-10 mb-0.5" />
-        <span className="relative z-10">MyDay</span>
+        <Tappable className="relative z-10 flex flex-col items-center px-3 py-2 text-xs">
+          <CalendarClock size={20} className="mb-0.5" />
+          <span>MyDay</span>
+        </Tappable>
       </Link>
       <ProfileMenu isActive={isProfileActive} />
     </nav>

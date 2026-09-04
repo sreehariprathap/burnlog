@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { TopBar } from '@/components/TopBar';
 import { BottomNav } from '@/components/BottomNav';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { StaggerGrid, StaggerItem } from '@/components/ui/stagger-grid';
 import { SetGoalsPrompt } from './_components/SetGoalsPrompt';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BMIWidget } from './_components/BMIWidget';
@@ -172,17 +173,19 @@ export default function DashboardPage() {
             <CardHeader>
               <CardTitle>Your Goals</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-2">
-              {goals.map((goal) => (
-                <div key={goal.id} className="flex justify-between pb-2 border-b">
-                  <span className="font-medium">
-                    {goal.goalType.split('_').map(word => 
-                      word.charAt(0).toUpperCase() + word.slice(1)
-                    ).join(' ')}
-                  </span>
-                  <span>{goal.targetValue}</span>
-                </div>
-              ))}
+            <CardContent>
+              <StaggerGrid className="space-y-2">
+                {goals.map((goal) => (
+                  <StaggerItem key={goal.id} className="flex justify-between pb-2 border-b">
+                    <span className="font-medium">
+                      {goal.goalType.split('_').map(word =>
+                        word.charAt(0).toUpperCase() + word.slice(1)
+                      ).join(' ')}
+                    </span>
+                    <span>{goal.targetValue}</span>
+                  </StaggerItem>
+                ))}
+              </StaggerGrid>
             </CardContent>
           </Card>
         )}

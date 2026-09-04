@@ -7,6 +7,7 @@ import { ClipboardListIcon, PackageIcon, ReceiptIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { HomeLogMark } from '@/components/HomeLogMark';
 import { ConfigMenu } from '@/components/ConfigMenu';
+import { Tappable } from '@/components/ui/tappable';
 import { useHouseholdMe } from '@/lib/homelog/useHouseholdMe';
 import { usePreloadRoutes } from '@/lib/usePreloadRoutes';
 import {
@@ -54,16 +55,18 @@ export function HomeLogBottomNav() {
             href={href}
             prefetch
             className={cn(
-              'relative flex flex-col items-center rounded-full px-3 py-2 text-xs transition-colors',
+              'relative rounded-full transition-colors',
               isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground'
             )}
           >
-            {Icon ? (
-              <Icon className="relative z-10 mb-0.5 h-5 w-5" />
-            ) : (
-              <HomeLogMark size={20} className="relative z-10 mb-0.5" />
-            )}
-            <span className="relative z-10">{label}</span>
+            <Tappable className="relative z-10 flex flex-col items-center px-3 py-2 text-xs">
+              {Icon ? (
+                <Icon className="mb-0.5 h-5 w-5" />
+              ) : (
+                <HomeLogMark size={20} className="mb-0.5" />
+              )}
+              <span>{label}</span>
+            </Tappable>
           </Link>
         );
       })}
