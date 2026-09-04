@@ -7,9 +7,8 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Loader2, Ruler, Footprints } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { generateUsername } from '@/lib/username';
+import { Loader2 } from 'lucide-react';
+import { generateUsername, isValidUsername } from '@/lib/username';
 
 export default function ProfileSetupPage() {
   const router = useRouter();
@@ -21,43 +20,45 @@ export default function ProfileSetupPage() {
 
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
-  const [age, setAge] = useState<number>(0);
-  const [weight, setWeight] = useState('');
-  const [height, setHeight] = useState('');
-  const [activityLevel, setActivityLevel] = useState<'low'|'medium'|'high'>('medium');
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [city, setCity] = useState('');
+  const [country, setCountry] = useState('');
+  const [postalCode, setPostalCode] = useState('');
+  const [username, setUsername] = useState('');
+  const [usernameStatus, setUsernameStatus] = useState<'checking' | 'available' | 'taken' | 'invalid' | 'idle'>('idle');
 
   // Check if user is logged in and if they have a profile
   useEffect(() => {
     async function checkSessionAndProfile() {
       try {
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
+
         if (sessionError) {
           console.error("Session error:", sessionError);
           router.replace('/login');
           return;
         }
-        
+
         if (!session) {
           console.log("No active session, redirecting to login");
           router.replace('/login');
           return;
         }
-        
+
         setSession(session);
-        
+
         // Check if profile already exists
         const { data: existingProfile, error: profileError } = await supabase
           .from('profiles')
           .select('id')
           .eq('userId', session.user.id)
           .single();
-        
+
         if (profileError && profileError.code !== 'PGRST116') {
           console.error("Error checking profile:", profileError);
           setError("Failed to check profile status");
         }
-        
+
         if (existingProfile) {
           // Profile already exists, redirect to Logbook (the app's home)
           setProfileExists(true);
@@ -70,9 +71,39 @@ export default function ProfileSetupPage() {
         setLoading(false);
       }
     }
-    
+
     checkSessionAndProfile();
   }, [supabase, router]);
+
+  // Seed the username suggestion once firstName is available.
+  useEffect(() => {
+    if (!username && firstName) {
+      setUsername(generateUsername(firstName));
+    }
+  }, [firstName]);
+
+  // Live availability check, debounced.
+  useEffect(() => {
+    if (!username) {
+      setUsernameStatus('idle');
+      return;
+    }
+    if (!isValidUsername(username)) {
+      setUsernameStatus('invalid');
+      return;
+    }
+    setUsernameStatus('checking');
+    const t = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/username-available?u=${encodeURIComponent(username)}`);
+        const data = await res.json();
+        setUsernameStatus(data.available ? 'available' : 'taken');
+      } catch {
+        setUsernameStatus('idle');
+      }
+    }, 400);
+    return () => clearTimeout(t);
+  }, [username]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,31 +115,28 @@ export default function ProfileSetupPage() {
       setLoading(false);
       return;
     }
-    
-    const userId = session.user.id;
-    
-    try {
-      // Create new profile, retrying the auto-generated username on the
-      // rare unique-constraint collision (Postgres error code 23505).
-      let profileError: { code?: string; message: string } | null = null;
-      for (let attempt = 0; attempt < 5; attempt++) {
-        const result = await supabase
-          .from('profiles')
-          .insert({
-            userId,
-            firstName, lastName,
-            age, weight: parseFloat(weight),
-            height: parseFloat(height),
-            activityLevel,
-            username: generateUsername(firstName),
-          });
-        profileError = result.error;
-        if (!profileError || profileError.code !== '23505') break;
-      }
 
-      if (profileError) {
-        console.error("Profile error:", profileError);
-        setError(profileError.message);
+    if (usernameStatus !== 'available') {
+      setError("Please choose an available username");
+      setLoading(false);
+      return;
+    }
+
+    const userId = session.user.id;
+
+    try {
+      const { error: insertError } = await supabase
+        .from('profiles')
+        .insert({
+          userId,
+          firstName, lastName,
+          dateOfBirth, city, country, postalCode,
+          username,
+        });
+
+      if (insertError) {
+        console.error("Profile error:", insertError);
+        setError(insertError.message);
       } else {
         // Best-effort: mark a matching pending invite as signed_up via the
         // service-role route (a brand-new user has no admin rights to write
@@ -123,7 +151,7 @@ export default function ProfileSetupPage() {
             // no-op — invite tracking is not required for signup to succeed
           });
         }
-        router.push('/onboarding/apps');
+        router.push('/onboarding/ai-insights');
       }
     } catch (err) {
       console.error("Error saving profile:", err);
@@ -134,7 +162,7 @@ export default function ProfileSetupPage() {
   };
 
   if (loading) return <div className="h-screen flex items-center justify-center"><Loader2 className="animate-spin"/></div>;
-  
+
   // Don't show the form if the profile exists (should redirect)
   if (profileExists) return <div className="h-screen flex items-center justify-center"><Loader2 className="animate-spin"/></div>;
 
@@ -166,63 +194,41 @@ export default function ProfileSetupPage() {
               />
             </div>
 
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="age">Age</Label>
+            <div className="space-y-2">
+              <Label htmlFor="dob">Date of birth</Label>
               <Input
-                id="age"
-                type="number"
-                value={age}
-                onChange={e => setAge(Number(e.target.value))}
-                required
+                id="dob" type="date" required
+                value={dateOfBirth}
+                onChange={(e) => setDateOfBirth(e.target.value)}
               />
             </div>
 
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="weight">
-                Current Weight (kg) ⚖️
-              </Label>
-              <Input
-                id="weight"
-                type="number"
-                value={weight}
-                onChange={e => setWeight(e.target.value)}
-                required
-              />
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="city">City</Label>
+                <Input id="city" required value={city} onChange={(e) => setCity(e.target.value)} placeholder="Vancouver" />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="country">Country</Label>
+                <Input id="country" required value={country} onChange={(e) => setCountry(e.target.value)} placeholder="Canada" />
+              </div>
             </div>
 
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="height" className="flex items-center gap-2"><Ruler className="w-4 h-4" />Height (cm)</Label>
-              <Input
-                id="height"
-                type="number"
-                value={height}
-                onChange={e => setHeight(e.target.value)}
-                required
-              />
+            <div className="space-y-2">
+              <Label htmlFor="postalCode">Postal / ZIP code</Label>
+              <Input id="postalCode" value={postalCode} onChange={(e) => setPostalCode(e.target.value)} placeholder="V6B 1A1" />
             </div>
 
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="activityLevel" className="flex items-center gap-2">
-                <Footprints className="w-4 h-4" />Activity Level
-              </Label>
-              <Select
-                value={activityLevel}
-                onValueChange={value =>
-                  setActivityLevel(value as 'low' | 'medium' | 'high')
-                }
-              >
-                <SelectTrigger
-                  id="activityLevel"
-                  className="w-full"
-                >
-                  <SelectValue placeholder="Select level" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username" required value={username}
+                onChange={(e) => setUsername(e.target.value.toLowerCase())}
+              />
+              {usernameStatus === 'checking' && <p className="text-xs text-muted-foreground">Checking…</p>}
+              {usernameStatus === 'available' && <p className="text-xs text-green-600">@{username} is available</p>}
+              {usernameStatus === 'taken' && <p className="text-xs text-destructive">That username is taken</p>}
+              {usernameStatus === 'invalid' && <p className="text-xs text-destructive">3-20 lowercase letters, digits, or underscores</p>}
             </div>
 
             {error && (
@@ -230,7 +236,7 @@ export default function ProfileSetupPage() {
             )}
 
             <div className="flex justify-end">
-              <Button type="submit" disabled={loading}>
+              <Button type="submit" disabled={loading || usernameStatus !== 'available'}>
                 {loading ? (
                   <Loader2 className="animate-spin" />
                 ) : (
