@@ -11,6 +11,9 @@ import { DiscoverContent } from './_components/DiscoverContent';
 const WatchlistContent = dynamic(() => import('./_components/WatchlistContent').then((m) => m.WatchlistContent), {
   loading: () => <TabLoading />,
 });
+const StatsContent = dynamic(() => import('./_components/StatsContent').then((m) => m.StatsContent), {
+  loading: () => <TabLoading />,
+});
 
 function TabLoading() {
   return (
@@ -23,8 +26,8 @@ function TabLoading() {
 /**
  * /watchlog is a single page for all four of its nav tabs (Home, Watchlist,
  * Discover, Stats), switched via `?tab=` — same pattern as LearnLog. Home
- * and Stats land in later tasks; Discover renders for the default tab
- * until then so the route is exercisable end-to-end as each piece lands.
+ * lands in a later task; Discover renders for the default tab until then
+ * so the route is exercisable end-to-end as each piece lands.
  */
 export default function WatchLogPage() {
   return (
@@ -40,7 +43,13 @@ function WatchLogTabSwitcher() {
 
   return (
     <>
-      {tab === 'watchlist' ? <WatchlistContent /> : <DiscoverContent />}
+      {tab === 'watchlist' ? (
+        <WatchlistContent />
+      ) : tab === 'stats' ? (
+        <StatsContent />
+      ) : (
+        <DiscoverContent />
+      )}
       <WatchLogBottomNav />
     </>
   );
