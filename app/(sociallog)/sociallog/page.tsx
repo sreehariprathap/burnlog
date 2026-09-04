@@ -1,81 +1,58 @@
-// app/(sociallog)/sociallog/page.tsx
 'use client';
 // Client Component — page metadata isn't applicable here (see layout.tsx for shared app metadata).
 
-import { useState } from 'react';
-import useSWR from 'swr';
-import { TopBar } from '@/components/TopBar';
+import { Suspense } from 'react';
+import dynamic from 'next/dynamic';
+import { useSearchParams } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
 import { SocialLogBottomNav } from '@/components/SocialLogBottomNav';
-import { Button } from '@/components/ui/button';
-import { useCurrentProfile } from '@/lib/useCurrentProfile';
-import { ComposeBox } from './_components/ComposeBox';
-import { FollowRequestsBanner } from './_components/FollowRequestsBanner';
-import { FeedControls } from './_components/FeedControls';
-import { PostCard, type FeedPost } from './_components/PostCard';
-import { Loader2, RefreshCw, Sparkles, Users, FileText } from 'lucide-react';
-import { apiFetch } from '@/lib/apiFetch';
-import { StatCard } from '@/components/ui/stat-card';
-import { statsQuery } from '@/lib/sociallog/queries';
+import { HomeContent } from './_components/HomeContent';
 
-async function fetcher(url: string) {
-  const res = await apiFetch(url);
-  if (!res.ok) throw new Error('Failed to load feed');
-  return res.json();
+const SearchContent = dynamic(() => import('./search/_components/SearchContent').then((m) => m.SearchContent), {
+  loading: () => <TabLoading />,
+});
+const MessagesContent = dynamic(
+  () => import('./messages/_components/MessagesContent').then((m) => m.MessagesContent),
+  { loading: () => <TabLoading /> }
+);
+
+function TabLoading() {
+  return (
+    <div className="flex h-screen items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin" />
+    </div>
+  );
 }
 
-export default function SocialLogDashboardPage() {
-  const { profile } = useCurrentProfile();
-  const [tab, setTab] = useState<'foryou' | 'following'>('foryou');
-  const [sort, setSort] = useState<'hot' | 'new' | 'top'>('hot');
+/**
+ * /sociallog is a single page for all three of its nav tabs (Home, Search,
+ * Messages) — see SocialLogBottomNav, which switches between them via
+ * `?tab=` instead of navigating. /sociallog/messages/[threadId] (a
+ * conversation's own page) stays a real, separate route — only the thread
+ * list merged in.
+ */
+export default function SocialLogPage() {
+  return (
+    <Suspense fallback={<TabLoading />}>
+      <SocialLogTabSwitcher />
+    </Suspense>
+  );
+}
 
-  const { data, isLoading, mutate } = useSWR<{ posts: FeedPost[] }>(
-    `/api/sociallog/posts?tab=${tab}&sort=${sort}`,
-    fetcher
-  );
-  const { data: stats } = useSWR<{ followers: number; posts: number }>(
-    profile ? statsQuery().key : null,
-    profile ? statsQuery().fetcher : null
-  );
+function SocialLogTabSwitcher() {
+  const searchParams = useSearchParams();
+  const tab = searchParams.get('tab') ?? 'home';
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <TopBar
-        title="SocialLog"
-        actions={
-          <Button type="button" variant="ghost" size="icon" aria-label="Refresh" onClick={() => mutate()}>
-            <RefreshCw className="size-4" />
-          </Button>
-        }
-      />
-      <main className="flex-1 container mx-auto max-w-2xl space-y-4 p-4 pb-24">
-        <ComposeBox onPosted={() => mutate()} />
-        <FollowRequestsBanner />
-        <div className="grid grid-cols-2 gap-3">
-          <StatCard title="Followers" icon={Users}>
-            <p className="text-2xl font-bold">{stats?.followers ?? 0}</p>
-          </StatCard>
-          <StatCard title="Posts" icon={FileText}>
-            <p className="text-2xl font-bold">{stats?.posts ?? 0}</p>
-          </StatCard>
-        </div>
-        <FeedControls tab={tab} sort={sort} onTabChange={setTab} onSortChange={setSort} />
-        {isLoading && <Loader2 className="h-6 w-6 animate-spin" />}
-        {!isLoading && (data?.posts.length ?? 0) === 0 && (
-          <div className="flex flex-col items-center gap-2 py-12 text-center">
-            <Sparkles className="size-8 text-muted-foreground" />
-            <p className="text-sm font-medium">
-              {tab === 'following' ? 'Nobody you follow has posted yet' : 'No posts yet'}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              {tab === 'following' ? 'Follow more people or switch to For You.' : 'Be the first to share something.'}
-            </p>
-          </div>
-        )}
-        {(data?.posts ?? []).map((post) => (
-          <PostCard key={post.id} post={post} currentProfileId={profile?.id ?? null} />
-        ))}
-      </main>
+    <>
+      {tab === 'search' ? (
+        <SearchContent />
+      ) : tab === 'messages' ? (
+        <MessagesContent />
+      ) : (
+        <HomeContent />
+      )}
       <SocialLogBottomNav />
-    </div>
+    </>
   );
 }

@@ -139,7 +139,7 @@ export default function SocialLogThreadPage() {
 
   return (
     <div className="flex h-dvh flex-col">
-      <TopBar title="Conversation" onClose={() => router.push('/sociallog/messages')} />
+      <TopBar title="Conversation" onClose={() => router.push('/sociallog?tab=messages')} />
       <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col overflow-hidden">
         <div className="flex-1 space-y-2 overflow-y-auto p-4">
           {loading && <Loader2 className="h-6 w-6 animate-spin" />}
