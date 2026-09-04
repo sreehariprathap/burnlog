@@ -8,6 +8,9 @@ import { Loader2 } from 'lucide-react';
 import { WatchLogBottomNav } from '@/components/WatchLogBottomNav';
 import { DiscoverContent } from './_components/DiscoverContent';
 
+const HomeContent = dynamic(() => import('./_components/HomeContent').then((m) => m.HomeContent), {
+  loading: () => <TabLoading />,
+});
 const WatchlistContent = dynamic(() => import('./_components/WatchlistContent').then((m) => m.WatchlistContent), {
   loading: () => <TabLoading />,
 });
@@ -25,9 +28,7 @@ function TabLoading() {
 
 /**
  * /watchlog is a single page for all four of its nav tabs (Home, Watchlist,
- * Discover, Stats), switched via `?tab=` — same pattern as LearnLog. Home
- * lands in a later task; Discover renders for the default tab until then
- * so the route is exercisable end-to-end as each piece lands.
+ * Discover, Stats), switched via `?tab=` — same pattern as LearnLog.
  */
 export default function WatchLogPage() {
   return (
@@ -45,10 +46,12 @@ function WatchLogTabSwitcher() {
     <>
       {tab === 'watchlist' ? (
         <WatchlistContent />
+      ) : tab === 'discover' ? (
+        <DiscoverContent />
       ) : tab === 'stats' ? (
         <StatsContent />
       ) : (
-        <DiscoverContent />
+        <HomeContent />
       )}
       <WatchLogBottomNav />
     </>
