@@ -34,11 +34,11 @@ export function PlanPreview({
   };
 
   return (
-    <Card className="w-full max-w-lg">
+    <Card className="w-full max-w-lg overflow-x-hidden">
       <CardHeader>
         <CardTitle>Your AI-generated weekly plan</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="max-w-full space-y-4 overflow-x-hidden">
         <p className="text-sm text-muted-foreground">
           Review your week below. Tap any day to change it before saving.
         </p>
@@ -69,11 +69,11 @@ export function PlanPreview({
             ))}
         </div>
 
-        <div className="flex justify-between pt-4">
+        <div className="flex flex-wrap items-center justify-between gap-2 pt-4">
           <Button variant="outline" onClick={onCancel} disabled={saving || regenerating}>
             Cancel
           </Button>
-          <div className="flex items-center gap-2">
+          <div className="flex max-w-full flex-wrap items-center justify-end gap-2">
             <Button variant="outline" onClick={onRegenerate} disabled={saving || regenerating}>
               {regenerating && <Loader2 className="animate-spin h-4 w-4 mr-2" />}
               Regenerate

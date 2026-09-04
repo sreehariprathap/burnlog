@@ -3,8 +3,9 @@
 
 import useSWR from 'swr';
 import { format as formatDate } from 'date-fns';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from '@/components/ui/accordion';
 import { apiFetch } from '@/lib/apiFetch';
 import type { LifeScoreMode } from '@/lib/logbook/lifeScore';
 
@@ -43,20 +44,40 @@ export function LifeScoreTrend({ mode }: { mode: LifeScoreMode }) {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-sm">Life Score — last 30 days</CardTitle>
-      </CardHeader>
-      <CardContent className="h-48">
-        <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={series}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="day" tick={{ fontSize: 10 }} />
-            <YAxis domain={[0, 100]} />
-            <Tooltip />
-            <Line type="monotone" dataKey="value" stroke="var(--primary)" connectNulls />
-          </LineChart>
-        </ResponsiveContainer>
-      </CardContent>
+      <Accordion type="single" collapsible>
+        <AccordionItem value="life-score-trend" className="border-b-0">
+          <CardHeader className="pb-0">
+            <AccordionTrigger className="py-2">
+              <CardTitle className="text-sm">Life Score — last 30 days</CardTitle>
+            </AccordionTrigger>
+          </CardHeader>
+          <AccordionContent>
+            <CardContent className="h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={series}>
+                  <defs>
+                    <linearGradient id="lifeScoreTrendFill" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.35} />
+                      <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="day" tick={{ fontSize: 10 }} />
+                  <YAxis domain={[0, 100]} />
+                  <Tooltip />
+                  <Area
+                    type="monotone"
+                    dataKey="value"
+                    stroke="var(--primary)"
+                    fill="url(#lifeScoreTrendFill)"
+                    connectNulls
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
     </Card>
   );
 }

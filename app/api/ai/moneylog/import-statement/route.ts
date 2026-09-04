@@ -61,7 +61,7 @@ export async function POST(request: Request) {
         profile.id,
         { jobType: 'moneylog-import-statement', app: 'moneylog', model: MODEL },
         { bank, accountType, periodStart, periodEnd },
-        async () => {
+        async (signal) => {
           const completion = await client.chat.completions.create({
             model: MODEL,
             temperature: 0.1,
@@ -81,7 +81,7 @@ export async function POST(request: Request) {
               },
             ],
             response_format: { type: 'json_object' },
-          });
+          }, { signal });
 
           const content = completion.choices?.[0]?.message?.content;
           if (!content) {

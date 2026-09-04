@@ -7,10 +7,12 @@ import { PartyPopper } from 'lucide-react';
 
 interface DoneStepProps {
   choreCount: number;
+  /** Label for the continue button — reflects the actual next destination. */
+  finishLabel?: string;
   onFinish: () => void;
 }
 
-export function DoneStep({ choreCount, onFinish }: DoneStepProps) {
+export function DoneStep({ choreCount, finishLabel = 'Go to HomeLog', onFinish }: DoneStepProps) {
   return (
     <Card>
       <CardHeader>
@@ -26,7 +28,7 @@ export function DoneStep({ choreCount, onFinish }: DoneStepProps) {
             : 'Add chores anytime from the Chores tab.'}
         </p>
         <Button className="w-full" onClick={onFinish}>
-          Go to HomeLog
+          {finishLabel}
         </Button>
       </CardContent>
     </Card>

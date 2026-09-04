@@ -78,13 +78,13 @@ export async function POST(request: Request) {
         profile.id,
         { jobType: 'meal-plan-finalize', app: 'burnlog', model: MODEL },
         { grid, answers },
-        async () => {
+        async (signal) => {
           const completion = await client.chat.completions.create({
             model: MODEL,
             temperature: 0.4,
             messages: [{ role: 'user', content: buildGroceryListPrompt(grid, answers) }],
             response_format: { type: 'json_object' },
-          });
+          }, { signal });
 
           const content = completion.choices?.[0]?.message?.content;
           if (!content) {

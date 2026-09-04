@@ -54,7 +54,7 @@ export async function POST(request: Request) {
         profile.id,
         { jobType: 'meal-plan', app: 'burnlog', model: MODEL },
         { age: profile.age, weight: profile.weight, lifestyle, customInstructions },
-        async () => {
+        async (signal) => {
           const prompt = buildMealPlanPrompt(
             lifestyle,
             { age: profile.age ?? 30, weight: profile.weight ?? 70 },
@@ -66,7 +66,7 @@ export async function POST(request: Request) {
             temperature: 0.5,
             messages: [{ role: 'user', content: prompt }],
             response_format: { type: 'json_object' },
-          });
+          }, { signal });
 
           const content = completion.choices?.[0]?.message?.content;
           if (!content) {

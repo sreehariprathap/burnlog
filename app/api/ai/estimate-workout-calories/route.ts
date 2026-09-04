@@ -55,7 +55,7 @@ export async function POST(request: Request) {
         profile.id,
         { jobType: 'estimate-workout-calories', app: 'burnlog', model: MODEL },
         { activityType, durationMinutes, distanceKm, description },
-        async () => {
+        async (signal) => {
           const activityLine = activityType === 'Other'
             ? `Activity: unspecified — infer the actual activity from this description: "${description?.trim()}"`
             : `Activity: ${activityType}`;
@@ -84,7 +84,7 @@ Respond ONLY with a valid JSON object (no markdown, no extra text) with this exa
             temperature: 0.2,
             messages: [{ role: 'user', content: prompt }],
             response_format: { type: 'json_object' },
-          });
+          }, { signal });
 
           const content = completion.choices?.[0]?.message?.content;
           if (!content) {

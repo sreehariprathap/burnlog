@@ -46,10 +46,23 @@ function OnboardingSequenceRedirect() {
 
     const current = apps[step];
     const onboardingRoute = ONBOARDING_ROUTES[current];
+    // The app (if any) that comes after this one in the sequence, so the
+    // current step's completion screen can label its continue button with
+    // the actual next destination instead of hardcoding its own name.
+    const nextApp = apps[step + 1];
     const nextSequenceUrl = `/onboarding/sequence?apps=${apps.join(',')}&step=${step + 1}&returnTo=${encodeURIComponent(returnTo)}`;
 
     if (onboardingRoute) {
-      router.replace(`${onboardingRoute}?returnTo=${encodeURIComponent(nextSequenceUrl)}`);
+      const params = new URLSearchParams({ returnTo: nextSequenceUrl });
+      if (nextApp) {
+        params.set('nextApp', nextApp);
+      } else {
+        // No app follows this one in the sequence — tell the completion
+        // screen it's the last step so it doesn't have to guess a label
+        // from an app id that doesn't exist.
+        params.set('lastStep', '1');
+      }
+      router.replace(`${onboardingRoute}?${params.toString()}`);
     } else {
       router.replace(nextSequenceUrl);
     }

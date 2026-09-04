@@ -4,6 +4,7 @@ import { subDays, format as formatDate } from 'date-fns';
 import { getPeriodRange, expandRecurringInRange, type RecurringItemRow } from '@/lib/financePeriods';
 import { getTodayRange, resolveTarget, DEFAULT_TARGETS } from '@/lib/dailyTargets';
 import { getMyHouseholdMembership } from '@/lib/homelog/serverAuth';
+import { DEFAULT_CURRENCY, currencyLocale, isCurrencyCode, type CurrencyCode } from '@/lib/currency';
 import {
   computeAppScoresForDay,
   averageMode,
@@ -45,6 +46,21 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 
 function dayKey(d: Date | string): string {
   return formatDate(new Date(d), 'yyyy-MM-dd');
+}
+
+/**
+ * Server-side currency formatting keyed off the profile's own configured
+ * currency (profiles.currency in the db), not the browser's localStorage
+ * mirror of it — this code runs in an API route, so localStorage isn't
+ * available. Mirrors lib/format.ts's formatCurrency but is safe to call
+ * outside the browser.
+ */
+function formatMoney(amount: number, currency: CurrencyCode): string {
+  return new Intl.NumberFormat(currencyLocale(currency), {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: 0,
+  }).format(amount);
 }
 
 function getYesterdayRange(): { start: string; end: string } {
@@ -110,7 +126,8 @@ async function computeTasklogCard(
 
 async function computeMoneylogCard(
   supabase: SupabaseClient,
-  profileId: string
+  profileId: string,
+  currency: CurrencyCode
 ): Promise<{ card: LogbookCard; spentToday: number }> {
   const { start, end } = getTodayRange();
   const monthRange = getPeriodRange('monthly');
@@ -144,7 +161,7 @@ async function computeMoneylogCard(
       label: 'Spent today',
       value: spentToday,
       target: dailyBudget,
-      unit: '₹',
+      unit: currency,
       pct: dailyBudget > 0 ? Math.max(0, Math.min(100, Math.round(((dailyBudget - spentToday) / dailyBudget) * 100))) : null,
       available: true,
     },
@@ -344,7 +361,8 @@ function buildInsight(opts: {
 
 async function computeActivity(
   supabase: SupabaseClient,
-  profileId: string
+  profileId: string,
+  currency: CurrencyCode
 ): Promise<LogbookActivityEvent[]> {
   const { start, end } = getTodayRange();
   const membership = await getMyHouseholdMembership(supabase, profileId);
@@ -401,7 +419,7 @@ async function computeActivity(
     events.push({
       app: 'moneylog',
       time: r.createdAt,
-      label: `${r.type === 'income' ? 'Earned' : 'Spent'} ₹${r.amount} on ${r.label}`,
+      label: `${r.type === 'income' ? 'Earned' : 'Spent'} ${formatMoney(r.amount, currency)} on ${r.label}`,
     });
   }
   for (const r of (choreRes.data as { completedAt: string; household_chores: { title: string } | null }[]) || []) {
@@ -417,7 +435,7 @@ export async function getLogbookToday(supabase: SupabaseClient, profileId: strin
 
   const { data: profileRow } = await supabase
     .from('profiles')
-    .select('enabledApps, lifeScoreMode')
+    .select('enabledApps, lifeScoreMode, currency')
     .eq('id', profileId)
     .single();
 
@@ -425,6 +443,8 @@ export async function getLogbookToday(supabase: SupabaseClient, profileId: strin
     (a): a is LifeScoreApp => LIFE_SCORE_APPS.includes(a as LifeScoreApp)
   );
   const lifeScoreMode = ((profileRow as { lifeScoreMode: LifeScoreMode } | null)?.lifeScoreMode) || 'engagement';
+  const rawCurrency = (profileRow as { currency?: string } | null)?.currency;
+  const currency: CurrencyCode = rawCurrency && isCurrencyCode(rawCurrency) ? rawCurrency : DEFAULT_CURRENCY;
 
   const { start: todayStart, end: todayEnd } = getTodayRange();
   const { start: yesterdayStart } = getYesterdayRange();
@@ -434,12 +454,12 @@ export async function getLogbookToday(supabase: SupabaseClient, profileId: strin
     await Promise.all([
       computeBurnlogCard(supabase, profileId),
       computeTasklogCard(supabase, profileId, today),
-      computeMoneylogCard(supabase, profileId),
+      computeMoneylogCard(supabase, profileId, currency),
       computeHomelogCard(supabase, profileId, today),
       computeSociallogCard(supabase, profileId),
       computeShoppinglogCard(supabase, profileId),
       computeStreak(supabase, profileId),
-      computeActivity(supabase, profileId),
+      computeActivity(supabase, profileId, currency),
       computeAppScoresForDay(supabase, profileId, { start: todayStart, end: todayEnd }, today),
       enabledApps.length > 0
         ? getOrCreateSnapshotForDate(supabase, profileId, yesterdayStr, enabledApps)

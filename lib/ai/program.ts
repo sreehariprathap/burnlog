@@ -205,14 +205,15 @@ export function validateProgramPlan(raw: unknown): GeneratedProgram {
 export async function generateProgram(
   profile: ProfileContext,
   pastedPlanText: string,
-  model: string
+  model: string,
+  signal?: AbortSignal
 ): Promise<GeneratedProgram> {
   const completion = await client.chat.completions.create({
     model,
     temperature: 0.4,
     messages: [{ role: 'user', content: buildPrompt(profile, pastedPlanText) }],
     response_format: { type: 'json_object' },
-  });
+  }, { signal });
 
   if (!completion.choices || completion.choices.length === 0) {
     const providerError = (completion as unknown as { error?: { message?: string } }).error;

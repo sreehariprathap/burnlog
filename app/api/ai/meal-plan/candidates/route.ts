@@ -94,7 +94,7 @@ export async function POST(request: Request) {
         profile.id,
         { jobType: 'meal-plan-candidates', app: 'burnlog', model: MODEL },
         { answers, lifestyle },
-        async () => {
+        async (signal) => {
           const prompt = buildCandidatesPrompt(answers, lifestyle);
 
           const completion = await client.chat.completions.create({
@@ -102,7 +102,7 @@ export async function POST(request: Request) {
             temperature: 0.6,
             messages: [{ role: 'user', content: prompt }],
             response_format: { type: 'json_object' },
-          });
+          }, { signal });
 
           const content = completion.choices?.[0]?.message?.content;
           if (!content) {

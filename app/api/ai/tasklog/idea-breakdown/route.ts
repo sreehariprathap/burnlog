@@ -58,13 +58,13 @@ export async function POST(request: Request) {
         profile.id,
         { jobType: 'tasklog-idea-breakdown', app: 'tasklog', model: MODEL },
         { title, notes, category },
-        async () => {
+        async (signal) => {
           const completion = await client.chat.completions.create({
             model: MODEL,
             temperature: 0.5,
             messages: [{ role: 'user', content: buildPrompt(title, notes || '', category || 'idea') }],
             response_format: { type: 'json_object' },
-          });
+          }, { signal });
 
           const content = completion.choices?.[0]?.message?.content;
           if (!content) {

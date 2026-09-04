@@ -59,14 +59,14 @@ export async function POST(request: Request) {
         profile.id,
         { jobType: 'workout-plan', app: 'burnlog', model },
         body,
-        async () => {
+        async (signal) => {
           try {
-            const plan = await generateWorkoutPlan(profile, body, model, customInstructions);
+            const plan = await generateWorkoutPlan(profile, body, model, customInstructions, signal);
             return { plan };
           } catch (firstError) {
             console.error('AI plan generation failed, retrying once:', firstError);
             try {
-              const plan = await generateWorkoutPlan(profile, body, model, customInstructions);
+              const plan = await generateWorkoutPlan(profile, body, model, customInstructions, signal);
               return { plan };
             } catch (secondError) {
               console.error('AI plan generation failed on retry:', secondError);

@@ -49,7 +49,7 @@ export default function SocialLogMessagesPage() {
           <button
             key={t.id}
             type="button"
-            onClick={() => router.push(`/sociallog/messages/${t.id}`)}
+            onClick={() => router.push(`/sociallog/messages/${t.id}?with=${t.otherParticipant.id}`)}
             className="flex w-full items-center gap-3 rounded-lg border p-3 text-left hover:bg-muted"
           >
             <Avatar>
@@ -69,9 +69,13 @@ export default function SocialLogMessagesPage() {
       <NewMessageDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        onThreadCreated={(threadId) => {
+        onThreadCreated={(threadId, targetProfileId) => {
           setDialogOpen(false);
-          router.push(`/sociallog/messages/${threadId}`);
+          // Carry the other participant's id along as a fallback hint —
+          // if the thread row isn't found when the first message is sent
+          // (e.g. a race), the send endpoint can create it on the fly
+          // instead of failing with "Thread not found".
+          router.push(`/sociallog/messages/${threadId}?with=${targetProfileId}`);
         }}
       />
       <SocialLogBottomNav />

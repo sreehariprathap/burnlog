@@ -53,7 +53,7 @@ export async function POST(request: Request) {
         profile.id,
         { jobType: 'learnlog-onboarding', app: 'learnlog', model: MODEL },
         req,
-        async () => {
+        async (signal) => {
           const completion = await client.chat.completions.create({
             model: MODEL,
             temperature: 0.6,
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
               { role: 'user', content: buildOnboardingUserPrompt(req) },
             ],
             response_format: { type: 'json_object' },
-          });
+          }, { signal });
 
           if (!completion.choices || completion.choices.length === 0) {
             const providerError = (completion as unknown as { error?: { message?: string } }).error;

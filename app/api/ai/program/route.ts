@@ -38,14 +38,14 @@ export async function POST(request: Request) {
         profile.id,
         { jobType: 'program', app: 'burnlog', model },
         { pastedPlanText },
-        async () => {
+        async (signal) => {
           try {
-            const program = await generateProgram(profile, pastedPlanText, model);
+            const program = await generateProgram(profile, pastedPlanText, model, signal);
             return { program };
           } catch (firstError) {
             console.error('AI program generation failed, retrying once:', firstError);
             try {
-              const program = await generateProgram(profile, pastedPlanText, model);
+              const program = await generateProgram(profile, pastedPlanText, model, signal);
               return { program };
             } catch (secondError) {
               console.error('AI program generation failed on retry:', secondError);

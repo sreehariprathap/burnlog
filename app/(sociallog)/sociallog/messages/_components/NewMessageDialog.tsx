@@ -25,7 +25,7 @@ export function NewMessageDialog({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onThreadCreated: (threadId: string) => void;
+  onThreadCreated: (threadId: string, targetProfileId: string) => void;
 }) {
   const [query, setQuery] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -49,7 +49,7 @@ export function NewMessageDialog({
       setStarting(false);
       return;
     }
-    onThreadCreated(json.id);
+    onThreadCreated(json.id, targetProfileId);
   };
 
   return (

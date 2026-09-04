@@ -1,6 +1,7 @@
 // lib/logbook/weekly.ts
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { subDays } from 'date-fns';
+import { DEFAULT_CURRENCY, isCurrencyCode, type CurrencyCode } from '@/lib/currency';
 
 export interface WeeklyMetric {
   app: 'burnlog' | 'tasklog' | 'moneylog' | 'lifelog';
@@ -33,6 +34,10 @@ function sumSpend(rows: { type: string; amount: number }[] | null): number {
 export async function getLogbookWeekly(supabase: SupabaseClient, profileId: string): Promise<LogbookWeekly> {
   const thisWeek = isoRange(7, 0);
   const lastWeek = isoRange(14, 7);
+
+  const { data: profileRow } = await supabase.from('profiles').select('currency').eq('id', profileId).single();
+  const rawCurrency = (profileRow as { currency?: string } | null)?.currency;
+  const currency: CurrencyCode = rawCurrency && isCurrencyCode(rawCurrency) ? rawCurrency : DEFAULT_CURRENCY;
 
   const [burnThis, burnLast, taskThis, taskLast, txThis, txLast] = await Promise.all([
     supabase.from('calorie_burns').select('caloriesBurned').eq('profileId', profileId).gte('date', thisWeek.start).lt('date', thisWeek.end),
@@ -76,7 +81,7 @@ export async function getLogbookWeekly(supabase: SupabaseClient, profileId: stri
       {
         app: 'moneylog',
         label: 'Spent',
-        unit: '₹',
+        unit: currency,
         thisWeek: sumSpend(txThis.data as { type: string; amount: number }[]),
         lastWeek: sumSpend(txLast.data as { type: string; amount: number }[]),
         available: true,

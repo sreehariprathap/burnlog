@@ -192,29 +192,31 @@ export default function ModelGatherPage() {
             const isPending = pendingIds.has(m.id);
             return (
               <Card key={m.id}>
-                <CardContent className="flex flex-wrap items-center gap-3 p-4">
-                  <div className="min-w-0 flex-1">
+                <CardContent className="flex flex-col gap-3 p-4">
+                  <div className="min-w-0">
                     <p className="truncate text-sm font-medium">{m.name}</p>
                     <p className="truncate text-xs text-muted-foreground">{m.id}</p>
                   </div>
-                  <Badge variant="secondary">{m.provider}</Badge>
-                  <Badge variant="outline">{m.modality}</Badge>
-                  <Badge variant={m.isFree ? 'default' : 'secondary'}>{m.isFree ? 'Free' : 'Paid'}</Badge>
-                  <Badge variant="outline">{formatContextLength(m.contextLength)}</Badge>
-                  <Link
-                    href={`/adminlog/ai-model-test?model=${encodeURIComponent(m.id)}`}
-                    className="text-xs text-primary underline"
-                  >
-                    Test speed →
-                  </Link>
-                  <Button
-                    size="sm"
-                    variant={isCurated ? 'destructive' : 'default'}
-                    disabled={isPending}
-                    onClick={() => toggleCurated(m)}
-                  >
-                    {isPending ? <Loader2 className="animate-spin h-4 w-4" /> : isCurated ? 'Remove' : 'Add'}
-                  </Button>
+                  <div className="flex flex-wrap items-center gap-3">
+                    <Badge variant="secondary">{m.provider}</Badge>
+                    <Badge variant="outline">{m.modality}</Badge>
+                    <Badge variant={m.isFree ? 'default' : 'secondary'}>{m.isFree ? 'Free' : 'Paid'}</Badge>
+                    <Badge variant="outline">{formatContextLength(m.contextLength)}</Badge>
+                    <Link
+                      href={`/adminlog/ai-model-test?model=${encodeURIComponent(m.id)}`}
+                      className="text-xs text-primary underline"
+                    >
+                      Test speed →
+                    </Link>
+                    <Button
+                      size="sm"
+                      variant={isCurated ? 'destructive' : 'default'}
+                      disabled={isPending}
+                      onClick={() => toggleCurated(m)}
+                    >
+                      {isPending ? <Loader2 className="animate-spin h-4 w-4" /> : isCurated ? 'Remove' : 'Add'}
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             );

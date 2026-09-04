@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Loader2 } from 'lucide-react';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { useToast } from '@/components/ui/use-toast';
+import { APPS, isAppId } from '@/lib/appMode';
 import { WelcomeStep } from './WelcomeStep';
 import { GoalEntryStep, type GoalDraft } from './GoalEntryStep';
 import { DoneStep } from './DoneStep';
@@ -21,6 +22,16 @@ export function TaskLogOnboardingFlow() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = searchParams.get('returnTo') || '/tasklog';
+  // When the onboarding sequence router sent us here, it tells us which app
+  // comes next so the "done" screen can point at the real next step instead
+  // of always naming this app.
+  const nextAppParam = searchParams.get('nextApp');
+  const isLastStep = searchParams.get('lastStep') === '1';
+  const finishLabel = isAppId(nextAppParam)
+    ? `Go to ${APPS[nextAppParam].name}`
+    : isLastStep
+      ? 'Finish setup'
+      : 'Go to TaskLog';
   const supabase = createClient();
   const { profile, loading: profileLoading } = useCurrentProfile();
   const { toast } = useToast();
@@ -157,5 +168,5 @@ export function TaskLogOnboardingFlow() {
       </>
     );
   }
-  return <DoneStep goalCount={goalCount} taskCount={taskCount} onFinish={handleFinish} />;
+  return <DoneStep goalCount={goalCount} taskCount={taskCount} finishLabel={finishLabel} onFinish={handleFinish} />;
 }

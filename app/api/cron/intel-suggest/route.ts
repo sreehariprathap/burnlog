@@ -47,7 +47,7 @@ export async function GET(request: Request) {
         profile.id,
         { jobType: 'intel-suggest', app: 'intellog', model },
         input,
-        () => generateIntelSuggestions(input, model)
+        (signal) => generateIntelSuggestions(input, model, signal)
       );
 
       for (const suggestion of suggestions) {

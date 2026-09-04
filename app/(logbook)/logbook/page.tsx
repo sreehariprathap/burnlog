@@ -134,8 +134,6 @@ export default function LogbookPage() {
               />
             </StatCard>
 
-            <LifeScoreTrend mode={data.lifeScoreMode} />
-
             <LogCardsGrid cards={data.cards} />
 
             {profile && <LearnLogSummaryCard profileId={profile.id} />}
@@ -147,6 +145,8 @@ export default function LogbookPage() {
             <StreakCalendar />
 
             <WeeklySummary />
+
+            <LifeScoreTrend mode={data.lifeScoreMode} />
 
             <div>
               <h2 className="mb-2 text-sm font-semibold">Today&apos;s activity</h2>

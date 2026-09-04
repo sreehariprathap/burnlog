@@ -1,7 +1,7 @@
 // components/logbook/AiJobsList.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, type MouseEvent } from 'react';
 import useSWR from 'swr';
 import { formatDistanceToNow } from 'date-fns';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -10,7 +10,7 @@ type AiJobDTO = {
   id: string;
   jobType: string;
   app: string;
-  status: 'running' | 'success' | 'error';
+  status: 'running' | 'success' | 'error' | 'cancelled';
   error: string | null;
   model: string | null;
   durationMs: number | null;
@@ -26,6 +26,14 @@ async function fetchAiJobs(): Promise<{ jobs: AiJobDTO[] }> {
   return res.json();
 }
 
+async function cancelAiJob(id: string): Promise<void> {
+  const res = await fetch(`/api/ai/jobs/${id}/cancel`, { method: 'POST' });
+  if (!res.ok) {
+    const body = await res.json().catch(() => null);
+    throw new Error(body?.error ?? 'Failed to stop job');
+  }
+}
+
 // Postgres timestamps come back without a "Z" suffix (e.g.
 // "2026-09-02T19:06:27.397"); `new Date(...)` on that string parses it as
 // local time instead of UTC, so every relative time is off by the local
@@ -38,6 +46,7 @@ const STATUS_STYLES: Record<AiJobDTO['status'], string> = {
   running: 'bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300',
   success: 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300',
   error: 'bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300',
+  cancelled: 'bg-muted text-muted-foreground',
 };
 
 function humanizeJobType(jobType: string): string {
@@ -47,8 +56,22 @@ function humanizeJobType(jobType: string): string {
     .join(' ');
 }
 
-function JobRow({ job }: { job: AiJobDTO }) {
+function JobRow({ job, onCancelled }: { job: AiJobDTO; onCancelled: (id: string) => void }) {
   const [expanded, setExpanded] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+
+  async function handleStop(e: MouseEvent) {
+    e.stopPropagation();
+    if (cancelling) return;
+    setCancelling(true);
+    try {
+      await cancelAiJob(job.id);
+      onCancelled(job.id);
+    } catch (err) {
+      console.error('Failed to cancel AI job:', err);
+      setCancelling(false);
+    }
+  }
 
   return (
     <div className="rounded-xl border border-border p-3">
@@ -63,9 +86,21 @@ function JobRow({ job }: { job: AiJobDTO }) {
             {job.app} &middot; {formatDistanceToNow(parseUtcDate(job.createdAt), { addSuffix: true })}
           </span>
         </div>
-        <span className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[job.status]}`}>
-          {job.status}
-        </span>
+        <div className="flex shrink-0 items-center gap-2">
+          {job.status === 'running' && (
+            <button
+              type="button"
+              onClick={handleStop}
+              disabled={cancelling}
+              className="rounded-full border border-red-300 px-2 py-0.5 text-xs font-medium text-red-700 transition hover:bg-red-50 disabled:opacity-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/30"
+            >
+              {cancelling ? 'Stopping…' : 'Stop'}
+            </button>
+          )}
+          <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[job.status]}`}>
+            {job.status}
+          </span>
+        </div>
       </button>
       {expanded && (
         <div className="mt-3 space-y-2">
@@ -98,7 +133,19 @@ function JobRow({ job }: { job: AiJobDTO }) {
  * there's no separate history view.
  */
 export function AiJobsList() {
-  const { data, isLoading } = useSWR('ai-jobs', fetchAiJobs);
+  const { data, isLoading, mutate } = useSWR('ai-jobs', fetchAiJobs);
+
+  function handleCancelled(id: string) {
+    mutate(
+      (current) =>
+        current && {
+          jobs: current.jobs.map((job) =>
+            job.id === id ? { ...job, status: 'cancelled' as const, error: 'Cancelled by user' } : job
+          ),
+        },
+      { revalidate: true }
+    );
+  }
 
   if (isLoading || !data) {
     return (
@@ -117,7 +164,7 @@ export function AiJobsList() {
   return (
     <div className="flex flex-col gap-3">
       {data.jobs.map((job) => (
-        <JobRow key={job.id} job={job} />
+        <JobRow key={job.id} job={job} onCancelled={handleCancelled} />
       ))}
     </div>
   );

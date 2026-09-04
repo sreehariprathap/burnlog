@@ -2,8 +2,9 @@
 'use client';
 // Client Component — page metadata isn't applicable here (see layout.tsx for shared app metadata).
 
-import { useState } from 'react';
+import { Suspense, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import { TopBar } from '@/components/TopBar';
 import { HomeLogBottomNav } from '@/components/HomeLogBottomNav';
@@ -18,6 +19,7 @@ import { ListTodo, RefreshCw } from 'lucide-react';
 import { useHouseholdMe } from '@/lib/homelog/useHouseholdMe';
 import { useToast } from '@/components/ui/use-toast';
 import { choresQuery } from '@/lib/homelog/queries';
+import { cn } from '@/lib/utils';
 
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const MONTHS = [
@@ -25,8 +27,14 @@ const MONTHS = [
   'July', 'August', 'September', 'October', 'November', 'December',
 ];
 
-export default function ChoresPage() {
+function ChoresPageInner() {
   const { toast } = useToast();
+  const searchParams = useSearchParams();
+  // Set by chore-assignment/completion push notifications (see the `url`
+  // built in api/homelog/chores/instances/[id]/{complete,reassign}) so
+  // tapping one lands on this specific chore instead of just the list.
+  const highlightChoreId = searchParams.get('choreId');
+  const highlightedRef = useRef<HTMLDivElement | null>(null);
   const { household, members, isLoading: householdLoading } = useHouseholdMe();
   const {
     data: chores,
@@ -36,6 +44,12 @@ export default function ChoresPage() {
     !householdLoading && household ? choresQuery().key : null,
     !householdLoading && household ? choresQuery().fetcher : null
   );
+
+  useEffect(() => {
+    if (highlightChoreId && highlightedRef.current) {
+      highlightedRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [highlightChoreId, chores]);
 
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState('cleaning');
@@ -305,7 +319,10 @@ export default function ChoresPage() {
           </div>
         ) : (
           chores.map((chore) => (
-            <Card key={chore.id}>
+            <div key={chore.id} ref={chore.id === highlightChoreId ? highlightedRef : undefined}>
+            <Card
+              className={cn(chore.id === highlightChoreId && 'ring-2 ring-primary')}
+            >
               <CardContent className="flex flex-col gap-3 p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div>
@@ -381,10 +398,28 @@ export default function ChoresPage() {
                 )}
               </CardContent>
             </Card>
+            </div>
           ))
         )}
       </div>
       <HomeLogBottomNav />
     </div>
+  );
+}
+
+export default function ChoresPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="pb-24">
+          <TopBar title="Chores" />
+          <div className="px-4 py-4">
+            <Skeleton className="h-40 w-full" />
+          </div>
+        </div>
+      }
+    >
+      <ChoresPageInner />
+    </Suspense>
   );
 }

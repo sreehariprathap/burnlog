@@ -8,7 +8,7 @@ import {
   useMotionValue,
   useReducedMotion,
 } from "motion/react";
-import { type RefObject, useRef, useState } from "react";
+import { type KeyboardEvent, type RefObject, useRef, useState } from "react";
 
 const SLIDE_THRESHOLD = 160;
 const SLIDE_MAX_DISTANCE = 168;
@@ -50,24 +50,43 @@ export default function PowerOffSlide({
     }
   });
 
+  const confirm = async () => {
+    if (disabled) {
+      return;
+    }
+    await controls.start({ x: SLIDE_MAX_DISTANCE });
+    setIsPoweringOff(true);
+    if (onPowerOff) {
+      onPowerOff();
+    }
+    setTimeout(() => {
+      setIsPoweringOff(false);
+      controls.start({ x: 0 });
+      x.set(0);
+    }, duration);
+  };
+
   const handleDragEnd = async () => {
     if (disabled) {
       return;
     }
     const dragDistance = x.get();
     if (dragDistance > SLIDE_THRESHOLD) {
-      await controls.start({ x: SLIDE_MAX_DISTANCE });
-      setIsPoweringOff(true);
-      if (onPowerOff) {
-        onPowerOff();
-      }
-      setTimeout(() => {
-        setIsPoweringOff(false);
-        controls.start({ x: 0 });
-        x.set(0);
-      }, duration);
+      await confirm();
     } else {
       controls.start({ x: 0 });
+    }
+  };
+
+  // Keyboard fallback: focus the handle and press Enter/Space to confirm,
+  // matching this component's other keyboard-activatable controls.
+  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (disabled) {
+      return;
+    }
+    if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+      e.preventDefault();
+      confirm();
     }
   };
 
@@ -91,12 +110,15 @@ export default function PowerOffSlide({
             <motion.div
               animate={controls}
               aria-disabled={disabled}
-              className={`absolute top-1 left-1 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-background shadow-md ${disabled ? "cursor-not-allowed opacity-50" : "cursor-grab active:cursor-grabbing"}`}
+              role="button"
+              aria-label={label}
+              className={`absolute top-1 left-1 z-10 flex h-12 w-12 items-center justify-center rounded-full bg-background shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${disabled ? "cursor-not-allowed opacity-50" : "cursor-grab active:cursor-grabbing"}`}
               drag={disabled || shouldReduceMotion ? false : "x"}
               dragConstraints={{ left: 0, right: SLIDE_MAX_DISTANCE }}
               dragElastic={0}
               dragMomentum={false}
               onDragEnd={handleDragEnd}
+              onKeyDown={handleKeyDown}
               style={{ x }}
               tabIndex={disabled ? -1 : 0}
               transition={

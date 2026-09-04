@@ -66,14 +66,15 @@ function validateSuggestions(raw: unknown): IntelSuggestionResult[] {
 
 export async function generateIntelSuggestions(
   input: SuggestionInput[],
-  model: string
+  model: string,
+  signal?: AbortSignal
 ): Promise<IntelSuggestionResult[]> {
   const completion = await client.chat.completions.create({
     model,
     temperature: 0.5,
     messages: [{ role: 'user', content: buildPrompt(input) }],
     response_format: { type: 'json_object' },
-  });
+  }, { signal });
 
   const content = completion.choices?.[0]?.message?.content;
   if (!content) {

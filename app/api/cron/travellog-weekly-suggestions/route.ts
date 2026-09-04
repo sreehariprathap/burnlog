@@ -102,7 +102,7 @@ export async function GET(request: Request) {
         profile.id,
         { jobType: 'travellog-weekly-suggestions', app: 'travellog', model },
         req,
-        async () => {
+        async (signal) => {
           const completion = await client.chat.completions.create({
             model,
             temperature: 0.7,
@@ -111,7 +111,7 @@ export async function GET(request: Request) {
               { role: 'user', content: buildWeeklySuggestionsUserPrompt(req) },
             ],
             response_format: { type: 'json_object' },
-          });
+          }, { signal });
 
           const content = completion.choices[0]?.message?.content;
           if (!content) throw new Error('AI returned no response');

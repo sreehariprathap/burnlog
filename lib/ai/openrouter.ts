@@ -171,11 +171,58 @@ function buildWorkoutTypeGuidance(lifestyle: LifestyleAnswers): string {
   return parts.join(' ');
 }
 
+// Keyword -> bodyPart(s) map used to turn free-text exclusion statements
+// (from the onboarding "injuries/limitations" field or an "Ask AI" custom
+// instruction, e.g. "I don't have legs" or "no leg day please") into hard
+// constraints the prompt can state unambiguously, and that the generated
+// plan can be validated against after the fact. This is intentionally a
+// simple keyword match, not NLU — it errs toward over-excluding rather than
+// silently ignoring a stated limitation.
+const BODY_PART_EXCLUSION_RULES: { pattern: RegExp; exclude: BodyPart[] }[] = [
+  { pattern: /\bleg(s)?\b|\bknee(s)?\b|\bhip(s)?\b|\bhamstring(s)?\b|\bquad(s)?\b|\bcalf\b|\bcalves\b/i, exclude: ['Legs'] },
+  { pattern: /\bshoulder(s)?\b/i, exclude: ['Push', 'Pull'] },
+  { pattern: /\bchest\b/i, exclude: ['Push'] },
+  { pattern: /\b(lower |upper )?back\b|\bspine\b/i, exclude: ['Pull'] },
+  { pattern: /\barm(s)?\b|\belbow(s)?\b|\bwrist(s)?\b/i, exclude: ['Push', 'Pull'] },
+  { pattern: /\bcardio\b/i, exclude: ['Cardio', 'Outdoor Cardio'] },
+];
+
+/** Fallback types to use, in priority order, when an excluded type must be replaced. */
+const SAFE_FALLBACK_ORDER: BodyPart[] = ['Full Body', 'Bodyweight', 'Cardio', 'Rest'];
+
+export function detectExcludedBodyParts(...texts: (string | undefined)[]): BodyPart[] {
+  const combined = texts.filter(Boolean).join(' ').toLowerCase();
+  if (!combined) return [];
+  const excluded = new Set<BodyPart>();
+  for (const { pattern, exclude } of BODY_PART_EXCLUSION_RULES) {
+    if (pattern.test(combined)) {
+      for (const bp of exclude) excluded.add(bp);
+    }
+  }
+  return Array.from(excluded);
+}
+
+/**
+ * Rewrites any plan entry that was assigned an excluded bodyPart to the
+ * highest-priority safe fallback that isn't itself excluded. This is a
+ * belt-and-suspenders check: the prompt already tells the model not to use
+ * these types, but AI output is non-deterministic, so a stated exclusion
+ * (e.g. "no legs") must never be able to survive into the saved plan.
+ */
+export function enforceExclusions(plan: WorkoutPlanEntry[], excluded: BodyPart[]): WorkoutPlanEntry[] {
+  if (excluded.length === 0) return plan;
+  const fallback = SAFE_FALLBACK_ORDER.find((bp) => !excluded.includes(bp)) ?? 'Rest';
+  return plan.map((entry) =>
+    excluded.includes(entry.bodyPart) ? { ...entry, bodyPart: fallback } : entry
+  );
+}
+
 export function buildPrompt(profile: ProfileContext, lifestyle: LifestyleAnswers, customInstructions?: string): string {
   const restDays = 7 - lifestyle.preferredTrainingDays;
   const environmentContext = buildEnvironmentContext(lifestyle);
   const commuteContext = buildCommuteContext(lifestyle);
   const typeGuidance = buildWorkoutTypeGuidance(lifestyle);
+  const excludedBodyParts = detectExcludedBodyParts(lifestyle.injuries, customInstructions);
 
   return `You are a certified personal trainer generating a personalised weekly workout schedule.
 
@@ -206,9 +253,9 @@ the remaining ${restDays} days must be "Rest". Choose which body parts/types to 
 the user's training environment, available equipment, and commute habits above. Do NOT assign
 gym-only types (Push/Pull/Legs) to a user who trains at home or bodyweight-only. Avoid
 scheduling the same body part on consecutive days. Take injuries or limitations into account.
-
+${excludedBodyParts.length > 0 ? `\nHARD CONSTRAINT: the user has stated a limitation or exclusion that makes the following workout type(s) unsafe or impossible for them: ${excludedBodyParts.join(', ')}. Do NOT assign any of these types to ANY day, no exceptions — this overrides every other rule above, including the training-day count and the gym/home guidance. If a day would otherwise use one of these types, substitute a safe alternative such as "Full Body", "Bodyweight", "Cardio", or "Rest" instead.\n` : ''}
 Each entry's "bodyPart" must be exactly one of: ${BODY_PARTS.join(', ')}.
-${customInstructions ? `\nAdditional instructions from the user (follow these unless they conflict with the rules above): ${customInstructions}\n` : ''}
+${customInstructions ? `\nAdditional instructions from the user (these are hard constraints — they take priority over the general guidance above whenever they conflict): ${customInstructions}\n` : ''}
 Respond with ONLY a JSON object of this exact shape, no other text, no markdown code fences:
 {"plan":[{"dayOfWeek":0,"bodyPart":"Rest"},{"dayOfWeek":1,"bodyPart":"Bodyweight"}, ... one entry for every day 0-6]}`;
 }
@@ -252,14 +299,15 @@ export async function generateWorkoutPlan(
   profile: ProfileContext,
   lifestyle: LifestyleAnswers,
   model: string,
-  customInstructions?: string
+  customInstructions?: string,
+  signal?: AbortSignal
 ): Promise<WorkoutPlanEntry[]> {
   const completion = await client.chat.completions.create({
     model,
     temperature: 0.4,
     messages: [{ role: 'user', content: buildPrompt(profile, lifestyle, customInstructions) }],
     response_format: { type: 'json_object' },
-  });
+  }, { signal });
 
   if (!completion.choices || completion.choices.length === 0) {
     const providerError = (completion as unknown as { error?: { message?: string } }).error;
@@ -278,5 +326,7 @@ export async function generateWorkoutPlan(
     throw new Error('AI response was not valid JSON');
   }
 
-  return validatePlan(parsed);
+  const plan = validatePlan(parsed);
+  const excludedBodyParts = detectExcludedBodyParts(lifestyle.injuries, customInstructions);
+  return enforceExclusions(plan, excludedBodyParts);
 }

@@ -82,7 +82,11 @@ export async function getBrowsableModelsList(
   now: () => number = Date.now
 ): Promise<BrowsableOpenRouterModel[]> {
   if (cache && now() - cache.fetchedAt < CACHE_TTL_MS) {
-    return cache.data;
+    // Return a shallow copy, not the cached array itself — callers (e.g. the
+    // Model Gather browse route) must never be able to mutate the shared
+    // cache in place, which would otherwise leak across every subsequent
+    // request/render until the TTL expires.
+    return cache.data.slice();
   }
 
   try {

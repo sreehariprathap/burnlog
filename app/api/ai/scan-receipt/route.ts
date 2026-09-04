@@ -49,7 +49,7 @@ export async function POST(request: Request) {
         profile.id,
         { jobType: 'scan-receipt', app: 'burnlog', model: VISION_MODEL },
         {},
-        async () => {
+        async (signal) => {
           const prompt = `You are a receipt-reading assistant analyzing a photo of a purchase receipt.
 
 Look at this image carefully and extract the transaction details.
@@ -90,7 +90,7 @@ If you cannot identify a receipt in the image, return:
               },
             ],
             response_format: { type: 'json_object' },
-          });
+          }, { signal });
 
           const content = completion.choices?.[0]?.message?.content;
           if (!content) {

@@ -54,13 +54,13 @@ export async function POST(request: Request) {
         profile.id,
         { jobType: 'suggest-chores', app: 'homelog', model: MODEL },
         { householdName },
-        async () => {
+        async (signal) => {
           const completion = await client.chat.completions.create({
             model: MODEL,
             temperature: 0.5,
             messages: [{ role: 'user', content: buildPrompt(householdName) }],
             response_format: { type: 'json_object' },
-          });
+          }, { signal });
 
           const content = completion.choices?.[0]?.message?.content;
           if (!content) {

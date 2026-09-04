@@ -3,7 +3,7 @@
 // Client Component — page metadata isn't applicable here (see layout.tsx for shared app metadata).
 
 import { useEffect, useRef, useState } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Loader2, Send } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
@@ -23,7 +23,15 @@ type Message = { id: string; body: string; senderId: string; createdAt: string }
 export default function SocialLogThreadPage() {
   const router = useRouter();
   const params = useParams<{ threadId: string }>();
+  const searchParams = useSearchParams();
   const threadId = params.threadId;
+  // Optional hint: the other participant's profile id, passed along when
+  // navigating into a conversation that might not have a thread row yet
+  // (e.g. a brand-new conversation). If sending 404s with "thread not
+  // found", this lets the send endpoint create the thread on the fly
+  // instead of failing outright — see the POST handler for
+  // /api/sociallog/messages/threads/[id]/messages.
+  const targetProfileId = searchParams.get('with');
   const supabase = createClient();
   const { profile } = useCurrentProfile();
   const { toast } = useToast();
@@ -95,12 +103,22 @@ export default function SocialLogThreadPage() {
     const res = await apiFetch(`/api/sociallog/messages/threads/${threadId}/messages`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ body: text.trim() }),
+      body: JSON.stringify({
+        body: text.trim(),
+        ...(targetProfileId ? { targetProfileId } : {}),
+      }),
     });
     if (res.ok) {
-      const created: Message = await res.json();
+      const created: Message & { threadId?: string } = await res.json();
       setMessages((prev) => (prev.some((m) => m.id === created.id) ? prev : [...prev, created]));
       setText('');
+      // The send endpoint may have had to create the thread on the fly
+      // (get-or-create fallback), in which case its real id can differ from
+      // the id we navigated here with — sync the URL so refresh/realtime/
+      // heartbeat all key off the actual thread.
+      if (created.threadId && created.threadId !== threadId) {
+        router.replace(`/sociallog/messages/${created.threadId}`);
+      }
     } else {
       toast({ title: 'Failed to send message', variant: 'destructive' });
     }

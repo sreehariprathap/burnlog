@@ -102,12 +102,12 @@ export async function generateChatReply(
     profileId,
     { jobType: 'intellog-chat', app: 'intellog', model },
     { message: history[history.length - 1]?.content },
-    async () => {
+    async (signal) => {
       const completion = await client.chat.completions.create({
         model,
         temperature: 0.4,
         messages: [{ role: 'system', content: systemPrompt }, ...history],
-      });
+      }, { signal });
       const responseContent = completion.choices?.[0]?.message?.content;
       if (!responseContent) throw new AiRouteError('AI returned no response', 502);
       return responseContent;

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/serviceRole';
 import { sendPushToUser } from '@/lib/pushNotification/server';
+import { getOrCreateThread } from '@/lib/sociallog/messageThreads';
 
 type Admin = ReturnType<typeof createServiceRoleClient>;
 
@@ -86,7 +87,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id: threadId } = await params;
+    const { id: routeThreadId } = await params;
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
@@ -94,7 +95,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     }
 
     const body = await request.json();
-    const { body: text } = body as { body?: string };
+    const { body: text, targetProfileId } = body as { body?: string; targetProfileId?: string };
     if (!text?.trim()) {
       return NextResponse.json({ error: 'Message body is required' }, { status: 400 });
     }
@@ -105,12 +106,31 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
 
-    const thread = await getThreadWithParticipants(admin, threadId);
-    if (!thread) {
-      return NextResponse.json({ error: 'Thread not found' }, { status: 404 });
-    }
-    if (thread.participantAId !== meId && thread.participantBId !== meId) {
+    let thread = await getThreadWithParticipants(admin, routeThreadId);
+    let threadId = routeThreadId;
+
+    if (thread && thread.participantAId !== meId && thread.participantBId !== meId) {
       return NextResponse.json({ error: 'Not a participant in this thread' }, { status: 403 });
+    }
+
+    // Get-or-create fallback: the thread the client thinks it's sending into
+    // doesn't exist yet (e.g. a brand-new conversation whose thread row
+    // never got created, or got created and looked up under a race). If the
+    // client told us who the other participant is, create the thread now
+    // instead of failing with "Thread not found".
+    if (!thread) {
+      if (!targetProfileId) {
+        return NextResponse.json({ error: 'Thread not found' }, { status: 404 });
+      }
+      const result = await getOrCreateThread(admin, meId, targetProfileId);
+      if (!result.ok) {
+        return NextResponse.json({ error: result.error }, { status: result.status });
+      }
+      threadId = result.threadId;
+      thread = await getThreadWithParticipants(admin, threadId);
+      if (!thread) {
+        return NextResponse.json({ error: 'Thread not found' }, { status: 404 });
+      }
     }
 
     const { data: created, error } = await admin
@@ -144,7 +164,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       }
     }
 
-    return NextResponse.json(created);
+    return NextResponse.json({ ...created, threadId });
   } catch (error) {
     console.error('sociallog thread messages POST error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

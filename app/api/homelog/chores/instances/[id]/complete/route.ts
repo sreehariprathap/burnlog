@@ -4,6 +4,7 @@ import { createServiceRoleClient } from '@/lib/supabase/serviceRole';
 import { getMyProfileId, getMyHouseholdMembership } from '@/lib/homelog/serverAuth';
 import { nextOccurrenceAfter } from '@/lib/homelog/choreRecurrence';
 import { sendPushToUser } from '@/lib/pushNotification/server';
+import { notifyHouseholdExceptActor } from '@/lib/homelog/notify';
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -46,12 +47,45 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       return NextResponse.json({ error: 'Not your household chore' }, { status: 403 });
     }
 
+    const completedAt = new Date().toISOString();
     const { error: updateError } = await admin
       .from('household_chore_instances')
-      .update({ completedAt: new Date().toISOString(), completedByProfileId: meId })
+      .update({ completedAt, completedByProfileId: meId })
       .eq('id', id);
     if (updateError) {
       return NextResponse.json({ error: updateError.message }, { status: 400 });
+    }
+
+    // Let the rest of the household know this specific person checked it off
+    // — best-effort, never fails the completion itself.
+    try {
+      const { data: me } = await admin.from('profiles').select('firstName, username').eq('id', meId).single();
+      const actorName = me?.firstName || me?.username || 'Someone';
+      await notifyHouseholdExceptActor(admin, membership.householdId, meId, {
+        title: 'Chore done',
+        message: chore.title ? `${actorName} marked "${chore.title}" as done` : `${actorName} completed a chore`,
+        url: `/homelog/chores?choreId=${chore.id}`,
+      });
+    } catch (notifyError) {
+      console.error('homelog chore completion notify failed:', notifyError);
+    }
+
+    // Write-through into TaskLog so this completion shows up in the user's
+    // unified task history, tagged "home" — same pattern TravelLog uses to
+    // feed tasklog_tasks from acceptTravelPlan (lib/travellog/acceptPlan.ts).
+    // Best-effort — TaskLog visibility must never block a chore completion.
+    try {
+      await admin.from('tasklog_tasks').insert({
+        profileId: meId,
+        title: chore.title ?? 'Chore',
+        category: 'life',
+        priority: 'medium',
+        lane: 'done',
+        completedAt,
+        tags: ['home'],
+      });
+    } catch (taskLogError) {
+      console.error('homelog->tasklog write-through failed:', taskLogError);
     }
 
     const next = nextOccurrenceAfter(chore, new Date(instance.dueDate));
@@ -96,7 +130,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
             await sendPushToUser(admin, targetProfile.userId, {
               title: 'Chore assigned to you',
               message: chore.title ? `You were assigned: ${chore.title}` : 'A chore was assigned to you',
-              url: '/homelog/chores',
+              // Deep-links to this chore specifically (see chores/page.tsx's
+              // `choreId` search param handling) rather than just the list.
+              url: `/homelog/chores?choreId=${chore.id}`,
             });
           }
         } catch (pushError) {

@@ -83,7 +83,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
           await sendPushToUser(admin, targetProfile.userId, {
             title: 'Chore assigned to you',
             message: chore.title ? `You were assigned: ${chore.title}` : 'A chore was assigned to you',
-            url: '/homelog/chores',
+            // Deep-links to this chore specifically (see chores/page.tsx's
+            // `choreId` search param handling) rather than just the list.
+            url: `/homelog/chores?choreId=${chore.id}`,
           });
         }
       } catch (pushError) {

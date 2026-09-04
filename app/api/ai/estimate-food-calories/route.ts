@@ -46,7 +46,7 @@ export async function POST(request: Request) {
         profile.id,
         { jobType: 'estimate-food-calories', app: 'burnlog', model: MODEL },
         { description, mealType },
-        async () => {
+        async (signal) => {
           const prompt = `You are a nutrition expert estimating calories and macros from a text description of a meal.
 
 The description may list multiple items separated by "+", commas, "and", or line breaks — for example "coffee + pancake + a banana". Identify each distinct item, estimate its calories and macros using a typical/average serving size unless the description gives a size, then sum the totals.
@@ -76,7 +76,7 @@ Be realistic with estimates.`;
             temperature: 0.2,
             messages: [{ role: 'user', content: prompt }],
             response_format: { type: 'json_object' },
-          });
+          }, { signal });
 
           const content = completion.choices?.[0]?.message?.content;
           if (!content) {

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/serviceRole';
+import { getOrCreateThread } from '@/lib/sociallog/messageThreads';
 
 type Admin = ReturnType<typeof createServiceRoleClient>;
 
@@ -98,56 +99,13 @@ export async function POST(request: Request) {
     if (!meId) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
-    if (meId === targetProfileId) {
-      return NextResponse.json({ error: "You can't message yourself" }, { status: 400 });
+
+    const result = await getOrCreateThread(admin, meId, targetProfileId);
+    if (!result.ok) {
+      return NextResponse.json({ error: result.error }, { status: result.status });
     }
 
-    const { data: targetSettings } = await admin
-      .from('social_profile_settings')
-      .select('whoCanMessage')
-      .eq('profileId', targetProfileId)
-      .maybeSingle();
-    const whoCanMessage = targetSettings?.whoCanMessage ?? 'everyone';
-
-    if (whoCanMessage === 'none') {
-      return NextResponse.json({ error: 'This user is not accepting messages' }, { status: 403 });
-    }
-    if (whoCanMessage === 'followers') {
-      const { data: followsMe } = await admin
-        .from('social_follows')
-        .select('id')
-        .eq('followerId', targetProfileId)
-        .eq('followingId', meId)
-        .maybeSingle();
-      if (!followsMe) {
-        return NextResponse.json({ error: 'This user only accepts messages from followers' }, { status: 403 });
-      }
-    }
-
-    const [participantAId, participantBId] = [meId, targetProfileId].sort();
-
-    const { data: existing } = await admin
-      .from('social_message_threads')
-      .select('id')
-      .eq('participantAId', participantAId)
-      .eq('participantBId', participantBId)
-      .maybeSingle();
-
-    if (existing) {
-      return NextResponse.json({ id: existing.id });
-    }
-
-    const { data: created, error } = await admin
-      .from('social_message_threads')
-      .insert({ participantAId, participantBId })
-      .select('id')
-      .single();
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 400 });
-    }
-
-    return NextResponse.json({ id: created.id });
+    return NextResponse.json({ id: result.threadId });
   } catch (error) {
     console.error('sociallog threads POST error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });

@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
+import { APPS, isAppId } from '@/lib/appMode';
 import { WelcomeStep } from './WelcomeStep';
 import { HouseholdSetupStep } from './HouseholdSetupStep';
 import { ChoreSuggestionReviewSheet, type ChoreSuggestion } from './ChoreSuggestionReviewSheet';
@@ -16,6 +17,16 @@ export function HomeLogOnboardingFlow() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = searchParams.get('returnTo') || '/homelog';
+  // When the onboarding sequence router sent us here, it tells us which app
+  // comes next so the "done" screen can point at the real next step instead
+  // of always naming this app.
+  const nextAppParam = searchParams.get('nextApp');
+  const isLastStep = searchParams.get('lastStep') === '1';
+  const finishLabel = isAppId(nextAppParam)
+    ? `Go to ${APPS[nextAppParam].name}`
+    : isLastStep
+      ? 'Finish setup'
+      : 'Go to HomeLog';
   const { toast } = useToast();
 
   const [step, setStep] = useState<Step>('welcome');
@@ -112,5 +123,5 @@ export function HomeLogOnboardingFlow() {
       </>
     );
   }
-  return <DoneStep choreCount={choreCount} onFinish={handleFinish} />;
+  return <DoneStep choreCount={choreCount} finishLabel={finishLabel} onFinish={handleFinish} />;
 }

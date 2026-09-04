@@ -133,7 +133,14 @@ export default function HomeLogPage() {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to send invite';
       setInviteError(message);
-      toast({ title: 'Failed to send invite', description: message, variant: 'destructive' });
+      // "Already in a household" isn't really a failure on the sender's end —
+      // it's a heads-up, so it gets a soft inline message rather than a hard
+      // red toast. See the TODO in the invites route for the multi-household
+      // follow-up this will eventually make moot.
+      const isAlreadyInHousehold = message.includes('already part of a household');
+      if (!isAlreadyInHousehold) {
+        toast({ title: 'Failed to send invite', description: message, variant: 'destructive' });
+      }
     } finally {
       setInviting(false);
     }
@@ -316,7 +323,16 @@ export default function HomeLogPage() {
                     {inviting ? 'Sending…' : 'Invite'}
                   </Button>
                 </form>
-                {inviteError && <p className="mt-2 text-sm text-destructive">{inviteError}</p>}
+                {inviteError && (
+                  <p
+                    className={cn(
+                      'mt-2 text-sm',
+                      inviteError.includes('already part of a household') ? 'text-muted-foreground' : 'text-destructive'
+                    )}
+                  >
+                    {inviteError}
+                  </p>
+                )}
                 {inviteSuccess && <p className="mt-2 text-sm text-success">{inviteSuccess}</p>}
               </CardContent>
             </Card>

@@ -25,7 +25,11 @@ const SPRING_STIFFNESS = 550;
 const SPRING_DAMPING = 45;
 const SPRING_MASS = 0.7;
 const CLOSE_DELAY = 0.08;
+// Fixed pixel width for the expanded panel — but capped to a fraction of the
+// viewport (via CSS min()) everywhere it's actually applied below, so the
+// panel never forces horizontal overflow on narrow/mobile screens.
 const PANEL_WIDTH = 360;
+const PANEL_WIDTH_CSS = `min(${PANEL_WIDTH}px, calc(100vw - 2rem))`;
 const PANEL_HEIGHT = 200;
 
 type Phase = 'idle' | 'submitting' | 'done' | 'error';
@@ -90,7 +94,10 @@ export function AskAiInput({ label = 'Ask AI', placeholder = 'Ask me anything…
   );
 
   return (
-    <div className="flex items-center justify-center" style={{ height: PANEL_HEIGHT, width: PANEL_WIDTH }}>
+    <div
+      className="flex max-w-full items-center justify-center"
+      style={{ height: open ? PANEL_HEIGHT : DOCK_HEIGHT }}
+    >
       <motion.div
         animate={
           shouldReduceMotion
@@ -98,10 +105,10 @@ export function AskAiInput({ label = 'Ask AI', placeholder = 'Ask me anything…
             : {
                 borderRadius: open ? PANEL_BORDER_RADIUS : DOCK_BORDER_RADIUS,
                 height: open ? PANEL_HEIGHT : DOCK_HEIGHT,
-                width: open ? PANEL_WIDTH : 'auto',
+                width: open ? PANEL_WIDTH_CSS : 'auto',
               }
         }
-        className={cx('relative flex flex-col items-center overflow-hidden border bg-background')}
+        className={cx('relative flex max-w-[calc(100vw-2rem)] flex-col items-center overflow-hidden border bg-background')}
         initial={false}
         ref={rootRef}
         transition={
@@ -213,7 +220,7 @@ function Panel({
       className="absolute bottom-0"
       onSubmit={handleSubmit}
       ref={formRef}
-      style={{ height: PANEL_HEIGHT, pointerEvents: open ? 'all' : 'none', width: PANEL_WIDTH }}
+      style={{ height: PANEL_HEIGHT, pointerEvents: open ? 'all' : 'none', width: PANEL_WIDTH_CSS }}
     >
       <AnimatePresence>
         {open ? (

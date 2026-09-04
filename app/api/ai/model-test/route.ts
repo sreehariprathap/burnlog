@@ -71,11 +71,11 @@ export async function POST(request: Request) {
         profile.id,
         { jobType: 'model-test', app: 'adminlog', model },
         { preset: presetDef.id },
-        async () => {
+        async (signal) => {
           const completion = await client.chat.completions.create({
             model,
             messages: [{ role: 'user', content: presetDef.prompt }],
-          });
+          }, { signal });
 
           const content = completion.choices?.[0]?.message?.content;
           if (!content) {

@@ -100,7 +100,14 @@ export async function POST(request: Request) {
       .eq('profileId', invitee.id)
       .maybeSingle();
     if (inviteeMembership) {
-      return NextResponse.json({ error: 'That user is already in a household' }, { status: 409 });
+      // TODO: Future: support multiple households per user — see the
+      // multi-household roadmap. Until then, someone already belonging to a
+      // household can't be invited into another, so we surface that as a
+      // friendly heads-up rather than a dead end.
+      return NextResponse.json(
+        { error: "Hmm, looks like they're already part of a household — want to send them an invite anyway?" },
+        { status: 409 }
+      );
     }
 
     const { data: existingInvite } = await admin

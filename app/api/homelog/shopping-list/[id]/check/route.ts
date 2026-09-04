@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/serviceRole';
 import { getMyProfileId, getMyHouseholdMembership } from '@/lib/homelog/serverAuth';
+import { notifyHouseholdExceptActor } from '@/lib/homelog/notify';
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
@@ -25,7 +26,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
 
     const { data: item } = await admin
       .from('household_shopping_list_items')
-      .select('id, householdId, inventoryItemId, checkedAt')
+      .select('id, householdId, label, inventoryItemId, checkedAt')
       .eq('id', id)
       .maybeSingle();
     if (!item) {
@@ -58,6 +59,21 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
           .update({ quantity: inventoryItem.lowStockThreshold + 1, status: 'in_stock' })
           .eq('id', item.inventoryItemId);
       }
+    }
+
+    // Let the rest of the household know this specific person checked it off
+    // — best-effort, never fails the checkoff itself.
+    try {
+      const { data: me } = await admin.from('profiles').select('firstName, username').eq('id', meId).single();
+      const actorName = me?.firstName || me?.username || 'Someone';
+      await notifyHouseholdExceptActor(admin, membership.householdId, meId, {
+        title: 'Item checked off',
+        message: `${actorName} marked "${item.label}" as done`,
+        // The shopping list lives on the inventory page, not its own route.
+        url: '/homelog/inventory',
+      });
+    } catch (notifyError) {
+      console.error('homelog shopping list checkoff notify failed:', notifyError);
     }
 
     return NextResponse.json({ success: true });

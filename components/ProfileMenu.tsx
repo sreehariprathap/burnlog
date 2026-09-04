@@ -12,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import { LogoutOverlay } from '@/components/LogoutOverlay';
 import { cn } from '@/lib/utils';
 
 type ProfileMenuProps = {
@@ -22,6 +23,7 @@ export function ProfileMenu({ isActive }: ProfileMenuProps) {
   const router = useRouter();
   const supabase = createClient();
   const [loggingOut, setLoggingOut] = useState(false);
+  const [logoutOverlayOpen, setLogoutOverlayOpen] = useState(false);
 
   const handleLogout = async () => {
     setLoggingOut(true);
@@ -31,6 +33,17 @@ export function ProfileMenu({ isActive }: ProfileMenuProps) {
     } finally {
       setLoggingOut(false);
     }
+  };
+
+  // Mobile: tapping "Log Out" opens a full-screen slide-to-confirm gesture
+  // instead of logging out immediately, so it's a deliberate action rather
+  // than an accidental tap. Desktop (no touch drag surface) logs out directly.
+  const handleLogoutMenuItemClick = () => {
+    if (typeof window !== 'undefined' && window.matchMedia('(min-width: 768px)').matches) {
+      handleLogout();
+      return;
+    }
+    setLogoutOverlayOpen(true);
   };
 
   useEffect(() => {
@@ -65,7 +78,7 @@ export function ProfileMenu({ isActive }: ProfileMenuProps) {
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem
-          onClick={handleLogout}
+          onClick={handleLogoutMenuItemClick}
           disabled={loggingOut}
           className="text-destructive focus:text-destructive"
         >
@@ -73,6 +86,11 @@ export function ProfileMenu({ isActive }: ProfileMenuProps) {
           {loggingOut ? 'Logging out…' : 'Log Out'}
         </DropdownMenuItem>
       </DropdownMenuContent>
+      <LogoutOverlay
+        open={logoutOverlayOpen}
+        onOpenChange={setLogoutOverlayOpen}
+        onConfirm={handleLogout}
+      />
     </DropdownMenu>
   );
 }

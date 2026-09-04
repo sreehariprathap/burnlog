@@ -9,6 +9,7 @@ import { useAppSwitch } from '@/lib/appSwitchContext';
 import type { AppId } from '@/lib/appMode';
 import type { LogbookCard } from '@/lib/logbook/today';
 import { appSearchColor } from '@/lib/search/registry';
+import { currencyLocale, isCurrencyCode } from '@/lib/currency';
 
 const CARD_META: Record<LogbookCard['app'], { icon: LucideIcon; color: string; appId: AppId }> = {
   burnlog: { icon: Flame, color: appSearchColor('burnlog'), appId: 'burnlog' },
@@ -25,10 +26,23 @@ const HERO_SPAN: Partial<Record<LogbookCard['app'], string>> = {
   shoppinglog: 'col-span-2 lg:col-span-3',
 };
 
+// card.unit carries the profile's configured ISO currency code (e.g. "CAD")
+// for the moneylog card — see computeMoneylogCard in lib/logbook/today.ts.
+// Format with it instead of a hardcoded symbol so this tile respects
+// whatever currency MoneyLog's own config screen has set.
+function formatMoneyValue(amount: number, unit: string): string {
+  const code = isCurrencyCode(unit) ? unit : 'CAD';
+  return new Intl.NumberFormat(currencyLocale(code), {
+    style: 'currency',
+    currency: code,
+    maximumFractionDigits: 0,
+  }).format(Math.round(amount));
+}
+
 function formatValue(card: LogbookCard): string {
   if (!card.available) return 'Coming soon';
   if (card.app === 'moneylog') {
-    return `₹${Math.round(card.value).toLocaleString()} / ₹${Math.round(card.target).toLocaleString()}`;
+    return `${formatMoneyValue(card.value, card.unit)} / ${formatMoneyValue(card.target, card.unit)}`;
   }
   if (card.app === 'tasklog' || card.app === 'homelog') {
     return `${card.value} / ${card.target} ${card.unit}`;

@@ -46,7 +46,7 @@ export async function POST(request: Request) {
         profile.id,
         { jobType: 'categorize-task', app: 'tasklog', model: MODEL },
         { title },
-        async () => {
+        async (signal) => {
           const prompt = `You are triaging a personal task list.
 
 Task title: "${title.trim()}"
@@ -66,7 +66,7 @@ Respond ONLY with a valid JSON object (no markdown, no extra text) with this exa
             temperature: 0.2,
             messages: [{ role: 'user', content: prompt }],
             response_format: { type: 'json_object' },
-          });
+          }, { signal });
 
           const content = completion.choices?.[0]?.message?.content;
           if (!content) {

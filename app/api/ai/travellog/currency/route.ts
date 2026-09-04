@@ -34,8 +34,8 @@ export async function GET(request: Request) {
         profile.id,
         { jobType: 'travellog-currency', app: 'travellog' },
         { from, to },
-        async () => {
-          const res = await fetch(`https://api.frankfurter.app/latest?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`);
+        async (signal) => {
+          const res = await fetch(`https://api.frankfurter.app/latest?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`, { signal });
           if (!res.ok) {
             throw new AiRouteError('Currency provider returned an error', 502);
           }

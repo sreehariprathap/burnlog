@@ -8,10 +8,12 @@ import { PartyPopper } from 'lucide-react';
 interface DoneStepProps {
   goalCount: number;
   taskCount: number;
+  /** Label for the continue button — reflects the actual next destination. */
+  finishLabel?: string;
   onFinish: () => void;
 }
 
-export function DoneStep({ goalCount, taskCount, onFinish }: DoneStepProps) {
+export function DoneStep({ goalCount, taskCount, finishLabel = 'Go to TaskLog', onFinish }: DoneStepProps) {
   return (
     <Card>
       <CardHeader>
@@ -26,7 +28,7 @@ export function DoneStep({ goalCount, taskCount, onFinish }: DoneStepProps) {
           Let&apos;s get moving.
         </p>
         <Button className="w-full" onClick={onFinish}>
-          Go to TaskLog
+          {finishLabel}
         </Button>
       </CardContent>
     </Card>

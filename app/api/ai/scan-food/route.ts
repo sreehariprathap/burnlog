@@ -50,7 +50,7 @@ export async function POST(request: Request) {
         profile.id,
         { jobType: 'scan-food', app: 'burnlog', model: VISION_MODEL },
         { mealType },
-        async () => {
+        async (signal) => {
           const prompt = `You are a nutrition expert analyzing a food image.
 
 Look at this image carefully and identify the food/meal shown.
@@ -94,7 +94,7 @@ Be realistic with estimates. If there are multiple items, estimate for the whole
               },
             ],
             response_format: { type: 'json_object' },
-          });
+          }, { signal });
 
           const content = completion.choices?.[0]?.message?.content;
           if (!content) {

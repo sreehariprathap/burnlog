@@ -290,6 +290,10 @@ model Notification {
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
 
+  // Supports the same-day duplicate check in sendPushToUser (lib/pushNotification/server.ts),
+  // which looks up an existing identical notification (same recipient/title/message/url,
+  // created today) before inserting a new one.
+  @@index([profileId, title, message, url, createdAt])
   @@map("notifications")
 }
 
