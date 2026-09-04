@@ -14,6 +14,7 @@ import { TopBar } from '@/components/TopBar';
 import { BottomNav } from '@/components/BottomNav';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { StaggerGrid, StaggerItem } from '@/components/ui/stagger-grid';
+import { SuccessPulse } from '@/components/ui/success-pulse';
 import { SetGoalsPrompt } from './_components/SetGoalsPrompt';
 import { Skeleton } from '@/components/ui/skeleton';
 import { BMIWidget } from './_components/BMIWidget';
@@ -196,6 +197,7 @@ export default function DashboardPage() {
           onLogged={() => setRefreshKey((k) => k + 1)}
         />
       )}
+      <SuccessPulse trigger={refreshKey} />
       <BottomNav />
     </div>
   );

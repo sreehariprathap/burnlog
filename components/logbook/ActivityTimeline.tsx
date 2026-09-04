@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { Flame, ListChecks, Wallet, Home, type LucideIcon } from 'lucide-react';
 import type { LogbookActivityEvent } from '@/lib/logbook/today';
 import { appSearchColor } from '@/lib/search/registry';
+import { RevealOnScroll } from '@/components/ui/reveal-on-scroll';
 
 const APP_META: Record<LogbookActivityEvent['app'], { icon: LucideIcon; color: string }> = {
   burnlog: { icon: Flame, color: appSearchColor('burnlog') },
@@ -30,20 +31,22 @@ export function ActivityTimeline({ events }: ActivityTimelineProps) {
         const meta = APP_META[event.app];
         const Icon = meta.icon;
         return (
-          <li key={`${event.app}-${event.time}-${index}`} className="flex items-start gap-3 py-2">
-            <div className="flex flex-col items-center">
-              <div
-                className="flex size-8 shrink-0 items-center justify-center rounded-full"
-                style={{ backgroundColor: `${meta.color}1a` }}
-              >
-                <Icon className="h-4 w-4" style={{ color: meta.color }} />
+          <li key={`${event.app}-${event.time}-${index}`}>
+            <RevealOnScroll className="flex items-start gap-3 py-2">
+              <div className="flex flex-col items-center">
+                <div
+                  className="flex size-8 shrink-0 items-center justify-center rounded-full"
+                  style={{ backgroundColor: `${meta.color}1a` }}
+                >
+                  <Icon className="h-4 w-4" style={{ color: meta.color }} />
+                </div>
+                {index < events.length - 1 && <div className="mt-1 h-full w-px flex-1 bg-border" />}
               </div>
-              {index < events.length - 1 && <div className="mt-1 h-full w-px flex-1 bg-border" />}
-            </div>
-            <div className="flex-1 pb-2">
-              <p className="text-sm">{event.label}</p>
-              <p className="text-xs text-muted-foreground">{format(new Date(event.time), 'h:mmaaa')}</p>
-            </div>
+              <div className="flex-1 pb-2">
+                <p className="text-sm">{event.label}</p>
+                <p className="text-xs text-muted-foreground">{format(new Date(event.time), 'h:mmaaa')}</p>
+              </div>
+            </RevealOnScroll>
           </li>
         );
       })}
