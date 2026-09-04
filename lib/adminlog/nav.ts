@@ -9,6 +9,7 @@ import {
   Settings,
   Bug,
   UserPlus,
+  Users,
   Wrench,
   Rocket,
   Brain,
@@ -78,6 +79,7 @@ export const ADMIN_NAV: AdminNavCategory[] = [
     label: 'Users',
     icon: UserPlus,
     items: [
+      { href: '/adminlog/users', label: 'All Users', description: 'Everyone with a profile in this app.', icon: Users },
       { href: '/adminlog/invites', label: 'Invites', description: 'Send and track invites to new users.', icon: UserPlus },
     ],
   },
