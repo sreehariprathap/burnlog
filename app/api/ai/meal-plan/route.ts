@@ -54,7 +54,7 @@ export async function POST(request: Request) {
         supabase,
         profile.id,
         { jobType: 'meal-plan', app: 'burnlog', model: MODEL },
-        { age: getAge(profile.dateOfBirth), weight: profile.weight, lifestyle, customInstructions },
+        { age: getAge(profile.dateOfBirth), weight: profile.weight ?? 70, lifestyle, customInstructions },
         async (signal) => {
           const prompt = buildMealPlanPrompt(
             lifestyle,

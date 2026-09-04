@@ -116,9 +116,14 @@ export default function BurnLogConfigPage() {
     );
   }
 
-  const bmi = +(profile.weight / ((profile.height / 100) * (profile.height / 100))).toFixed(1);
-  const bmiCategory = bmi < 18.5 ? 'Underweight' : bmi < 25 ? 'Normal' : bmi < 30 ? 'Overweight' : 'Obese';
-  const bmr = Math.round(10 * profile.weight + 6.25 * profile.height - 5 * getAge(profile.dateOfBirth) + 5);
+  const hasHealthMetrics = profile.weight != null && profile.height != null;
+  const bmi = hasHealthMetrics
+    ? +(profile.weight / ((profile.height / 100) * (profile.height / 100))).toFixed(1)
+    : null;
+  const bmiCategory = bmi == null ? null : bmi < 18.5 ? 'Underweight' : bmi < 25 ? 'Normal' : bmi < 30 ? 'Overweight' : 'Obese';
+  const bmr = hasHealthMetrics
+    ? Math.round(10 * profile.weight + 6.25 * profile.height - 5 * getAge(profile.dateOfBirth) + 5)
+    : null;
 
   return (
     <AppConfigShell
@@ -154,7 +159,7 @@ export default function BurnLogConfigPage() {
             <div>
               <Label htmlFor="height" className="text-xs font-normal text-muted-foreground">Height (cm)</Label>
               <input
-                id="height" type="number" min={50} max={250} defaultValue={profile.height}
+                id="height" type="number" min={50} max={250} defaultValue={profile.height ?? ''}
                 onBlur={(e) => handleHealthMetricChange('height', Number(e.target.value))}
                 className="w-full rounded-md border bg-background px-2 py-1 text-right mt-1"
               />
@@ -162,34 +167,40 @@ export default function BurnLogConfigPage() {
             <div>
               <Label htmlFor="weight" className="text-xs font-normal text-muted-foreground">Weight (kg)</Label>
               <input
-                id="weight" type="number" min={20} max={400} defaultValue={profile.weight}
+                id="weight" type="number" min={20} max={400} defaultValue={profile.weight ?? ''}
                 onBlur={(e) => handleHealthMetricChange('weight', Number(e.target.value))}
                 className="w-full rounded-md border bg-background px-2 py-1 text-right mt-1"
               />
             </div>
           </div>
-          <Accordion type="single" collapsible>
-            <AccordionItem value="bmi">
-              <AccordionTrigger>BMI: {bmi} ({bmiCategory})</AccordionTrigger>
-              <AccordionContent>
-                <p>Your BMI category is <strong>{bmiCategory}</strong>.</p>
-                <div className="h-2 bg-gray-200 rounded-full mt-2">
-                  <div className="h-2 bg-info rounded-full" style={{ width: `${(bmi / 40) * 100}%` }} />
-                </div>
-                <p className="text-sm mt-1">Underweight &lt;18.5 | Normal 18.5–24.9 | Overweight 25–29.9 | Obese 30+</p>
-              </AccordionContent>
-            </AccordionItem>
-            <AccordionItem value="bmr">
-              <AccordionTrigger>BMR: {bmr} kcal/day</AccordionTrigger>
-              <AccordionContent>
-                <p>Your Basal Metabolic Rate: <strong>{bmr}</strong> kcal/day.</p>
-                <div className="h-2 bg-gray-200 rounded-full mt-2">
-                  <div className="h-2 bg-success rounded-full" style={{ width: `${Math.min(bmr / 3000, 1) * 100}%` }} />
-                </div>
-                <p className="text-sm mt-1">Avg male 1600–2400 | Avg female 1400–2000 kcal/day</p>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
+          {hasHealthMetrics ? (
+            <Accordion type="single" collapsible>
+              <AccordionItem value="bmi">
+                <AccordionTrigger>BMI: {bmi} ({bmiCategory})</AccordionTrigger>
+                <AccordionContent>
+                  <p>Your BMI category is <strong>{bmiCategory}</strong>.</p>
+                  <div className="h-2 bg-gray-200 rounded-full mt-2">
+                    <div className="h-2 bg-info rounded-full" style={{ width: `${(bmi! / 40) * 100}%` }} />
+                  </div>
+                  <p className="text-sm mt-1">Underweight &lt;18.5 | Normal 18.5–24.9 | Overweight 25–29.9 | Obese 30+</p>
+                </AccordionContent>
+              </AccordionItem>
+              <AccordionItem value="bmr">
+                <AccordionTrigger>BMR: {bmr} kcal/day</AccordionTrigger>
+                <AccordionContent>
+                  <p>Your Basal Metabolic Rate: <strong>{bmr}</strong> kcal/day.</p>
+                  <div className="h-2 bg-gray-200 rounded-full mt-2">
+                    <div className="h-2 bg-success rounded-full" style={{ width: `${Math.min(bmr! / 3000, 1) * 100}%` }} />
+                  </div>
+                  <p className="text-sm mt-1">Avg male 1600–2400 | Avg female 1400–2000 kcal/day</p>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              Fill in your height and weight above to see your BMI and BMR.
+            </p>
+          )}
         </CardContent>
       </Card>
 

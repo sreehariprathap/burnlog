@@ -274,9 +274,9 @@ export default function ProfilePage() {
                   {[
                     ['Email', profile.email],
                     ['Age', `${getAge(profile.dateOfBirth)} yrs`],
-                    ['Height', `${profile.height} cm`],
-                    ['Weight', `${profile.weight} kg`],
-                    ['Activity Level', profile.activityLevel]
+                    ['Height', profile.height ? `${profile.height} cm` : 'Not set'],
+                    ['Weight', profile.weight ? `${profile.weight} kg` : 'Not set'],
+                    ['Activity Level', profile.activityLevel ?? 'Not set']
                   ].map(([label,value]) => (
                     <div key={label} className="flex justify-between items-center">
                       <span className="font-medium">{label}</span>

@@ -62,12 +62,12 @@ export async function POST(request: Request) {
         body,
         async (signal) => {
           try {
-            const plan = await generateWorkoutPlan({ ...profile, age: getAge(profile.dateOfBirth) }, body, model, customInstructions, signal);
+            const plan = await generateWorkoutPlan({ ...profile, age: getAge(profile.dateOfBirth), weight: profile.weight ?? 70, height: profile.height ?? 170, activityLevel: profile.activityLevel ?? 'medium' }, body, model, customInstructions, signal);
             return { plan };
           } catch (firstError) {
             console.error('AI plan generation failed, retrying once:', firstError);
             try {
-              const plan = await generateWorkoutPlan({ ...profile, age: getAge(profile.dateOfBirth) }, body, model, customInstructions, signal);
+              const plan = await generateWorkoutPlan({ ...profile, age: getAge(profile.dateOfBirth), weight: profile.weight ?? 70, height: profile.height ?? 170, activityLevel: profile.activityLevel ?? 'medium' }, body, model, customInstructions, signal);
               return { plan };
             } catch (secondError) {
               console.error('AI plan generation failed on retry:', secondError);

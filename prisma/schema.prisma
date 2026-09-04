@@ -15,9 +15,9 @@ model Profile {
   firstName     String
   lastName      String
   dateOfBirth   DateTime?
-  weight        Float
-  height        Float
-  activityLevel String
+  weight        Float?
+  height        Float?
+  activityLevel String?
   aiEnabled     Boolean  @default(false)
   lifestyle     Json?
   isAdmin       Boolean  @default(false)

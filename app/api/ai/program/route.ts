@@ -41,12 +41,12 @@ export async function POST(request: Request) {
         { pastedPlanText },
         async (signal) => {
           try {
-            const program = await generateProgram({ ...profile, age: getAge(profile.dateOfBirth) }, pastedPlanText, model, signal);
+            const program = await generateProgram({ ...profile, age: getAge(profile.dateOfBirth), weight: profile.weight ?? 70, height: profile.height ?? 170, activityLevel: profile.activityLevel ?? 'medium' }, pastedPlanText, model, signal);
             return { program };
           } catch (firstError) {
             console.error('AI program generation failed, retrying once:', firstError);
             try {
-              const program = await generateProgram({ ...profile, age: getAge(profile.dateOfBirth) }, pastedPlanText, model, signal);
+              const program = await generateProgram({ ...profile, age: getAge(profile.dateOfBirth), weight: profile.weight ?? 70, height: profile.height ?? 170, activityLevel: profile.activityLevel ?? 'medium' }, pastedPlanText, model, signal);
               return { program };
             } catch (secondError) {
               console.error('AI program generation failed on retry:', secondError);
