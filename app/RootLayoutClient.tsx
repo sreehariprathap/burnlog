@@ -2,7 +2,8 @@
 import { SWRConfig } from "swr";
 import { Quicksand, Figtree, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { Toaster } from "react-hot-toast";
+import { ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { GlobalErrorListener } from "@/components/GlobalErrorListener";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import PWAInstall from "@/components/PWAInstall";
@@ -88,11 +89,18 @@ export default function RootLayoutClient({
                 <DevErrorWatcher />
                 <GlobalErrorListener />
                 <SwitchLoader />
-                <Toaster
+                <ToastContainer
                   position="top-center"
-                  gutter={8}
-                  containerStyle={{ top: 'max(1rem, env(safe-area-inset-top))' }}
-                  toastOptions={{ className: 'w-[calc(100vw-2rem)] max-w-sm' }}
+                  closeButton={false}
+                  hideProgressBar
+                  icon={false}
+                  // Strip react-toastify's own visual theme (background,
+                  // padding, radius, shadow, min-height) — use-toast.tsx's
+                  // renderToast() supplies 100% of the visible chrome, this
+                  // just needs to get out of the way of it.
+                  toastClassName="!m-0 !min-h-0 !max-h-none !w-[calc(100vw-2rem)] !max-w-sm !bg-transparent !p-0 !shadow-none"
+                  style={{ top: 'max(1rem, env(safe-area-inset-top))' }}
+                  toastStyle={{ marginBottom: 8 }}
                 />
                 <PWAInstall />
                 <PWAStatus />
