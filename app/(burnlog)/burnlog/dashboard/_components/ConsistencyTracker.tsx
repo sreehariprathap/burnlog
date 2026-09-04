@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Check, X, Calendar, PartyPopper } from 'lucide-react';
 import { FlameIcon, type FlameIconHandle } from '@/components/ui/flame';
+import { AnimatedNumber } from '@/components/ui/animated-number';
 import { useMountAnimation } from '@/lib/useMountAnimation';
 import { cn } from '@/lib/utils';
 import { computeLevel } from '@/lib/leveling';
@@ -106,7 +107,7 @@ export function ConsistencyTracker({
         {currentStreak > 0 && (
           <span className="flex items-center gap-1 text-sm font-semibold text-warning">
             <FlameIcon ref={flameIconRef} size={16} />
-            {currentStreak} day{currentStreak === 1 ? '' : 's'}
+            <AnimatedNumber value={currentStreak} /> day{currentStreak === 1 ? '' : 's'}
           </span>
         )}
       </CardHeader>
