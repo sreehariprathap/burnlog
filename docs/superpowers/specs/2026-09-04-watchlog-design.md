@@ -19,7 +19,16 @@ by real movie/TV metadata (not AI-hallucinated titles).
   "dropped" state).
 - **Data source**: [TMDB](https://www.themoviedb.org/documentation/api)
   (The Movie Database) for all real metadata — search, trending, discover,
-  posters, ratings, cast, runtime. New env var `TMDB_API_KEY`.
+  posters, ratings, cast, runtime. New env var `TMDB_READ_ACCESS_TOKEN`
+  (v4 read access token, sent as `Authorization: Bearer`).
+  - **Temporary exception**: the user can't set env vars on the current
+    deployment today, so `lib/watchlog/tmdb.ts` will read
+    `process.env.TMDB_READ_ACCESS_TOKEN` with a hardcoded literal
+    fallback, marked with a `// TODO: SECURITY` comment. This puts the
+    token in git history — user has explicitly accepted that tradeoff.
+    Once the deployment env var is set, the fallback must be deleted and
+    the token rotated on themoviedb.org (a token that's been committed to
+    git should be treated as compromised even after removal).
 - **AI's role**: AI (OpenRouter, existing infra) is used only to translate
   a mood/vibe into TMDB query filters and to write short rationale text —
   never to invent titles. This avoids the hallucination risk that
