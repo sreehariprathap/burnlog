@@ -1,6 +1,7 @@
 // lib/intellog/chatContext.ts
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { buildCohortKey } from './cohort';
+import { getAge } from '@/lib/age';
 
 export interface SnapshotRow {
   app: string;
@@ -60,7 +61,7 @@ export async function assembleProfileContext(
   windowStart.setDate(windowStart.getDate() - windowDays);
 
   const [profileRes, snapshotsRes] = await Promise.all([
-    supabase.from('profiles').select('age, country').eq('id', profileId).single(),
+    supabase.from('profiles').select('dateOfBirth, country').eq('id', profileId).single(),
     supabase
       .from('intel_snapshots')
       .select('app, date, metrics')
@@ -78,8 +79,8 @@ export async function assembleProfileContext(
     .limit(1)
     .maybeSingle();
 
-  const profileRow = profileRes.data as { age: number; country: string | null } | null;
-  const age = profileRow?.age ?? 30;
+  const profileRow = profileRes.data as { dateOfBirth: string; country: string | null } | null;
+  const age = profileRow?.dateOfBirth ? getAge(profileRow.dateOfBirth) : 30;
   const cohortKey = buildCohortKey((goalRow as { goalType: string } | null)?.goalType ?? null, age, profileRow?.country);
 
   const { data: cohortStats } = await supabase

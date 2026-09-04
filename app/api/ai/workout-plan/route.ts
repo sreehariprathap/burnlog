@@ -5,6 +5,7 @@ import type { LifestyleAnswers } from '@/lib/ai/types';
 import { getModel } from '@/lib/ai/modelConfig';
 import { formatAiError } from '@/lib/ai/errors';
 import { runAiJob, AiRouteError } from '@/lib/ai/jobs';
+import { getAge } from '@/lib/age';
 
 function isValidLifestyleAnswers(body: unknown): body is LifestyleAnswers {
   if (!body || typeof body !== 'object') return false;
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
 
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('id, age, weight, height, activityLevel')
+      .select('id, dateOfBirth, weight, height, activityLevel')
       .eq('userId', user.id)
       .single();
 
@@ -61,12 +62,12 @@ export async function POST(request: Request) {
         body,
         async (signal) => {
           try {
-            const plan = await generateWorkoutPlan(profile, body, model, customInstructions, signal);
+            const plan = await generateWorkoutPlan({ ...profile, age: getAge(profile.dateOfBirth) }, body, model, customInstructions, signal);
             return { plan };
           } catch (firstError) {
             console.error('AI plan generation failed, retrying once:', firstError);
             try {
-              const plan = await generateWorkoutPlan(profile, body, model, customInstructions, signal);
+              const plan = await generateWorkoutPlan({ ...profile, age: getAge(profile.dateOfBirth) }, body, model, customInstructions, signal);
               return { plan };
             } catch (secondError) {
               console.error('AI plan generation failed on retry:', secondError);

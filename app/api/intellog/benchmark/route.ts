@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/serviceRole';
 import { buildCohortKey } from '@/lib/intellog/cohort';
 import { mergeBenchmarkSeries, type OwnPoint, type CohortPoint } from '@/lib/intellog/benchmark';
+import { getAge } from '@/lib/age';
 
 const WINDOW_DAYS = 30;
 
@@ -24,7 +25,7 @@ export async function GET(request: Request) {
     const admin = createServiceRoleClient();
     const { data: profile } = await admin
       .from('profiles')
-      .select('id, age, country')
+      .select('id, dateOfBirth, country')
       .eq('userId', user.id)
       .single();
     if (!profile) {
@@ -36,7 +37,7 @@ export async function GET(request: Request) {
       .select('goalType')
       .eq('profileId', profile.id)
       .maybeSingle();
-    const cohortKey = buildCohortKey(goal?.goalType ?? null, profile.age, profile.country);
+    const cohortKey = buildCohortKey(goal?.goalType ?? null, getAge(profile.dateOfBirth), profile.country);
 
     const windowStart = new Date();
     windowStart.setDate(windowStart.getDate() - WINDOW_DAYS);
