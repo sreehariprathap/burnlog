@@ -58,8 +58,18 @@ export default function SocialLogThreadPage() {
   }, [threadId]);
 
   useEffect(() => {
+    const topic = `social_messages:${threadId}`;
+
+    // Page transitions can briefly mount two copies of this page for the
+    // same thread (see PageTransition's mode="popLayout"). Supabase's
+    // client caches channels by topic, so the second `.channel()` call
+    // would return the first's already-`.subscribe()`d channel, and
+    // `.on()` on it would throw — same fix as NotificationBell.
+    const existing = supabase.getChannels().find((c) => c.topic === `realtime:${topic}`);
+    if (existing) supabase.removeChannel(existing);
+
     const channel = supabase
-      .channel(`social_messages:${threadId}`)
+      .channel(topic)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'social_messages', filter: `threadId=eq.${threadId}` },

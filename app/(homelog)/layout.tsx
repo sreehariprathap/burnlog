@@ -3,11 +3,12 @@
 
 import { useEffect } from 'react';
 import { setAppTheme } from '@/lib/appMode';
+import { PageTransition } from '@/components/ui/page-transition';
 
 export default function HomeLogLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setAppTheme('homelog');
   }, []);
 
-  return <>{children}</>;
+  return <PageTransition>{children}</PageTransition>;
 }

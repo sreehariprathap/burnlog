@@ -3,11 +3,12 @@
 
 import { useEffect } from 'react';
 import { setAppTheme } from '@/lib/appMode';
+import { PageTransition } from '@/components/ui/page-transition';
 
 export default function SocialLogLayout({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     setAppTheme('sociallog');
   }, []);
 
-  return <>{children}</>;
+  return <PageTransition>{children}</PageTransition>;
 }
