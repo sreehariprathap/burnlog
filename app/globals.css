@@ -1051,3 +1051,10 @@
   -webkit-background-clip: text;
   color: transparent;
 }
+
+/* Hides the scrollbar on Chrome/Safari for horizontally-scrolling rails
+   (e.g. WatchLog's TitleCarousel) — paired with inline scrollbarWidth/
+   msOverflowStyle for Firefox/IE, which have no WebKit equivalent. */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
