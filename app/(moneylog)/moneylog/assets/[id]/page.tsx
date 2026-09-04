@@ -19,6 +19,9 @@ import { useToast } from '@/components/ui/use-toast';
 import { formatCurrency } from '@/lib/format';
 import { SIP_FREQUENCIES, sipFrequencyLabel } from '@/lib/moneylog/sipFrequency';
 import { cn } from '@/lib/utils';
+import { AssetWalletCard } from '@/components/moneylog/AssetWalletCard';
+import { Ticker, TickerSymbol, TickerPrice, TickerPriceChange } from '@/components/kibo-ui/ticker';
+import { getCurrency } from '@/lib/currency';
 
 const AssetValueChart = dynamic(
   () => import('./_components/AssetValueChart').then((mod) => mod.AssetValueChart),
@@ -106,6 +109,8 @@ export default function AssetDetailPage() {
 
   const entries = data?.entries ?? [];
   const chartData = entries.map((e) => ({ date: format(new Date(e.date), 'MMM d'), value: e.value }));
+  const latestEntry = entries[entries.length - 1];
+  const previousEntry = entries[entries.length - 2];
 
   const archive = async () => {
     if (!window.confirm('Archive this asset? Its history is kept but it will leave your asset list.')) return;
@@ -127,6 +132,18 @@ export default function AssetDetailPage() {
         }
       />
       <main className="flex-1 container mx-auto max-w-2xl space-y-4 p-4 pb-8">
+        {asset && (
+          <div className="flex flex-col items-center gap-2">
+            <AssetWalletCard name={asset.name} category={asset.category} value={asset.value} />
+            {previousEntry && latestEntry && (
+              <Ticker currency={getCurrency()} className="text-sm">
+                <TickerSymbol symbol="Since last update" className="text-muted-foreground" />
+                <TickerPrice price={latestEntry.value} />
+                <TickerPriceChange change={latestEntry.value - previousEntry.value} />
+              </Ticker>
+            )}
+          </div>
+        )}
         {asset && (
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
