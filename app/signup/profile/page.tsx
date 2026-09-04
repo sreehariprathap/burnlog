@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { generateUsername, isValidUsername } from '@/lib/username';
 import { OnboardingProgressBar } from '@/components/onboarding/OnboardingProgressBar';
+import { HorizontalStepper } from '@/components/ui/horizontal-stepper';
 import { appSearchColor } from '@/lib/search/registry';
 
 export default function ProfileSetupPage() {
@@ -169,7 +170,14 @@ export default function ProfileSetupPage() {
   if (profileExists) return <div className="h-screen flex items-center justify-center"><Loader2 className="animate-spin"/></div>;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+    <div className="min-h-screen flex flex-col items-center justify-center gap-6 bg-gray-50 p-4">
+      <HorizontalStepper
+        steps={[
+          { label: 'Profile', state: 'active' },
+          { label: 'AI Insights', state: 'default' },
+          { label: 'Apps', state: 'default' },
+        ]}
+      />
       <Card className="w-full max-w-md">
         <CardHeader><CardTitle>Set Up Profile</CardTitle></CardHeader>
         <CardContent>

@@ -9,6 +9,7 @@ import { APPS, AppId, setEnabledApps } from '@/lib/appMode';
 import { AppIcon } from '@/components/AppIcon';
 import { useToast } from '@/components/ui/use-toast';
 import { OnboardingProgressBar } from '@/components/onboarding/OnboardingProgressBar';
+import { HorizontalStepper } from '@/components/ui/horizontal-stepper';
 import { appSearchColor } from '@/lib/search/registry';
 
 const SELECTABLE_APPS_BASE = Object.values(APPS).filter(
@@ -68,6 +69,13 @@ export default function OnboardingAppsPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-md space-y-6">
+        <HorizontalStepper
+          steps={[
+            { label: 'Profile', state: 'completed' },
+            { label: 'AI Insights', state: 'completed' },
+            { label: 'Apps', state: 'active' },
+          ]}
+        />
         <div className="text-center space-y-2">
           <h1 className="text-2xl font-bold">What do you want to track?</h1>
           <p className="text-sm text-muted-foreground">

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { createClient } from '@/lib/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { OnboardingProgressBar } from '@/components/onboarding/OnboardingProgressBar';
+import { HorizontalStepper } from '@/components/ui/horizontal-stepper';
 import { appSearchColor } from '@/lib/search/registry';
 
 const BENEFITS = [
@@ -46,6 +47,13 @@ export default function AiInsightsPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-8 p-6 text-center">
+      <HorizontalStepper
+        steps={[
+          { label: 'Profile', state: 'completed' },
+          { label: 'AI Insights', state: 'active' },
+          { label: 'Apps', state: 'default' },
+        ]}
+      />
       <SiriOrb size="140px" state={saving ? 'thinking' : 'idle'} />
       <div className="max-w-sm space-y-4">
         <h1 className="text-3xl font-bold">Let AI help set things up</h1>
