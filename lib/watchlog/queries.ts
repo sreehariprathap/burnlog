@@ -25,7 +25,8 @@ export function watchItemsQuery(profileId: string, status?: WatchStatus) {
 export async function addWatchItem(
   supabase: SupabaseClient,
   profileId: string,
-  item: TmdbItem
+  item: TmdbItem,
+  initialStatus: WatchStatus = 'want'
 ): Promise<WatchItemRow> {
   const { data, error } = await supabase
     .from('watch_items')
@@ -37,7 +38,8 @@ export async function addWatchItem(
       posterPath: item.posterPath,
       releaseYear: item.releaseYear,
       genres: item.genres,
-      status: 'want',
+      status: initialStatus,
+      completedAt: initialStatus === 'completed' ? new Date().toISOString() : null,
     })
     .select()
     .single();
@@ -57,4 +59,28 @@ export async function updateWatchItem(
 export async function deleteWatchItem(supabase: SupabaseClient, id: string): Promise<void> {
   const { error } = await supabase.from('watch_items').delete().eq('id', id);
   if (error) throw error;
+}
+
+export async function addWatchIgnore(
+  supabase: SupabaseClient,
+  profileId: string,
+  tmdbId: number,
+  mediaType: TmdbItem['mediaType']
+): Promise<void> {
+  const { error } = await supabase
+    .from('watch_ignores')
+    .upsert({ profileId, tmdbId, mediaType }, { onConflict: 'profileId,tmdbId,mediaType', ignoreDuplicates: true });
+  if (error) throw error;
+}
+
+/**
+ * Ignored tmdbIds for a profile, used to filter them out of future AI
+ * suggestions. Swallows query errors (returns an empty set) rather than
+ * throwing — a failed ignore-list fetch shouldn't block suggestions from
+ * generating at all, it should just risk re-suggesting an ignored title.
+ */
+export async function fetchIgnoredTmdbIds(supabase: SupabaseClient, profileId: string): Promise<Set<number>> {
+  const { data, error } = await supabase.from('watch_ignores').select('tmdbId').eq('profileId', profileId);
+  if (error) return new Set();
+  return new Set((data ?? []).map((row: { tmdbId: number }) => row.tmdbId));
 }
