@@ -1598,6 +1598,21 @@ model TypographySetting {
   @@map("adminlog_typography_settings")
 }
 
+/// Site-wide announcement banners an admin can post — AdminLog > General >
+/// Banners. Every active row shows to every user (dismissible per-browser,
+/// tracked in localStorage — see AnnouncementBanners.tsx), not tied to any
+/// one app.
+model AnnouncementBanner {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  message   String
+  url       String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("adminlog_announcement_banners")
+}
+
 model WatchItem {
   id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   profile        Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)

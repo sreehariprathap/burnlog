@@ -19,6 +19,7 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 import { DevErrorWatcher } from "@/components/DevErrorWatcher";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { TestModeBanner } from "@/components/adminlog/TestModeBanner";
+import { AnnouncementBanners } from "@/components/AnnouncementBanners";
 import { EnableNotificationsPrompt } from "@/components/EnableNotificationsPrompt";
 
 // Quicksand: page/section headings app-wide. Figtree: default body/UI text.
@@ -102,6 +103,7 @@ export default function RootLayoutClient({
                 <KeyboardFocusScroll />
                 <OfflineBanner />
                 <TestModeBanner />
+                <AnnouncementBanners />
                 <ErrorBoundary>{children}</ErrorBoundary>
                 <DevErrorWatcher />
                 <GlobalErrorListener />

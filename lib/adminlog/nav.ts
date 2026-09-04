@@ -50,6 +50,7 @@ export const ADMIN_NAV: AdminNavCategory[] = [
       { href: '/adminlog/toggles', label: 'App & Feature Toggles', description: 'Turn apps and beta features on/off globally or per-user.', icon: ToggleLeft },
       { href: '/adminlog/tools', label: 'Admin Tools', description: 'Test push notifications, onboarding pages.', icon: Wrench },
       { href: '/adminlog/test-onboarding', label: 'Test Onboarding', description: 'Run the real onboarding flow as a disposable test account.', icon: Rocket },
+      { href: '/adminlog/banners', label: 'Banners', description: 'Post site-wide announcement banners for every user.', icon: Megaphone },
     ],
   },
   {
