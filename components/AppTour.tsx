@@ -40,6 +40,11 @@ const steps: Step[] = [
   },
 ];
 
+// Globally disabled — flip back to `false` to re-enable. Set true while
+// this was live, it was causing issues; steps/styling below are untouched
+// so turning it back on later is a one-line change.
+const TOUR_DISABLED = true;
+
 /** Mounted on the Logbook home page; runs the one-time onboarding tour for
  * users who haven't seen it, then persists the flag on their profile so it
  * never runs again (see `hasSeenAppTour` on `profiles`). */
@@ -48,7 +53,7 @@ export function AppTour() {
   const [run, setRun] = useState(false);
 
   useEffect(() => {
-    if (!loading && profile && !profile.hasSeenAppTour) {
+    if (!TOUR_DISABLED && !loading && profile && !profile.hasSeenAppTour) {
       setRun(true);
     }
   }, [loading, profile]);
