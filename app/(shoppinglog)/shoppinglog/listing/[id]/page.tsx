@@ -97,7 +97,7 @@ export default function ListingDetailPage() {
     });
     if (res.ok) {
       toast({ title: 'Added to cart' });
-      router.push('/shoppinglog/cart');
+      router.push('/shoppinglog?tab=cart');
     }
     setAddingToCart(false);
   };

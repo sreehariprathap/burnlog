@@ -24,12 +24,12 @@ export const NOTIFICATION_TEMPLATES: NotificationTemplate[] = [
   { id: 'burnlog-streak-milestone', app: 'burnlog', label: 'Streak milestone', title: 'Level up! 🔥', message: "You've hit a 7-day streak and reached Level 4.", url: '/burnlog/dashboard' },
 
   // MoneyLog
-  { id: 'moneylog-bill-due', app: 'moneylog', label: 'Bill due soon', title: 'Bill due in 2 days', message: 'Rent ($1,200) is due on the 3rd.', url: '/moneylog/plan' },
-  { id: 'moneylog-budget-exceeded', app: 'moneylog', label: 'Budget threshold exceeded', title: 'Over budget: Shopping', message: "You've spent 110% of your Shopping budget this month.", url: '/moneylog/insights' },
+  { id: 'moneylog-bill-due', app: 'moneylog', label: 'Bill due soon', title: 'Bill due in 2 days', message: 'Rent ($1,200) is due on the 3rd.', url: '/moneylog?tab=plan' },
+  { id: 'moneylog-budget-exceeded', app: 'moneylog', label: 'Budget threshold exceeded', title: 'Over budget: Shopping', message: "You've spent 110% of your Shopping budget this month.", url: '/moneylog?tab=insights' },
 
   // TaskLog
-  { id: 'tasklog-due-today', app: 'tasklog', label: 'Task due today', title: 'Task due today', message: '"Finish Q3 report" is due today.', url: '/tasklog/board' },
-  { id: 'tasklog-overdue', app: 'tasklog', label: 'Task overdue', title: 'Task overdue', message: '"Renew car insurance" was due 2 days ago.', url: '/tasklog/board' },
+  { id: 'tasklog-due-today', app: 'tasklog', label: 'Task due today', title: 'Task due today', message: '"Finish Q3 report" is due today.', url: '/tasklog?tab=board' },
+  { id: 'tasklog-overdue', app: 'tasklog', label: 'Task overdue', title: 'Task overdue', message: '"Renew car insurance" was due 2 days ago.', url: '/tasklog?tab=board' },
 
   // HomeLog
   { id: 'homelog-invite-received', app: 'homelog', label: 'Household invite received', title: 'New household invite', message: 'Sam invited you to join The Smiths.', url: '/homelog' },
@@ -42,7 +42,7 @@ export const NOTIFICATION_TEMPLATES: NotificationTemplate[] = [
   { id: 'sociallog-new-follower', app: 'sociallog', label: 'New follower', title: 'New follower', message: '@maya_runs started following you.', url: '/sociallog' },
   { id: 'sociallog-follow-request', app: 'sociallog', label: 'New follow request', title: 'New follow request', message: '@devon_builds wants to follow you.', url: '/sociallog' },
   { id: 'sociallog-follow-accepted', app: 'sociallog', label: 'Follow request accepted', title: 'Follow request accepted', message: '@bindya_w accepted your follow request.', url: '/sociallog' },
-  { id: 'sociallog-new-message', app: 'sociallog', label: 'New direct message', title: 'New message', message: 'devon_builds: "Hey, are you free this weekend?"', url: '/sociallog/messages' },
+  { id: 'sociallog-new-message', app: 'sociallog', label: 'New direct message', title: 'New message', message: 'devon_builds: "Hey, are you free this weekend?"', url: '/sociallog?tab=messages' },
   { id: 'sociallog-new-comment', app: 'sociallog', label: 'Comment on your post', title: 'New comment', message: 'bindya_w commented on your post: "This is awesome!"', url: '/sociallog' },
 
   // ShoppingLog
@@ -51,15 +51,15 @@ export const NOTIFICATION_TEMPLATES: NotificationTemplate[] = [
 
   // TravelLog
   { id: 'travellog-trip-reminder', app: 'travellog', label: 'Upcoming trip reminder', title: 'Trip coming up', message: 'Your trip to Kyoto starts in 5 days.', url: '/travellog' },
-  { id: 'travellog-suggestions-ready', app: 'travellog', label: 'New AI trip suggestions ready', title: 'New trip ideas ready', message: "We found 3 affordable trips that fit your free time this month.", url: '/travellog/suggestions' },
-  { id: 'travellog-trip-invite', app: 'travellog', label: 'New trip invite', title: 'New trip invite', message: 'Sam invited you to join the trip to Kyoto.', url: '/travellog/plan' },
-  { id: 'travellog-trip-invite-accepted', app: 'travellog', label: 'Trip invite accepted', title: 'Trip invite accepted', message: 'Jordan joined your trip.', url: '/travellog/trips' },
-  { id: 'travellog-trip-invite-declined', app: 'travellog', label: 'Trip invite declined', title: 'Trip invite declined', message: 'Jordan declined your trip invite.', url: '/travellog/trips' },
+  { id: 'travellog-suggestions-ready', app: 'travellog', label: 'New AI trip suggestions ready', title: 'New trip ideas ready', message: "We found 3 affordable trips that fit your free time this month.", url: '/travellog?tab=suggestions' },
+  { id: 'travellog-trip-invite', app: 'travellog', label: 'New trip invite', title: 'New trip invite', message: 'Sam invited you to join the trip to Kyoto.', url: '/travellog?tab=plan' },
+  { id: 'travellog-trip-invite-accepted', app: 'travellog', label: 'Trip invite accepted', title: 'Trip invite accepted', message: 'Jordan joined your trip.', url: '/travellog?tab=trips' },
+  { id: 'travellog-trip-invite-declined', app: 'travellog', label: 'Trip invite declined', title: 'Trip invite declined', message: 'Jordan declined your trip invite.', url: '/travellog?tab=trips' },
 
   // LearnLog
-  { id: 'learnlog-practice-reminder', app: 'learnlog', label: 'Practice reminder (streak)', title: "Keep your streak alive", message: 'Log a Skiing session today to keep your 5-day streak.', url: '/learnlog/skills' },
-  { id: 'learnlog-classes-ready', app: 'learnlog', label: 'Nearby classes ready', title: 'Nearby classes found', message: 'We found 4 skiing class ideas near Vancouver.', url: '/learnlog/skills' },
-  { id: 'learnlog-cert-expiring', app: 'learnlog', label: 'Certification expiring', title: 'Certification expiring soon', message: 'Your "First Aid & CPR" certification expires in 30 days.', url: '/learnlog/career' },
+  { id: 'learnlog-practice-reminder', app: 'learnlog', label: 'Practice reminder (streak)', title: "Keep your streak alive", message: 'Log a Skiing session today to keep your 5-day streak.', url: '/learnlog?tab=skills' },
+  { id: 'learnlog-classes-ready', app: 'learnlog', label: 'Nearby classes ready', title: 'Nearby classes found', message: 'We found 4 skiing class ideas near Vancouver.', url: '/learnlog?tab=skills' },
+  { id: 'learnlog-cert-expiring', app: 'learnlog', label: 'Certification expiring', title: 'Certification expiring soon', message: 'Your "First Aid & CPR" certification expires in 30 days.', url: '/learnlog?tab=career' },
   { id: 'learnlog-group-invite', app: 'learnlog', label: 'New learning group invite', title: 'New learning group invite', message: 'Sam invited you to join "Skiing".', url: '/learnlog' },
   { id: 'learnlog-group-invite-accepted', app: 'learnlog', label: 'Group invite accepted', title: 'Group invite accepted', message: 'Jordan joined "Skiing".', url: '/learnlog' },
   { id: 'learnlog-group-invite-declined', app: 'learnlog', label: 'Group invite declined', title: 'Group invite declined', message: 'Jordan declined your invite to "Skiing".', url: '/learnlog' },
