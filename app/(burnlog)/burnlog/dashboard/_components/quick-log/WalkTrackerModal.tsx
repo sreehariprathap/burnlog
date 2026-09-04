@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
+import { ThemedButton } from '@/components/ui/themed-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
@@ -178,9 +179,9 @@ export function WalkTrackerModal({ profileId, onClose, onSaved }: WalkTrackerMod
 
               {error && <p className="text-sm text-destructive">{error}</p>}
 
-              <Button onClick={handleFinish} disabled={!canFinish || saving} className="w-full">
+              <ThemedButton slot="primary-cta" onClick={handleFinish} disabled={!canFinish || saving} className="w-full">
                 {saving ? 'Saving...' : 'Finish'}
-              </Button>
+              </ThemedButton>
             </div>
           )}
         </div>

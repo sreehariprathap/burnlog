@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
-import { Button } from '@/components/ui/button';
+import { ThemedButton } from '@/components/ui/themed-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
@@ -69,9 +69,9 @@ export function LogStepsModal({ profileId, onClose, onSaved }: LogStepsModalProp
 
           {error && <p className="text-sm text-destructive">{error}</p>}
 
-          <Button onClick={handleSave} disabled={saving} className="w-full">
+          <ThemedButton slot="primary-cta" onClick={handleSave} disabled={saving} className="w-full">
             {saving ? 'Saving...' : 'Save'}
-          </Button>
+          </ThemedButton>
         </div>
       </DrawerContent>
     </Drawer>

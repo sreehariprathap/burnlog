@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { createClient } from '@/lib/supabase/client';
 import { Receipt, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ThemedButton } from '@/components/ui/themed-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -268,9 +269,9 @@ export function LogTransactionModal({ profileId, onClose, onSaved }: LogTransact
           </Tabs>
 
           {tab !== 'import' && (
-            <Button type="submit" disabled={saving} className="w-full">
+            <ThemedButton slot="primary-cta" type="submit" disabled={saving} className="w-full">
               {saving ? 'Saving...' : 'Save'}
-            </Button>
+            </ThemedButton>
           )}
         </form>
       </DrawerContent>

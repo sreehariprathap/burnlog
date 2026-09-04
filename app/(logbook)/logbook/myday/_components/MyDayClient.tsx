@@ -8,6 +8,7 @@ import { format as formatDate, addDays, subDays } from 'date-fns';
 import { TopBar } from '@/components/TopBar';
 import { LogbookBottomNav } from '@/components/LogbookBottomNav';
 import { Button } from '@/components/ui/button';
+import { ThemedButton } from '@/components/ui/themed-button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { DayTimeline } from '@/components/myday/DayTimeline';
@@ -94,14 +95,15 @@ export function MyDayClient() {
         )}
       </div>
 
-      <Button
+      <ThemedButton
+        slot="fab"
         onClick={() => setSheet({ mode: 'new' })}
         size="icon"
         className="fixed bottom-24 right-4 z-20 h-14 w-14 rounded-full shadow-lg"
         aria-label="Add to your day"
       >
         <Plus className="h-6 w-6" />
-      </Button>
+      </ThemedButton>
 
       {sheet.mode === 'new' && (
         <AddBlockSheet date={date} initialStartTime={sheet.startTime} onClose={closeSheet} onSaved={handleSheetSaved} />

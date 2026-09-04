@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Plus, Utensils, Dumbbell, Footprints } from 'lucide-react';
 import { RadialMenu } from '@/components/kokonutui/radial-menu';
+import { ThemedButton } from '@/components/ui/themed-button';
 import { LogCaloriesModal } from './quick-log/LogCaloriesModal';
 import { LogWorkoutModal } from './quick-log/LogWorkoutModal';
 import { LogStepsModal } from './quick-log/LogStepsModal';
@@ -37,14 +38,15 @@ export function QuickLogFab({ profileId, onLogged, initialOpen }: QuickLogFabPro
 
   return (
     <>
-      <button
+      <ThemedButton
+        slot="fab"
         onClick={() => setMenuOpen((v) => !v)}
         className="fixed bottom-20 right-4 z-30 h-14 w-14 rounded-full bg-primary text-primary-foreground shadow-lg flex items-center justify-center hover:opacity-90 transition-opacity"
         aria-label="Quick log"
         aria-expanded={menuOpen}
       >
         <Plus className="h-6 w-6" />
-      </button>
+      </ThemedButton>
 
       <RadialMenu open={menuOpen} items={items} onClose={() => setMenuOpen(false)} />
 

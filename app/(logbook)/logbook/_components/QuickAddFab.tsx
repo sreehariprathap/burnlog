@@ -17,6 +17,7 @@ import {
   type LucideIcon,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ThemedButton } from '@/components/ui/themed-button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
@@ -202,14 +203,15 @@ export function QuickAddFab({ profileId, onSaved }: QuickAddFabProps) {
 
   return (
     <>
-      <Button
+      <ThemedButton
+        slot="fab"
         onClick={() => setOpen(true)}
         size="icon"
         className="fixed bottom-24 right-4 z-20 h-14 w-14 rounded-full shadow-lg"
         aria-label="Quick add"
       >
         <Plus className="h-6 w-6" />
-      </Button>
+      </ThemedButton>
 
       <Drawer open={open} onOpenChange={(isOpen) => !isOpen && close()}>
         <DrawerContent className="max-h-[80vh]">
