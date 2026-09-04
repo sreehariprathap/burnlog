@@ -209,6 +209,7 @@ export function QuickAddFab({ profileId, onSaved }: QuickAddFabProps) {
         size="icon"
         className="fixed bottom-24 right-4 z-20 h-14 w-14 rounded-full shadow-lg"
         aria-label="Quick add"
+        data-tour="quick-add"
       >
         <Plus className="h-6 w-6" />
       </ThemedButton>

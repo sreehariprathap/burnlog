@@ -85,6 +85,7 @@ export function TopBar({ title, onClose, actions }: TopBarProps) {
           type="button"
           onClick={() => setSwitcherOpen(true)}
           aria-label="Switch app"
+          data-tour="app-switcher"
           className="flex items-center justify-center"
         >
           {activeApp === 'logbook' ? (

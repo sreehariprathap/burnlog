@@ -47,6 +47,7 @@ model Profile {
   learnLogCity             String?
   learnLogAiEnabled        Boolean   @default(true)
   lifeScoreMode            String    @default("engagement") // 'engagement' | 'streak' | 'goal'
+  hasSeenAppTour           Boolean   @default(false)
 
   FitnessGoal    FitnessGoal[]
   LifeScoreSnapshot LifeScoreSnapshot[]

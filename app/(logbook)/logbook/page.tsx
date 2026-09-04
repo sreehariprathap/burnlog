@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import useSWR from 'swr';
 import { RefreshCw } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
+import { AppTour } from '@/components/AppTour';
 import { LogbookBottomNav } from '@/components/LogbookBottomNav';
 import { GlobalSearch } from '@/components/GlobalSearch';
 import { Card, CardContent } from '@/components/ui/card';
@@ -75,6 +76,7 @@ export default function LogbookPage() {
 
   return (
     <div className="min-h-screen bg-background pb-28">
+      <AppTour />
       <TopBar
         title="Logbook"
         actions={
@@ -93,7 +95,9 @@ export default function LogbookPage() {
       <div className="mx-auto flex max-w-lg flex-col gap-5 p-4">
         {!profileLoading && profile && <GreetingBanner name={profile.firstName} />}
 
-        <GlobalSearch />
+        <div data-tour="global-search">
+          <GlobalSearch />
+        </div>
 
         {loading && (
           <div className="flex flex-col items-center gap-4 py-6">
