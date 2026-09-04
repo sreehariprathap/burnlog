@@ -182,11 +182,26 @@
 @layer base {
   body {
     font-family: var(--font-figtree);
+    font-weight: var(--typography-body-weight, 400);
   }
 
+  /* font-size/font-weight here only apply to headings that don't already
+     set their own Tailwind text-size/font-weight utility — the utilities
+     layer always outranks this base layer, regardless of source order or
+     selector specificity, so an explicit `text-lg`/`font-semibold` etc. on
+     a given heading keeps winning as before. This is what lets AdminLog >
+     UI > Typography's heading weight/scale apply broadly without clobbering
+     headings that were deliberately sized/weighted by a component. */
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-quicksand);
+    font-weight: var(--typography-heading-weight, 600);
   }
+  h1 { font-size: calc(32px * var(--typography-heading-scale, 1)); }
+  h2 { font-size: calc(28px * var(--typography-heading-scale, 1)); }
+  h3 { font-size: calc(24px * var(--typography-heading-scale, 1)); }
+  h4 { font-size: calc(20px * var(--typography-heading-scale, 1)); }
+  h5 { font-size: calc(18px * var(--typography-heading-scale, 1)); }
+  h6 { font-size: calc(16px * var(--typography-heading-scale, 1)); }
 }
 
 .dark {

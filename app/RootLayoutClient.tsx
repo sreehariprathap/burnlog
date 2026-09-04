@@ -1,7 +1,12 @@
 "use client";
 import { SWRConfig } from "swr";
-import { Quicksand, Figtree, Geist_Mono, Poppins, Inter } from "next/font/google";
+import {
+  Quicksand, Figtree, Geist_Mono, Poppins, Inter,
+  Krona_One, Prata, Lexend, Calistoga, Mulish,
+  Work_Sans, Bevan, Fraunces, Archivo, Righteous, Arimo,
+} from "next/font/google";
 import { TypographySettingsEffect } from "@/components/adminlog/TypographySettingsEffect";
+import { AppThemeSettingsEffect } from "@/components/adminlog/AppThemeSettingsEffect";
 import "./globals.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -56,6 +61,28 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
+// AdminLog > UI > Typography's expanded font catalog (see lib/typography.ts)
+// — always loaded so switching the setting doesn't need a page reload.
+// Fonts Google only ships as one static weight get `weight: "400"`;
+// variable fonts get `weight: "variable"` so CSS font-weight (used by the
+// admin's weight control) works across the full range from one file.
+const kronaOne = Krona_One({ variable: "--font-krona-one", weight: "400", subsets: ["latin"] });
+const prata = Prata({ variable: "--font-prata", weight: "400", subsets: ["latin"] });
+const lexend = Lexend({ variable: "--font-lexend", weight: "variable", subsets: ["latin"] });
+const calistoga = Calistoga({ variable: "--font-calistoga", weight: "400", subsets: ["latin"] });
+const mulish = Mulish({ variable: "--font-mulish", weight: "variable", subsets: ["latin"] });
+const workSans = Work_Sans({ variable: "--font-work-sans", weight: "variable", subsets: ["latin"] });
+const bevan = Bevan({ variable: "--font-bevan", weight: "400", subsets: ["latin"] });
+const fraunces = Fraunces({ variable: "--font-fraunces", weight: "variable", subsets: ["latin"] });
+const archivo = Archivo({ variable: "--font-archivo", weight: "variable", subsets: ["latin"] });
+const righteous = Righteous({ variable: "--font-righteous", weight: "400", subsets: ["latin"] });
+const arimo = Arimo({ variable: "--font-arimo", weight: "variable", subsets: ["latin"] });
+
+const TYPOGRAPHY_FONT_VARIABLES = [
+  kronaOne.variable, prata.variable, lexend.variable, calistoga.variable, mulish.variable,
+  workSans.variable, bevan.variable, fraunces.variable, archivo.variable, righteous.variable, arimo.variable,
+].join(" ");
+
 export default function RootLayoutClient({
   children,
 }: Readonly<{
@@ -85,7 +112,7 @@ export default function RootLayoutClient({
         <meta name="description" content="Your daily digest across every app you track life with — fitness, money, tasks, home, social, shopping, and travel, all in one place." />
       </head>
       <body
-        className={`${quicksand.variable} ${figtree.variable} ${geistMono.variable} ${poppins.variable} ${inter.variable} antialiased`}
+        className={`${quicksand.variable} ${figtree.variable} ${geistMono.variable} ${poppins.variable} ${inter.variable} ${TYPOGRAPHY_FONT_VARIABLES} antialiased`}
         suppressHydrationWarning
       >
         <SWRConfig
@@ -108,6 +135,7 @@ export default function RootLayoutClient({
                 <DevErrorWatcher />
                 <GlobalErrorListener />
                 <TypographySettingsEffect />
+                <AppThemeSettingsEffect />
                 <SwitchLoader />
                 <ToastContainer
                   position="top-center"

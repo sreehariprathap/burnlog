@@ -1,15 +1,15 @@
-// app/api/adminlog/typography/route.ts
+// app/api/adminlog/app-theme/route.ts
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/serviceRole';
 import { requireAdminCaller } from '@/lib/adminlog/testOnboarding';
 import { isAppId } from '@/lib/appMode';
-import { isFontId, isFontWeight, isHeadingScale, type TypographyFields } from '@/lib/typography';
+import { isValidCssColor, type AppThemeFields } from '@/lib/theme/appTheme';
 
-type Row = TypographyFields & { id: string };
+type Row = AppThemeFields & { id: string };
 
 // Readable by any signed-in user — every page reads this to resolve which
-// fonts/weight/scale to render, not just adminlog.
+// primary/background colors to render, not just adminlog.
 export async function GET() {
   try {
     const supabase = await createClient();
@@ -20,13 +20,13 @@ export async function GET() {
 
     const admin = createServiceRoleClient();
     const { data, error } = await admin
-      .from('adminlog_typography_settings')
-      .select('id, headingFont, bodyFont, headingWeight, bodyWeight, headingScale');
+      .from('adminlog_app_theme_settings')
+      .select('id, primaryLight, backgroundLight, primaryDark, backgroundDark');
     if (error) throw error;
 
     const rows = (data ?? []) as Row[];
     const global = rows.find((r) => r.id === 'global') ?? {};
-    const apps: Record<string, TypographyFields> = {};
+    const apps: Record<string, AppThemeFields> = {};
     for (const row of rows) {
       if (row.id === 'global') continue;
       const { id, ...fields } = row;
@@ -35,7 +35,7 @@ export async function GET() {
 
     return NextResponse.json({ global, apps });
   } catch (error) {
-    console.error('typography GET error:', error);
+    console.error('app-theme GET error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
@@ -54,40 +54,29 @@ export async function PUT(request: Request) {
       return NextResponse.json({ error: 'Invalid scope' }, { status: 400 });
     }
 
-    const update: Record<string, string | number | null> = {};
-
-    for (const key of ['headingFont', 'bodyFont'] as const) {
+    const update: Record<string, string | null> = {};
+    for (const key of ['primaryLight', 'backgroundLight', 'primaryDark', 'backgroundDark'] as const) {
       const value = fields[key];
       if (value === undefined) continue;
-      if (value === null) { update[key] = null; continue; }
-      if (!isFontId(value)) return NextResponse.json({ error: `Invalid ${key}` }, { status: 400 });
+      if (value === null) {
+        update[key] = null;
+        continue;
+      }
+      if (!isValidCssColor(value)) {
+        return NextResponse.json({ error: `Invalid ${key}` }, { status: 400 });
+      }
       update[key] = value;
-    }
-
-    for (const key of ['headingWeight', 'bodyWeight'] as const) {
-      const value = fields[key];
-      if (value === undefined) continue;
-      if (value === null) { update[key] = null; continue; }
-      if (!isFontWeight(value)) return NextResponse.json({ error: `Invalid ${key}` }, { status: 400 });
-      update[key] = value;
-    }
-
-    if (fields.headingScale !== undefined) {
-      const value = fields.headingScale;
-      if (value === null) update.headingScale = null;
-      else if (!isHeadingScale(value)) return NextResponse.json({ error: 'Invalid headingScale' }, { status: 400 });
-      else update.headingScale = value;
     }
 
     const admin = createServiceRoleClient();
     const { error } = await admin
-      .from('adminlog_typography_settings')
+      .from('adminlog_app_theme_settings')
       .upsert({ id: scope, ...update, updatedAt: new Date().toISOString() }, { onConflict: 'id' });
     if (error) throw error;
 
     return NextResponse.json({ ok: true });
   } catch (error) {
-    console.error('typography PUT error:', error);
+    console.error('app-theme PUT error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

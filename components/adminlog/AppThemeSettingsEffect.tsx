@@ -1,0 +1,73 @@
+'use client';
+
+import { useEffect, useRef } from 'react';
+import useSWR from 'swr';
+import { apiFetch } from '@/lib/apiFetch';
+import { getActiveApp } from '@/lib/appMode';
+import { resolveThemeField, type AppThemeFields } from '@/lib/theme/appTheme';
+
+const APP_THEME_KEY = 'adminlog-app-theme-settings';
+
+interface AppThemePayload {
+  global: AppThemeFields;
+  apps: Record<string, AppThemeFields>;
+}
+
+async function fetchAppTheme(): Promise<AppThemePayload> {
+  const res = await apiFetch('/api/adminlog/app-theme');
+  if (!res.ok) return { global: {}, apps: {} };
+  return res.json();
+}
+
+/** Mounted once in RootLayoutClient. Every app's default primary/background
+ * (light & dark) already lives in globals.css as `.app-<id>` /
+ * `.app-<id>.dark` rules. This just overrides `--primary`/`--background`
+ * inline on <html> — which always wins over those class-based rules,
+ * regardless of which app/theme class is currently applied — with whatever
+ * AdminLog > UI > App Theme has configured, per app-with-fallback-to-global,
+ * per light/dark. Falls back to the CSS defaults (removeProperty) wherever
+ * nothing is configured. */
+export function AppThemeSettingsEffect() {
+  const { data } = useSWR(APP_THEME_KEY, fetchAppTheme, {
+    revalidateOnFocus: false,
+    dedupingInterval: 60_000,
+  });
+  const dataRef = useRef(data);
+  dataRef.current = data;
+
+  useEffect(() => {
+    function apply() {
+      const payload = dataRef.current;
+      const root = document.documentElement;
+      const isDark = root.classList.contains('dark');
+      const appOverride = payload?.apps[getActiveApp()];
+      const global = payload?.global;
+
+      const primary = resolveThemeField(
+        isDark ? appOverride?.primaryDark : appOverride?.primaryLight,
+        isDark ? global?.primaryDark : global?.primaryLight
+      );
+      const background = resolveThemeField(
+        isDark ? appOverride?.backgroundDark : appOverride?.backgroundLight,
+        isDark ? global?.backgroundDark : global?.backgroundLight
+      );
+
+      if (primary) root.style.setProperty('--primary', primary);
+      else root.style.removeProperty('--primary');
+
+      if (background) root.style.setProperty('--background', background);
+      else root.style.removeProperty('--background');
+    }
+
+    apply();
+
+    // One observer catches both app switches (setAppTheme swaps the
+    // `.app-<id>` class) and light/dark toggles (ThemeProvider swaps
+    // `.light`/`.dark`) — both mutate <html>'s class attribute.
+    const observer = new MutationObserver(apply);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, [data]);
+
+  return null;
+}

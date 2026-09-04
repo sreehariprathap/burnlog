@@ -1,45 +1,91 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import useSWR from 'swr';
 import { apiFetch } from '@/lib/apiFetch';
-import { DEFAULT_HEADING_FONT, DEFAULT_BODY_FONT, type HeadingFont, type BodyFont } from '@/lib/typography';
+import { getActiveApp } from '@/lib/appMode';
+import {
+  fontCatalogEntry,
+  resolveTypographyField,
+  DEFAULT_HEADING_FONT,
+  DEFAULT_BODY_FONT,
+  DEFAULT_HEADING_WEIGHT,
+  DEFAULT_BODY_WEIGHT,
+  DEFAULT_HEADING_SCALE,
+  type TypographyFields,
+} from '@/lib/typography';
 
 const TYPOGRAPHY_KEY = 'adminlog-typography-settings';
 
-async function fetchTypography(): Promise<{ headingFont: HeadingFont; bodyFont: BodyFont }> {
+interface TypographyPayload {
+  global: TypographyFields;
+  apps: Record<string, TypographyFields>;
+}
+
+async function fetchTypography(): Promise<TypographyPayload> {
   const res = await apiFetch('/api/adminlog/typography');
-  if (!res.ok) return { headingFont: DEFAULT_HEADING_FONT, bodyFont: DEFAULT_BODY_FONT };
+  if (!res.ok) return { global: {}, apps: {} };
   return res.json();
 }
 
-/** Mounted once in RootLayoutClient. Points --font-quicksand/--font-figtree
- * (the variables every heading/body rule actually reads — see globals.css)
- * at whichever loaded next/font variable the admin picked in AdminLog >
- * UI > Typography, falling back to the real Quicksand/Figtree fonts when
- * left on their defaults. */
+/** Mounted once in RootLayoutClient. Resolves the effective heading/body
+ * font, weight, and heading size scale for whichever app is currently
+ * active (app override > global > hardcoded default — see
+ * resolveTypographyField) and applies them as CSS custom properties. */
 export function TypographySettingsEffect() {
   const { data } = useSWR(TYPOGRAPHY_KEY, fetchTypography, {
     revalidateOnFocus: false,
     dedupingInterval: 60_000,
   });
+  const dataRef = useRef(data);
+  dataRef.current = data;
 
   useEffect(() => {
-    // next/font declares --font-quicksand/--font-figtree via a class on
-    // <body> itself (see RootLayoutClient's className), so the override
-    // must also be an inline style on <body> — one on <html> would just
-    // lose to body's own (closer) declaration for anything body renders.
-    const body = document.body;
-    if (data?.headingFont === 'poppins') {
-      body.style.setProperty('--font-quicksand', 'var(--font-poppins)');
-    } else {
-      body.style.removeProperty('--font-quicksand');
+    function apply() {
+      const payload = dataRef.current;
+      const global = payload?.global ?? {};
+      const appOverride = payload?.apps[getActiveApp()] ?? {};
+
+      const headingFontId = resolveTypographyField(appOverride.headingFont, global.headingFont, DEFAULT_HEADING_FONT);
+      const bodyFontId = resolveTypographyField(appOverride.bodyFont, global.bodyFont, DEFAULT_BODY_FONT);
+      const headingWeight = resolveTypographyField(appOverride.headingWeight, global.headingWeight, DEFAULT_HEADING_WEIGHT);
+      const bodyWeight = resolveTypographyField(appOverride.bodyWeight, global.bodyWeight, DEFAULT_BODY_WEIGHT);
+      const headingScale = resolveTypographyField(appOverride.headingScale, global.headingScale, DEFAULT_HEADING_SCALE);
+
+      // next/font declares --font-quicksand/--font-figtree via a class on
+      // <body> itself (see RootLayoutClient's className), so pointing them
+      // at a different loaded font must also be an inline style on <body> —
+      // one on <html> would just lose to body's own (closer) declaration
+      // for anything body renders.
+      const body = document.body;
+      const headingCssVar = fontCatalogEntry(headingFontId)?.cssVar;
+      if (headingCssVar && headingCssVar !== '--font-quicksand') {
+        body.style.setProperty('--font-quicksand', `var(${headingCssVar})`);
+      } else {
+        body.style.removeProperty('--font-quicksand');
+      }
+      const bodyCssVar = fontCatalogEntry(bodyFontId)?.cssVar;
+      if (bodyCssVar && bodyCssVar !== '--font-figtree') {
+        body.style.setProperty('--font-figtree', `var(${bodyCssVar})`);
+      } else {
+        body.style.removeProperty('--font-figtree');
+      }
+
+      // Weight/scale are plain custom properties (no descendant redeclares
+      // them), so setting them on <html> is fine — they just inherit down.
+      const root = document.documentElement;
+      root.style.setProperty('--typography-heading-weight', String(headingWeight));
+      root.style.setProperty('--typography-body-weight', String(bodyWeight));
+      root.style.setProperty('--typography-heading-scale', String(headingScale));
     }
-    if (data?.bodyFont === 'inter') {
-      body.style.setProperty('--font-figtree', 'var(--font-inter)');
-    } else {
-      body.style.removeProperty('--font-figtree');
-    }
+
+    apply();
+
+    // Catches app switches (setAppTheme swaps the `.app-<id>` class on
+    // <html>), which change which app's override applies.
+    const observer = new MutationObserver(apply);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
   }, [data]);
 
   return null;

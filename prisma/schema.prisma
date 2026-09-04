@@ -1586,17 +1586,37 @@ model ButtonThemeSetting {
   @@map("adminlog_button_theme_settings")
 }
 
-/// Single global row (id fixed to "global") — AdminLog > UI > Typography.
-/// headingFont/bodyFont pick which loaded next/font variable
-/// --font-quicksand/--font-figtree point at (see RootLayoutClient.tsx and
-/// TypographySettingsEffect).
+/// "global" row or a per-app row (id = an AppId) — AdminLog > UI >
+/// Typography. Null fields fall back to the "global" row's same field, then
+/// to the hardcoded defaults in lib/typography.ts — app-level values take
+/// precedence over global. headingFont/bodyFont are ids into FONT_CATALOG
+/// (lib/typography.ts), which map to loaded next/font variables (see
+/// RootLayoutClient.tsx and TypographySettingsEffect).
 model TypographySetting {
-  id          String   @id @default("global")
-  headingFont String   @default("quicksand")
-  bodyFont    String   @default("figtree")
-  updatedAt   DateTime @updatedAt
+  id            String   @id // "global" or an AppId (e.g. "moneylog")
+  headingFont   String?
+  bodyFont      String?
+  headingWeight Int?
+  bodyWeight    Int?
+  headingScale  Float?
+  updatedAt     DateTime @updatedAt
 
   @@map("adminlog_typography_settings")
+}
+
+/// Per-app (or "global") primary/background color overrides, light & dark —
+/// AdminLog > UI > App Theme. Null fields fall back to the "global" row's
+/// same field, then to the hardcoded per-app CSS in globals.css (see
+/// AppThemeSettingsEffect) — app-level values take precedence over global.
+model AppThemeSetting {
+  id              String   @id // "global" or an AppId (e.g. "moneylog")
+  primaryLight    String?
+  backgroundLight String?
+  primaryDark     String?
+  backgroundDark  String?
+  updatedAt       DateTime @updatedAt
+
+  @@map("adminlog_app_theme_settings")
 }
 
 /// Site-wide announcement banners an admin can post — AdminLog > General >
