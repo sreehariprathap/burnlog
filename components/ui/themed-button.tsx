@@ -5,6 +5,7 @@ import { Button, type ButtonProps } from '@/components/ui/button';
 import { LiquidButton } from '@/components/ui/liquid-button';
 import { FlowButton } from '@/components/ui/flow-button';
 import { MetalButton } from '@/components/ui/metal-button';
+import { LinkButton } from '@/components/ui/link-button';
 import { useButtonTheme } from '@/lib/useButtonTheme';
 
 export interface ThemedButtonProps extends ButtonProps {
@@ -39,6 +40,13 @@ export function ThemedButton({ slot, variant, size, className, children, ...prop
       <MetalButton className={className} {...props}>
         {children}
       </MetalButton>
+    );
+  }
+  if (style === 'link') {
+    return (
+      <LinkButton variant="primary" className={className} {...props}>
+        {children}
+      </LinkButton>
     );
   }
   return (

@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { LiquidButton } from '@/components/ui/liquid-button';
 import { FlowButton } from '@/components/ui/flow-button';
 import { MetalButton } from '@/components/ui/metal-button';
+import { LinkButton } from '@/components/ui/link-button';
 import { apiFetch } from '@/lib/apiFetch';
 import { BUTTON_SLOTS, BUTTON_STYLES, DEFAULT_BUTTON_STYLE, isButtonStyle, type ButtonStyle } from '@/lib/buttonThemes';
 
@@ -17,12 +18,14 @@ const STYLE_LABELS: Record<ButtonStyle, string> = {
   liquid: 'Liquid glass',
   flow: 'Flow (fill on hover)',
   metal: 'Metal',
+  link: 'Link',
 };
 
 function StylePreview({ style }: { style: ButtonStyle }) {
   if (style === 'liquid') return <LiquidButton>Preview</LiquidButton>;
   if (style === 'flow') return <FlowButton text="Preview" />;
   if (style === 'metal') return <MetalButton>Preview</MetalButton>;
+  if (style === 'link') return <LinkButton variant="primary">Preview</LinkButton>;
   return <Button>Preview</Button>;
 }
 

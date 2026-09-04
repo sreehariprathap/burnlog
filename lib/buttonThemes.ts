@@ -1,4 +1,4 @@
-export const BUTTON_STYLES = ['default', 'liquid', 'flow', 'metal'] as const;
+export const BUTTON_STYLES = ['default', 'liquid', 'flow', 'metal', 'link'] as const;
 export type ButtonStyle = (typeof BUTTON_STYLES)[number];
 
 export function isButtonStyle(value: unknown): value is ButtonStyle {
