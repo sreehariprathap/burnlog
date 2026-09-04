@@ -17,6 +17,7 @@ describe('buildSuggestUserPrompt', () => {
       moods: ['light', 'nostalgic'],
       freeText: 'something with a good soundtrack',
       likedGenres: ['Comedy', 'Drama'],
+      preferredContentTypes: [],
     });
     expect(prompt).toContain('light');
     expect(prompt).toContain('nostalgic');
@@ -26,8 +27,24 @@ describe('buildSuggestUserPrompt', () => {
   });
 
   it('omits the free-text line when freeText is null', () => {
-    const prompt = buildSuggestUserPrompt({ moods: ['funny'], freeText: null, likedGenres: [] });
+    const prompt = buildSuggestUserPrompt({ moods: ['funny'], freeText: null, likedGenres: [], preferredContentTypes: [] });
     expect(prompt).not.toContain('null');
+  });
+
+  it('includes preferredContentTypes as an extra line when present', () => {
+    const prompt = buildSuggestUserPrompt({
+      moods: [],
+      freeText: null,
+      likedGenres: [],
+      preferredContentTypes: ['anime', 'documentaries'],
+    });
+    expect(prompt).toContain('anime');
+    expect(prompt).toContain('documentaries');
+  });
+
+  it('omits the content-type line when preferredContentTypes is empty', () => {
+    const prompt = buildSuggestUserPrompt({ moods: ['funny'], freeText: null, likedGenres: [], preferredContentTypes: [] });
+    expect(prompt.toLowerCase()).not.toContain('especially enjoy');
   });
 });
 

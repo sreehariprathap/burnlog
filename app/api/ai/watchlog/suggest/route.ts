@@ -71,6 +71,7 @@ export async function POST(request: Request) {
       moods: Array.isArray(body.moods) ? body.moods : [],
       freeText: body.freeText ?? null,
       likedGenres: Array.isArray(body.likedGenres) ? body.likedGenres : [],
+      preferredContentTypes: Array.isArray(body.preferredContentTypes) ? body.preferredContentTypes : [],
     };
 
     MODEL = await getModel(supabase, 'watchlog-suggest');
