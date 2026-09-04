@@ -13,6 +13,7 @@ import { Loader2, Info, AlertTriangle, Sparkles } from 'lucide-react';
 import { ProfileAvatar } from './_components/ProfileAvatar';
 import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 import { TopBar } from '@/components/TopBar';
+import { getAge } from '@/lib/age';
 import { LogbookBottomNav } from '@/components/LogbookBottomNav';
 import { LogoutOverlay } from '@/components/LogoutOverlay';
 import { Switch } from '@/components/ui/switch';
@@ -95,7 +96,7 @@ export default function ProfilePage() {
         const userId = session.user.id;
         const { data, error: profErr } = await supabase
           .from('profiles')
-          .select('id,firstName,lastName,age,height,weight,activityLevel,isAdmin,avatarUrl,username,enabledApps,aiEnabled')
+          .select('id,firstName,lastName,dateOfBirth,height,weight,activityLevel,isAdmin,avatarUrl,username,enabledApps,aiEnabled')
           .eq('userId', userId)
           .single();
 
@@ -272,7 +273,7 @@ export default function ProfilePage() {
                 <CardContent className="space-y-3">
                   {[
                     ['Email', profile.email],
-                    ['Age', `${profile.age} yrs`],
+                    ['Age', `${getAge(profile.dateOfBirth)} yrs`],
                     ['Height', `${profile.height} cm`],
                     ['Weight', `${profile.weight} kg`],
                     ['Activity Level', profile.activityLevel]

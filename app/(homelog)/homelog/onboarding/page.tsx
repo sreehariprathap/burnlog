@@ -4,10 +4,11 @@
 import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 import { HomeLogOnboardingFlow } from './_components/HomeLogOnboardingFlow';
+import { OnboardingStepShell } from '@/components/onboarding/OnboardingStepShell';
 
 export default function HomeLogOnboardingPage() {
   return (
-    <div className="min-h-screen px-4 py-6">
+    <OnboardingStepShell app="homelog">
       <Suspense
         fallback={
           <div className="flex h-[50vh] items-center justify-center">
@@ -17,6 +18,6 @@ export default function HomeLogOnboardingPage() {
       >
         <HomeLogOnboardingFlow />
       </Suspense>
-    </div>
+    </OnboardingStepShell>
   );
 }

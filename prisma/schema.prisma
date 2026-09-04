@@ -14,7 +14,7 @@ model Profile {
   userId        String   @unique @db.Uuid
   firstName     String
   lastName      String
-  age           Int
+  dateOfBirth   DateTime?
   weight        Float
   height        Float
   activityLevel String
@@ -43,6 +43,8 @@ model Profile {
   lastTaskLogStreakDate    DateTime? @db.Date
   currency                 String    @default("CAD")
   country                  String?
+  city                     String?
+  postalCode               String?
   weeklyTripSuggestionsEnabled Boolean   @default(true)
   learnLogCity             String?
   learnLogAiEnabled        Boolean   @default(true)

@@ -36,7 +36,7 @@ describe('buildPrompt', () => {
   it('appends the custom instructions as a directive block when present', () => {
     const prompt = buildPrompt(profile, lifestyle, 'Keep sessions under 30 minutes');
     expect(prompt).toContain(
-      'Additional instructions from the user (follow these unless they conflict with the rules above): Keep sessions under 30 minutes'
+      'Additional instructions from the user (these are hard constraints — they take priority over the general guidance above whenever they conflict): Keep sessions under 30 minutes'
     );
   });
 });

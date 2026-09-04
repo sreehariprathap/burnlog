@@ -36,7 +36,8 @@ export async function middleware(request: NextRequest) {
   const publicRoutes = [
     '/login',
     '/signup',
-    '/signup/profile'
+    '/signup/profile',
+    '/privacy'
   ];
   const isPublic = publicRoutes.some(route => pathname.startsWith(route));
 

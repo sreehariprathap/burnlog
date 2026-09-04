@@ -37,7 +37,7 @@ function OnboardingSequenceRedirect() {
       .split(',')
       .filter((v): v is AppId => isAppId(v));
     const step = Number(searchParams.get('step') ?? '0') || 0;
-    const returnTo = searchParams.get('returnTo') ?? '/logbook';
+    const returnTo = searchParams.get('returnTo') ?? '/onboarding/complete';
 
     if (step >= apps.length) {
       router.replace(returnTo);

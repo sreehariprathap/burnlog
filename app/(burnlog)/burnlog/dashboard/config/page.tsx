@@ -15,6 +15,7 @@ import { AppConfigShell } from '@/components/AppConfigShell';
 import { BottomNav } from '@/components/BottomNav';
 import { useToast } from '@/components/ui/use-toast';
 import { MEAL_PREP_REMINDER_TITLE } from '@/lib/ai/types';
+import { getAge } from '@/lib/age';
 
 export default function BurnLogConfigPage() {
   const supabase = createClient();
@@ -33,7 +34,7 @@ export default function BurnLogConfigPage() {
       }
       const { data } = await supabase
         .from('profiles')
-        .select('id,age,weight,height,activityLevel,aiEnabled,currentStreak,longestStreak,xp,level,waterUnit,glassSizeMl,waterGoalMl,mealPrepDayOfWeek,mealPrepTime,mealPrepTimezone')
+        .select('id,dateOfBirth,weight,height,activityLevel,aiEnabled,currentStreak,longestStreak,xp,level,waterUnit,glassSizeMl,waterGoalMl,mealPrepDayOfWeek,mealPrepTime,mealPrepTimezone')
         .eq('userId', session.user.id)
         .single();
       setProfile(data ?? null);
@@ -41,16 +42,26 @@ export default function BurnLogConfigPage() {
     })();
   }, [supabase, router]);
 
-  const handleHealthMetricChange = async (field: 'age' | 'height' | 'weight', value: number) => {
+  const handleHealthMetricChange = async (field: 'height' | 'weight', value: number) => {
     if (!profile) return;
-    const min = field === 'age' ? 1 : field === 'height' ? 50 : 20;
-    const max = field === 'age' ? 120 : field === 'height' ? 250 : 400;
+    const min = field === 'height' ? 50 : 20;
+    const max = field === 'height' ? 250 : 400;
     const safeValue = Math.min(max, Math.max(min, value));
     const { error } = await supabase.from('profiles').update({ [field]: safeValue }).eq('id', profile.id);
     if (!error) {
       setProfile((prev: any) => ({ ...prev, [field]: safeValue }));
     } else {
       toast({ title: 'Could not save health metric', description: error.message, variant: 'destructive' });
+    }
+  };
+
+  const handleDateOfBirthChange = async (value: string) => {
+    if (!profile || !value) return;
+    const { error } = await supabase.from('profiles').update({ dateOfBirth: value }).eq('id', profile.id);
+    if (!error) {
+      setProfile((prev: any) => ({ ...prev, dateOfBirth: value }));
+    } else {
+      toast({ title: 'Could not save date of birth', description: error.message, variant: 'destructive' });
     }
   };
 
@@ -107,7 +118,7 @@ export default function BurnLogConfigPage() {
 
   const bmi = +(profile.weight / ((profile.height / 100) * (profile.height / 100))).toFixed(1);
   const bmiCategory = bmi < 18.5 ? 'Underweight' : bmi < 25 ? 'Normal' : bmi < 30 ? 'Overweight' : 'Obese';
-  const bmr = Math.round(10 * profile.weight + 6.25 * profile.height - 5 * profile.age + 5);
+  const bmr = Math.round(10 * profile.weight + 6.25 * profile.height - 5 * getAge(profile.dateOfBirth) + 5);
 
   return (
     <AppConfigShell
@@ -133,10 +144,10 @@ export default function BurnLogConfigPage() {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-3 gap-3">
             <div>
-              <Label htmlFor="age" className="text-xs font-normal text-muted-foreground">Age</Label>
+              <Label htmlFor="dob" className="text-xs font-normal text-muted-foreground">Date of birth</Label>
               <input
-                id="age" type="number" min={1} max={120} defaultValue={profile.age}
-                onBlur={(e) => handleHealthMetricChange('age', Number(e.target.value))}
+                id="dob" type="date" defaultValue={profile.dateOfBirth?.slice(0, 10)}
+                onBlur={(e) => handleDateOfBirthChange(e.target.value)}
                 className="w-full rounded-md border bg-background px-2 py-1 text-right mt-1"
               />
             </div>

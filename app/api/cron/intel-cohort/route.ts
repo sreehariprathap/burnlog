@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createServiceRoleClient } from '@/lib/supabase/serviceRole';
 import { buildCohortKey, computePercentiles, MIN_COHORT_SAMPLE_SIZE } from '@/lib/intellog/cohort';
+import { getAge } from '@/lib/age';
 
 export async function GET(request: Request) {
   const authHeader = request.headers.get('authorization');
@@ -12,7 +13,7 @@ export async function GET(request: Request) {
   const supabase = createServiceRoleClient();
   const date = new Date().toISOString().slice(0, 10);
 
-  const { data: profiles, error: profilesError } = await supabase.from('profiles').select('id, age, country');
+  const { data: profiles, error: profilesError } = await supabase.from('profiles').select('id, dateOfBirth, country');
   if (profilesError) {
     console.error('intel-cohort: failed to load profiles', profilesError);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
@@ -34,7 +35,7 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 
-  const ageByProfile = new Map((profiles ?? []).map((p: { id: string; age: number }) => [p.id, p.age]));
+  const ageByProfile = new Map((profiles ?? []).map((p: { id: string; dateOfBirth: string }) => [p.id, getAge(p.dateOfBirth)]));
   const countryByProfile = new Map((profiles ?? []).map((p: { id: string; country: string | null }) => [p.id, p.country]));
 
   // group values by cohortKey|app|metric

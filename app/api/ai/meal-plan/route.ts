@@ -6,6 +6,7 @@ import { formatAiError } from '@/lib/ai/errors';
 import { runAiJob, AiRouteError } from '@/lib/ai/jobs';
 import { buildMealPlanPrompt } from '@/lib/ai/mealPlanPrompt';
 import type { LifestyleAnswers } from '@/lib/ai/types';
+import { getAge } from '@/lib/age';
 
 const client = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
@@ -33,7 +34,7 @@ export async function POST(request: Request) {
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('id, age, weight, lifestyle')
+      .select('id, dateOfBirth, weight, lifestyle')
       .eq('userId', user.id)
       .single();
 
@@ -53,11 +54,11 @@ export async function POST(request: Request) {
         supabase,
         profile.id,
         { jobType: 'meal-plan', app: 'burnlog', model: MODEL },
-        { age: profile.age, weight: profile.weight, lifestyle, customInstructions },
+        { age: getAge(profile.dateOfBirth), weight: profile.weight, lifestyle, customInstructions },
         async (signal) => {
           const prompt = buildMealPlanPrompt(
             lifestyle,
-            { age: profile.age ?? 30, weight: profile.weight ?? 70 },
+            { age: profile.dateOfBirth ? getAge(profile.dateOfBirth) : 30, weight: profile.weight ?? 70 },
             customInstructions
           );
 

@@ -4,11 +4,12 @@
 import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 import { MoneyLogOnboardingFlow } from './_components/MoneyLogOnboardingFlow';
+import { OnboardingStepShell } from '@/components/onboarding/OnboardingStepShell';
 
 // Client Component — cannot export `metadata`; this flow has no persistent TopBar title.
 export default function MoneyLogOnboardingPage() {
   return (
-    <div className="min-h-screen px-4 py-6">
+    <OnboardingStepShell app="moneylog">
       <Suspense
         fallback={
           <div className="flex h-[50vh] items-center justify-center">
@@ -18,6 +19,6 @@ export default function MoneyLogOnboardingPage() {
       >
         <MoneyLogOnboardingFlow />
       </Suspense>
-    </div>
+    </OnboardingStepShell>
   );
 }

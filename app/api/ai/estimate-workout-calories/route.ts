@@ -4,6 +4,7 @@ import OpenAI from 'openai';
 import { getModel } from '@/lib/ai/modelConfig';
 import { formatAiError } from '@/lib/ai/errors';
 import { runAiJob, AiRouteError } from '@/lib/ai/jobs';
+import { getAge } from '@/lib/age';
 
 const client = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
@@ -39,7 +40,7 @@ export async function POST(request: Request) {
 
     const { data: profile } = await supabase
       .from('profiles')
-      .select('id, weight, age')
+      .select('id, weight, dateOfBirth')
       .eq('userId', user.id)
       .single();
     if (!profile) {
@@ -47,7 +48,7 @@ export async function POST(request: Request) {
     }
 
     const weight = profile?.weight ?? 70;
-    const age = profile?.age ?? 30;
+    const age = profile?.dateOfBirth ? getAge(profile.dateOfBirth) : 30;
 
     try {
       const responsePayload = await runAiJob(

@@ -1,14 +1,17 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Loader2, Check } from 'lucide-react';
 import { APPS, AppId, setEnabledApps } from '@/lib/appMode';
+import { AppIcon } from '@/components/AppIcon';
 import { useToast } from '@/components/ui/use-toast';
 
-const SELECTABLE_APPS = Object.values(APPS).filter((app) => app.id !== 'logbook');
+const SELECTABLE_APPS_BASE = Object.values(APPS).filter(
+  (app) => app.id !== 'logbook' && app.id !== 'adminlog'
+);
 
 export default function OnboardingAppsPage() {
   const router = useRouter();
@@ -16,6 +19,19 @@ export default function OnboardingAppsPage() {
   const { toast } = useToast();
   const [selected, setSelected] = useState<Set<AppId>>(new Set());
   const [saving, setSaving] = useState(false);
+  const [aiEnabled, setAiEnabled] = useState(false);
+
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data } = await supabase.from('profiles').select('aiEnabled').eq('userId', user.id).single();
+      setAiEnabled(!!data?.aiEnabled);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const selectableApps = SELECTABLE_APPS_BASE.filter((app) => app.id !== 'intellog' || aiEnabled);
 
   function toggle(id: AppId) {
     setSelected((prev) => {
@@ -57,7 +73,7 @@ export default function OnboardingAppsPage() {
           </p>
         </div>
         <div className="grid grid-cols-2 gap-3">
-          {SELECTABLE_APPS.map((app) => {
+          {selectableApps.map((app) => {
             const isSelected = selected.has(app.id);
             return (
               <button
@@ -69,6 +85,7 @@ export default function OnboardingAppsPage() {
                 }`}
               >
                 {isSelected && <Check className="absolute top-3 right-3 h-4 w-4 text-primary" />}
+                <AppIcon id={app.id} size={32} />
                 <span className="font-medium">{app.name}</span>
                 <span className="text-xs text-muted-foreground">{app.tagline}</span>
               </button>
