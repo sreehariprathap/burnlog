@@ -42,7 +42,7 @@ export async function fetchWorkoutPlan(
     .select('dayOfWeek, bodyPart, repeatWeekly')
     .eq('profileId', profileId)
     .eq('dayOfWeek', dayOfWeek)
-    .single();
+    .maybeSingle();
   return data ? { dayIndex: data.dayOfWeek, bodyPart: data.bodyPart, repeatWeekly: data.repeatWeekly } : null;
 }
 
