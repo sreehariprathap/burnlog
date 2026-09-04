@@ -14,7 +14,7 @@ export default function BurnlogLayout({ children }: { children: React.ReactNode 
   }, []);
 
   return (
-    <AnimatePresence mode="wait" initial={false}>
+    <AnimatePresence mode="popLayout" initial={false}>
       <motion.div
         key={pathname}
         initial={{ opacity: 0, x: 8 }}
