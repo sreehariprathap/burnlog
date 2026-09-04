@@ -1107,3 +1107,27 @@ create policy "learnlog_group_invites_read_own" on learnlog_group_invites
     exists (select 1 from profiles p where p.id = learnlog_group_invites."inviteeId" and p."userId" = auth.uid())
     or exists (select 1 from profiles p where p.id = learnlog_group_invites."invitedById" and p."userId" = auth.uid())
   );
+
+-- adminlog_button_theme_settings ---------------------------------------
+-- Global (non-per-user) config, same posture as adminlog_toggles: any
+-- authenticated user may read it, only an admin may write it.
+alter table adminlog_button_theme_settings enable row level security;
+
+create policy "adminlog_button_theme_settings_select_any_authenticated" on adminlog_button_theme_settings
+  for select
+  using (auth.uid() is not null);
+
+create policy "adminlog_button_theme_settings_admin_insert" on adminlog_button_theme_settings
+  for insert
+  with check (
+    exists (select 1 from profiles where profiles."userId" = auth.uid() and profiles."isAdmin" = true)
+  );
+
+create policy "adminlog_button_theme_settings_admin_update" on adminlog_button_theme_settings
+  for update
+  using (
+    exists (select 1 from profiles where profiles."userId" = auth.uid() and profiles."isAdmin" = true)
+  )
+  with check (
+    exists (select 1 from profiles where profiles."userId" = auth.uid() and profiles."isAdmin" = true)
+  );

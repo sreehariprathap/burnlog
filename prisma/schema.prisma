@@ -1550,3 +1550,11 @@ model LearnGroupInvite {
 
   @@map("learnlog_group_invites")
 }
+
+model ButtonThemeSetting {
+  slot      String   @id
+  style     String   @default("default")
+  updatedAt DateTime @updatedAt
+
+  @@map("adminlog_button_theme_settings")
+}

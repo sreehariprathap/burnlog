@@ -51,7 +51,7 @@ function rippleColorFor(variant: ButtonProps["variant"]): string {
 
 type Ripple = { x: number; y: number; size: number; key: number }
 
-type ButtonProps = React.ComponentProps<"button"> &
+export type ButtonProps = React.ComponentProps<"button"> &
   VariantProps<typeof buttonVariants> & {
     asChild?: boolean
     /** Override the ripple color. Defaults to a sensible value per variant. */
