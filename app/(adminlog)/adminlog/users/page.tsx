@@ -9,6 +9,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { AdminUserDetailDrawer } from './_components/AdminUserDetailDrawer';
 
 interface AdminUserRow {
   id: string;
@@ -37,8 +38,9 @@ function initials(firstName: string, lastName: string) {
 
 export default function AdminUsersPage() {
   const { profile, loading: profileLoading } = useRequireAdmin();
-  const { data: users, isLoading, error } = useSWR(profile?.isAdmin ? 'adminlog-users' : null, fetchUsers);
+  const { data: users, isLoading, error, mutate } = useSWR(profile?.isAdmin ? 'adminlog-users' : null, fetchUsers);
   const [query, setQuery] = useState('');
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     if (!users) return [];
@@ -76,7 +78,14 @@ export default function AdminUsersPage() {
       ) : (
         <div className="space-y-2">
           {filtered.map((u) => (
-            <Card key={u.id}>
+            <Card
+              key={u.id}
+              role="button"
+              tabIndex={0}
+              onClick={() => setSelectedUserId(u.id)}
+              onKeyDown={(e) => e.key === 'Enter' && setSelectedUserId(u.id)}
+              className="cursor-pointer transition-colors hover:bg-accent/50"
+            >
               <CardContent className="flex items-center gap-3 p-4">
                 <Avatar>
                   <AvatarImage src={u.avatarUrl ?? undefined} alt={u.username} />
@@ -112,6 +121,12 @@ export default function AdminUsersPage() {
           )}
         </div>
       )}
+
+      <AdminUserDetailDrawer
+        userId={selectedUserId}
+        onOpenChange={(open) => !open && setSelectedUserId(null)}
+        onSaved={() => mutate()}
+      />
     </div>
   );
 }
