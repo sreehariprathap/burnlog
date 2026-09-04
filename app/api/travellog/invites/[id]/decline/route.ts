@@ -48,7 +48,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         await sendPushToUser(admin, inviter.userId, {
           title: 'Trip invite declined',
           message: `${declinerName} declined your trip invite.`,
-          url: '/travellog/trips',
+          url: '/travellog?tab=trips',
         });
       }
     } catch (pushError) {

@@ -141,7 +141,7 @@ export async function GET(request: Request) {
       await sendPushToUser(supabase, profile.userId as string, {
         title: 'New trip ideas for this week',
         message: `${suggestions.length} new places to consider for your next trip.`,
-        url: '/travellog/suggestions',
+        url: '/travellog?tab=suggestions',
       });
     } catch (err) {
       console.error(`travellog-weekly-suggestions: failed for profile ${profile.id}:`, err);

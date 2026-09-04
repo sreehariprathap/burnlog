@@ -85,7 +85,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       await sendPushToUser(admin, invitee.userId, {
         title: 'New trip invite',
         message: `${inviterName} invited you to join the trip to ${plan.destination}.`,
-        url: '/travellog/plan',
+        url: '/travellog?tab=plan',
       });
     } catch (pushError) {
       console.error('trip invite push error:', pushError);

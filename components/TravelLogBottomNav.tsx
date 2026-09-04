@@ -1,8 +1,9 @@
 // components/TravelLogBottomNav.tsx
 'use client';
 
+import { Suspense } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { motion } from 'motion/react';
 import { MapIcon, UsersIcon, SparklesIcon, PiggyBankIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -14,16 +15,34 @@ import { usePreloadRoutes } from '@/lib/usePreloadRoutes';
 import { visitsQuery, tripsQuery, weeklySuggestionsQuery } from '@/lib/travellog/queries';
 
 const tabs = [
-  { href: '/travellog', label: 'Home', Icon: null },
-  { href: '/travellog/map', label: 'Map', Icon: MapIcon },
-  { href: '/travellog/trips', label: 'Trips', Icon: UsersIcon },
-  { href: '/travellog/plan', label: 'Plan', Icon: SparklesIcon },
-  { href: '/travellog/suggestions', label: 'Suggest', Icon: PiggyBankIcon },
+  { tab: 'home', href: '/travellog?tab=home', label: 'Home', Icon: null },
+  { tab: 'map', href: '/travellog?tab=map', label: 'Map', Icon: MapIcon },
+  { tab: 'trips', href: '/travellog?tab=trips', label: 'Trips', Icon: UsersIcon },
+  { tab: 'plan', href: '/travellog?tab=plan', label: 'Plan', Icon: SparklesIcon },
+  { tab: 'suggestions', href: '/travellog?tab=suggestions', label: 'Suggest', Icon: PiggyBankIcon },
 ];
 
+// useSearchParams (below) needs a Suspense boundary for prerendering — this
+// wraps it here so every consumer gets it for free instead of each having
+// to remember to.
 export function TravelLogBottomNav() {
+  return (
+    <Suspense fallback={null}>
+      <TravelLogBottomNavInner />
+    </Suspense>
+  );
+}
+
+function TravelLogBottomNavInner() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const onTravelLog = pathname === '/travellog';
+  const activeTab = searchParams.get('tab') ?? 'home';
   const isConfigActive = pathname === '/travellog/config' || pathname.startsWith('/travellog/config/');
+  // A trip's own detail page (/travellog/trips/[id]) is a real, separate
+  // route (not a tab) — still highlight Trips while viewing one, matching
+  // the old pathname-based check's behavior there.
+  const onTripDetail = pathname.startsWith('/travellog/trips/');
 
   // Warms Home/Map (shared visitsQuery), Trips, and Suggestions' weekly
   // list. Plan has no page-level query to preload (an AI-generation form,
@@ -40,8 +59,8 @@ export function TravelLogBottomNav() {
       className="fixed bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-1 rounded-full border border-white/10 bg-background/40 px-2 py-2 shadow-lg backdrop-blur-md"
       aria-label="Primary"
     >
-      {tabs.map(({ href, label, Icon }) => {
-        const isActive = href === '/travellog' ? pathname === href : pathname.startsWith(href + '/') || pathname === href;
+      {tabs.map(({ tab, href, label, Icon }) => {
+        const isActive = (onTravelLog && activeTab === tab) || (tab === 'trips' && onTripDetail);
         return (
           <Link
             key={href}

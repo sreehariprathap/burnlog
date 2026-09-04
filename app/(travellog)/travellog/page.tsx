@@ -1,63 +1,68 @@
-// app/(travellog)/travellog/page.tsx
 'use client';
 
-import useSWR from 'swr';
-import { useCurrentProfile } from '@/lib/useCurrentProfile';
-import { TopBar } from '@/components/TopBar';
+import { Suspense } from 'react';
+import dynamic from 'next/dynamic';
+import { useSearchParams } from 'next/navigation';
+import { Loader2 } from 'lucide-react';
 import { TravelLogBottomNav } from '@/components/TravelLogBottomNav';
-import { Card, CardContent } from '@/components/ui/card';
-import { StatCard } from '@/components/ui/stat-card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { isExplored } from '@/lib/travellog/types';
-import { visitsQuery } from '@/lib/travellog/queries';
+import { HomeContent } from './_components/HomeContent';
 
-export default function TravelLogHomePage() {
-  const { profile, loading: profileLoading } = useCurrentProfile();
-  const { data: visits, isLoading } = useSWR(
-    profile ? visitsQuery(profile.id).key : null,
-    profile ? visitsQuery(profile.id).fetcher : null
+const MapContent = dynamic(() => import('./map/_components/MapContent').then((m) => m.MapContent), {
+  loading: () => <TabLoading />,
+});
+const TripsContent = dynamic(() => import('./trips/_components/TripsContent').then((m) => m.TripsContent), {
+  loading: () => <TabLoading />,
+});
+const PlanContent = dynamic(() => import('./plan/_components/PlanContent').then((m) => m.PlanContent), {
+  loading: () => <TabLoading />,
+});
+const SuggestionsContent = dynamic(
+  () => import('./suggestions/_components/SuggestionsContent').then((m) => m.SuggestionsContent),
+  { loading: () => <TabLoading /> }
+);
+
+function TabLoading() {
+  return (
+    <div className="flex h-screen items-center justify-center">
+      <Loader2 className="h-8 w-8 animate-spin" />
+    </div>
   );
+}
 
-  const loading = profileLoading || isLoading;
-  const totalVisits = visits?.length ?? 0;
-  const countries = new Set((visits ?? []).map((v) => v.country)).size;
-  const exploredCount = (visits ?? []).filter(isExplored).length;
+/**
+ * /travellog is a single page for all five of its nav tabs (Home, Map,
+ * Trips, Plan, Suggest) — see TravelLogBottomNav, which switches between
+ * them via `?tab=` instead of navigating. Map in particular (world-map
+ * visualization) stays dynamically imported so that heavy code only loads
+ * once someone actually switches to it. /travellog/trips/[id] (a trip's own
+ * detail page) stays a real, separate route — only the list view merged in.
+ */
+export default function TravelLogPage() {
+  return (
+    <Suspense fallback={<TabLoading />}>
+      <TravelLogTabSwitcher />
+    </Suspense>
+  );
+}
+
+function TravelLogTabSwitcher() {
+  const searchParams = useSearchParams();
+  const tab = searchParams.get('tab') ?? 'home';
 
   return (
-    <div className="min-h-screen pb-24">
-      <TopBar title="TravelLog" />
-      <div className="p-4 flex flex-col gap-4">
-        {loading ? (
-          <div className="grid grid-cols-3 gap-2">
-            <Skeleton className="h-20 w-full rounded-2xl" />
-            <Skeleton className="h-20 w-full rounded-2xl" />
-            <Skeleton className="h-20 w-full rounded-2xl" />
-          </div>
-        ) : (
-          <div className="grid grid-cols-3 gap-2">
-            <StatCard className="text-center">
-              <p className="text-2xl font-bold">{totalVisits}</p>
-              <p className="text-xs text-muted-foreground">Visits</p>
-            </StatCard>
-            <StatCard className="text-center">
-              <p className="text-2xl font-bold">{countries}</p>
-              <p className="text-xs text-muted-foreground">Countries</p>
-            </StatCard>
-            <StatCard className="text-center">
-              <p className="text-2xl font-bold">{exploredCount}</p>
-              <p className="text-xs text-muted-foreground">Explored</p>
-            </StatCard>
-          </div>
-        )}
-        {!loading && totalVisits === 0 && (
-          <Card>
-            <CardContent className="pt-6 text-sm text-muted-foreground text-center">
-              No trips logged yet. Head to the Map tab to log your first visit.
-            </CardContent>
-          </Card>
-        )}
-      </div>
+    <>
+      {tab === 'map' ? (
+        <MapContent />
+      ) : tab === 'trips' ? (
+        <TripsContent />
+      ) : tab === 'plan' ? (
+        <PlanContent />
+      ) : tab === 'suggestions' ? (
+        <SuggestionsContent />
+      ) : (
+        <HomeContent />
+      )}
       <TravelLogBottomNav />
-    </div>
+    </>
   );
 }

@@ -55,7 +55,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         await sendPushToUser(admin, inviter.userId, {
           title: 'Trip invite accepted',
           message: `${accepterName} joined your trip.`,
-          url: '/travellog/trips',
+          url: '/travellog?tab=trips',
         });
       }
     } catch (pushError) {
