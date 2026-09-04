@@ -8,6 +8,8 @@ import SiriOrb from '@/components/smoothui/siri-orb';
 import { Button } from '@/components/ui/button';
 import { createClient } from '@/lib/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
+import { OnboardingProgressBar } from '@/components/onboarding/OnboardingProgressBar';
+import { appSearchColor } from '@/lib/search/registry';
 
 const BENEFITS = [
   'Your fitness coach adjusts your plan as your workouts and meals change.',
@@ -68,6 +70,7 @@ export default function AiInsightsPage() {
         If you turn this on, your activity across the apps you use may be used to power AI features and improve how they work. See our{' '}
         <Link href="/privacy" className="underline">Privacy Policy</Link>.
       </p>
+      <OnboardingProgressBar current={2} total={3} color={appSearchColor('logbook')} />
     </div>
   );
 }

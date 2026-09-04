@@ -13,11 +13,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/components/ui/use-toast';
 import type { OnboardingResult } from '@/lib/learnlog/onboarding';
+import { OnboardingProgressBar } from '@/components/onboarding/OnboardingProgressBar';
+import { appSearchColor } from '@/lib/search/registry';
 
 export function LearnLogOnboardingFlow() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = searchParams.get('returnTo') || '/learnlog';
+  const onboardingStep = Number(searchParams.get('step'));
+  const onboardingTotal = Number(searchParams.get('total'));
   const { profile } = useCurrentProfile();
   const { toast } = useToast();
   const supabase = createClient();
@@ -165,6 +169,9 @@ export function LearnLogOnboardingFlow() {
           </>
         )}
       </div>
+      {onboardingStep > 0 && onboardingTotal > 0 && (
+        <OnboardingProgressBar current={onboardingStep} total={onboardingTotal} color={appSearchColor('learnlog')} />
+      )}
     </div>
   );
 }

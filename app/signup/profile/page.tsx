@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Loader2 } from 'lucide-react';
 import { generateUsername, isValidUsername } from '@/lib/username';
+import { OnboardingProgressBar } from '@/components/onboarding/OnboardingProgressBar';
+import { appSearchColor } from '@/lib/search/registry';
 
 export default function ProfileSetupPage() {
   const router = useRouter();
@@ -247,6 +249,7 @@ export default function ProfileSetupPage() {
           </form>
         </CardContent>
       </Card>
+      <OnboardingProgressBar current={1} total={3} color={appSearchColor('logbook')} />
     </div>
   );
 }

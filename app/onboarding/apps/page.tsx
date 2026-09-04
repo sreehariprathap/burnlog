@@ -8,6 +8,8 @@ import { Loader2, Check } from 'lucide-react';
 import { APPS, AppId, setEnabledApps } from '@/lib/appMode';
 import { AppIcon } from '@/components/AppIcon';
 import { useToast } from '@/components/ui/use-toast';
+import { OnboardingProgressBar } from '@/components/onboarding/OnboardingProgressBar';
+import { appSearchColor } from '@/lib/search/registry';
 
 const SELECTABLE_APPS_BASE = Object.values(APPS).filter(
   (app) => app.id !== 'logbook' && app.id !== 'adminlog'
@@ -96,6 +98,7 @@ export default function OnboardingAppsPage() {
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Continue'}
         </Button>
       </div>
+      <OnboardingProgressBar current={3} total={3} color={appSearchColor('logbook')} />
     </div>
   );
 }

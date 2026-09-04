@@ -58,7 +58,11 @@ function OnboardingSequenceRedirect() {
     const nextSequenceUrl = `/onboarding/sequence?apps=${apps.join(',')}&step=${step + 1}&returnTo=${encodeURIComponent(returnTo)}`;
 
     if (onboardingRoute) {
-      const params = new URLSearchParams({ returnTo: nextSequenceUrl });
+      const params = new URLSearchParams({
+        returnTo: nextSequenceUrl,
+        step: String(step + 1),
+        total: String(apps.length),
+      });
       if (nextApp) {
         params.set('nextApp', nextApp);
       } else {

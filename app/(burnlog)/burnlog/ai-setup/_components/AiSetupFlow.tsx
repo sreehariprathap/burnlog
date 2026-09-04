@@ -7,6 +7,8 @@ import { Loader2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ConsentStep } from './ConsentStep';
 import { HealthBasicsStep } from './HealthBasicsStep';
+import { OnboardingProgressBar } from '@/components/onboarding/OnboardingProgressBar';
+import { appSearchColor } from '@/lib/search/registry';
 import { LifestyleForm } from './LifestyleForm';
 import { GoalsStep, type GoalEntry } from './GoalsStep';
 import { ActivityPreferencesStep } from './ActivityPreferencesStep';
@@ -35,6 +37,8 @@ export function AiSetupFlow() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = searchParams.get('returnTo') || '/burnlog/dashboard';
+  const onboardingStep = Number(searchParams.get('step'));
+  const onboardingTotal = Number(searchParams.get('total'));
   const supabase = createClient();
 
   const [step, setStep] = useState<Step>('loading');
@@ -388,6 +392,10 @@ export function AiSetupFlow() {
             <Button onClick={handleRetry}>Try Again</Button>
           </div>
         </div>
+      )}
+
+      {onboardingStep > 0 && onboardingTotal > 0 && (
+        <OnboardingProgressBar current={onboardingStep} total={onboardingTotal} color={appSearchColor('burnlog')} />
       )}
     </div>
   );
