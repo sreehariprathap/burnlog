@@ -1,6 +1,7 @@
 "use client";
 import { SWRConfig } from "swr";
-import { Quicksand, Figtree, Geist_Mono } from "next/font/google";
+import { Quicksand, Figtree, Geist_Mono, Poppins, Inter } from "next/font/google";
+import { TypographySettingsEffect } from "@/components/adminlog/TypographySettingsEffect";
 import "./globals.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -38,6 +39,22 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+// Admin-selectable alternates (AdminLog > UI > Typography) — always loaded
+// so switching the setting doesn't need a page reload to fetch a new font,
+// but only actually applied (via TypographySettingsEffect, which flips
+// --font-quicksand/--font-figtree to point at one of these) once an admin
+// picks something other than the defaults above.
+const poppins = Poppins({
+  variable: "--font-poppins",
+  weight: ["500", "600", "700"],
+  subsets: ["latin"],
+});
+
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+});
+
 export default function RootLayoutClient({
   children,
 }: Readonly<{
@@ -67,7 +84,7 @@ export default function RootLayoutClient({
         <meta name="description" content="Your daily digest across every app you track life with — fitness, money, tasks, home, social, shopping, and travel, all in one place." />
       </head>
       <body
-        className={`${quicksand.variable} ${figtree.variable} ${geistMono.variable} antialiased`}
+        className={`${quicksand.variable} ${figtree.variable} ${geistMono.variable} ${poppins.variable} ${inter.variable} antialiased`}
         suppressHydrationWarning
       >
         <SWRConfig
@@ -88,6 +105,7 @@ export default function RootLayoutClient({
                 <ErrorBoundary>{children}</ErrorBoundary>
                 <DevErrorWatcher />
                 <GlobalErrorListener />
+                <TypographySettingsEffect />
                 <SwitchLoader />
                 <ToastContainer
                   position="top-center"

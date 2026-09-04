@@ -1585,6 +1585,19 @@ model ButtonThemeSetting {
   @@map("adminlog_button_theme_settings")
 }
 
+/// Single global row (id fixed to "global") — AdminLog > UI > Typography.
+/// headingFont/bodyFont pick which loaded next/font variable
+/// --font-quicksand/--font-figtree point at (see RootLayoutClient.tsx and
+/// TypographySettingsEffect).
+model TypographySetting {
+  id          String   @id @default("global")
+  headingFont String   @default("quicksand")
+  bodyFont    String   @default("figtree")
+  updatedAt   DateTime @updatedAt
+
+  @@map("adminlog_typography_settings")
+}
+
 model WatchItem {
   id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   profile        Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)

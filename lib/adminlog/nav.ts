@@ -19,6 +19,8 @@ import {
   ToggleLeft,
   Sparkles,
   Shapes,
+  Type,
+  Megaphone,
 } from 'lucide-react';
 
 export type AdminNavCategoryKey = 'general' | 'ai' | 'error' | 'ui-themes' | 'user';
@@ -76,6 +78,7 @@ export const ADMIN_NAV: AdminNavCategory[] = [
       { href: '/adminlog/button-theme', label: 'Button Theme', description: 'Pick which visual style each themeable button element uses across the app.', icon: Palette },
       { href: '/adminlog/micro-interactions', label: 'Micro Interactions', description: 'Turn on press/hover/stagger animations across the app.', icon: Sparkles },
       { href: '/adminlog/app-icons', label: 'App Icons', description: 'Switch every sub-app\'s icon between animated Lucide icons and plain letter badges.', icon: Shapes },
+      { href: '/adminlog/typography', label: 'Typography', description: 'Pick the app\'s heading and body fonts.', icon: Type },
     ],
   },
   {
