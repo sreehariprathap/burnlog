@@ -1,5 +1,5 @@
 // lib/appMode.ts
-export type AppId = 'logbook' | 'burnlog' | 'moneylog' | 'tasklog' | 'homelog' | 'sociallog' | 'shoppinglog' | 'travellog' | 'learnlog' | 'adminlog' | 'intellog';
+export type AppId = 'logbook' | 'burnlog' | 'moneylog' | 'tasklog' | 'homelog' | 'sociallog' | 'shoppinglog' | 'travellog' | 'learnlog' | 'adminlog' | 'intellog' | 'watchlog';
 
 export interface AppMeta {
   id: AppId;
@@ -84,6 +84,13 @@ export const APPS: Record<AppId, AppMeta> = {
     tagline: 'Suggestions built from everything else you track',
     home: '/intellog',
   },
+  watchlog: {
+    id: 'watchlog',
+    name: 'WatchLog',
+    tagline: 'Track and discover what to watch next',
+    home: '/watchlog',
+    themeClass: 'app-watchlog',
+  },
 };
 
 const PROTECTED_PREFIX = 'app:';
@@ -106,7 +113,8 @@ export function isAppId(val: string | null): val is AppId {
     val === 'travellog' ||
     val === 'learnlog' ||
     val === 'adminlog' ||
-    val === 'intellog'
+    val === 'intellog' ||
+    val === 'watchlog'
   );
 }
 

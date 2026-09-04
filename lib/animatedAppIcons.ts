@@ -27,4 +27,5 @@ export const APP_ICON_LETTERS: Partial<Record<AppId, string>> = {
   learnlog: 'L',
   adminlog: 'A',
   intellog: 'I',
+  watchlog: 'W',
 };

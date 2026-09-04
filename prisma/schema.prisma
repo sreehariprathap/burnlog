@@ -102,6 +102,7 @@ model Profile {
   socialFollowRequestsReceived SocialFollowRequest[] @relation("SocialFollowRequestTarget")
   socialMessageThreadsA   SocialMessageThread[] @relation("SocialMessageThreadParticipantA")
   socialMessageThreadsB   SocialMessageThread[] @relation("SocialMessageThreadParticipantB")
+  watchItems              WatchItem[]
   socialMessagesSent      SocialMessage[]
   socialProfileSettings   SocialProfileSettings?
   shopListings            ShopListing[]
@@ -1578,4 +1579,30 @@ model ButtonThemeSetting {
   updatedAt DateTime @updatedAt
 
   @@map("adminlog_button_theme_settings")
+}
+
+model WatchItem {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile        Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId      String    @db.Uuid
+  tmdbId         Int
+  mediaType      String    // 'movie' | 'tv'
+  title          String
+  posterPath     String?
+  releaseYear    Int?
+  runtimeMinutes Int?      // movie runtime, or avg episode runtime for tv
+  genres         String[]  // TMDB genre names, cached at add-time
+  tags           String[]  @default([]) // user/AI tags: 'anime', 'documentary', 'stand-up', etc.
+  status         String    @default("want") // 'want' | 'watching' | 'completed'
+  rating         Int?      // 1-5, set on completion
+  currentSeason  Int?
+  currentEpisode Int?
+  notes          String?
+  addedAt        DateTime  @default(now())
+  completedAt    DateTime?
+  updatedAt      DateTime  @default(now()) @updatedAt
+
+  @@unique([profileId, tmdbId, mediaType])
+  @@index([profileId, status])
+  @@map("watch_items")
 }

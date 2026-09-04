@@ -9,6 +9,11 @@ const nextConfig = {
         hostname: '*.supabase.co',
         pathname: '/storage/v1/object/public/**',
       },
+      {
+        protocol: 'https' as const,
+        hostname: 'image.tmdb.org',
+        pathname: '/t/p/**',
+      },
     ],
   },
   async headers() {

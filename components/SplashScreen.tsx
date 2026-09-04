@@ -127,6 +127,15 @@ const SPLASH_CONTENT: Record<
     darkTaglineClass: 'text-violet-200/70',
     lightTaglineClass: 'text-violet-900/60',
   },
+  watchlog: {
+    label: 'Loading WatchLog',
+    text: 'watchlog',
+    tagline: 'Track and discover what to watch next',
+    darkTextColor: '#F87171',
+    lightTextColor: '#991B1B',
+    darkTaglineClass: 'text-red-200/70',
+    lightTaglineClass: 'text-red-900/60',
+  },
 };
 
 export default function SplashScreen() {

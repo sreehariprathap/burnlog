@@ -13,6 +13,7 @@ import { GraduationCapIcon } from '@/components/icons/animated/graduation-cap';
 import { ShieldCheckIcon } from '@/components/icons/animated/shield-check';
 import { SparklesIcon } from '@/components/icons/animated/sparkles';
 import { BookTextIcon } from '@/components/icons/animated/book-text';
+import { Clapperboard } from 'lucide-react';
 import { useAnimatedAppIconsEnabled, APP_ICON_LETTERS } from '@/lib/animatedAppIcons';
 import { appSearchColor } from '@/lib/search/registry';
 import { cn } from '@/lib/utils';
@@ -61,6 +62,8 @@ function AnimatedAppIcon({ id, size, color, className }: { id: AppId; size: numb
       return <ShieldCheckIcon {...props} />;
     case 'intellog':
       return <SparklesIcon {...props} />;
+    case 'watchlog':
+      return <Clapperboard {...props} />;
     default:
       return <FlameIcon {...props} />;
   }

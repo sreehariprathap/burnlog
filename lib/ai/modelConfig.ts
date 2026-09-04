@@ -35,6 +35,7 @@ export const AI_FEATURES = [
   { slot: 'meal-plan-finalize', label: 'Grocery List from Meal Plan', description: 'Generate a grocery list from the finalized weekly meal set.', app: 'burnlog', kind: 'text' },
   { slot: 'intel-suggest', label: 'IntelLog Suggestions', description: 'Generate the nightly cross-app suggestion feed.', app: 'intellog', kind: 'text' },
   { slot: 'intellog-chat', label: 'App Switcher Chat', description: 'Answer questions in the persistent app-switcher AI chat, using the user\'s own cross-app data as context.', app: 'intellog', kind: 'text' },
+  { slot: 'watchlog-suggest', label: 'WatchLog Mood Suggestions', description: 'Turn a mood/vibe into TMDB search filters for movie/TV recommendations.', app: 'watchlog', kind: 'text' },
 ] as const satisfies readonly AiFeature[];
 
 export type ModelSlot = (typeof AI_FEATURES)[number]['slot'];
