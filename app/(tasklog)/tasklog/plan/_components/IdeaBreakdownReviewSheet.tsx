@@ -137,7 +137,6 @@ export function IdeaBreakdownReviewSheet({ open, onOpenChange, idea, onConfirm }
                       onChange={(e) => updateTitle(index, e.target.value)}
                       className="h-8 flex-1"
                       autoComplete="off"
-                      autoFocus={index === 0}
                     />
                     <span className="shrink-0 text-xs capitalize text-muted-foreground">{item.priority}</span>
                   </div>

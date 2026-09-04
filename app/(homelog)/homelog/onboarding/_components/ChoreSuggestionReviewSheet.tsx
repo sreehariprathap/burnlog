@@ -79,7 +79,6 @@ export function ChoreSuggestionReviewSheet({ open, onOpenChange, suggestions, on
                 onChange={(e) => updateTitle(index, e.target.value)}
                 className="h-8 flex-1"
                 autoComplete="off"
-                autoFocus={index === 0}
               />
               <span className="text-xs capitalize text-muted-foreground">{item.frequency}</span>
             </div>

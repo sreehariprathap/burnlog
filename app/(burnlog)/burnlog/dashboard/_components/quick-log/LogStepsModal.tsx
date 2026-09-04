@@ -59,7 +59,7 @@ export function LogStepsModal({ profileId, onClose, onSaved }: LogStepsModalProp
         <div className="px-4 pb-6 space-y-4">
           <div className="space-y-1">
             <Label htmlFor="steps">Steps</Label>
-            <Input id="steps" type="number" inputMode="numeric" autoFocus placeholder="e.g. 8000" value={steps} onChange={(e) => setSteps(e.target.value)} />
+            <Input id="steps" type="number" inputMode="numeric" placeholder="e.g. 8000" value={steps} onChange={(e) => setSteps(e.target.value)} />
           </div>
 
           <div className="space-y-1">

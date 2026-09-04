@@ -127,7 +127,7 @@ export function LogWorkoutModal({ profileId, onClose, onSaved }: LogWorkoutModal
           <div className="grid grid-cols-2 gap-2">
             <div className="space-y-1">
               <Label htmlFor="duration">Duration (mins)</Label>
-              <Input id="duration" type="number" inputMode="numeric" autoFocus placeholder="Minutes" value={duration} onChange={(e) => setDuration(e.target.value)} />
+              <Input id="duration" type="number" inputMode="numeric" placeholder="Minutes" value={duration} onChange={(e) => setDuration(e.target.value)} />
             </div>
             <div className="space-y-1">
               <Label htmlFor="distanceKm">Distance (km) — optional</Label>

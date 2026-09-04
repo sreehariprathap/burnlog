@@ -204,7 +204,6 @@ export function LogTransactionModal({ profileId, onClose, onSaved }: LogTransact
                   {category === 'custom' && (
                     <Input
                       placeholder="Category name"
-                      autoFocus
                       value={customCategory}
                       onChange={(e) => setCustomCategory(e.target.value)}
                     />
@@ -218,7 +217,6 @@ export function LogTransactionModal({ profileId, onClose, onSaved }: LogTransact
                     type="number"
                     inputMode="decimal"
                     step="0.01"
-                    autoFocus
                     placeholder="0.00"
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}

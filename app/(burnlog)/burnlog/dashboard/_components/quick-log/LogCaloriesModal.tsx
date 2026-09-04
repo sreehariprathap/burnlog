@@ -287,7 +287,7 @@ export function LogCaloriesModal({ profileId, onClose, onSaved }: LogCaloriesMod
               </div>
               <div className="space-y-1">
                 <Label htmlFor="foodName">Food Name</Label>
-                <Input id="foodName" autoFocus autoComplete="off" placeholder="What did you eat?" value={foodName} onChange={(e) => setFoodName(e.target.value)} />
+                <Input id="foodName" autoComplete="off" placeholder="What did you eat?" value={foodName} onChange={(e) => setFoodName(e.target.value)} />
               </div>
               <div className="grid grid-cols-3 gap-2">
                 <div className="space-y-1">
