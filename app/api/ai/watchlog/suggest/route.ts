@@ -19,6 +19,44 @@ const client = new OpenAI({
   apiKey: process.env.NEXT_OPENROUTER_KEY,
 });
 
+/**
+ * Returns the most recent successful suggestion for this profile, if any —
+ * the cache HomeContent reads on mount so the mood picker and its results
+ * are restored instantly instead of starting empty. Every POST already
+ * logs its request (`input`) and response (`output`) to ai_jobs via
+ * runAiJob, so this is a plain read with no extra storage.
+ */
+export async function GET() {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
+    const { data: profile } = await supabase.from('profiles').select('id').eq('userId', user.id).single();
+    if (!profile) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    }
+
+    const { data: job } = await supabase
+      .from('ai_jobs')
+      .select('input, output')
+      .eq('profileId', profile.id)
+      .eq('app', 'watchlog')
+      .eq('jobType', 'watchlog-suggest')
+      .eq('status', 'success')
+      .order('createdAt', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    return NextResponse.json({ cached: job ? { request: job.input, response: job.output } : null });
+  } catch (error) {
+    console.error('watchlog suggest cache lookup error:', error);
+    return NextResponse.json({ cached: null });
+  }
+}
+
 export async function POST(request: Request) {
   let MODEL = 'unknown';
   try {

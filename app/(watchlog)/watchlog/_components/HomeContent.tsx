@@ -1,7 +1,7 @@
 // app/(watchlog)/watchlog/_components/HomeContent.tsx
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import useSWR from 'swr';
 import { TopBar } from '@/components/TopBar';
 import { Button } from '@/components/ui/button';
@@ -33,6 +33,18 @@ async function fetchSuggestions(moods: string[], freeText: string | null, likedG
   return res.json();
 }
 
+interface CachedSuggestion {
+  request: { moods?: string[]; freeText?: string | null } | null;
+  response: SuggestResponse | null;
+}
+
+async function fetchCachedSuggestion(): Promise<CachedSuggestion | null> {
+  const res = await fetch('/api/ai/watchlog/suggest');
+  if (!res.ok) return null;
+  const json = await res.json();
+  return json.cached ?? null;
+}
+
 export function HomeContent() {
   const { toast } = useToast();
   const { profile } = useCurrentProfile();
@@ -49,17 +61,18 @@ export function HomeContent() {
   const [freeText, setFreeText] = useState('');
   const [suggestion, setSuggestion] = useState<SuggestResponse | null>(null);
   const [loadingSuggestion, setLoadingSuggestion] = useState(false);
+  const [restoringSuggestion, setRestoringSuggestion] = useState(true);
   const [suggestError, setSuggestError] = useState<string | null>(null);
 
   function toggleMood(id: string) {
     setSelectedMoods((prev) => (prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id]));
   }
 
-  async function handleSuggest() {
+  async function handleSuggest(moods: string[] = selectedMoods, text: string = freeText) {
     setLoadingSuggestion(true);
     setSuggestError(null);
     try {
-      const result = await fetchSuggestions(selectedMoods, freeText || null, likedGenres);
+      const result = await fetchSuggestions(moods, text || null, likedGenres);
       setSuggestion(result);
     } catch (err) {
       setSuggestError(err instanceof Error ? err.message : 'Something went wrong');
@@ -67,6 +80,31 @@ export function HomeContent() {
       setLoadingSuggestion(false);
     }
   }
+
+  // Never start empty: on first load, restore the last generated
+  // suggestion (and the mood config that produced it) from ai_jobs; if
+  // this profile has never generated one, fetch a mood-less "surprise me"
+  // suggestion automatically instead of showing a blank picker.
+  const initializedForProfile = useRef<string | null>(null);
+  useEffect(() => {
+    if (!profile || initializedForProfile.current === profile.id) return;
+    initializedForProfile.current = profile.id;
+    (async () => {
+      try {
+        const cached = await fetchCachedSuggestion();
+        if (cached?.response) {
+          setSelectedMoods(cached.request?.moods ?? []);
+          setFreeText(cached.request?.freeText ?? '');
+          setSuggestion(cached.response);
+        } else {
+          await handleSuggest([], '');
+        }
+      } finally {
+        setRestoringSuggestion(false);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile]);
 
   function removeFromSuggestions(item: TmdbItem) {
     setSuggestion((prev) =>
@@ -122,22 +160,26 @@ export function HomeContent() {
             value={freeText}
             onChange={(e) => setFreeText(e.target.value)}
           />
-          <Button onClick={handleSuggest} disabled={loadingSuggestion || selectedMoods.length === 0}>
+          <Button onClick={() => handleSuggest()} disabled={loadingSuggestion || selectedMoods.length === 0}>
             {loadingSuggestion ? 'Thinking...' : 'Suggest something'}
           </Button>
 
           {suggestError && <p className="text-sm text-destructive">{suggestError}</p>}
 
-          {suggestion && (
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">{suggestion.rationale}</p>
-              <SuggestionResults
-                items={suggestion.results}
-                onAdd={(item) => handleAdd(item)}
-                onMarkWatched={(item) => handleAdd(item, 'completed')}
-                onIgnore={handleIgnore}
-              />
-            </div>
+          {restoringSuggestion || (loadingSuggestion && !suggestion) ? (
+            <Skeleton className="h-[320px] w-full rounded-xl" />
+          ) : (
+            suggestion && (
+              <div className="space-y-3">
+                <p className="text-sm text-muted-foreground">{suggestion.rationale}</p>
+                <SuggestionResults
+                  items={suggestion.results}
+                  onAdd={(item) => handleAdd(item)}
+                  onMarkWatched={(item) => handleAdd(item, 'completed')}
+                  onIgnore={handleIgnore}
+                />
+              </div>
+            )
           )}
         </section>
       </div>
