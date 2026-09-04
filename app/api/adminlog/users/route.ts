@@ -16,7 +16,7 @@ export async function GET() {
   const admin = createServiceRoleClient();
   const { data, error } = await admin
     .from('profiles')
-    .select('id, username, firstName, lastName, avatarUrl, isAdmin, isTestAccount, enabledApps, currentStreak, level, createdAt')
+    .select('id, username, firstName, lastName, avatarUrl, isAdmin, isTestAccount, enabledApps, currentStreak, level, createdAt, hasSeenAppTour')
     .order('createdAt', { ascending: false });
 
   if (error) {

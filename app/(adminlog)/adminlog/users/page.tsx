@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
-import { Loader2, ShieldCheck, FlaskConical } from 'lucide-react';
+import { Loader2, ShieldCheck, FlaskConical, Compass } from 'lucide-react';
 import { useRequireAdmin } from '@/lib/adminlog/useRequireAdmin';
 import { apiFetch } from '@/lib/apiFetch';
 import { Card, CardContent } from '@/components/ui/card';
@@ -23,6 +23,7 @@ interface AdminUserRow {
   currentStreak: number;
   level: number;
   createdAt: string;
+  hasSeenAppTour: boolean;
 }
 
 async function fetchUsers(): Promise<AdminUserRow[]> {
@@ -102,6 +103,11 @@ export default function AdminUsersPage() {
                     {u.isTestAccount && (
                       <Badge variant="outline" className="gap-1">
                         <FlaskConical className="h-3 w-3" /> Test
+                      </Badge>
+                    )}
+                    {!u.hasSeenAppTour && (
+                      <Badge variant="outline" className="gap-1">
+                        <Compass className="h-3 w-3" /> Tour pending
                       </Badge>
                     )}
                   </div>

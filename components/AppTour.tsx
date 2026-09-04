@@ -76,19 +76,75 @@ export function AppTour() {
       continuous
       onEvent={handleEvent}
       options={{
-        arrowColor: 'var(--card)',
+        arrowColor: 'color-mix(in oklch, var(--card) 88%, transparent)',
         backgroundColor: 'var(--card)',
-        overlayColor: 'rgba(0, 0, 0, 0.5)',
+        overlayColor: 'rgba(0, 0, 0, 0.55)',
         primaryColor: 'var(--primary)',
         textColor: 'var(--card-foreground)',
         zIndex: 10000,
         showProgress: true,
         skipScroll: true,
+        spotlightRadius: 14,
         buttons: ['back', 'close', 'primary', 'skip'],
       }}
       styles={{
+        overlay: {
+          backdropFilter: 'blur(2px)',
+        },
+        tooltip: {
+          background: 'color-mix(in oklch, var(--card) 78%, transparent)',
+          backdropFilter: 'blur(20px) saturate(180%)',
+          WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+          border: '1px solid color-mix(in oklch, var(--foreground) 12%, transparent)',
+          borderRadius: 20,
+          boxShadow: '0 20px 50px -12px rgba(0, 0, 0, 0.35), inset 0 1px 1px color-mix(in oklch, white 25%, transparent)',
+          fontFamily: 'var(--font-sans)',
+          padding: 20,
+        },
+        tooltipContainer: {
+          textAlign: 'left',
+        },
         tooltipTitle: {
+          fontFamily: 'var(--font-header)',
+          fontSize: 19,
           fontWeight: 600,
+          marginBottom: 2,
+        },
+        tooltipContent: {
+          fontSize: 14,
+          lineHeight: 1.5,
+          paddingTop: 8,
+          paddingBottom: 4,
+          color: 'color-mix(in oklch, var(--card-foreground) 82%, transparent)',
+        },
+        tooltipFooter: {
+          marginTop: 12,
+        },
+        buttonPrimary: {
+          fontFamily: 'var(--font-sans)',
+          fontSize: 14,
+          fontWeight: 600,
+          borderRadius: 999,
+          padding: '8px 18px',
+        },
+        buttonBack: {
+          fontFamily: 'var(--font-sans)',
+          fontSize: 14,
+          opacity: 0.75,
+        },
+        buttonSkip: {
+          fontFamily: 'var(--font-sans)',
+          fontSize: 13,
+          opacity: 0.6,
+        },
+        buttonClose: {
+          opacity: 0.6,
+        },
+        beaconInner: {
+          backgroundColor: 'var(--primary)',
+        },
+        beaconOuter: {
+          borderColor: 'var(--primary)',
         },
       }}
     />
