@@ -1,20 +1,8 @@
-import { Suspense } from 'react';
-import type { Metadata } from 'next';
-import { Loader2 } from 'lucide-react';
-import { MyDayClient } from './_components/MyDayClient';
+import { redirect } from 'next/navigation';
 
-export const metadata: Metadata = { title: 'MyDay - burnlog' };
-
-export default function MyDayPage() {
-  return (
-    <Suspense
-      fallback={
-        <div className="flex h-screen items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin" />
-        </div>
-      }
-    >
-      <MyDayClient />
-    </Suspense>
-  );
+// /logbook/myday used to be its own route — MyDay is now a tab on /logbook
+// (?tab=myday) instead. Kept as a redirect so old bookmarks/links/PWA
+// shortcuts still land somewhere real.
+export default function MyDayRedirect() {
+  redirect('/logbook?tab=myday');
 }

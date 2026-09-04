@@ -87,7 +87,7 @@ export default function manifest(): MetadataRoute.Manifest {
         name: 'My Day',
         short_name: 'My Day',
         description: 'Plan your day across every app',
-        url: '/logbook/myday',
+        url: '/logbook?tab=myday',
         icons: [{ src: '/icons/icon-96.png', sizes: '96x96' }]
       }
     ]

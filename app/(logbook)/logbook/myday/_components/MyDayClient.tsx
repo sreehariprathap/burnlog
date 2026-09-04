@@ -6,7 +6,6 @@ import useSWR from 'swr';
 import { CalendarDays, Plus, RefreshCw } from 'lucide-react';
 import { format as formatDate, addDays, subDays } from 'date-fns';
 import { TopBar } from '@/components/TopBar';
-import { LogbookBottomNav } from '@/components/LogbookBottomNav';
 import { Button } from '@/components/ui/button';
 import { ThemedButton } from '@/components/ui/themed-button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -36,7 +35,7 @@ export function MyDayClient() {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [sheet, setSheet] = useState<SheetState>({ mode: 'closed' });
 
-  const goToDate = (next: string) => router.push(`/logbook/myday?date=${next}`);
+  const goToDate = (next: string) => router.push(`/logbook?tab=myday&date=${next}`);
 
   const dateLabel = useMemo(() => formatDate(new Date(`${date}T00:00:00`), 'EEEE, MMM d'), [date]);
 
@@ -121,8 +120,6 @@ export function MyDayClient() {
       {sheet.mode === 'edit' && <AddBlockSheet date={date} block={sheet.block} onClose={closeSheet} onSaved={handleSheetSaved} />}
 
       <MyDayCalendarDialog open={calendarOpen} onOpenChange={setCalendarOpen} selectedDate={date} onSelectDate={goToDate} />
-
-      <LogbookBottomNav />
     </div>
   );
 }

@@ -1,8 +1,9 @@
 // components/LogbookBottomNav.tsx
 'use client';
 
+import { Suspense } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { CalendarClock } from 'lucide-react';
 import { LogbookMark } from '@/components/LogbookMark';
 import { ProfileMenu } from '@/components/ProfileMenu';
@@ -12,10 +13,28 @@ import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { usePreloadRoutes } from '@/lib/usePreloadRoutes';
 import { todayQuery, myDayQuery, todayKey } from '@/lib/logbook/queries';
 
+// useSearchParams (below) needs a Suspense boundary for prerendering — this
+// wraps it here so every consumer (the /logbook page, /profile's page)
+// gets it for free instead of each having to remember to.
 export function LogbookBottomNav() {
+  return (
+    <Suspense fallback={null}>
+      <LogbookBottomNavInner />
+    </Suspense>
+  );
+}
+
+function LogbookBottomNavInner() {
   const pathname = usePathname();
-  const isHomeActive = pathname === '/logbook';
-  const isMyDayActive = pathname.startsWith('/logbook/myday');
+  const searchParams = useSearchParams();
+  // /logbook is a single page now — Home vs MyDay is which `?tab=` is
+  // active, not which route. /profile is still its own real route and
+  // also mounts this nav (see app/profile/page.tsx), so pathname alone
+  // decides Home/MyDay only while actually on /logbook.
+  const onLogbook = pathname === '/logbook';
+  const tab = searchParams.get('tab') ?? 'home';
+  const isHomeActive = onLogbook && tab !== 'myday';
+  const isMyDayActive = onLogbook && tab === 'myday';
   const isProfileActive = pathname === '/profile' || pathname.startsWith('/profile/');
 
   // Warms Home's (and, since it shares the same key, /logbook/morning's)
@@ -30,7 +49,7 @@ export function LogbookBottomNav() {
       data-tour="bottom-nav"
     >
       <Link
-        href="/logbook"
+        href="/logbook?tab=home"
         prefetch
         aria-label="Logbook"
         aria-current={isHomeActive ? 'page' : undefined}
@@ -46,7 +65,7 @@ export function LogbookBottomNav() {
         </Tappable>
       </Link>
       <Link
-        href="/logbook/myday"
+        href="/logbook?tab=myday"
         prefetch
         aria-label="MyDay"
         aria-current={isMyDayActive ? 'page' : undefined}

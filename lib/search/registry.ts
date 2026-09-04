@@ -74,7 +74,7 @@ export function appSearchColor(app: AppId): string {
 export const SEARCH_REGISTRY: SearchItem[] = [
   { app: 'logbook', label: "Today's Digest", description: 'Cross-app daily summary', href: '/logbook', icon: Sunrise },
   { app: 'logbook', label: 'Morning Brief', description: "Start your day's morning brief", href: '/logbook/morning', icon: CalendarClock },
-  { app: 'logbook', label: 'My Day', description: 'Plan your day across every app', href: '/logbook/myday', icon: ListTodo },
+  { app: 'logbook', label: 'My Day', description: 'Plan your day across every app', href: '/logbook?tab=myday', icon: ListTodo },
   { app: 'logbook', label: 'Profile', description: 'Shared identity: avatar, name, username, default app', href: '/profile', icon: UserCircle },
 
   { app: 'burnlog', label: 'Dashboard', description: "Today's activity ring, stats, quick links (BurnLog home)", href: '/burnlog/dashboard', icon: Flame },
