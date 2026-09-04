@@ -76,4 +76,10 @@ export const APP_SWITCH_LOADING_STATES: Record<AppId, LoadingState[]> = {
     { text: 'Politely not reading anyone else’s data' },
     { text: 'Drafting a suggestion or three' },
   ],
+  watchlog: [
+    { text: 'Dimming the lights' },
+    { text: 'Popping the popcorn' },
+    { text: 'Arguing with the algorithm about your taste' },
+    { text: 'Queuing up something good' },
+  ],
 };

@@ -38,6 +38,10 @@ import {
   Library,
   Briefcase,
   NotebookPen,
+  Clapperboard,
+  ListVideo,
+  Compass,
+  BarChart3,
 } from 'lucide-react';
 import type { AppId } from '@/lib/appMode';
 
@@ -64,6 +68,7 @@ const APP_COLOR: Record<AppId, string> = {
   learnlog: '#FF3366',
   adminlog: '#475569',
   intellog: '#8B5CF6',
+  watchlog: '#DC2626',
 };
 
 export function appSearchColor(app: AppId): string {
@@ -131,4 +136,8 @@ export const SEARCH_REGISTRY: SearchItem[] = [
   { app: 'learnlog', label: 'Career', description: 'Role timeline, certifications, career goals', href: '/learnlog?tab=career', icon: Briefcase },
   { app: 'learnlog', label: 'Reflections', description: 'Freeform journal for personal growth', href: '/learnlog?tab=reflections', icon: NotebookPen },
   { app: 'learnlog', label: 'Config', description: 'City setting, AI suggestions toggle, and more (LearnLog)', href: '/learnlog/config', icon: Settings },
+  { app: 'watchlog', label: 'Home', description: 'Continue watching and AI mood-based suggestions (WatchLog)', href: '/watchlog', icon: Clapperboard },
+  { app: 'watchlog', label: 'Watchlist', description: 'Want to Watch, Watching, and Completed (WatchLog)', href: '/watchlog?tab=watchlist', icon: ListVideo },
+  { app: 'watchlog', label: 'Discover', description: 'Search and browse trending movies and TV (WatchLog)', href: '/watchlog?tab=discover', icon: Compass },
+  { app: 'watchlog', label: 'Stats', description: 'Genres watched, hours watched, ratings given (WatchLog)', href: '/watchlog?tab=stats', icon: BarChart3 },
 ];
