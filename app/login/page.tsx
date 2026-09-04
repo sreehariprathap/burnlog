@@ -2,7 +2,6 @@
 import { useState, useCallback } from 'react';
 import { useRouter }         from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button }            from '@/components/ui/button';
 import { Input }             from '@/components/ui/input';
 import { Label }             from '@/components/ui/label';
@@ -10,7 +9,7 @@ import { Loader2 }           from 'lucide-react';
 import Image                 from 'next/image';
 import { useToast }          from '@/components/ui/use-toast';
 import { OAuthButtons }      from '@/components/auth/oauth-buttons';
-import { DottedGlowBackground } from '@/components/ui/dotted-glow-background';
+import { BackgroundRippleEffect } from '@/components/ui/background-ripple-effect';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -57,16 +56,11 @@ export default function LoginPage() {
   }, [email, password, supabase, router, toast]);
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
-      <DottedGlowBackground
-        opacity={0.7}
-        colorLightVar="--foreground"
-        colorDarkVar="--foreground"
-        glowColorLightVar="--primary"
-        glowColorDarkVar="--primary"
-      />
-      <Card className="relative z-10 w-full max-w-md">
-        <CardHeader className="flex flex-col items-center gap-3">
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden bg-background p-4">
+      <BackgroundRippleEffect />
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-background/60 via-transparent to-background/60" />
+      <div className="relative z-10 w-full max-w-md rounded-2xl border border-white/10 bg-background/40 p-8 shadow-lg backdrop-blur-xl">
+        <div className="flex flex-col items-center gap-3">
           <Image
             src="/icons/logbook-light.png"
             alt="The Logbook"
@@ -74,9 +68,9 @@ export default function LoginPage() {
             height={78}
             priority
           />
-          <CardTitle>Log In</CardTitle>
-        </CardHeader>
-        <CardContent>
+          <h1 className="text-lg font-semibold leading-none">Log In</h1>
+        </div>
+        <div className="mt-6">
           <OAuthButtons />
           <div className="my-4 flex items-center gap-3 text-xs text-muted-foreground">
             <div className="h-px flex-1 bg-border" />
@@ -137,8 +131,8 @@ export default function LoginPage() {
               Sign Up
             </a>
           </p>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }

@@ -98,6 +98,24 @@
   }
 }
 
+/*
+ * Deliberately outside @theme: this keyframe is referenced via a literal
+ * animation-name from inline styles (components/ui/background-ripple-effect.tsx),
+ * not through a Tailwind `animate-*` utility, so it must not live inside
+ * @theme's usage-tracked block or Tailwind will tree-shake it as "unused".
+ */
+@keyframes cell-ripple {
+  0% {
+    opacity: 0.4;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    opacity: 0.4;
+  }
+}
+
 :root {
   --radius: 0.625rem;
   /* Unified clean background across all apps; foreground/accents are app-themed */
