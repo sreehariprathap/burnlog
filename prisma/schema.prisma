@@ -51,6 +51,8 @@ model Profile {
   weeklyTripSuggestionsEnabled Boolean   @default(true)
   learnLogCity             String?
   learnLogAiEnabled        Boolean   @default(true)
+  watchlogFavoriteGenres   String[] @default([])
+  watchlogContentTypes     String[] @default([]) // 'movies' | 'tv' | 'anime' | 'documentaries' | 'stand-up'
   lifeScoreMode            String    @default("engagement") // 'engagement' | 'streak' | 'goal'
   hasSeenAppTour           Boolean   @default(false)
 
