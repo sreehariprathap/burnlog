@@ -13,9 +13,7 @@ import { APPS, type AppId } from '@/lib/appMode';
 import { ANIMATED_APP_ICONS_TOGGLE_KEY } from '@/lib/animatedAppIcons';
 import { TOGGLES_KEY } from '@/lib/useFeatureToggle';
 
-const PREVIEW_APPS: AppId[] = Object.keys(APPS).filter(
-  (id): id is AppId => id !== 'logbook'
-) as AppId[];
+const PREVIEW_APPS: AppId[] = Object.keys(APPS) as AppId[];
 
 export default function AppIconsPage() {
   const { profile, loading: profileLoading } = useRequireAdmin();
@@ -70,9 +68,10 @@ export default function AppIconsPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-6">
       <p className="text-sm text-muted-foreground">
-        Switches every sub-app&rsquo;s icon (AppSwitcher, TopBar, onboarding app picker) between
-        hover-animated Lucide icons and plain letter badges. Off by default; Logbook always keeps
-        its own brand mark either way.
+        Switches every app&rsquo;s icon (AppSwitcher, TopBar, onboarding app picker) between
+        app-colored, hover-animated Lucide icons and plain letter badges. Off by default; Logbook
+        keeps its own brand mark when off, and gets an animated book icon when on. Every icon
+        renders in its own app&rsquo;s color, regardless of which app&rsquo;s theme is currently active.
       </p>
 
       <Card>
