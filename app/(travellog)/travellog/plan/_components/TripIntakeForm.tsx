@@ -88,7 +88,7 @@ export function TripIntakeForm({ onGenerated, initial }: TripIntakeFormProps) {
             <Label htmlFor="hotel">Hotel / area (optional)</Label>
             <Input id="hotel" placeholder="Hotel name or neighbourhood" value={hotel} onChange={(e) => setHotel(e.target.value)} disabled={loading} />
           </div>
-          <div className="grid grid-cols-2 gap-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <div className="flex flex-col gap-2">
               <Label htmlFor="startDate">Start date</Label>
               <Input id="startDate" type="date" min={today} value={startDate} onChange={(e) => setStartDate(e.target.value)} disabled={loading} required />

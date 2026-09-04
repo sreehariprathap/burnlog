@@ -267,7 +267,7 @@ export function StatementImportPanel({ profileId, isAdmin, onImported }: Stateme
 
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         <div className="space-y-1">
           <Label htmlFor="import-period-start">From</Label>
           <Input id="import-period-start" type="date" value={periodStart} onChange={(e) => setPeriodStart(e.target.value)} />
