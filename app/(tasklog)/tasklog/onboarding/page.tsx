@@ -4,10 +4,11 @@
 import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 import { TaskLogOnboardingFlow } from './_components/TaskLogOnboardingFlow';
+import { OnboardingStepShell } from '@/components/onboarding/OnboardingStepShell';
 
 export default function TaskLogOnboardingPage() {
   return (
-    <div className="min-h-screen px-4 py-6">
+    <OnboardingStepShell app="tasklog">
       <Suspense
         fallback={
           <div className="flex h-[50vh] items-center justify-center">
@@ -17,6 +18,6 @@ export default function TaskLogOnboardingPage() {
       >
         <TaskLogOnboardingFlow />
       </Suspense>
-    </div>
+    </OnboardingStepShell>
   );
 }
