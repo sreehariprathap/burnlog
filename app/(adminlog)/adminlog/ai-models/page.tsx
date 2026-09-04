@@ -88,7 +88,6 @@ export default function AiModelsPage() {
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">AI Model Mapping</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Pick which OpenRouter model powers each AI feature, from the models curated in{' '}
           <a href="/adminlog/model-gather" className="underline">Model Gather</a>. Text features

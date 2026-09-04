@@ -103,7 +103,6 @@ export default function TestOnboardingPage() {
 
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-4">
-      <h1 className="text-2xl font-semibold">Test Onboarding</h1>
       <p className="text-sm text-muted-foreground">
         Run the real onboarding flow as a dedicated test account — your own profile is never touched.
       </p>

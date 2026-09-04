@@ -88,8 +88,7 @@ export default function ButtonThemePage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-6">
       <div>
-        <h1 className="text-2xl font-semibold">Button Theme</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <p className="text-sm text-muted-foreground">
           Pick which visual style each themeable button element uses across the app. Only elements
           wrapped in <code className="rounded bg-muted px-1 py-0.5">ThemedButton</code> respond to this —
           existing screens are unaffected until they opt in.

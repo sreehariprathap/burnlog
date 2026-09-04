@@ -56,8 +56,6 @@ export default function InvitesPage() {
 
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-4">
-      <h1 className="text-2xl font-semibold">Invites</h1>
-
       <Card>
         <CardHeader><CardTitle>Send an invite</CardTitle></CardHeader>
         <CardContent className="space-y-3">

@@ -129,7 +129,6 @@ export default function ModelGatherPage() {
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold">Model Gather</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Browse OpenRouter&rsquo;s full catalog and curate which models are available across the
           app. Curated models show up in every model picker (the per-feature AI mapping below, and

@@ -118,8 +118,6 @@ export default function TogglesPage() {
 
   return (
     <div className="max-w-2xl mx-auto p-6 space-y-6">
-      <h1 className="text-2xl font-semibold">App & Feature Toggles</h1>
-
       <Card>
         <CardHeader><CardTitle>Add a toggle</CardTitle></CardHeader>
         <CardContent className="space-y-3">

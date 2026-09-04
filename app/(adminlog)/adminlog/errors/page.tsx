@@ -70,8 +70,6 @@ export default function ErrorsPage() {
 
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-4">
-      <h1 className="text-2xl font-semibold">Error Log</h1>
-
       <div className="flex gap-2">
         <Select value={sourceFilter} onValueChange={(v) => setSourceFilter(v as SourceFilter)}>
           <SelectTrigger className="w-40"><SelectValue /></SelectTrigger>

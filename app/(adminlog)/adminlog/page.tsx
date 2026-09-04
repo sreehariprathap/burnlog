@@ -4,17 +4,7 @@ import Link from 'next/link';
 import { Loader2 } from 'lucide-react';
 import { useRequireAdmin } from '@/lib/adminlog/useRequireAdmin';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
-
-const SECTIONS = [
-  { href: '/adminlog/toggles', label: 'App & Feature Toggles', description: 'Turn apps and beta features on/off globally or per-user.' },
-  { href: '/adminlog/errors', label: 'Error Log', description: 'Browse persisted client, server, and background job errors.' },
-  { href: '/adminlog/invites', label: 'Invites', description: 'Send and track invites to new users.' },
-  { href: '/adminlog/tools', label: 'Admin Tools', description: 'Test push notifications, onboarding pages.' },
-  { href: '/adminlog/ai-models', label: 'AI Model Mapping', description: 'Choose which OpenRouter model powers each AI feature across the app.' },
-  { href: '/adminlog/model-gather', label: 'Model Gather', description: 'Browse OpenRouter\'s full catalog and curate which models are available across the app.' },
-  { href: '/adminlog/ai-model-test', label: 'AI Model Test', description: 'Ask a fixed test question to any free model and compare latency, throughput, and response quality.' },
-  { href: '/adminlog/test-onboarding', label: 'Test Onboarding', description: 'Run the real onboarding flow as a disposable test account.' },
-];
+import { ADMIN_NAV } from '@/lib/adminlog/nav';
 
 export default function AdminLogDashboard() {
   const { profile, loading } = useRequireAdmin();
@@ -28,22 +18,38 @@ export default function AdminLogDashboard() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6 space-y-4">
-      <h1 className="text-2xl font-semibold">AdminLog</h1>
-      <div className="grid gap-4">
-        {SECTIONS.map((section) => (
-          <Link key={section.href} href={section.href}>
-            <Card className="hover:bg-muted/40 transition-colors">
-              <CardHeader>
-                <CardTitle>{section.label}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground">{section.description}</p>
-              </CardContent>
-            </Card>
-          </Link>
-        ))}
-      </div>
+    <div className="max-w-2xl mx-auto p-6 space-y-8">
+      {ADMIN_NAV.map((category) => {
+        const CategoryIcon = category.icon;
+        return (
+          <section key={category.key} id={`category-${category.key}`} className="scroll-mt-24 space-y-3">
+            <div className="flex items-center gap-2">
+              <CategoryIcon className="h-4 w-4 text-primary" />
+              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                {category.label}
+              </h2>
+            </div>
+            <div className="grid gap-3">
+              {category.items.map((item) => {
+                const ItemIcon = item.icon;
+                return (
+                  <Link key={item.href} href={item.href}>
+                    <Card className="hover:bg-muted/40 transition-colors">
+                      <CardHeader className="flex flex-row items-center gap-3 space-y-0">
+                        <ItemIcon className="h-5 w-5 shrink-0 text-muted-foreground" />
+                        <CardTitle className="text-base">{item.label}</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <p className="text-sm text-muted-foreground">{item.description}</p>
+                      </CardContent>
+                    </Card>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        );
+      })}
     </div>
   );
 }
