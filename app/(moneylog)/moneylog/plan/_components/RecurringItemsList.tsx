@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Trash2, Loader2, RotateCw } from 'lucide-react';
 import { categoryLabel } from '@/lib/financeCategories';
 import { formatCurrency } from '@/lib/format';
-import type { PlanRecurringItem } from '../page';
+import type { PlanRecurringItem } from './PlanContent';
 
 const WEEKDAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];

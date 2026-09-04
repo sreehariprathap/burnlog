@@ -1,49 +1,8 @@
-// app/(moneylog)/moneylog/insights/page.tsx
-import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
-import { TopBar } from '@/components/TopBar';
-import { MoneyLogBottomNav } from '@/components/MoneyLogBottomNav';
-import FinanceInsightsClient from './_components/FinanceInsightsClient';
 
-export const metadata: Metadata = {
-  title: 'Insights - MoneyLog',
-};
-
-export default async function MoneyLogInsightsPage() {
-  const supabase = await createClient();
-
-  // getUser() validates against Supabase's auth server instead of trusting
-  // locally-decoded cookie state (which raced with middleware's token
-  // refresh and intermittently logged authenticated users out in prod).
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (!user) {
-    return redirect('/login');
-  }
-
-  const { data: profile } = await supabase.from('profiles').select('id').eq('userId', user.id).single();
-
-  if (!profile) {
-    return redirect('/signup/profile');
-  }
-
-  const profileId = profile.id;
-
-  const [{ data: recurringItems = [] }, { data: transactions = [] }] = await Promise.all([
-    supabase.from('recurring_items').select('*').eq('profileId', profileId).eq('isActive', true),
-    supabase.from('finance_transactions').select('*').eq('profileId', profileId).order('date', { ascending: true }),
-  ]);
-
-  return (
-    <div className="flex flex-col h-screen">
-      <TopBar title="Insights" />
-      <main className="flex-1 overflow-auto px-4 pb-24">
-        <FinanceInsightsClient recurringItems={recurringItems || []} transactions={transactions || []} />
-      </main>
-      <MoneyLogBottomNav />
-    </div>
-  );
+// /moneylog/insights is now a tab on /moneylog (?tab=insights) instead of
+// its own route. Kept as a redirect so old bookmarks/links still land
+// somewhere real.
+export default function InsightsRedirect() {
+  redirect('/moneylog?tab=insights');
 }
