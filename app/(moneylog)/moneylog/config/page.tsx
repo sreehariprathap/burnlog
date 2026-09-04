@@ -10,6 +10,19 @@ import { useCurrentProfile, refreshCurrentProfile } from '@/lib/useCurrentProfil
 import { CURRENCIES, DEFAULT_CURRENCY, setCurrency } from '@/lib/currency';
 import { useToast } from '@/components/ui/use-toast';
 
+const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+
+const MONTH_START_DAYS = Array.from({ length: 28 }, (_, i) => i + 1);
+
+const WEEK_START_OPTIONS = [
+  { value: 'monday', label: 'Monday (Mon–Sun)' },
+  { value: 'saturday', label: 'Saturday (Sat–Fri)' },
+  { value: 'sunday', label: 'Sunday (Sun–Sat)' },
+];
+
 export default function MoneyLogConfigPage() {
   const supabase = createClient();
   const { toast } = useToast();
@@ -26,6 +39,22 @@ export default function MoneyLogConfigPage() {
     refreshCurrentProfile();
     toast({ description: 'Currency updated' });
   };
+
+  const handlePeriodChange = async (field: 'moneylogYearStartMonth' | 'moneylogMonthStartDay' | 'moneylogWeekStart', value: string) => {
+    if (!profile) return;
+    const parsed = field === 'moneylogWeekStart' ? value : Number(value);
+    const { error } = await supabase.from('profiles').update({ [field]: parsed }).eq('id', profile.id);
+    if (error) {
+      toast({ title: 'Could not save setting', description: error.message, variant: 'destructive' });
+      return;
+    }
+    refreshCurrentProfile();
+    toast({ description: 'Calculation period updated' });
+  };
+
+  const yearStartMonth = (profile?.moneylogYearStartMonth as number) ?? 1;
+  const monthStartDay = (profile?.moneylogMonthStartDay as number) ?? 1;
+  const weekStart = (profile?.moneylogWeekStart as string) ?? 'monday';
 
   return (
     <AppConfigShell
@@ -49,6 +78,54 @@ export default function MoneyLogConfigPage() {
               ))}
             </SelectContent>
           </Select>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Calculation periods</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <p className="text-sm text-muted-foreground">
+            Controls what &quot;this year&quot;, &quot;this month&quot;, and &quot;this week&quot; mean across
+            Insights and Goals.
+          </p>
+
+          <div className="space-y-2">
+            <Label htmlFor="year-start" className="font-medium">Year starts on</Label>
+            <Select value={String(yearStartMonth)} onValueChange={(v) => handlePeriodChange('moneylogYearStartMonth', v)}>
+              <SelectTrigger id="year-start" className="w-full"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {MONTH_NAMES.map((name, i) => (
+                  <SelectItem key={name} value={String(i + 1)}>{name} 1</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="month-start" className="font-medium">Month starts on day</Label>
+            <Select value={String(monthStartDay)} onValueChange={(v) => handlePeriodChange('moneylogMonthStartDay', v)}>
+              <SelectTrigger id="month-start" className="w-full"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {MONTH_START_DAYS.map((day) => (
+                  <SelectItem key={day} value={String(day)}>{day}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="week-start" className="font-medium">Week starts on</Label>
+            <Select value={weekStart} onValueChange={(v) => handlePeriodChange('moneylogWeekStart', v)}>
+              <SelectTrigger id="week-start" className="w-full"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {WEEK_START_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </CardContent>
       </Card>
     </AppConfigShell>

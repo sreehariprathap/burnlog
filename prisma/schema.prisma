@@ -42,6 +42,9 @@ model Profile {
   taskLogLongestStreak     Int       @default(0)
   lastTaskLogStreakDate    DateTime? @db.Date
   currency                 String    @default("CAD")
+  moneylogYearStartMonth   Int       @default(1) // 1=Jan .. 12=Dec — first month of MoneyLog's "year"
+  moneylogMonthStartDay    Int       @default(1) // 1-28 — day of month MoneyLog's "month" begins on
+  moneylogWeekStart        String    @default("monday") // "monday" | "saturday" | "sunday"
   country                  String?
   city                     String?
   postalCode               String?

@@ -14,11 +14,13 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { format, startOfMonth, endOfMonth, eachMonthOfInterval, subMonths } from 'date-fns';
+import { format } from 'date-fns';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { expandRecurringInRange } from '@/lib/financePeriods';
 import type { RecurringItemRow, FinanceLineItem } from '@/lib/financePeriods';
 import { categoryLabel } from '@/lib/financeCategories';
+import { useCurrentProfile } from '@/lib/useCurrentProfile';
+import { getPeriodConfig, getMonthRange } from '@/lib/moneylog/period';
 import { formatCurrency } from '@/lib/format';
 import { SmoothTabs, type TabItem } from '@/components/kokonutui/smooth-tabs';
 import { MotionCarousel } from '@/components/kokonutui/motion-carousel';
@@ -56,9 +58,15 @@ const cashflowChartConfig = {
 
 export default function FinanceInsightsClient({ recurringItems, transactions }: FinanceInsightsClientProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const { profile } = useCurrentProfile();
+  const periodConfig = getPeriodConfig(profile);
   const now = new Date();
-  const rangeStart = startOfMonth(subMonths(now, MONTHS_BACK - 1));
-  const rangeEnd = endOfMonth(now);
+  const currentMonth = getMonthRange(now, periodConfig);
+  const rangeStart = getMonthRange(
+    new Date(currentMonth.start.getFullYear(), currentMonth.start.getMonth() - (MONTHS_BACK - 1), currentMonth.start.getDate()),
+    periodConfig
+  ).start;
+  const rangeEnd = currentMonth.end;
 
   const allItems: FinanceLineItem[] = useMemo(
     () => [
@@ -69,16 +77,20 @@ export default function FinanceInsightsClient({ recurringItems, transactions }: 
   );
 
   const monthlySeries = useMemo(() => {
-    const months = eachMonthOfInterval({ start: rangeStart, end: rangeEnd });
-    return months.map((month) => {
-      const mStart = startOfMonth(month);
-      const mEnd = endOfMonth(month);
+    const buckets: { start: Date; end: Date }[] = [];
+    let bucketStart = rangeStart;
+    for (let i = 0; i < MONTHS_BACK; i++) {
+      const { start, end } = getMonthRange(bucketStart, periodConfig);
+      buckets.push({ start, end });
+      bucketStart = new Date(start.getFullYear(), start.getMonth() + 1, start.getDate());
+    }
+    return buckets.map(({ start: mStart, end: mEnd }) => {
       const inMonth = allItems.filter((i) => i.date >= mStart && i.date <= mEnd);
       const income = inMonth.filter((i) => i.type === 'income').reduce((sum, i) => sum + i.amount, 0);
       const expense = inMonth.filter((i) => i.type === 'expense').reduce((sum, i) => sum + i.amount, 0);
-      return { month: format(month, 'MMM'), income, expense, net: income - expense };
+      return { month: format(mStart, 'MMM'), income, expense, net: income - expense };
     });
-  }, [allItems, rangeStart, rangeEnd]);
+  }, [allItems, rangeStart, periodConfig]);
 
   const expenseByCategory = useMemo(() => {
     const map: Record<string, number> = {};

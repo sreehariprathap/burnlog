@@ -4,8 +4,9 @@
 import { useState } from 'react';
 import useSWR from 'swr';
 import { createClient } from '@/lib/supabase/client';
-import { startOfMonth, endOfMonth } from 'date-fns';
 import { recurringItemsQuery, allFinanceTransactionsQuery } from '@/lib/moneylog/queries';
+import { useCurrentProfile } from '@/lib/useCurrentProfile';
+import { getPeriodConfig, getMonthRange } from '@/lib/moneylog/period';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { StatCard } from '@/components/ui/stat-card';
 import { StatRing } from '@/components/ui/stat-ring';
@@ -34,6 +35,8 @@ function goalTypeLabel(goalType: string): string {
 
 export function FinancialGoalsList({ goals, profileId, onGoalUpdated }: FinancialGoalsListProps) {
   const { toast } = useToast();
+  const { profile } = useCurrentProfile();
+  const periodConfig = getPeriodConfig(profile);
   const { data: recurringItems = [] } = useSWR(
     profileId ? recurringItemsQuery(profileId).key : null,
     profileId ? recurringItemsQuery(profileId).fetcher : null
@@ -105,8 +108,7 @@ export function FinancialGoalsList({ goals, profileId, onGoalUpdated }: Financia
   }
 
   const now = new Date();
-  const monthStart = startOfMonth(now);
-  const monthEnd = endOfMonth(now);
+  const { start: monthStart, end: monthEnd } = getMonthRange(now, periodConfig);
 
   return (
     <div className="space-y-4">
