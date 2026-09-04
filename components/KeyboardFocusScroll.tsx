@@ -48,6 +48,9 @@ export function KeyboardFocusScroll() {
     function centerFocusedField() {
       const active = document.activeElement;
       if (!(active instanceof HTMLElement) || !active.matches(FOCUSABLE_SELECTOR)) return;
+      // Drawer/Sheet content positions itself around the keyboard via
+      // useKeyboardAwareDrawer — scrolling it here too would fight that.
+      if (active.closest('[data-vaul-drawer]')) return;
 
       const scrollParent = findScrollParent(active);
       if (!scrollParent) return;

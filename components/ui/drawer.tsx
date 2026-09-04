@@ -4,11 +4,16 @@ import * as React from "react"
 import { Drawer as DrawerPrimitive } from "vaul"
 
 import { cn } from "@/lib/utils"
+import { useKeyboardAwareDrawer } from "@/lib/useKeyboardAwareDrawer"
 
 function Drawer({
+  repositionInputs = false,
   ...props
 }: React.ComponentProps<typeof DrawerPrimitive.Root>) {
-  return <DrawerPrimitive.Root data-slot="drawer" {...props} />
+  // vaul's own keyboard repositioning tries to keep the drawer roughly
+  // where it was rather than a fixed, predictable offset — DrawerContent
+  // below replaces it with useKeyboardAwareDrawer instead.
+  return <DrawerPrimitive.Root data-slot="drawer" repositionInputs={repositionInputs} {...props} />
 }
 
 function DrawerTrigger({
@@ -48,12 +53,16 @@ function DrawerOverlay({
 function DrawerContent({
   className,
   children,
+  style,
   ...props
 }: React.ComponentProps<typeof DrawerPrimitive.Content>) {
+  const { ref, style: keyboardStyle } = useKeyboardAwareDrawer<HTMLDivElement>()
+
   return (
     <DrawerPortal data-slot="drawer-portal">
       <DrawerOverlay />
       <DrawerPrimitive.Content
+        ref={ref}
         data-slot="drawer-content"
         className={cn(
           "group/drawer-content fixed z-50 flex h-auto flex-col bg-background",
@@ -65,6 +74,10 @@ function DrawerContent({
           "data-[vaul-drawer-direction=bottom]:inset-x-0 data-[vaul-drawer-direction=bottom]:bottom-0 data-[vaul-drawer-direction=bottom]:mt-24 data-[vaul-drawer-direction=bottom]:max-h-[90dvh] data-[vaul-drawer-direction=bottom]:rounded-t-2xl data-[vaul-drawer-direction=bottom]:border-t",
           className
         )}
+        // While a field inside is focused and the keyboard is open,
+        // useKeyboardAwareDrawer pins top/bottom around the keyboard —
+        // see its comment for why this replaces vaul's own repositioning.
+        style={{ ...style, ...keyboardStyle }}
         {...props}
       >
         <div className="mx-auto mt-4 h-1.5 w-12 shrink-0 rounded-full bg-muted" />
