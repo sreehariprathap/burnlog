@@ -10,6 +10,11 @@ const ONBOARDING_ROUTES: Partial<Record<AppId, string>> = {
   moneylog: '/moneylog/onboarding',
   tasklog: '/tasklog/onboarding',
   homelog: '/homelog/onboarding',
+  learnlog: '/learnlog/onboarding',
+  sociallog: '/sociallog/onboarding',
+  shoppinglog: '/shoppinglog/onboarding',
+  travellog: '/travellog/onboarding',
+  intellog: '/intellog/onboarding',
 };
 
 function LoadingFallback() {

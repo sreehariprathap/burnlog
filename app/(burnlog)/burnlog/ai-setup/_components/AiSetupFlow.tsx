@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Loader2, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ConsentStep } from './ConsentStep';
+import { HealthBasicsStep } from './HealthBasicsStep';
 import { LifestyleForm } from './LifestyleForm';
 import { GoalsStep, type GoalEntry } from './GoalsStep';
 import { ActivityPreferencesStep } from './ActivityPreferencesStep';
@@ -28,7 +29,7 @@ import { MEAL_PREP_REMINDER_TITLE } from '@/lib/ai/types';
 const ORDERED_PAGE_KEYS = ['goals', 'activity_preferences', 'equipment', 'nutrition', 'grocery', 'meal_prep'] as const;
 type PageKey = (typeof ORDERED_PAGE_KEYS)[number];
 
-type Step = 'loading' | 'consent' | 'questionnaire' | PageKey | 'generating' | 'preview' | 'error';
+type Step = 'loading' | 'consent' | 'health' | 'questionnaire' | PageKey | 'generating' | 'preview' | 'error';
 
 export function AiSetupFlow() {
   const router = useRouter();
@@ -38,6 +39,12 @@ export function AiSetupFlow() {
 
   const [step, setStep] = useState<Step>('loading');
   const [profileId, setProfileId] = useState<string | null>(null);
+  const [healthBasics, setHealthBasics] = useState<{ height: number | null; weight: number | null; activityLevel: string | null }>({
+    height: null,
+    weight: null,
+    activityLevel: null,
+  });
+  const [savingHealth, setSavingHealth] = useState(false);
   const [lifestyle, setLifestyle] = useState<LifestyleAnswers | null>(null);
   const [initialLifestyle, setInitialLifestyle] = useState<LifestyleAnswers | null>(null);
   const [enabledKeys, setEnabledKeys] = useState<PageKey[]>([]);
@@ -61,7 +68,7 @@ export function AiSetupFlow() {
       }
       const { data: profile } = await supabase
         .from('profiles')
-        .select('id, lifestyle')
+        .select('id, lifestyle, height, weight, activityLevel')
         .eq('userId', user.id)
         .single();
 
@@ -71,6 +78,7 @@ export function AiSetupFlow() {
       }
       setProfileId(profile.id);
       setInitialLifestyle(profile.lifestyle ?? null);
+      setHealthBasics({ height: profile.height ?? null, weight: profile.weight ?? null, activityLevel: profile.activityLevel ?? null });
 
       const { data: flags } = await supabase
         .from('onboarding_page_flags')
@@ -123,6 +131,15 @@ export function AiSetupFlow() {
     } else {
       setStep(next);
     }
+  };
+
+  const handleHealthSubmit = async (answers: { height: number; weight: number; activityLevel: 'low' | 'medium' | 'high' }) => {
+    if (!profileId) return;
+    setSavingHealth(true);
+    await supabase.from('profiles').update(answers).eq('id', profileId);
+    setSavingHealth(false);
+    setHealthBasics(answers);
+    setStep('questionnaire');
   };
 
   const handleQuestionnaireSubmit = async (answers: LifestyleAnswers) => {
@@ -298,9 +315,19 @@ export function AiSetupFlow() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gray-50 dark:bg-gray-900">
+    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
       {step === 'consent' && (
-        <ConsentStep onAccept={() => setStep('questionnaire')} onDecline={handleSkip} />
+        <ConsentStep onAccept={() => setStep('health')} onDecline={handleSkip} />
+      )}
+
+      {step === 'health' && (
+        <HealthBasicsStep
+          submitting={savingHealth}
+          initialHeight={healthBasics.height}
+          initialWeight={healthBasics.weight}
+          initialActivityLevel={healthBasics.activityLevel}
+          onSubmit={handleHealthSubmit}
+        />
       )}
 
       {step === 'questionnaire' && (

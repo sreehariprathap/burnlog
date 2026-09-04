@@ -7,11 +7,13 @@ import { createClient } from '@/lib/supabase/client';
 import { WelcomeStep } from './WelcomeStep';
 import { IncomeSourcesStep } from './IncomeSourcesStep';
 import { FixedExpensesStep } from './FixedExpensesStep';
+import { AssetValueStep } from './AssetValueStep';
 import { ReviewStep } from './ReviewStep';
 import type { RecurringItemDraft } from '@/lib/recurringItemDraft';
 import { useToast } from '@/components/ui/use-toast';
+import { apiFetch } from '@/lib/apiFetch';
 
-type Step = 'welcome' | 'income' | 'expenses' | 'review';
+type Step = 'welcome' | 'income' | 'expenses' | 'assets' | 'review';
 
 export function MoneyLogOnboardingFlow() {
   const router = useRouter();
@@ -22,6 +24,7 @@ export function MoneyLogOnboardingFlow() {
   const [step, setStep] = useState<Step>('welcome');
   const [incomeRows, setIncomeRows] = useState<RecurringItemDraft[]>([]);
   const [expenseRows, setExpenseRows] = useState<RecurringItemDraft[]>([]);
+  const [assetValue, setAssetValue] = useState<number | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
@@ -46,6 +49,14 @@ export function MoneyLogOnboardingFlow() {
           .from('recurring_items')
           .insert(rows.map((row) => ({ ...row, profileId: profile.id })));
         if (insertError) throw insertError;
+      }
+
+      if (assetValue != null) {
+        await apiFetch('/api/moneylog/assets', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: 'Net worth', category: 'other', initialValue: assetValue }),
+        });
       }
 
       toast({ title: 'Setup complete' });
@@ -78,7 +89,19 @@ export function MoneyLogOnboardingFlow() {
         rows={expenseRows}
         onAdd={(draft) => setExpenseRows((prev) => [...prev, draft])}
         onRemove={(index) => setExpenseRows((prev) => prev.filter((_, i) => i !== index))}
-        onContinue={() => setStep('review')}
+        onContinue={() => setStep('assets')}
+        onSkip={() => setStep('assets')}
+      />
+    );
+  }
+  if (step === 'assets') {
+    return (
+      <AssetValueStep
+        saving={false}
+        onContinue={(value) => {
+          setAssetValue(value);
+          setStep('review');
+        }}
         onSkip={() => setStep('review')}
       />
     );

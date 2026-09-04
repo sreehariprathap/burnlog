@@ -112,6 +112,7 @@ model Profile {
   shopReviews             ShopReview[]
   MydayBlock              MydayBlock[]
   TravelVisit             TravelVisit[]
+  TravelPassportEntry     TravelPassportEntry[]
   TravelSuggestion        TravelSuggestion[]
   TravelPlan              TravelPlan[]
   TravelPlanMember             TravelPlanMember[]
@@ -892,6 +893,8 @@ model SocialProfileSettings {
   isPrivate              Boolean  @default(false)
   whoCanMessage          String   @default("everyone") // "everyone" | "followers" | "none"
   showCrossAppActivity   Boolean  @default(true)
+  interests              String[] @default([])
+  hobbies                String[] @default([])
   updatedAt              DateTime @default(now()) @updatedAt
 
   @@map("social_profile_settings")
@@ -994,6 +997,21 @@ model TravelVisit {
   plan          TravelPlan? @relation(fields: [tripPlanId], references: [id])
 
   @@map("travellog_visits")
+}
+
+/// onboarding "digital passport" — a coarse country/state a user says they've
+/// visited, distinct from TravelVisit's detailed geocoded check-ins (which
+/// need a real place name, coordinates, and arrival date this doesn't have)
+model TravelPassportEntry {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId String   @db.Uuid
+  country   String
+  state     String?
+  createdAt DateTime @default(now())
+
+  @@unique([profileId, country, state])
+  @@map("travellog_passport_entries")
 }
 
 model TravelSuggestion {

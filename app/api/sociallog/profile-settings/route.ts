@@ -13,7 +13,7 @@ async function getMyProfileId(admin: ReturnType<typeof createServiceRoleClient>,
 async function getOrCreateSettings(admin: ReturnType<typeof createServiceRoleClient>, profileId: string) {
   const { data: existing } = await admin
     .from('social_profile_settings')
-    .select('profileId, bio, isPrivate, whoCanMessage, showCrossAppActivity')
+    .select('profileId, bio, isPrivate, whoCanMessage, showCrossAppActivity, interests, hobbies')
     .eq('profileId', profileId)
     .maybeSingle();
 
@@ -22,7 +22,7 @@ async function getOrCreateSettings(admin: ReturnType<typeof createServiceRoleCli
   const { data: created, error } = await admin
     .from('social_profile_settings')
     .insert({ profileId })
-    .select('profileId, bio, isPrivate, whoCanMessage, showCrossAppActivity')
+    .select('profileId, bio, isPrivate, whoCanMessage, showCrossAppActivity, interests, hobbies')
     .single();
 
   if (error) throw error;
@@ -60,11 +60,13 @@ export async function PATCH(request: Request) {
     }
 
     const body = await request.json();
-    const { bio, isPrivate, whoCanMessage, showCrossAppActivity } = body as {
+    const { bio, isPrivate, whoCanMessage, showCrossAppActivity, interests, hobbies } = body as {
       bio?: string | null;
       isPrivate?: boolean;
       whoCanMessage?: WhoCanMessage;
       showCrossAppActivity?: boolean;
+      interests?: string[];
+      hobbies?: string[];
     };
 
     if (whoCanMessage !== undefined && !WHO_CAN_MESSAGE_VALUES.includes(whoCanMessage)) {
@@ -84,12 +86,14 @@ export async function PATCH(request: Request) {
     if (isPrivate !== undefined) update.isPrivate = isPrivate;
     if (whoCanMessage !== undefined) update.whoCanMessage = whoCanMessage;
     if (showCrossAppActivity !== undefined) update.showCrossAppActivity = showCrossAppActivity;
+    if (interests !== undefined) update.interests = interests;
+    if (hobbies !== undefined) update.hobbies = hobbies;
 
     const { data: updated, error } = await admin
       .from('social_profile_settings')
       .update(update)
       .eq('profileId', profileId)
-      .select('profileId, bio, isPrivate, whoCanMessage, showCrossAppActivity')
+      .select('profileId, bio, isPrivate, whoCanMessage, showCrossAppActivity, interests, hobbies')
       .single();
 
     if (error) {
