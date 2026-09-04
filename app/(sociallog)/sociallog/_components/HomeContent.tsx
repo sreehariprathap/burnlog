@@ -9,10 +9,11 @@ import { ComposeBox } from './ComposeBox';
 import { FollowRequestsBanner } from './FollowRequestsBanner';
 import { FeedControls } from './FeedControls';
 import { PostCard, type FeedPost } from './PostCard';
-import { Loader2, RefreshCw, Sparkles, Users, FileText } from 'lucide-react';
+import { Loader2, RefreshCw, Sparkles, Users, FileText, Clapperboard } from 'lucide-react';
 import { apiFetch } from '@/lib/apiFetch';
 import { StatCard } from '@/components/ui/stat-card';
 import { statsQuery } from '@/lib/sociallog/queries';
+import { PostReelViewer } from '@/components/sociallog/PostReelViewer';
 
 async function fetcher(url: string) {
   const res = await apiFetch(url);
@@ -33,6 +34,8 @@ export function HomeContent() {
     profile ? statsQuery().key : null,
     profile ? statsQuery().fetcher : null
   );
+  const [reelIndex, setReelIndex] = useState<number | null>(null);
+  const mediaPosts = (data?.posts ?? []).filter((p) => p.mediaUrl && (p.mediaType === 'image' || p.mediaType === 'video'));
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -55,6 +58,12 @@ export function HomeContent() {
             <p className="text-2xl font-bold">{stats?.posts ?? 0}</p>
           </StatCard>
         </div>
+        {mediaPosts.length > 0 && (
+          <Button variant="outline" className="w-full gap-2" onClick={() => setReelIndex(0)}>
+            <Clapperboard className="size-4" />
+            View as Reels
+          </Button>
+        )}
         <FeedControls tab={tab} sort={sort} onTabChange={setTab} onSortChange={setSort} />
         {isLoading && <Loader2 className="h-6 w-6 animate-spin" />}
         {!isLoading && (data?.posts.length ?? 0) === 0 && (
@@ -72,6 +81,9 @@ export function HomeContent() {
           <PostCard key={post.id} post={post} currentProfileId={profile?.id ?? null} />
         ))}
       </main>
+      {reelIndex !== null && (
+        <PostReelViewer posts={mediaPosts} initialIndex={reelIndex} onClose={() => setReelIndex(null)} />
+      )}
     </div>
   );
 }
