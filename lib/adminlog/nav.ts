@@ -20,6 +20,8 @@ import {
 
 export type AdminNavCategoryKey = 'general' | 'ai' | 'error' | 'ui-themes' | 'user';
 
+export const DEFAULT_ADMIN_CATEGORY: AdminNavCategoryKey = 'general';
+
 export interface AdminNavItem {
   href: string;
   label: string;
