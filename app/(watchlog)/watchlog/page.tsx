@@ -2,10 +2,15 @@
 'use client';
 
 import { Suspense } from 'react';
+import dynamic from 'next/dynamic';
 import { useSearchParams } from 'next/navigation';
 import { Loader2 } from 'lucide-react';
 import { WatchLogBottomNav } from '@/components/WatchLogBottomNav';
 import { DiscoverContent } from './_components/DiscoverContent';
+
+const WatchlistContent = dynamic(() => import('./_components/WatchlistContent').then((m) => m.WatchlistContent), {
+  loading: () => <TabLoading />,
+});
 
 function TabLoading() {
   return (
@@ -17,8 +22,8 @@ function TabLoading() {
 
 /**
  * /watchlog is a single page for all four of its nav tabs (Home, Watchlist,
- * Discover, Stats), switched via `?tab=` — same pattern as LearnLog. Home,
- * Watchlist, and Stats land in later tasks; Discover renders for every tab
+ * Discover, Stats), switched via `?tab=` — same pattern as LearnLog. Home
+ * and Stats land in later tasks; Discover renders for the default tab
  * until then so the route is exercisable end-to-end as each piece lands.
  */
 export default function WatchLogPage() {
@@ -30,11 +35,12 @@ export default function WatchLogPage() {
 }
 
 function WatchLogTabSwitcher() {
-  useSearchParams();
+  const searchParams = useSearchParams();
+  const tab = searchParams.get('tab') ?? 'home';
 
   return (
     <>
-      <DiscoverContent />
+      {tab === 'watchlist' ? <WatchlistContent /> : <DiscoverContent />}
       <WatchLogBottomNav />
     </>
   );
