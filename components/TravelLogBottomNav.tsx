@@ -7,7 +7,7 @@ import { usePathname, useSearchParams } from 'next/navigation';
 import { motion } from 'motion/react';
 import { MapIcon, UsersIcon, SparklesIcon, PiggyBankIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { TravelLogMark } from '@/components/TravelLogMark';
+import { AppIcon } from '@/components/AppIcon';
 import { ConfigMenu } from '@/components/ConfigMenu';
 import { Tappable } from '@/components/ui/tappable';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
@@ -83,7 +83,7 @@ function TravelLogBottomNavInner() {
               {Icon ? (
                 <Icon className="mb-0.5 h-5 w-5" />
               ) : (
-                <TravelLogMark size={20} className="mb-0.5" />
+                <AppIcon id="travellog" size={20} className="mb-0.5" />
               )}
               <span>{label}</span>
             </Tappable>

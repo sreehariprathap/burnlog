@@ -5,7 +5,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
-import { AdminLogMark } from '@/components/AdminLogMark';
+import { AppIcon } from '@/components/AppIcon';
 import { AppSwitcher } from '@/components/AppSwitcher';
 import { findAdminNavItem } from '@/lib/adminlog/nav';
 
@@ -27,7 +27,7 @@ export function AdminLogHeader() {
           aria-label="Switch app"
           className="flex items-center justify-center"
         >
-          <AdminLogMark size={20} />
+          <AppIcon id="adminlog" size={20} />
         </button>
         {!isHome && (
           <Link href="/adminlog" aria-label="Back to AdminLog" className="flex items-center justify-center">

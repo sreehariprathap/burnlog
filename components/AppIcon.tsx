@@ -15,67 +15,77 @@ import { SparklesIcon } from '@/components/icons/animated/sparkles';
 import { BookTextIcon } from '@/components/icons/animated/book-text';
 import { useAnimatedAppIconsEnabled, APP_ICON_LETTERS } from '@/lib/animatedAppIcons';
 import { appSearchColor } from '@/lib/search/registry';
+import { cn } from '@/lib/utils';
 import type { AppId } from '@/lib/appMode';
 
-function LetterBadge({ letters, size, color }: { letters: string; size: number; color: string }) {
+// Matches every *Mark component's style exactly (see LogbookMark/MoneyLogMark):
+// plain bold glyph, no background badge, oversized relative to its box. A
+// single letter renders at the same 1.6x used by every Mark; the two-letter
+// badges (SocialLog/ShoppingLog, TaskLog/TravelLog — see APP_ICON_LETTERS)
+// scale down so both characters still fit their box.
+function LetterBadge({ letters, size, color, className }: { letters: string; size: number; color: string; className?: string }) {
+  const isSingle = letters.length === 1;
   return (
-    <div
-      className="flex shrink-0 items-center justify-center rounded-full bg-muted font-extrabold"
-      style={{ width: size, height: size, fontSize: size * 0.5, color }}
+    <span
+      className={cn('inline-flex items-center justify-center font-black leading-none', className)}
+      style={{ width: size, height: size, fontSize: size * (isSingle ? 1.6 : 0.95), color }}
+      aria-hidden="true"
     >
       {letters}
-    </div>
+    </span>
   );
 }
 
-function AnimatedAppIcon({ id, size, color }: { id: AppId; size: number; color: string }) {
-  const style = { color };
+function AnimatedAppIcon({ id, size, color, className }: { id: AppId; size: number; color: string; className?: string }) {
+  const props = { size, style: { color }, className };
   switch (id) {
     case 'logbook':
-      return <BookTextIcon size={size} style={style} />;
+      return <BookTextIcon {...props} />;
     case 'burnlog':
-      return <FlameIcon size={size} style={style} />;
+      return <FlameIcon {...props} />;
     case 'moneylog':
-      return <WalletIcon size={size} style={style} />;
+      return <WalletIcon {...props} />;
     case 'tasklog':
-      return <ClipboardCheckIcon size={size} style={style} />;
+      return <ClipboardCheckIcon {...props} />;
     case 'homelog':
-      return <HomeAnimatedIcon size={size} style={style} />;
+      return <HomeAnimatedIcon {...props} />;
     case 'sociallog':
-      return <UsersRoundIcon size={size} style={style} />;
+      return <UsersRoundIcon {...props} />;
     case 'shoppinglog':
-      return <CartIcon size={size} style={style} />;
+      return <CartIcon {...props} />;
     case 'travellog':
-      return <PlaneTakeoffIcon size={size} style={style} />;
+      return <PlaneTakeoffIcon {...props} />;
     case 'learnlog':
-      return <GraduationCapIcon size={size} style={style} />;
+      return <GraduationCapIcon {...props} />;
     case 'adminlog':
-      return <ShieldCheckIcon size={size} style={style} />;
+      return <ShieldCheckIcon {...props} />;
     case 'intellog':
-      return <SparklesIcon size={size} style={style} />;
+      return <SparklesIcon {...props} />;
     default:
-      return <FlameIcon size={size} style={style} />;
+      return <FlameIcon {...props} />;
   }
 }
 
 /** Renders one app's icon. Animated on: every app (Logbook included) shows
  * a hover-animated Lucide icon in that app's own brand color. Animated
  * off: Logbook keeps its brand mark; every other app shows a big, bold,
- * app-colored letter badge. Controlled by the admin `feature:animated-app-icons`
- * toggle (AdminLog → UI → App Icons). */
-export function AppIcon({ id, size }: { id: AppId; size: number }) {
+ * app-colored letter in the same plain-glyph style as every *Mark
+ * component. Controlled by the admin `feature:animated-app-icons` toggle
+ * (AdminLog → UI → App Icons). Use this everywhere an app's icon is shown
+ * — a hardcoded `<XLogMark>` won't respond to the toggle. */
+export function AppIcon({ id, size, className }: { id: AppId; size: number; className?: string }) {
   const animated = useAnimatedAppIconsEnabled();
   const color = appSearchColor(id);
 
   if (animated) {
-    return <AnimatedAppIcon id={id} size={size} color={color} />;
+    return <AnimatedAppIcon id={id} size={size} color={color} className={className} />;
   }
   if (id === 'logbook') {
-    return <LogbookMark size={size} />;
+    return <LogbookMark size={size} className={className} />;
   }
   const letters = APP_ICON_LETTERS[id];
   if (letters) {
-    return <LetterBadge letters={letters} size={size} color={color} />;
+    return <LetterBadge letters={letters} size={size} color={color} className={className} />;
   }
-  return <BurnLogMark size={size} />;
+  return <BurnLogMark size={size} className={className} />;
 }

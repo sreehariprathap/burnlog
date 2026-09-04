@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { SearchIcon, MessageCircleIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { SocialLogMark } from '@/components/SocialLogMark';
+import { AppIcon } from '@/components/AppIcon';
 import { ConfigMenu } from '@/components/ConfigMenu';
 import { Tappable } from '@/components/ui/tappable';
 import { usePreloadRoutes } from '@/lib/usePreloadRoutes';
@@ -67,7 +67,7 @@ function SocialLogBottomNavInner() {
               {Icon ? (
                 <Icon className="mb-0.5 h-5 w-5" />
               ) : (
-                <SocialLogMark size={20} className="mb-0.5" />
+                <AppIcon id="sociallog" size={20} className="mb-0.5" />
               )}
               <span>{label}</span>
             </Tappable>

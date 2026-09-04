@@ -5,7 +5,7 @@ import Link from 'next/link';
 import useSWR from 'swr';
 import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
-import { LearnLogMark } from '@/components/LearnLogMark';
+import { AppIcon } from '@/components/AppIcon';
 import { Flame } from 'lucide-react';
 
 type LearnLogSummaryCardProps = {
@@ -32,7 +32,7 @@ export function LearnLogSummaryCard({ profileId }: LearnLogSummaryCardProps) {
       <Card>
         <CardContent className="pt-4 flex flex-col gap-1">
           <div className="flex items-center gap-2">
-            <LearnLogMark size={18} />
+            <AppIcon id="learnlog" size={18} />
             <span className="text-sm font-medium">LearnLog</span>
           </div>
           {data?.topSkill ? (

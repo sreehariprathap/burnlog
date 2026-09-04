@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ClipboardListIcon, PackageIcon, ReceiptIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { HomeLogMark } from '@/components/HomeLogMark';
+import { AppIcon } from '@/components/AppIcon';
 import { ConfigMenu } from '@/components/ConfigMenu';
 import { Tappable } from '@/components/ui/tappable';
 import { useHouseholdMe } from '@/lib/homelog/useHouseholdMe';
@@ -63,7 +63,7 @@ export function HomeLogBottomNav() {
               {Icon ? (
                 <Icon className="mb-0.5 h-5 w-5" />
               ) : (
-                <HomeLogMark size={20} className="mb-0.5" />
+                <AppIcon id="homelog" size={20} className="mb-0.5" />
               )}
               <span>{label}</span>
             </Tappable>

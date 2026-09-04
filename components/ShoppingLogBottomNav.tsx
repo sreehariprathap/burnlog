@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { PlusCircleIcon, ShoppingCartIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { ShoppingLogMark } from '@/components/ShoppingLogMark';
+import { AppIcon } from '@/components/AppIcon';
 import { ConfigMenu } from '@/components/ConfigMenu';
 import { Tappable } from '@/components/ui/tappable';
 import { usePreloadRoutes } from '@/lib/usePreloadRoutes';
@@ -67,7 +67,7 @@ function ShoppingLogBottomNavInner() {
               {Icon ? (
                 <Icon className="mb-0.5 h-5 w-5" />
               ) : (
-                <ShoppingLogMark size={20} className="mb-0.5" />
+                <AppIcon id="shoppinglog" size={20} className="mb-0.5" />
               )}
               <span>{label}</span>
             </Tappable>

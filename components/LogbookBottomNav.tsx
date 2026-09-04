@@ -5,7 +5,7 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { CalendarClock } from 'lucide-react';
-import { LogbookMark } from '@/components/LogbookMark';
+import { AppIcon } from '@/components/AppIcon';
 import { ProfileMenu } from '@/components/ProfileMenu';
 import { cn } from '@/lib/utils';
 import { Tappable } from '@/components/ui/tappable';
@@ -60,7 +60,7 @@ function LogbookBottomNavInner() {
       >
         {isHomeActive && <span className="absolute inset-0 rounded-full bg-primary/10" />}
         <Tappable className="relative z-10 flex flex-col items-center px-3 py-2 text-xs">
-          <LogbookMark size={20} className="mb-0.5" />
+          <AppIcon id="logbook" size={20} className="mb-0.5" />
           <span>Logbook</span>
         </Tappable>
       </Link>
