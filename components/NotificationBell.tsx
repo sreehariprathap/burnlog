@@ -165,8 +165,21 @@ export function NotificationBell() {
   useEffect(() => {
     if (!profile) return;
     const supabase = createClient();
+    const topic = `notifications:${profile.id}`;
+
+    // Page transitions can briefly mount two pages at once (see the
+    // burnlog layout's AnimatePresence), which would otherwise mount two
+    // NotificationBells for the same profile at nearly the same time.
+    // Supabase's client caches channels by topic, so the second `.channel()`
+    // call would return the first's already-`.subscribe()`d channel, and
+    // calling `.on()` on it throws. Removing any existing channel for this
+    // topic first keeps this effect safe no matter how many times or how
+    // close together it re-runs.
+    const existing = supabase.getChannels().find((c) => c.topic === `realtime:${topic}`);
+    if (existing) supabase.removeChannel(existing);
+
     const channel = supabase
-      .channel(`notifications:${profile.id}`)
+      .channel(topic)
       .on(
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'notifications', filter: `profileId=eq.${profile.id}` },
