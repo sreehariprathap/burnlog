@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import useSWR, { type KeyedMutator } from 'swr';
 import { BellIcon, type BellIconHandle } from '@/components/ui/bell';
-import { Trash2 } from 'lucide-react';
+import { Trash2, X } from 'lucide-react';
 import { motion, AnimatePresence, useMotionValue, useTransform, animate } from 'motion/react';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { createClient } from '@/lib/supabase/client';
@@ -94,12 +94,21 @@ function NotificationItem({
 
   return (
     <motion.div
-      layout
       initial={{ opacity: 0, y: -8 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, height: 0, marginBottom: 0 }}
       transition={{ duration: 0.2 }}
-      className="relative overflow-hidden rounded-lg"
+      // shrink-0 is load-bearing: this row is a flex item in the list's
+      // flex-col scroll container, and a flex item with non-"visible"
+      // overflow (overflow-hidden, here) gets an automatic minimum size of
+      // 0 per the flexbox spec — meaning without shrink-0, flexbox was
+      // free to crush every row down to fit all of them inside the
+      // container instead of leaving them full height and letting the
+      // container scroll. That crushing (rows down to ~21px) was the
+      // actual cause of both "not scrollable" and "overlapping" reports:
+      // nothing was truly overflowing (so nothing to scroll to), and each
+      // squashed row clipped its own text via this same overflow-hidden.
+      className="relative shrink-0 overflow-hidden rounded-lg"
     >
       <motion.div
         style={{ opacity: deleteOpacity }}
@@ -114,14 +123,33 @@ function NotificationItem({
         dragConstraints={{ left: -400, right: 0 }}
         dragElastic={{ left: 0.5, right: 0.08 }}
         onDragEnd={handleDragEnd}
-        style={{ x }}
+        // Without this, the browser can't tell whether a touch starting on
+        // this row is meant to scroll the list or drag the row sideways,
+        // and (with drag="x" present) tends to guess "drag" — which reads
+        // as "the list won't scroll" when you swipe from on top of a row.
+        // pan-y explicitly reserves vertical panning for the page/scroll
+        // container and leaves only horizontal movement to the drag gesture.
+        style={{ x, touchAction: 'pan-y' }}
         onClick={() => onClick(n)}
-        className="relative flex w-full flex-col items-start gap-0.5 rounded-lg border bg-background p-3 text-left hover:bg-accent"
+        className="relative flex w-full flex-col items-start gap-0.5 rounded-lg border bg-background p-3 pr-9 text-left hover:bg-accent"
       >
         <p className="text-sm font-medium">{n.title}</p>
         <p className="text-sm text-muted-foreground">{n.message}</p>
         <p className="text-xs text-muted-foreground/70">{formatRelative(n.createdAt)}</p>
       </motion.button>
+      {/* Swipe-to-dismiss is easy to miss, so a notification can always be
+          removed with a plain tap on a visible close button too. */}
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation();
+          dismiss();
+        }}
+        aria-label="Remove notification"
+        className="absolute right-2 top-2 rounded-full p-1 text-muted-foreground/70 hover:bg-accent hover:text-foreground"
+      >
+        <X size={14} />
+      </button>
     </motion.div>
   );
 }
@@ -182,11 +210,14 @@ export function NotificationBell() {
         )}
       </button>
       <Drawer open={open} onOpenChange={setOpen}>
-        <DrawerContent>
-          <DrawerHeader>
+        <DrawerContent className="overflow-hidden">
+          <DrawerHeader className="shrink-0">
             <DrawerTitle>Notifications</DrawerTitle>
           </DrawerHeader>
-          <div className="p-4 flex flex-col gap-2 max-h-[60vh] overflow-y-auto">
+          {/* flex-1 + min-h-0 (not a guessed vh height) so this always fills
+              exactly whatever space is left under the header inside the
+              drawer's own max-height, on any device/keyboard state. */}
+          <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto p-4 pt-0">
             {(data?.notifications.length ?? 0) === 0 && (
               <p className="text-sm text-muted-foreground text-center py-6">No notifications yet.</p>
             )}
