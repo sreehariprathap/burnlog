@@ -6,7 +6,7 @@ import { useMicroInteractionsEnabled } from '@/lib/microInteractions';
 
 /**
  * Fades/slides between pages on navigation, keyed by pathname — but only
- * when Micro Interactions is on (AdminLog -> UI & Themes). Renders
+ * when Micro Interactions is on (AdminLog -> UI). Renders
  * `children` completely unwrapped otherwise, so this is a no-op until an
  * admin turns it on.
  *

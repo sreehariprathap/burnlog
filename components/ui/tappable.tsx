@@ -20,7 +20,7 @@ export interface TappableProps extends SafeDivProps {
 /**
  * Adds tap/press feedback (and a slight hover lift) to whatever it wraps,
  * but only when an admin has turned on Micro Interactions
- * (AdminLog → UI & Themes). Renders as a plain, unanimated `div` otherwise
+ * (AdminLog → UI). Renders as a plain, unanimated `div` otherwise
  * — so this is always safe to wrap around existing markup with zero visual
  * change until the feature is enabled.
  */

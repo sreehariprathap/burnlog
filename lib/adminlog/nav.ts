@@ -69,7 +69,7 @@ export const ADMIN_NAV: AdminNavCategory[] = [
   },
   {
     key: 'ui-themes',
-    label: 'UI & Themes',
+    label: 'UI',
     icon: Palette,
     items: [
       { href: '/adminlog/button-theme', label: 'Button Theme', description: 'Pick which visual style each themeable button element uses across the app.', icon: Palette },
