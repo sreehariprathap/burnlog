@@ -1,8 +1,9 @@
 // components/LearnLogBottomNav.tsx
 'use client';
 
+import { Suspense } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { motion } from 'motion/react';
 import { LibraryIcon, DumbbellIcon, BriefcaseIcon, NotebookPenIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -22,16 +23,34 @@ import {
 } from '@/lib/learnlog/queries';
 
 const tabs = [
-  { href: '/learnlog', label: 'Home', Icon: null },
-  { href: '/learnlog/library', label: 'Library', Icon: LibraryIcon },
-  { href: '/learnlog/skills', label: 'Skills', Icon: DumbbellIcon },
-  { href: '/learnlog/career', label: 'Career', Icon: BriefcaseIcon },
-  { href: '/learnlog/reflections', label: 'Reflect', Icon: NotebookPenIcon },
+  { tab: 'home', href: '/learnlog?tab=home', label: 'Home', Icon: null },
+  { tab: 'library', href: '/learnlog?tab=library', label: 'Library', Icon: LibraryIcon },
+  { tab: 'skills', href: '/learnlog?tab=skills', label: 'Skills', Icon: DumbbellIcon },
+  { tab: 'career', href: '/learnlog?tab=career', label: 'Career', Icon: BriefcaseIcon },
+  { tab: 'reflections', href: '/learnlog?tab=reflections', label: 'Reflect', Icon: NotebookPenIcon },
 ];
 
+// useSearchParams (below) needs a Suspense boundary for prerendering — this
+// wraps it here so every consumer gets it for free instead of each having
+// to remember to.
 export function LearnLogBottomNav() {
+  return (
+    <Suspense fallback={null}>
+      <LearnLogBottomNavInner />
+    </Suspense>
+  );
+}
+
+function LearnLogBottomNavInner() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const onLearnLog = pathname === '/learnlog';
+  const activeTab = searchParams.get('tab') ?? 'home';
   const isConfigActive = pathname === '/learnlog/config' || pathname.startsWith('/learnlog/config/');
+  // A skill's own detail page (/learnlog/skills/[id]) is a real, separate
+  // route (not a tab) — still highlight Skills while viewing one, matching
+  // the old pathname-based check's behavior there.
+  const onSkillDetail = pathname.startsWith('/learnlog/skills/');
 
   // Warms every nav tab's data: Home, Library, Skills, Career (roles +
   // certs + goals), and Reflections.
@@ -55,8 +74,8 @@ export function LearnLogBottomNav() {
       className="fixed bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-1 rounded-full border border-white/10 bg-background/40 px-2 py-2 shadow-lg backdrop-blur-md"
       aria-label="Primary"
     >
-      {tabs.map(({ href, label, Icon }) => {
-        const isActive = href === '/learnlog' ? pathname === href : pathname.startsWith(href + '/') || pathname === href;
+      {tabs.map(({ tab, href, label, Icon }) => {
+        const isActive = (onLearnLog && activeTab === tab) || (tab === 'skills' && onSkillDetail);
         return (
           <Link
             key={href}
