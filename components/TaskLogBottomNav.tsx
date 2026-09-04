@@ -1,8 +1,9 @@
 // components/TaskLogBottomNav.tsx
 'use client';
 
+import { Suspense } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
 import { motion } from 'motion/react';
 import { KanbanSquareIcon, InboxIcon, TargetIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -21,14 +22,28 @@ import {
 } from '@/lib/tasklog/queries';
 
 const tabs = [
-  { href: '/tasklog', label: 'Home', Icon: null },
-  { href: '/tasklog/board', label: 'Board', Icon: KanbanSquareIcon },
-  { href: '/tasklog/plan', label: 'Plan', Icon: InboxIcon },
-  { href: '/tasklog/goals', label: 'Goals', Icon: TargetIcon },
+  { tab: 'home', href: '/tasklog?tab=home', label: 'Home', Icon: null },
+  { tab: 'board', href: '/tasklog?tab=board', label: 'Board', Icon: KanbanSquareIcon },
+  { tab: 'plan', href: '/tasklog?tab=plan', label: 'Plan', Icon: InboxIcon },
+  { tab: 'goals', href: '/tasklog?tab=goals', label: 'Goals', Icon: TargetIcon },
 ];
 
+// useSearchParams (below) needs a Suspense boundary for prerendering — this
+// wraps it here so every consumer gets it for free instead of each having
+// to remember to.
 export function TaskLogBottomNav() {
+  return (
+    <Suspense fallback={null}>
+      <TaskLogBottomNavInner />
+    </Suspense>
+  );
+}
+
+function TaskLogBottomNavInner() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const onTaskLog = pathname === '/tasklog';
+  const activeTab = searchParams.get('tab') ?? 'home';
   const isConfigActive = pathname === '/tasklog/config' || pathname.startsWith('/tasklog/config/');
 
   // Warms every nav tab's data: Home, Board, Plan (which itself needs all
@@ -52,8 +67,8 @@ export function TaskLogBottomNav() {
       className="fixed bottom-4 left-1/2 z-40 flex -translate-x-1/2 items-center gap-1 rounded-full border border-white/10 bg-background/40 px-2 py-2 shadow-lg backdrop-blur-md"
       aria-label="Primary"
     >
-      {tabs.map(({ href, label, Icon }) => {
-        const isActive = href === '/tasklog' ? pathname === href : pathname.startsWith(href + '/') || pathname === href;
+      {tabs.map(({ tab, href, label, Icon }) => {
+        const isActive = onTaskLog && activeTab === tab;
         return (
           <Link
             key={href}
