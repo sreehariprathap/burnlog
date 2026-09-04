@@ -6,6 +6,7 @@ import { getModel } from '@/lib/ai/modelConfig';
 import { formatAiError } from '@/lib/ai/errors';
 import { runAiJob, AiRouteError } from '@/lib/ai/jobs';
 import { discoverTmdb } from '@/lib/watchlog/tmdb';
+import { fetchIgnoredTmdbIds } from '@/lib/watchlog/queries';
 import {
   buildSuggestSystemPrompt,
   buildSuggestUserPrompt,
@@ -70,12 +71,16 @@ export async function POST(request: Request) {
             filters = { mediaType: 'movie' as const, genreIds: [], minRating: 6, rationale: 'Popular picks for you.' };
           }
 
-          const results = await discoverTmdb({
-            mediaType: filters.mediaType,
-            genreIds: filters.genreIds,
-            minRating: filters.minRating,
-          });
-          return { rationale: filters.rationale, results: results.slice(0, 10) };
+          const [results, ignoredIds] = await Promise.all([
+            discoverTmdb({
+              mediaType: filters.mediaType,
+              genreIds: filters.genreIds,
+              minRating: filters.minRating,
+            }),
+            fetchIgnoredTmdbIds(supabase, profile.id),
+          ]);
+          const filtered = results.filter((r) => !ignoredIds.has(r.tmdbId));
+          return { rationale: filters.rationale, results: filtered.slice(0, 10) };
         }
       );
 

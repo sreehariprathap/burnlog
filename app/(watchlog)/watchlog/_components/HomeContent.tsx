@@ -7,10 +7,12 @@ import { TopBar } from '@/components/TopBar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useToast } from '@/components/ui/use-toast';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { watchItemsQuery } from '@/lib/watchlog/queries';
 import { WatchItemCard } from '@/components/watchlog/WatchItemCard';
 import { MoodChips } from './MoodChips';
+import { SuggestionResults } from './SuggestionResults';
 import type { TmdbItem } from '@/lib/watchlog/types';
 
 interface SuggestResponse {
@@ -32,6 +34,7 @@ async function fetchSuggestions(moods: string[], freeText: string | null, likedG
 }
 
 export function HomeContent() {
+  const { toast } = useToast();
   const { profile } = useCurrentProfile();
   const watchingQuery = profile ? watchItemsQuery(profile.id, 'watching') : null;
   const { data: watching, isLoading: watchingLoading } = useSWR(watchingQuery?.key ?? null, watchingQuery?.fetcher ?? null);
@@ -65,12 +68,31 @@ export function HomeContent() {
     }
   }
 
-  async function handleAdd(item: TmdbItem) {
-    await fetch('/api/watchlog/items', {
+  function removeFromSuggestions(item: TmdbItem) {
+    setSuggestion((prev) =>
+      prev ? { ...prev, results: prev.results.filter((r) => r.tmdbId !== item.tmdbId || r.mediaType !== item.mediaType) } : prev
+    );
+  }
+
+  async function handleAdd(item: TmdbItem, status: 'want' | 'completed' = 'want') {
+    const res = await fetch('/api/watchlog/items', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(item),
+      body: JSON.stringify({ ...item, status }),
     });
+    if (res.ok) {
+      toast({ description: status === 'completed' ? `Marked "${item.title}" as watched` : `Added "${item.title}" to your watchlist` });
+      removeFromSuggestions(item);
+    }
+  }
+
+  async function handleIgnore(item: TmdbItem) {
+    await fetch('/api/watchlog/ignore', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ tmdbId: item.tmdbId, mediaType: item.mediaType }),
+    });
+    removeFromSuggestions(item);
   }
 
   return (
@@ -107,18 +129,14 @@ export function HomeContent() {
           {suggestError && <p className="text-sm text-destructive">{suggestError}</p>}
 
           {suggestion && (
-            <div className="space-y-2">
+            <div className="space-y-3">
               <p className="text-sm text-muted-foreground">{suggestion.rationale}</p>
-              <div className="grid grid-cols-2 gap-3">
-                {suggestion.results.map((item) => (
-                  <WatchItemCard
-                    key={`${item.mediaType}-${item.tmdbId}`}
-                    item={item}
-                    badge="Add"
-                    onClick={() => handleAdd(item)}
-                  />
-                ))}
-              </div>
+              <SuggestionResults
+                items={suggestion.results}
+                onAdd={(item) => handleAdd(item)}
+                onMarkWatched={(item) => handleAdd(item, 'completed')}
+                onIgnore={handleIgnore}
+              />
             </div>
           )}
         </section>

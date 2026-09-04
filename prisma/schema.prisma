@@ -106,6 +106,7 @@ model Profile {
   socialMessageThreadsA   SocialMessageThread[] @relation("SocialMessageThreadParticipantA")
   socialMessageThreadsB   SocialMessageThread[] @relation("SocialMessageThreadParticipantB")
   watchItems              WatchItem[]
+  watchIgnores            WatchIgnore[]
   socialMessagesSent      SocialMessage[]
   socialProfileSettings   SocialProfileSettings?
   shopListings            ShopListing[]
@@ -1637,4 +1638,16 @@ model WatchItem {
   @@unique([profileId, tmdbId, mediaType])
   @@index([profileId, status])
   @@map("watch_items")
+}
+
+model WatchIgnore {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile   Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId String   @db.Uuid
+  tmdbId    Int
+  mediaType String   // 'movie' | 'tv'
+  createdAt DateTime @default(now())
+
+  @@unique([profileId, tmdbId, mediaType])
+  @@map("watch_ignores")
 }
