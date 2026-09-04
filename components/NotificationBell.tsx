@@ -13,6 +13,9 @@ import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { apiFetch } from '@/lib/apiFetch';
 import { formatRelative } from '@/lib/format';
 import { useMountAnimation } from '@/lib/useMountAnimation';
+import { AppIcon } from '@/components/AppIcon';
+import { appSearchColor } from '@/lib/search/registry';
+import { isAppId, type AppId } from '@/lib/appMode';
 
 // Matches the drawer's own close transition (vaul's default
 // `transform 0.5s cubic-bezier(...)`) closely enough that the sheet has
@@ -32,6 +35,7 @@ interface NotificationRow {
   url: string;
   read: boolean;
   createdAt: string;
+  app: string | null;
 }
 
 type NotificationsData = { notifications: NotificationRow[]; unreadCount: number };
@@ -92,12 +96,16 @@ function NotificationItem({
     }
   }
 
+  const appId = isAppId(n.app) ? n.app : null;
+  const color = appId ? appSearchColor(appId) : 'var(--muted-foreground)';
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: -8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, height: 0, marginBottom: 0 }}
-      transition={{ duration: 0.2 }}
+      layout
+      initial={{ scale: 0, opacity: 0 }}
+      animate={{ scale: 1, opacity: 1, originY: 0 }}
+      exit={{ opacity: 0, height: 0, marginBottom: 0, scale: 0.8 }}
+      transition={{ type: 'spring', stiffness: 350, damping: 40 }}
       // shrink-0 is load-bearing: this row is a flex item in the list's
       // flex-col scroll container, and a flex item with non-"visible"
       // overflow (overflow-hidden, here) gets an automatic minimum size of
@@ -131,11 +139,19 @@ function NotificationItem({
         // container and leaves only horizontal movement to the drag gesture.
         style={{ x, touchAction: 'pan-y' }}
         onClick={() => onClick(n)}
-        className="relative flex w-full flex-col items-start gap-0.5 rounded-lg border bg-background p-3 pr-9 text-left hover:bg-accent"
+        className="relative flex w-full items-start gap-3 rounded-lg border bg-background p-3 pr-9 text-left hover:bg-accent"
       >
-        <p className="text-sm font-medium">{n.title}</p>
-        <p className="text-sm text-muted-foreground">{n.message}</p>
-        <p className="text-xs text-muted-foreground/70">{formatRelative(n.createdAt)}</p>
+        <div
+          className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full"
+          style={{ backgroundColor: `color-mix(in oklch, ${color} 18%, transparent)` }}
+        >
+          {appId ? <AppIcon id={appId} size={18} /> : <BellIcon size={16} />}
+        </div>
+        <div className="flex min-w-0 flex-1 flex-col items-start gap-0.5">
+          <p className="text-sm font-medium">{n.title}</p>
+          <p className="text-sm text-muted-foreground">{n.message}</p>
+          <p className="text-xs text-muted-foreground/70">{formatRelative(n.createdAt)}</p>
+        </div>
       </motion.button>
       {/* Swipe-to-dismiss is easy to miss, so a notification can always be
           removed with a plain tap on a visible close button too. */}

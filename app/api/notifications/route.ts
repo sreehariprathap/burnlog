@@ -19,7 +19,7 @@ export async function GET() {
     const [{ data: notifications }, { count: unreadCount }] = await Promise.all([
       admin
         .from('notifications')
-        .select('id, title, message, url, read, createdAt')
+        .select('id, title, message, url, read, createdAt, app')
         .eq('profileId', me.id)
         .order('createdAt', { ascending: false })
         .limit(30),

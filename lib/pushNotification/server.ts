@@ -1,6 +1,7 @@
 // lib/pushNotification/server.ts
 import webpush from 'web-push';
 import type { SupabaseClient } from '@supabase/supabase-js';
+import { isAppId, type AppId } from '@/lib/appMode';
 
 const vapidPublicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
 const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
@@ -9,7 +10,16 @@ if (vapidPublicKey && vapidPrivateKey) {
   webpush.setVapidDetails('mailto:sreehariprathap1996@gmail.com', vapidPublicKey, vapidPrivateKey);
 }
 
-export type PushPayload = { title: string; message: string; url: string };
+export type PushPayload = { title: string; message: string; url: string; app?: AppId };
+
+// Every notification template's url is already namespaced under its app
+// (e.g. /burnlog/session, /moneylog?tab=plan) — reused here so callers
+// don't have to pass `app` explicitly just to get the right icon/color in
+// the in-app notifications panel.
+function inferAppFromUrl(url: string): AppId | null {
+  const segment = url.split('?')[0].split('/').filter(Boolean)[0];
+  return segment && isAppId(segment) ? segment : null;
+}
 
 export async function sendPushToUser(
   supabase: SupabaseClient,
@@ -51,6 +61,7 @@ export async function sendPushToUser(
           title: payload.title,
           message: payload.message,
           url: payload.url,
+          app: payload.app ?? inferAppFromUrl(payload.url),
         });
       }
     }

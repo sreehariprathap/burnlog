@@ -297,6 +297,7 @@ model Notification {
   url       String
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
+  app       String?  // AppId this notification belongs to, for icon/color — inferred from url when not given
 
   // Supports the same-day duplicate check in sendPushToUser (lib/pushNotification/server.ts),
   // which looks up an existing identical notification (same recipient/title/message/url,
