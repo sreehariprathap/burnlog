@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import { createClient } from '@/lib/supabase/client';
 import { CalendarDays, CalendarRange, Calendar, RefreshCw } from 'lucide-react';
@@ -107,7 +108,20 @@ export function HomeContent() {
   const supabase = createClient();
   const { profile } = useCurrentProfile();
   const profileId = profile?.id ?? null;
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const periodFromUrl = PERIODS.indexOf((searchParams.get('period') as Period) ?? 'weekly');
+  const [selectedIndex, setSelectedIndexState] = useState(periodFromUrl >= 0 ? periodFromUrl : 0);
+
+  const setSelectedIndex = (index: number) => {
+    setSelectedIndexState(index);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('period', PERIODS[index]);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
+
   const [refreshKey, setRefreshKey] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
 

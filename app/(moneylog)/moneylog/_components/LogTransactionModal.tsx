@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { createClient } from '@/lib/supabase/client';
 import { Receipt, Loader2 } from 'lucide-react';
@@ -77,6 +77,10 @@ export function LogTransactionModal({ profileId, onClose, onSaved }: LogTransact
   const [amountError, setAmountError] = useState<string | null>(null);
   const [categoryError, setCategoryError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const categorySelectRef = useRef<HTMLSelectElement>(null);
+  const customCategoryRef = useRef<HTMLInputElement>(null);
+  const amountRef = useRef<HTMLInputElement>(null);
+  const labelRef = useRef<HTMLInputElement>(null);
 
   const categories = type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES;
 
@@ -104,20 +108,25 @@ export function LogTransactionModal({ profileId, onClose, onSaved }: LogTransact
 
     const resolvedCategory = category === 'custom' ? customCategory.trim() : category;
 
-    let hasError = false;
-    if (!label.trim()) {
-      setLabelError('Please enter a label');
-      hasError = true;
+    // Focus the first invalid field in the form's visual (top-to-bottom,
+    // left-to-right) order: category, then amount, then label.
+    let firstInvalidField: HTMLElement | null = null;
+    if (!resolvedCategory) {
+      setCategoryError(category === 'custom' ? 'Please name your category' : 'Please choose a category');
+      firstInvalidField ??= category === 'custom' ? customCategoryRef.current : categorySelectRef.current;
     }
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
       setAmountError('Please enter a valid amount');
-      hasError = true;
+      firstInvalidField ??= amountRef.current;
     }
-    if (!resolvedCategory) {
-      setCategoryError(category === 'custom' ? 'Please name your category' : 'Please choose a category');
-      hasError = true;
+    if (!label.trim()) {
+      setLabelError('Please enter a label');
+      firstInvalidField ??= labelRef.current;
     }
-    if (hasError) return;
+    if (firstInvalidField) {
+      firstInvalidField.focus();
+      return;
+    }
 
     setSaving(true);
     try {
@@ -193,6 +202,7 @@ export function LogTransactionModal({ profileId, onClose, onSaved }: LogTransact
                   <Label htmlFor="category">Category</Label>
                   <select
                     id="category"
+                    ref={categorySelectRef}
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
                     className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background md:text-sm"
@@ -204,6 +214,7 @@ export function LogTransactionModal({ profileId, onClose, onSaved }: LogTransact
                   </select>
                   {category === 'custom' && (
                     <Input
+                      ref={customCategoryRef}
                       placeholder="Category name"
                       value={customCategory}
                       onChange={(e) => setCustomCategory(e.target.value)}
@@ -215,6 +226,7 @@ export function LogTransactionModal({ profileId, onClose, onSaved }: LogTransact
                   <Label htmlFor="amount">Amount</Label>
                   <Input
                     id="amount"
+                    ref={amountRef}
                     type="number"
                     inputMode="decimal"
                     step="0.01"
@@ -230,6 +242,7 @@ export function LogTransactionModal({ profileId, onClose, onSaved }: LogTransact
                 <Label htmlFor="label">Label</Label>
                 <Input
                   id="label"
+                  ref={labelRef}
                   placeholder="e.g. Whole Foods"
                   autoComplete="off"
                   value={label}
@@ -270,7 +283,7 @@ export function LogTransactionModal({ profileId, onClose, onSaved }: LogTransact
 
           {tab !== 'import' && (
             <ThemedButton slot="primary-cta" type="submit" disabled={saving} className="w-full">
-              {saving ? 'Saving...' : 'Save'}
+              {saving ? 'Saving…' : 'Save'}
             </ThemedButton>
           )}
         </form>
