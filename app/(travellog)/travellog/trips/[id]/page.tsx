@@ -53,6 +53,12 @@ async function fetcher(url: string) {
   return res.json();
 }
 
+const visitDateFormatter = new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+
+function formatVisitDate(date: string): string {
+  return visitDateFormatter.format(new Date(date));
+}
+
 export default function TripDetailPage() {
   const params = useParams<{ id: string }>();
   const { data, isLoading, mutate } = useSWR<TripDetail>(`/api/travellog/plans/${params.id}`, fetcher);
@@ -110,7 +116,7 @@ export default function TripDetailPage() {
             {data.visits.map((v) => (
               <div key={v.id} className="text-sm">
                 <p className="font-medium">{v.placeName}, {v.country}</p>
-                <p className="text-xs text-muted-foreground">{v.arrivalDate}{v.departureDate ? ` – ${v.departureDate}` : ''}</p>
+                <p className="text-xs text-muted-foreground">{formatVisitDate(v.arrivalDate)}{v.departureDate ? ` – ${formatVisitDate(v.departureDate)}` : ''}</p>
               </div>
             ))}
           </CardContent>

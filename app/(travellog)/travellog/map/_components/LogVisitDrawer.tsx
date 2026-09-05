@@ -134,7 +134,7 @@ export function LogVisitDrawer({ profileId, open, onOpenChange, onSaved }: LogVi
                 {looking ? 'Looking…' : 'Look up'}
               </Button>
             </div>
-            {placeError && <p className="text-destructive text-xs">{placeError}</p>}
+            {placeError && <p role="alert" aria-live="polite" className="text-destructive text-xs">{placeError}</p>}
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="country">Country</Label>
@@ -150,7 +150,7 @@ export function LogVisitDrawer({ profileId, open, onOpenChange, onSaved }: LogVi
               <Input id="lng" type="number" step="any" value={lng} onChange={(e) => setLng(e.target.value)} />
             </div>
           </div>
-          {coordError && <p className="text-destructive text-xs">{coordError}</p>}
+          {coordError && <p role="alert" aria-live="polite" className="text-destructive text-xs">{coordError}</p>}
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <div className="flex flex-col gap-2">
               <Label htmlFor="arrivalDate">Arrival</Label>

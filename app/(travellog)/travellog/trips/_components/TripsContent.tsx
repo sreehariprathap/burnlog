@@ -29,8 +29,12 @@ export function TripsContent() {
           </Card>
         )}
         {(data?.plans ?? []).map((trip) => (
-          <Link key={trip.id} href={`/travellog/trips/${trip.id}`}>
-            <Card>
+          <Link
+            key={trip.id}
+            href={`/travellog/trips/${trip.id}`}
+            className="block rounded-2xl transition-transform active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+          >
+            <Card className="transition-colors hover:bg-accent/50">
               <CardContent className="pt-4 flex items-center justify-between">
                 <div>
                   <p className="font-medium">{trip.destination}</p>
