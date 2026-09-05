@@ -126,7 +126,13 @@ export default function AppThemePage() {
   }
 
   async function resetScope() {
-    const cleared: AppThemeFields = { primaryLight: null, backgroundLight: null, primaryDark: null, backgroundDark: null };
+    const cleared: AppThemeFields = {
+      primaryLight: null,
+      backgroundLight: null,
+      primaryDark: null,
+      backgroundDark: null,
+      ...(scope === 'global' ? { radius: null } : {}),
+    };
     if (scope === 'global') setGlobalState({});
     else setApps((prev) => ({ ...prev, [scope]: {} }));
     await save(cleared);
@@ -182,6 +188,22 @@ export default function AppThemePage() {
                   onChange={(v) => setField(key, v)}
                 />
               ))}
+              {scope === 'global' && (
+                <div className="space-y-1.5">
+                  <Label htmlFor="radius">Border radius</Label>
+                  <input
+                    id="radius"
+                    type="text"
+                    value={global.radius ?? ''}
+                    onChange={(e) => {
+                      const raw = e.target.value.trim();
+                      setGlobalState((prev) => ({ ...prev, radius: raw === '' ? null : raw }));
+                    }}
+                    placeholder="unset — uses default (0.625rem)"
+                    className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
+                  />
+                </div>
+              )}
               <div className="flex gap-2 pt-2">
                 <Button type="button" disabled={saving} onClick={() => save(current)}>
                   {saving ? <Loader2 className="size-4 animate-spin" /> : 'Save'}

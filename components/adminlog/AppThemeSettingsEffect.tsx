@@ -57,6 +57,10 @@ export function AppThemeSettingsEffect() {
 
       if (background) root.style.setProperty('--background', background);
       else root.style.removeProperty('--background');
+
+      // Radius is global-only — no per-app override.
+      if (global?.radius) root.style.setProperty('--radius', global.radius);
+      else root.style.removeProperty('--radius');
     }
 
     apply();

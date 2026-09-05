@@ -1624,6 +1624,9 @@ model AppThemeSetting {
   backgroundLight String?
   primaryDark     String?
   backgroundDark  String?
+  /// Border radius (e.g. "0.5rem"). Only meaningful on the "global" row —
+  /// per-app radius overrides aren't supported.
+  radius          String?
   updatedAt       DateTime @updatedAt
 
   @@map("adminlog_app_theme_settings")

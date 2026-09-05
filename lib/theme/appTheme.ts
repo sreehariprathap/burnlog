@@ -10,6 +10,8 @@ export interface AppThemeFields {
   backgroundLight?: string | null;
   primaryDark?: string | null;
   backgroundDark?: string | null;
+  /** Border radius (e.g. "0.5rem"). Global-only — no per-app override. */
+  radius?: string | null;
 }
 
 export const APP_THEME_FIELD_KEYS = [
@@ -33,6 +35,13 @@ const COLOR_PATTERN = /^(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)|oklch\([^)]+\))$/;
 
 export function isValidCssColor(value: unknown): value is string {
   return typeof value === 'string' && COLOR_PATTERN.test(value.trim());
+}
+
+// e.g. "0", "0.5rem", "8px"
+const RADIUS_PATTERN = /^\d+(\.\d+)?(rem|px)?$/;
+
+export function isValidRadius(value: unknown): value is string {
+  return typeof value === 'string' && RADIUS_PATTERN.test(value.trim());
 }
 
 /** Resolved value for one field: app override wins, else global, else

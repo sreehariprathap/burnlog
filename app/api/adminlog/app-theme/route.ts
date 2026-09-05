@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/serviceRole';
 import { requireAdminCaller } from '@/lib/adminlog/testOnboarding';
 import { isAppId } from '@/lib/appMode';
-import { isValidCssColor, type AppThemeFields } from '@/lib/theme/appTheme';
+import { isValidCssColor, isValidRadius, type AppThemeFields } from '@/lib/theme/appTheme';
 
 type Row = AppThemeFields & { id: string };
 
@@ -21,7 +21,7 @@ export async function GET() {
     const admin = createServiceRoleClient();
     const { data, error } = await admin
       .from('adminlog_app_theme_settings')
-      .select('id, primaryLight, backgroundLight, primaryDark, backgroundDark');
+      .select('id, primaryLight, backgroundLight, primaryDark, backgroundDark, radius');
     if (error) throw error;
 
     const rows = (data ?? []) as Row[];
@@ -66,6 +66,17 @@ export async function PUT(request: Request) {
         return NextResponse.json({ error: `Invalid ${key}` }, { status: 400 });
       }
       update[key] = value;
+    }
+
+    if (fields.radius !== undefined) {
+      const value = fields.radius;
+      if (value === null) {
+        update.radius = null;
+      } else if (!isValidRadius(value)) {
+        return NextResponse.json({ error: 'Invalid radius' }, { status: 400 });
+      } else {
+        update.radius = value;
+      }
     }
 
     const admin = createServiceRoleClient();
