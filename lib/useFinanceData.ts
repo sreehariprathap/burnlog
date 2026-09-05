@@ -34,6 +34,12 @@ export function useFinanceData(profileId: string | null, period: Period, refresh
     setData((prev) => ({ ...prev, loading: true }));
     try {
       const { start, end } = getPeriodRange(period);
+      // Clamp to "now" when the period's natural end is still in the future
+      // (e.g. "yearly" runs through Dec 31) — otherwise recurring items get
+      // projected across months that haven't happened yet, inflating the
+      // total well past what's actually occurred so far this period.
+      const now = new Date();
+      const effectiveEnd = end > now ? now : end;
 
       const [recurringRes, transactionsRes] = await Promise.all([
         supabase.from('recurring_items').select('*').eq('profileId', profileId).eq('isActive', true),
@@ -42,14 +48,14 @@ export function useFinanceData(profileId: string | null, period: Period, refresh
           .select('*')
           .eq('profileId', profileId)
           .gte('date', start.toISOString())
-          .lte('date', end.toISOString()),
+          .lte('date', effectiveEnd.toISOString()),
       ]);
 
       const recurringItems = (recurringRes.data as RecurringItemRow[]) || [];
       const transactions =
         (transactionsRes.data as { type: string; category: string; amount: number; date: string }[]) || [];
 
-      const virtualItems = expandRecurringInRange(recurringItems, start, end);
+      const virtualItems = expandRecurringInRange(recurringItems, start, effectiveEnd);
       const allItems: FinanceLineItem[] = [
         ...virtualItems,
         ...transactions.map((t) => ({ type: t.type, category: t.category, amount: t.amount, date: new Date(t.date) })),

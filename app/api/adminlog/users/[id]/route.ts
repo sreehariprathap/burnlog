@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/serviceRole';
 import { requireAdminCaller } from '@/lib/adminlog/testOnboarding';
 import { isAppId } from '@/lib/appMode';
+import { getBalance } from '@/lib/moneylog/balance';
 
 const EDITABLE_FIELDS = ['username', 'firstName', 'lastName', 'isAdmin', 'isTestAccount', 'aiEnabled', 'enabledApps'] as const;
 type EditableField = (typeof EDITABLE_FIELDS)[number];
@@ -23,7 +24,8 @@ export async function GET(_req: Request, { params }: { params: Promise<{ id: str
     return NextResponse.json({ error: 'User not found' }, { status: 404 });
   }
 
-  return NextResponse.json({ user: data });
+  const balance = await getBalance(admin, id);
+  return NextResponse.json({ user: data, balance });
 }
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {

@@ -2,7 +2,6 @@
 'use client';
 
 import { Wallet } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { formatCurrency } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
@@ -11,23 +10,30 @@ interface NetWorthSummaryCardProps {
   assetCount: number;
 }
 
+// Same gradient-card visual language as AssetWalletCard (kibo-ui's
+// CreditCard, simplified) — this is the aggregate across every asset, so it
+// gets its own distinct (brand-toned) gradient rather than any one asset
+// category's.
 export function NetWorthSummaryCard({ netWorth, assetCount }: NetWorthSummaryCardProps) {
   return (
-    <Card>
-      <CardHeader className="pb-2">
-        <CardTitle className="flex items-center gap-1.5 text-sm">
-          <Wallet className="h-4 w-4" />
+    <div
+      className={cn(
+        'relative w-full overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-950 p-5 text-white shadow-lg',
+        netWorth < 0 && 'from-red-600 to-red-950'
+      )}
+    >
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-medium uppercase tracking-wide text-white/70">
           Net Worth
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <p className={cn('text-3xl font-semibold tabular-nums', netWorth < 0 && 'text-destructive')}>
-          {formatCurrency(netWorth)}
-        </p>
-        <p className="text-xs text-muted-foreground mt-1">
-          Across {assetCount} asset{assetCount === 1 ? '' : 's'}
-        </p>
-      </CardContent>
-    </Card>
+        </span>
+        <Wallet className="h-5 w-5 text-white/70" aria-hidden="true" />
+      </div>
+      <p className="mt-6 font-mono text-3xl font-semibold tabular-nums" style={{ lineHeight: '100%' }}>
+        {formatCurrency(netWorth)}
+      </p>
+      <p className="mt-2 text-xs text-white/70">
+        Across {assetCount} asset{assetCount === 1 ? '' : 's'}
+      </p>
+    </div>
   );
 }

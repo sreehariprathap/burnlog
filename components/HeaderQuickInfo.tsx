@@ -4,6 +4,7 @@
 import { useState } from 'react';
 import useSWR from 'swr';
 import { Zap } from 'lucide-react';
+import { cn } from '@/lib/utils';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
@@ -12,6 +13,8 @@ import { StreakBadge } from '@/components/logbook/StreakBadge';
 import { LogCardsGrid } from '@/components/logbook/LogCardsGrid';
 import { ActivityTimeline } from '@/components/logbook/ActivityTimeline';
 import { AiJobsList } from '@/components/logbook/AiJobsList';
+import { QuickGlanceChat } from '@/components/logbook/QuickGlanceChat';
+import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import type { LogbookToday } from '@/lib/logbook/today';
 
 async function fetchLogbookToday(): Promise<LogbookToday> {
@@ -30,6 +33,7 @@ const RECENT_ACTIVITY_COUNT = 5;
  */
 export function HeaderQuickInfo() {
   const [open, setOpen] = useState(false);
+  const { profile } = useCurrentProfile();
   // Shares the 'logbook-today' SWR cache key with the LogBook hub page —
   // whichever loads first warms it for the other during the session.
   const { data, isLoading } = useSWR(open ? 'logbook-today' : null, fetchLogbookToday);
@@ -50,9 +54,10 @@ export function HeaderQuickInfo() {
             <DrawerTitle>Quick Glance</DrawerTitle>
           </DrawerHeader>
           <Tabs defaultValue="overview" className="flex flex-1 flex-col overflow-hidden">
-            <TabsList className="mx-4 grid grid-cols-2">
+            <TabsList className={cn('mx-4 grid', profile?.isAdmin ? 'grid-cols-3' : 'grid-cols-2')}>
               <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="ai-jobs">AI Jobs</TabsTrigger>
+              <TabsTrigger value="ai-chat">AI Chat</TabsTrigger>
+              {profile?.isAdmin && <TabsTrigger value="ai-jobs">AI Jobs</TabsTrigger>}
             </TabsList>
             <TabsContent value="overview" className="flex flex-col gap-5 overflow-y-auto p-4 pb-8">
               <GlobalSearch onNavigate={() => setOpen(false)} />
@@ -76,9 +81,14 @@ export function HeaderQuickInfo() {
                 </>
               )}
             </TabsContent>
-            <TabsContent value="ai-jobs" className="overflow-y-auto p-4 pb-8">
-              <AiJobsList />
+            <TabsContent value="ai-chat" className="overflow-y-auto p-4 pb-8">
+              <QuickGlanceChat onNavigate={() => setOpen(false)} />
             </TabsContent>
+            {profile?.isAdmin && (
+              <TabsContent value="ai-jobs" className="overflow-y-auto p-4 pb-8">
+                <AiJobsList />
+              </TabsContent>
+            )}
           </Tabs>
         </DrawerContent>
       </Drawer>

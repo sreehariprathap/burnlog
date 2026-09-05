@@ -194,7 +194,7 @@ export default function FinanceInsightsClient({ recurringItems, transactions }: 
             <XAxis dataKey="category" tick={{ fontSize: 10 }} interval={0} angle={-30} textAnchor="end" height={60} />
             <YAxis />
             <Tooltip formatter={(value: number) => formatCurrency(value)} />
-            <Bar dataKey="amount" fill="var(--destructive)" />
+            <Bar dataKey="amount" fill="var(--destructive)" radius={[6, 6, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>
@@ -213,7 +213,7 @@ export default function FinanceInsightsClient({ recurringItems, transactions }: 
             <XAxis dataKey="category" tick={{ fontSize: 10 }} interval={0} angle={-30} textAnchor="end" height={60} />
             <YAxis />
             <Tooltip formatter={(value: number) => formatCurrency(value)} />
-            <Bar dataKey="amount" fill="var(--success)" />
+            <Bar dataKey="amount" fill="var(--success)" radius={[6, 6, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </CardContent>

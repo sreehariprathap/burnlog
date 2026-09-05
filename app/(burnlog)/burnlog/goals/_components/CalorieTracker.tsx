@@ -202,7 +202,7 @@ export function CalorieTracker({ userId }: CalorieTrackerProps) {
           return (
             <div key={day} className="flex flex-col items-center flex-1">
               <div 
-                className="bg-primary w-full rounded-t"
+                className="bg-primary w-full rounded-t-lg"
                 style={{ height: `${Math.max(5, height)}%` }}
                 title={`${calories} calories`}
               />

@@ -4,12 +4,13 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'motion/react';
-import { SparklesIcon, MessageCircleIcon } from 'lucide-react';
+import { SparklesIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+// Chat moved to the global Quick Glance drawer (components/HeaderQuickInfo.tsx)
+// — reachable from anywhere, not just from inside IntelLog.
 const tabs = [
   { href: '/intellog', label: 'Dashboard', Icon: SparklesIcon },
-  { href: '/intellog/chat', label: 'Chat', Icon: MessageCircleIcon },
 ];
 
 export function IntelLogBottomNav() {

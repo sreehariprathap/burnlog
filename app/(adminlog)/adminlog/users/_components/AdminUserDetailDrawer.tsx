@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Loader2, RotateCcw } from 'lucide-react';
+import { Loader2, RotateCcw, Wallet } from 'lucide-react';
+import { formatCurrency } from '@/lib/format';
 import { apiFetch } from '@/lib/apiFetch';
 import { APPS, type AppId } from '@/lib/appMode';
 import {
@@ -53,10 +54,17 @@ export function AdminUserDetailDrawer({ userId, onOpenChange, onSaved }: AdminUs
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [resetting, setResetting] = useState(false);
+  const [balance, setBalance] = useState<number | null>(null);
+  const [walletAmount, setWalletAmount] = useState('');
+  const [walletMemo, setWalletMemo] = useState('');
+  const [adjusting, setAdjusting] = useState(false);
 
   useEffect(() => {
     if (!userId) {
       setUser(null);
+      setBalance(null);
+      setWalletAmount('');
+      setWalletMemo('');
       return;
     }
     setLoading(true);
@@ -65,6 +73,7 @@ export function AdminUserDetailDrawer({ userId, onOpenChange, onSaved }: AdminUs
       if (res.ok) {
         const data = await res.json();
         setUser(data.user);
+        setBalance(typeof data.balance === 'number' ? data.balance : null);
       } else {
         toast({ title: 'Could not load user', variant: 'destructive' });
         onOpenChange(false);
@@ -122,6 +131,32 @@ export function AdminUserDetailDrawer({ userId, onOpenChange, onSaved }: AdminUs
     }
   }
 
+  async function handleWalletAdjust(sign: 1 | -1) {
+    if (!user) return;
+    const parsed = Number(walletAmount);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      toast({ title: 'Enter a positive amount', variant: 'destructive' });
+      return;
+    }
+    setAdjusting(true);
+    const res = await apiFetch(`/api/adminlog/users/${user.id}/wallet-adjust`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount: parsed * sign, memo: walletMemo || undefined }),
+    });
+    setAdjusting(false);
+    if (res.ok) {
+      const data = await res.json();
+      setBalance(data.balance);
+      setWalletAmount('');
+      setWalletMemo('');
+      toast({ title: 'Wallet updated', description: `New balance: ${formatCurrency(data.balance)}` });
+    } else {
+      const data = await res.json().catch(() => ({}));
+      toast({ title: 'Could not adjust wallet', description: data.error, variant: 'destructive' });
+    }
+  }
+
   return (
     <Drawer open={!!userId} onOpenChange={(open) => !open && onOpenChange(false)}>
       <DrawerContent>
@@ -166,6 +201,44 @@ export function AdminUserDetailDrawer({ userId, onOpenChange, onSaved }: AdminUs
                 Joined {new Date(user.createdAt).toLocaleDateString()} · Lvl {user.level} · {user.currentStreak}🔥 current /{' '}
                 {user.longestStreak}🔥 best · {user.xp} XP
               </p>
+
+              <div className="space-y-3 rounded-lg border p-3">
+                <div className="flex items-center justify-between">
+                  <p className="flex items-center gap-1.5 text-sm font-medium">
+                    <Wallet className="h-4 w-4" />
+                    Wallet balance
+                  </p>
+                  <p className="font-semibold tabular-nums">{balance !== null ? formatCurrency(balance) : '—'}</p>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Adjustments post as a MoneyLog transaction and are immediately spendable (e.g. in ShoppingLog).
+                </p>
+                <div className="flex gap-2">
+                  <Input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    placeholder="Amount"
+                    value={walletAmount}
+                    onChange={(e) => setWalletAmount(e.target.value)}
+                    className="flex-1"
+                  />
+                  <Input
+                    placeholder="Memo (optional)"
+                    value={walletMemo}
+                    onChange={(e) => setWalletMemo(e.target.value)}
+                    className="flex-1"
+                  />
+                </div>
+                <div className="flex gap-2">
+                  <Button type="button" variant="outline" className="flex-1" disabled={adjusting} onClick={() => handleWalletAdjust(1)}>
+                    {adjusting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Add'}
+                  </Button>
+                  <Button type="button" variant="outline" className="flex-1" disabled={adjusting} onClick={() => handleWalletAdjust(-1)}>
+                    {adjusting ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Subtract'}
+                  </Button>
+                </div>
+              </div>
 
               <div className="space-y-3 rounded-lg border p-3">
                 <div className="flex items-center justify-between">
