@@ -10,7 +10,9 @@ import { LiquidButton } from '@/components/ui/liquid-button';
 import { FlowButton } from '@/components/ui/flow-button';
 import { MetalButton } from '@/components/ui/metal-button';
 import { LinkButton } from '@/components/ui/link-button';
+import { Label } from '@/components/ui/label';
 import { apiFetch } from '@/lib/apiFetch';
+import { APPS, type AppId } from '@/lib/appMode';
 import { BUTTON_SLOTS, BUTTON_STYLES, DEFAULT_BUTTON_STYLE, isButtonStyle, type ButtonStyle } from '@/lib/buttonThemes';
 
 const STYLE_LABELS: Record<ButtonStyle, string> = {
@@ -20,6 +22,16 @@ const STYLE_LABELS: Record<ButtonStyle, string> = {
   metal: 'Metal',
   link: 'Link',
 };
+
+/** Sentinel for an app-scoped slot with no row of its own — it falls back to
+ * whatever global says. Global scope never offers it (there's nothing above
+ * global to inherit from). */
+const INHERIT = 'inherit';
+
+const SCOPE_OPTIONS: { value: 'global' | AppId; label: string }[] = [
+  { value: 'global', label: 'Global (default for every app)' },
+  ...(Object.values(APPS).map((a) => ({ value: a.id, label: a.name })) as { value: AppId; label: string }[]),
+];
 
 function StylePreview({ style }: { style: ButtonStyle }) {
   if (style === 'liquid') return <LiquidButton>Preview</LiquidButton>;
@@ -31,7 +43,9 @@ function StylePreview({ style }: { style: ButtonStyle }) {
 
 export default function ButtonThemePage() {
   const { profile, loading: profileLoading } = useRequireAdmin();
-  const [settings, setSettings] = useState<Record<string, ButtonStyle>>({});
+  const [scope, setScope] = useState<'global' | AppId>('global');
+  const [global, setGlobal] = useState<Record<string, ButtonStyle>>({});
+  const [apps, setApps] = useState<Record<string, Record<string, ButtonStyle>>>({});
   const [loading, setLoading] = useState(true);
   const [pendingSlots, setPendingSlots] = useState<Set<string>>(new Set());
   const [error, setError] = useState<string | null>(null);
@@ -44,12 +58,22 @@ export default function ButtonThemePage() {
         const res = await apiFetch('/api/adminlog/button-theme');
         const data = await res.json();
         if (!res.ok) throw new Error(data.error ?? 'Failed to load settings');
-        const next: Record<string, ButtonStyle> = {};
+
+        const nextGlobal: Record<string, ButtonStyle> = {};
         for (const slot of BUTTON_SLOTS) {
-          const value = data.settings?.[slot.key];
-          next[slot.key] = isButtonStyle(value) ? value : DEFAULT_BUTTON_STYLE;
+          const value = data.global?.[slot.key];
+          nextGlobal[slot.key] = isButtonStyle(value) ? value : DEFAULT_BUTTON_STYLE;
         }
-        setSettings(next);
+        const nextApps: Record<string, Record<string, ButtonStyle>> = {};
+        for (const [appId, slots] of Object.entries((data.apps ?? {}) as Record<string, Record<string, unknown>>)) {
+          const resolved: Record<string, ButtonStyle> = {};
+          for (const [key, value] of Object.entries(slots)) {
+            if (isButtonStyle(value)) resolved[key] = value;
+          }
+          nextApps[appId] = resolved;
+        }
+        setGlobal(nextGlobal);
+        setApps(nextApps);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load settings');
       } finally {
@@ -58,24 +82,45 @@ export default function ButtonThemePage() {
     })();
   }, [profile?.isAdmin]);
 
-  async function updateSlot(slot: string, style: ButtonStyle) {
-    const rollback = settings[slot];
-    setSettings((prev) => ({ ...prev, [slot]: style }));
+  /** What the Select shows: the row's own style, or INHERIT for an
+   * app-scoped slot with no row. */
+  function valueFor(slot: string): string {
+    if (scope === 'global') return global[slot] ?? DEFAULT_BUTTON_STYLE;
+    return apps[scope]?.[slot] ?? INHERIT;
+  }
+
+  async function updateSlot(slot: string, next: string) {
+    const previousGlobal = global;
+    const previousApps = apps;
+
+    // Optimistic, rolled back below if the write fails.
+    if (scope === 'global') {
+      setGlobal((prev) => ({ ...prev, [slot]: next as ButtonStyle }));
+    } else {
+      setApps((prev) => {
+        const forApp = { ...prev[scope] };
+        if (next === INHERIT) delete forApp[slot];
+        else forApp[slot] = next as ButtonStyle;
+        return { ...prev, [scope]: forApp };
+      });
+    }
     setPendingSlots((prev) => new Set(prev).add(slot));
+
     try {
       const res = await apiFetch('/api/adminlog/button-theme', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slot, style }),
+        body: JSON.stringify({ scope, slot, style: next === INHERIT ? null : next }),
       });
       if (!res.ok) throw new Error('request failed');
     } catch {
-      setSettings((prev) => ({ ...prev, [slot]: rollback }));
+      setGlobal(previousGlobal);
+      setApps(previousApps);
     } finally {
       setPendingSlots((prev) => {
-        const next = new Set(prev);
-        next.delete(slot);
-        return next;
+        const updated = new Set(prev);
+        updated.delete(slot);
+        return updated;
       });
     }
   }
@@ -92,10 +137,24 @@ export default function ButtonThemePage() {
     <div className="mx-auto max-w-3xl space-y-6 p-6">
       <div>
         <p className="text-sm text-muted-foreground">
-          Pick which visual style each themeable button element uses across the app. Only elements
-          wrapped in <code className="rounded bg-muted px-1 py-0.5">ThemedButton</code> respond to this —
+          Pick which visual style each themeable button element uses, globally or per app. An
+          app-level choice wins over global; leaving a slot on &ldquo;Inherit&rdquo; falls back to
+          global. Only elements wrapped in{' '}
+          <code className="rounded bg-muted px-1 py-0.5">ThemedButton</code> respond to this —
           existing screens are unaffected until they opt in.
         </p>
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="scope">Scope</Label>
+        <Select value={scope} onValueChange={(v) => setScope(v as 'global' | AppId)}>
+          <SelectTrigger id="scope" className="w-full"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {SCOPE_OPTIONS.map((o) => (
+              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       <Card>
@@ -123,14 +182,19 @@ export default function ButtonThemePage() {
                   <p className="text-xs text-muted-foreground">{slot.description}</p>
                 </div>
                 <Select
-                  value={settings[slot.key] ?? DEFAULT_BUTTON_STYLE}
-                  onValueChange={(value) => updateSlot(slot.key, value as ButtonStyle)}
+                  value={valueFor(slot.key)}
+                  onValueChange={(value) => updateSlot(slot.key, value)}
                   disabled={pendingSlots.has(slot.key)}
                 >
                   <SelectTrigger className="w-44">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
+                    {scope !== 'global' && (
+                      <SelectItem value={INHERIT}>
+                        Inherit ({STYLE_LABELS[global[slot.key] ?? DEFAULT_BUTTON_STYLE]})
+                      </SelectItem>
+                    )}
                     {BUTTON_STYLES.map((style) => (
                       <SelectItem key={style} value={style}>
                         {STYLE_LABELS[style]}

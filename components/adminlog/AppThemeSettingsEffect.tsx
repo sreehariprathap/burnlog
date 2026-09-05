@@ -88,11 +88,16 @@ export function AppThemeSettingsEffect() {
 
     apply();
 
-    // One observer catches both app switches (setAppTheme swaps the
-    // `.app-<id>` class) and light/dark toggles (ThemeProvider swaps
-    // `.light`/`.dark`) — both mutate <html>'s class attribute.
+    // One observer catches both app switches (setAppTheme stamps
+    // <html data-app> and swaps the `.app-<id>` class) and light/dark
+    // toggles (ThemeProvider swaps `.light`/`.dark`). data-app is watched
+    // as well as class because burnlog/adminlog/intellog have no theme
+    // class, so switching between two of those changes no class at all.
     const observer = new MutationObserver(apply);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class', 'data-app'],
+    });
     return () => observer.disconnect();
   }, [data]);
 

@@ -90,9 +90,22 @@ const SHAPE_FIELDS: { key: keyof AppThemeFields; label: string; placeholder: str
 ];
 
 const SCOPE_OPTIONS: { value: 'global' | AppId; label: string }[] = [
-  { value: 'global', label: 'Global (default for every app)' },
+  // Deliberately not "default for every app": a global colour is written as
+  // an inline style on <html>, which beats each app's own `.app-*` palette
+  // in globals.css. It overrides app identity rather than backstopping it.
+  { value: 'global', label: 'Global (overrides every app)' },
   ...(Object.values(APPS).map((a) => ({ value: a.id, label: a.name })) as { value: AppId; label: string }[]),
 ];
+
+interface ColorComboRow {
+  id: string;
+  name: string;
+  primaryLight: string;
+  primaryDark: string;
+  backgroundLight: string;
+  backgroundDark: string;
+  isTemplate: boolean;
+}
 
 export default function AppThemePage() {
   const { profile, loading: profileLoading } = useRequireAdmin();
@@ -101,20 +114,39 @@ export default function AppThemePage() {
   const [scope, setScope] = useState<'global' | AppId>('global');
   const [global, setGlobalState] = useState<AppThemeFields>({});
   const [apps, setApps] = useState<Record<string, AppThemeFields>>({});
+  const [combos, setCombos] = useState<ColorComboRow[]>([]);
 
   useEffect(() => {
     if (!profile?.isAdmin) return;
     (async () => {
       setLoading(true);
-      const res = await apiFetch('/api/adminlog/app-theme');
-      if (res.ok) {
-        const data = await res.json();
+      const [themeRes, comboRes] = await Promise.all([
+        apiFetch('/api/adminlog/app-theme'),
+        apiFetch('/api/adminlog/color-combos'),
+      ]);
+      if (themeRes.ok) {
+        const data = await themeRes.json();
         setGlobalState(data.global ?? {});
         setApps(data.apps ?? {});
       }
+      if (comboRes.ok) setCombos(await comboRes.json());
       setLoading(false);
     })();
   }, [profile?.isAdmin]);
+
+  /** Drops a saved palette's four colours into the current scope's fields.
+   * Left unsaved on purpose — the admin can preview the swatches, tweak,
+   * then hit Save, same as hand-entered values. */
+  function applyCombo(combo: ColorComboRow) {
+    const colors: AppThemeFields = {
+      primaryLight: combo.primaryLight,
+      primaryDark: combo.primaryDark,
+      backgroundLight: combo.backgroundLight,
+      backgroundDark: combo.backgroundDark,
+    };
+    if (scope === 'global') setGlobalState((prev) => ({ ...prev, ...colors }));
+    else setApps((prev) => ({ ...prev, [scope]: { ...prev[scope], ...colors } }));
+  }
 
   const current: AppThemeFields = scope === 'global' ? global : (apps[scope] ?? {});
 
@@ -184,6 +216,37 @@ export default function AppThemePage() {
           </SelectContent>
         </Select>
       </div>
+
+      {combos.length > 0 && (
+        <Card>
+          <CardContent className="space-y-3 p-4">
+            <div>
+              <p className="text-sm font-medium">Palettes</p>
+              <p className="text-xs text-muted-foreground">
+                Fills the four colour fields below for the current scope. Nothing is written until
+                you hit Save. Manage these in AdminLog &rsaquo; UI &rsaquo; Color Combos.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {combos.map((combo) => (
+                <button
+                  key={combo.id}
+                  type="button"
+                  onClick={() => applyCombo(combo)}
+                  title={`Apply ${combo.name}`}
+                  className="flex items-center gap-2 rounded-md border px-2 py-1.5 text-xs transition-colors hover:bg-accent"
+                >
+                  <span className="flex gap-0.5" aria-hidden>
+                    <span className="size-4 rounded-sm border" style={{ background: combo.primaryLight }} />
+                    <span className="size-4 rounded-sm border" style={{ background: combo.primaryDark }} />
+                  </span>
+                  {combo.name}
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardContent className="space-y-4 p-4">

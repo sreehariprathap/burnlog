@@ -81,10 +81,15 @@ export function TypographySettingsEffect() {
 
     apply();
 
-    // Catches app switches (setAppTheme swaps the `.app-<id>` class on
-    // <html>), which change which app's override applies.
+    // Catches app switches, which change which app's override applies.
+    // data-app is the reliable signal (setAppTheme stamps it on every
+    // switch); class alone misses switches between the three apps that
+    // have no theme class of their own.
     const observer = new MutationObserver(apply);
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ['class', 'data-app'],
+    });
     return () => observer.disconnect();
   }, [data]);
 

@@ -1589,10 +1589,14 @@ model LearnGroupInvite {
 }
 
 model ButtonThemeSetting {
-  slot      String   @id
+  /// "global" or an AppId — same scoping model as AppThemeSetting and
+  /// TypographySetting, so an app-level row wins over the global one.
+  scope     String   @default("global")
+  slot      String
   style     String   @default("default")
   updatedAt DateTime @updatedAt
 
+  @@id([scope, slot])
   @@map("adminlog_button_theme_settings")
 }
 
