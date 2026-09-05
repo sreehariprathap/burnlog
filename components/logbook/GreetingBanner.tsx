@@ -35,7 +35,6 @@ export function GreetingBanner({ name }: GreetingBannerProps) {
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const pauseTimer = () => {
