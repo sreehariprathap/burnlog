@@ -132,8 +132,15 @@ export function StreakCalendar() {
                       ? `${formatTooltipDate(day.date)} — ${day.apps.length ? day.apps.join(', ') : 'nothing logged'}`
                       : undefined
                   }
+                  aria-label={
+                    day
+                      ? `${formatTooltipDate(day.date)} — ${day.apps.length ? day.apps.join(', ') : 'nothing logged'}`
+                      : undefined
+                  }
+                  tabIndex={day ? 0 : undefined}
                   className={cn(
-                    'h-2.5 w-2.5 rounded-sm',
+                    'h-2.5 w-2.5 rounded-sm outline-none',
+                    day && 'focus-visible:ring-[3px] focus-visible:ring-ring/50',
                     day ? LEVEL_CLASSES[day.level] : 'bg-transparent',
                     day?.date === today && 'ring-1 ring-primary ring-offset-1 ring-offset-card'
                   )}
