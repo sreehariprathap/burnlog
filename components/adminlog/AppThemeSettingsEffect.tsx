@@ -58,14 +58,18 @@ export function AppThemeSettingsEffect() {
       if (background) root.style.setProperty('--background', background);
       else root.style.removeProperty('--background');
 
-      // Radius, spacing, border, and shadow are global-only — no per-app override.
-      if (global?.radius) root.style.setProperty('--radius', global.radius);
+      // Radius, spacing, border, and shadow: per-app override wins, else global.
+      const radius = resolveThemeField(appOverride?.radius, global?.radius);
+      if (radius) root.style.setProperty('--radius', radius);
       else root.style.removeProperty('--radius');
 
-      if (global?.spacing) root.style.setProperty('--spacing', global.spacing);
+      const spacing = resolveThemeField(appOverride?.spacing, global?.spacing);
+      if (spacing) root.style.setProperty('--spacing', spacing);
       else root.style.removeProperty('--spacing');
 
-      const border = isDark ? global?.borderDark : global?.borderLight;
+      const borderLight = resolveThemeField(appOverride?.borderLight, global?.borderLight);
+      const borderDark = resolveThemeField(appOverride?.borderDark, global?.borderDark);
+      const border = isDark ? borderDark : borderLight;
       if (border) root.style.setProperty('--border', border);
       else root.style.removeProperty('--border');
 
@@ -76,7 +80,7 @@ export function AppThemeSettingsEffect() {
         ['shadowLg', '--app-shadow-lg'],
       ] as const;
       for (const [field, cssVar] of shadowTiers) {
-        const value = global?.[field];
+        const value = resolveThemeField(appOverride?.[field as keyof typeof appOverride], global?.[field as keyof typeof global]);
         if (value) root.style.setProperty(cssVar, value);
         else root.style.removeProperty(cssVar);
       }

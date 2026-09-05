@@ -1624,18 +1624,16 @@ model AppThemeSetting {
   backgroundLight String?
   primaryDark     String?
   backgroundDark  String?
-  /// Border radius (e.g. "0.5rem"). Only meaningful on the "global" row —
-  /// per-app radius overrides aren't supported.
+  /// Border radius (e.g. "0.5rem"). Per-app-overridable.
   radius          String?
   /// Base spacing unit (e.g. "0.25rem") — Tailwind's --spacing multiplies
-  /// every p-*/m-*/gap-*/w-*/h-* utility against this. Global-only.
+  /// every p-*/m-*/gap-*/w-*/h-* utility against this. Per-app-overridable.
   spacing         String?
-  /// Hairline/border color, light & dark. Global-only — wins over every
-  /// per-app border color hardcoded in globals.css when set.
+  /// Hairline/border color, light & dark. Per-app-overridable.
   borderLight     String?
   borderDark      String?
   /// Elevation (box-shadow) overrides for the xs/sm/md/lg tiers used across
-  /// Button/Input/Select/Card/Dialog/DropdownMenu. Global-only.
+  /// Button/Input/Select/Card/Dialog/DropdownMenu. Per-app-overridable.
   shadowXs        String?
   shadowSm        String?
   shadowMd        String?
@@ -1643,6 +1641,24 @@ model AppThemeSetting {
   updatedAt       DateTime @updatedAt
 
   @@map("adminlog_app_theme_settings")
+}
+
+/// Named color palettes (combos) that admins can create and reuse. Each palette
+/// bundles primaryLight/Dark and backgroundLight/Dark into a cohesive four-color set.
+model ColorCombo {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name            String   // e.g. "Ocean Blue", "Warm Sunset"
+  description     String?
+  primaryLight    String   // hex color
+  primaryDark     String   // hex color
+  backgroundLight String   // hex color
+  backgroundDark  String   // hex color
+  isTemplate      Boolean  @default(false) // True for read-only shipped palettes
+  createdBy       String?  // User ID who created it (null for templates)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("adminlog_color_combos")
 }
 
 /// Site-wide announcement banners an admin can post — AdminLog > General >
