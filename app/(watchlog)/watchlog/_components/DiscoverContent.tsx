@@ -13,7 +13,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { TitleCarousel } from '@/components/watchlog/TitleCarousel';
 import { WatchItemCard } from '@/components/watchlog/WatchItemCard';
 import { WatchDetailSheet } from '@/components/watchlog/WatchDetailSheet';
-import { BROWSE_GENRE_ROWS, REGIONAL_ROWS } from '@/lib/watchlog/tmdb';
+import { BROWSE_GENRE_ROWS, REGIONAL_ROWS } from '@/lib/watchlog/discoverRows';
 import type { TmdbItem } from '@/lib/watchlog/types';
 
 type SortOption = 'popularity' | 'rating' | 'newest';
