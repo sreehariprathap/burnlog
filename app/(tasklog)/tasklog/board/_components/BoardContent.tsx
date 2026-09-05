@@ -252,7 +252,6 @@ export function BoardContent() {
           onChange={(e) => setNewTaskTitle(e.target.value)}
           placeholder="Quick add to To Do…"
           autoComplete="off"
-          autoFocus
           disabled={addingTask}
         />
         <Button type="submit" size="icon" aria-label="Add task" disabled={addingTask || !newTaskTitle.trim()}>

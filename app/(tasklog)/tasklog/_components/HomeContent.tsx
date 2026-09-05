@@ -30,8 +30,8 @@ function TodayTaskRow({ task, onToggle }: { task: TaskRow; onToggle: () => void 
           onCheckedChange={onToggle}
           aria-label={task.completedAt ? `Mark "${task.title}" incomplete` : `Mark "${task.title}" complete`}
         />
-        <div className="flex-1">
-          <p className={`text-sm ${task.completedAt ? 'text-muted-foreground line-through' : ''}`}>{task.title}</p>
+        <div className="flex-1 min-w-0">
+          <p className={`text-sm truncate ${task.completedAt ? 'text-muted-foreground line-through' : ''}`}>{task.title}</p>
           {task.dueDate && !task.completedAt && (
             <p className="text-xs text-muted-foreground">Due {task.dueDate}</p>
           )}
