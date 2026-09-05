@@ -24,8 +24,8 @@ export function IntelLogOnboardingFlow() {
           looking at your data together instead of in separate silos. Ask it anything about how your apps connect.
         </p>
         <p className="rounded-md border border-dashed p-3 text-xs text-muted-foreground">
-          Placeholder — not legal-reviewed copy. Your activity across the apps you use may be sent to our AI
-          provider to generate suggestions, and may be used to help us improve how our AI features work. See our{' '}
+          Your activity across the apps you use may be sent to our AI provider to generate suggestions, and may
+          be used to help us improve how our AI features work. See our{' '}
           <Link href="/privacy" className="underline">Privacy Policy</Link>.
         </p>
         <Button className="w-full" onClick={() => router.push(returnTo)}>Continue</Button>

@@ -73,18 +73,21 @@ export function IntelChatModelPicker({ models, selectedModel, onSelect }: IntelC
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex max-w-[160px] items-center gap-1 rounded-full border bg-background px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground"
+        aria-expanded={open}
+        aria-haspopup="listbox"
+        className="flex max-w-[160px] items-center gap-1 rounded-full border bg-background px-2.5 py-1 text-xs text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
       >
         <span className="truncate">{selectedName}</span>
         <ChevronDownIcon className="h-3 w-3 shrink-0" />
       </button>
 
       {open && (
-        <div className="absolute bottom-full left-0 z-50 mb-2 w-72 rounded-xl border bg-popover p-2 shadow-lg">
+        <div role="listbox" className="absolute bottom-full left-0 z-50 mb-2 w-72 rounded-xl border bg-popover p-2 shadow-lg">
           {customMode ? (
             <form onSubmit={submitCustom} className="flex flex-col gap-2">
               <input
                 autoFocus
+                aria-label="Custom model ID"
                 value={customValue}
                 onChange={(e) => setCustomValue(e.target.value)}
                 placeholder="e.g. mistralai/mixtral-8x7b"
@@ -102,6 +105,7 @@ export function IntelChatModelPicker({ models, selectedModel, onSelect }: IntelC
           ) : (
             <>
               <input
+                aria-label="Search models"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 placeholder="Search models…"
@@ -115,9 +119,11 @@ export function IntelChatModelPicker({ models, selectedModel, onSelect }: IntelC
                   <button
                     key={m.id}
                     type="button"
+                    role="option"
+                    aria-selected={m.id === selectedModel}
                     onClick={() => selectAndClose(m.id)}
                     className={cn(
-                      'flex w-full flex-col items-start rounded-md px-2 py-1.5 text-left text-sm hover:bg-accent',
+                      'flex w-full flex-col items-start rounded-md px-2 py-1.5 text-left text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                       m.id === selectedModel && 'bg-accent'
                     )}
                   >
@@ -132,7 +138,7 @@ export function IntelChatModelPicker({ models, selectedModel, onSelect }: IntelC
               <button
                 type="button"
                 onClick={() => setCustomMode(true)}
-                className="mt-2 w-full rounded-md border border-dashed px-2 py-1.5 text-left text-xs text-muted-foreground hover:text-foreground"
+                className="mt-2 w-full rounded-md border border-dashed px-2 py-1.5 text-left text-xs text-muted-foreground hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 Use custom model ID…
               </button>

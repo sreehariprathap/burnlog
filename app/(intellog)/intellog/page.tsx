@@ -2,6 +2,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 import useSWR from 'swr';
 import { createClient } from '@/lib/supabase/client';
 import { CheckIcon, XIcon, ClockIcon, SparklesIcon } from 'lucide-react';
@@ -24,11 +25,13 @@ type SuggestionRow = {
 
 function SuggestionCard({
   suggestion,
+  pending,
   onAct,
   onDismiss,
   onSnooze,
 }: {
   suggestion: SuggestionRow;
+  pending: boolean;
   onAct: () => void;
   onDismiss: () => void;
   onSnooze: () => void;
@@ -43,15 +46,15 @@ function SuggestionCard({
         <p className="text-sm font-semibold">{suggestion.title}</p>
         <p className="text-sm text-muted-foreground">{suggestion.body}</p>
         <div className="mt-2 flex gap-2">
-          <Button type="button" size="sm" onClick={onAct}>
+          <Button type="button" size="sm" onClick={onAct} disabled={pending}>
             <CheckIcon className="mr-1 h-3 w-3" aria-hidden="true" />
             Act
           </Button>
-          <Button type="button" size="sm" variant="outline" onClick={onSnooze}>
+          <Button type="button" size="sm" variant="outline" onClick={onSnooze} disabled={pending}>
             <ClockIcon className="mr-1 h-3 w-3" aria-hidden="true" />
             Snooze
           </Button>
-          <Button type="button" size="sm" variant="ghost" onClick={onDismiss}>
+          <Button type="button" size="sm" variant="ghost" onClick={onDismiss} disabled={pending}>
             <XIcon className="mr-1 h-3 w-3" aria-hidden="true" />
             Dismiss
           </Button>
@@ -80,9 +83,29 @@ export default function IntelLogPage() {
   const newSuggestions = suggestions.filter((s) => s.status === 'new');
   const snoozed = suggestions.filter((s) => s.status === 'snoozed');
 
+  const [pendingIds, setPendingIds] = useState<Set<string>>(new Set());
+  const [liveMessage, setLiveMessage] = useState('');
+
+  const RESPOND_LABEL: Record<'acted' | 'dismissed' | 'snoozed', string> = {
+    acted: 'Suggestion actioned',
+    dismissed: 'Suggestion dismissed',
+    snoozed: 'Suggestion snoozed',
+  };
+
   async function respond(id: string, status: 'acted' | 'dismissed' | 'snoozed') {
-    await supabase.from('intel_suggestions').update({ status, respondedAt: new Date().toISOString() }).eq('id', id);
-    await mutate();
+    if (pendingIds.has(id)) return;
+    setPendingIds((prev) => new Set(prev).add(id));
+    try {
+      await supabase.from('intel_suggestions').update({ status, respondedAt: new Date().toISOString() }).eq('id', id);
+      await mutate();
+      setLiveMessage(RESPOND_LABEL[status]);
+    } finally {
+      setPendingIds((prev) => {
+        const next = new Set(prev);
+        next.delete(id);
+        return next;
+      });
+    }
   }
 
   async function handleAct(suggestion: SuggestionRow) {
@@ -93,6 +116,7 @@ export default function IntelLogPage() {
   return (
     <div className="pb-24">
       <TopBar title="IntelLog" />
+      <p role="status" aria-live="polite" className="sr-only">{liveMessage}</p>
       <div className="flex flex-col gap-4 px-4 py-4">
         {!data ? (
           <div className="flex h-40 w-full items-center justify-center overflow-visible">
@@ -115,6 +139,7 @@ export default function IntelLogPage() {
                   <SuggestionCard
                     key={s.id}
                     suggestion={s}
+                    pending={pendingIds.has(s.id)}
                     onAct={() => handleAct(s)}
                     onDismiss={() => respond(s.id, 'dismissed')}
                     onSnooze={() => respond(s.id, 'snoozed')}
@@ -129,6 +154,7 @@ export default function IntelLogPage() {
                   <SuggestionCard
                     key={s.id}
                     suggestion={s}
+                    pending={pendingIds.has(s.id)}
                     onAct={() => handleAct(s)}
                     onDismiss={() => respond(s.id, 'dismissed')}
                     onSnooze={() => respond(s.id, 'snoozed')}
