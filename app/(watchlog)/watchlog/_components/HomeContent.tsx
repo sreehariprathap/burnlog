@@ -69,14 +69,17 @@ export function HomeContent() {
   const [orbOpen, setOrbOpen] = useState(false);
   const [selectedGenres, setSelectedGenres] = useState<Set<string>>(new Set());
   const [freeText, setFreeText] = useState('');
+  const [suggestionError, setSuggestionError] = useState(false);
 
   async function regenerate(genres: string[], text: string) {
     setLoadingSuggestion(true);
+    setSuggestionError(false);
     try {
       const result = await fetchSuggestions(genres, text || null);
       setSuggestion(result);
       setDeckIndex(0);
     } catch (err) {
+      setSuggestionError(true);
       toast({ title: 'Could not generate suggestions', description: err instanceof Error ? err.message : String(err), variant: 'destructive' });
     } finally {
       setLoadingSuggestion(false);
@@ -140,6 +143,11 @@ export function HomeContent() {
     });
   }
 
+  function skipCurrent(item: TmdbItem) {
+    handleIgnore(item);
+    setDeckIndex((i) => i + 1);
+  }
+
   const results = suggestion?.results ?? [];
 
   return (
@@ -173,6 +181,14 @@ export function HomeContent() {
 
           {restoringSuggestion || (loadingSuggestion && results.length === 0) ? (
             <Skeleton className="h-[480px] w-full rounded-xl" />
+          ) : suggestionError && results.length === 0 ? (
+            <div className="flex h-[480px] w-full max-w-sm mx-auto flex-col items-center justify-center gap-3 rounded-xl border border-dashed p-6 text-center">
+              <p className="text-sm font-medium">Couldn&apos;t load suggestions</p>
+              <p className="text-xs text-muted-foreground">Check your connection and try again.</p>
+              <Button size="sm" variant="outline" onClick={() => regenerate(Array.from(selectedGenres), freeText)}>
+                Retry
+              </Button>
+            </div>
           ) : (
             <Deck className="h-[480px] w-full max-w-sm mx-auto">
               <DeckEmpty>
@@ -193,10 +209,17 @@ export function HomeContent() {
                     <button
                       type="button"
                       onClick={() => setDetail(item)}
-                      className="relative h-3/4 w-full overflow-hidden bg-muted"
+                      aria-label={`View details for ${item.title}`}
+                      className="relative h-3/4 w-full overflow-hidden bg-muted transition-transform active:scale-[0.98]"
                     >
                       {item.posterPath ? (
-                        <Image src={`${TMDB_IMG_BASE}${item.posterPath}`} alt={item.title} fill className="object-cover" />
+                        <Image
+                          src={`${TMDB_IMG_BASE}${item.posterPath}`}
+                          alt={item.title}
+                          fill
+                          sizes="(max-width: 640px) 90vw, 384px"
+                          className="object-cover"
+                        />
                       ) : null}
                     </button>
                     <div className="flex w-full flex-1 flex-col justify-between p-3">
@@ -207,9 +230,14 @@ export function HomeContent() {
                           {item.voteAverage.toFixed(1)} · {item.releaseYear ?? ''}
                         </p>
                       </div>
-                      <Button size="sm" variant="secondary" onClick={() => handleAdd(item, 'completed')}>
-                        Mark Watched
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button size="sm" variant="outline" className="flex-1 active:scale-[0.97]" onClick={() => skipCurrent(item)}>
+                          Not Interested
+                        </Button>
+                        <Button size="sm" variant="secondary" className="flex-1 active:scale-[0.97]" onClick={() => handleAdd(item, 'completed')}>
+                          Mark Watched
+                        </Button>
+                      </div>
                     </div>
                   </DeckItem>
                 ))}
@@ -231,9 +259,10 @@ export function HomeContent() {
                 <button
                   key={genre}
                   type="button"
+                  aria-pressed={selectedGenres.has(genre)}
                   onClick={() => toggleGenre(genre)}
                   className={cn(
-                    'rounded-full border px-3 py-1.5 text-sm transition-colors',
+                    'rounded-full border px-3 py-1.5 text-sm transition-colors active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
                     selectedGenres.has(genre)
                       ? 'bg-primary text-primary-foreground border-primary'
                       : 'bg-background text-foreground border-border'
@@ -244,12 +273,13 @@ export function HomeContent() {
               ))}
             </div>
             <Textarea
+              aria-label="Anything else you want to add"
               placeholder="Anything else? (optional)"
               value={freeText}
               onChange={(e) => setFreeText(e.target.value)}
             />
-            <Button onClick={handleOrbSubmit} disabled={loadingSuggestion} className="w-full">
-              {loadingSuggestion ? 'Thinking...' : 'Regenerate'}
+            <Button onClick={handleOrbSubmit} disabled={loadingSuggestion} className="w-full active:scale-[0.98]">
+              {loadingSuggestion ? 'Thinking…' : 'Regenerate'}
             </Button>
           </div>
         </DrawerContent>

@@ -15,10 +15,23 @@ interface WatchItemCardProps {
 
 export function WatchItemCard({ item, onClick, badge }: WatchItemCardProps) {
   return (
-    <Card onClick={onClick} className="overflow-hidden cursor-pointer">
+    <Card
+      onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } } : undefined}
+      aria-label={onClick ? item.title : undefined}
+      className="overflow-hidden cursor-pointer transition-transform active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+    >
       <div className="relative aspect-[2/3] bg-muted">
         {item.posterPath ? (
-          <Image src={`${TMDB_IMG_BASE}${item.posterPath}`} alt={item.title} fill className="object-cover" />
+          <Image
+            src={`${TMDB_IMG_BASE}${item.posterPath}`}
+            alt={item.title}
+            fill
+            sizes="(max-width: 768px) 33vw, 200px"
+            className="object-cover"
+          />
         ) : (
           <div className="flex h-full items-center justify-center text-xs text-muted-foreground">No poster</div>
         )}

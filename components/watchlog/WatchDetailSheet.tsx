@@ -65,7 +65,7 @@ export function WatchDetailSheet({ item, open, onOpenChange, onAdd, onMarkWatche
           <div className="flex gap-4">
             <div className="relative h-40 w-28 shrink-0 overflow-hidden rounded-lg bg-muted">
               {item.posterPath ? (
-                <Image src={`${TMDB_IMG_BASE}${item.posterPath}`} alt={item.title} fill className="object-cover" />
+                <Image src={`${TMDB_IMG_BASE}${item.posterPath}`} alt={item.title} fill sizes="112px" className="object-cover" />
               ) : null}
             </div>
             <div className="flex flex-col gap-2">
@@ -117,6 +117,7 @@ export function WatchDetailSheet({ item, open, onOpenChange, onAdd, onMarkWatche
                   className="h-full w-full"
                   src={`https://www.youtube.com/embed/${trailerKey}`}
                   title="Trailer"
+                  loading="lazy"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                   allowFullScreen
                 />
