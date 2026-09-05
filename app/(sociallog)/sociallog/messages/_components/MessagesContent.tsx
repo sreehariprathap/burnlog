@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { TopBar } from '@/components/TopBar';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -33,7 +34,12 @@ export function MessagesContent() {
         }
       />
       <main className="flex-1 container mx-auto max-w-2xl space-y-2 p-4 pb-24">
-        {isLoading && <Loader2 className="h-6 w-6 animate-spin" />}
+        {isLoading && (
+          <div role="status">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span className="sr-only">Loading…</span>
+          </div>
+        )}
         {!isLoading && (data?.threads.length ?? 0) === 0 && (
           <div className="flex flex-col items-center gap-2">
             <ChatEmptyIllustration title="No conversations yet" subtitle="Tap the pencil to start one" />
@@ -43,10 +49,9 @@ export function MessagesContent() {
           </div>
         )}
         {(data?.threads ?? []).map((t) => (
-          <button
+          <Link
             key={t.id}
-            type="button"
-            onClick={() => router.push(`/sociallog/messages/${t.id}?with=${t.otherParticipant.id}`)}
+            href={`/sociallog/messages/${t.id}?with=${t.otherParticipant.id}`}
             className="flex w-full items-center gap-3 rounded-lg border p-3 text-left hover:bg-muted"
           >
             <Avatar>
@@ -60,7 +65,7 @@ export function MessagesContent() {
             <span className="shrink-0 text-[10px] text-muted-foreground">
               {formatRelative(t.lastMessageAt)}
             </span>
-          </button>
+          </Link>
         ))}
       </main>
       <NewMessageDialog

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { TopBar } from '@/components/TopBar';
 import { Button } from '@/components/ui/button';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
@@ -23,8 +24,24 @@ async function fetcher(url: string) {
 
 export function HomeContent() {
   const { profile } = useCurrentProfile();
-  const [tab, setTab] = useState<'foryou' | 'following'>('foryou');
-  const [sort, setSort] = useState<'hot' | 'new' | 'top'>('hot');
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const tab = searchParams.get('tab') === 'following' ? 'following' : 'foryou';
+  const sortParam = searchParams.get('sort');
+  const sort = sortParam === 'new' || sortParam === 'top' ? sortParam : 'hot';
+
+  function setTab(next: 'foryou' | 'following') {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', next);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }
+
+  function setSort(next: 'hot' | 'new' | 'top') {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('sort', next);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }
 
   const { data, isLoading, mutate } = useSWR<{ posts: FeedPost[] }>(
     `/api/sociallog/posts?tab=${tab}&sort=${sort}`,
@@ -65,7 +82,12 @@ export function HomeContent() {
           </Button>
         )}
         <FeedControls tab={tab} sort={sort} onTabChange={setTab} onSortChange={setSort} />
-        {isLoading && <Loader2 className="h-6 w-6 animate-spin" />}
+        {isLoading && (
+          <div role="status">
+            <Loader2 className="h-6 w-6 animate-spin" />
+            <span className="sr-only">Loading…</span>
+          </div>
+        )}
         {!isLoading && (data?.posts.length ?? 0) === 0 && (
           <div className="flex flex-col items-center gap-2 py-12 text-center">
             <Sparkles className="size-8 text-muted-foreground" />

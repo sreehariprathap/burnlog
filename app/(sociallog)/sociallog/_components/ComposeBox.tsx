@@ -104,6 +104,7 @@ export function ComposeBox({ onPosted }: { onPosted: () => void }) {
           placeholder="What's happening? Use #topics to tag it."
           maxLength={500}
         />
+        <p className="text-right text-xs text-muted-foreground">{text.length}/500</p>
         {previewUrl && file && (
           <div className="relative w-fit">
             {file.type.startsWith('video/') ? (

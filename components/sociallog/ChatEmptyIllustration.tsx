@@ -1,6 +1,6 @@
 'use client';
 
-import { motion } from 'motion/react';
+import { motion, useReducedMotion } from 'motion/react';
 import { MessageCircle } from 'lucide-react';
 
 interface ChatEmptyIllustrationProps {
@@ -28,13 +28,15 @@ const bubbleVariants = {
  * light and dark mode without hardcoded colors.
  */
 export function ChatEmptyIllustration({ title, subtitle }: ChatEmptyIllustrationProps) {
+  const reduceMotion = useReducedMotion();
+
   return (
     <div className="flex flex-col items-center gap-4 py-12 text-center">
       <div className="relative flex h-24 w-32 items-center justify-center">
         <motion.div
           custom={0}
           variants={bubbleVariants}
-          animate="animate"
+          animate={reduceMotion ? undefined : 'animate'}
           className="absolute left-0 top-2 flex h-10 w-16 items-center justify-center rounded-2xl rounded-bl-sm bg-muted shadow-sm"
         >
           <span className="h-1.5 w-8 rounded-full bg-muted-foreground/30" />
@@ -42,7 +44,7 @@ export function ChatEmptyIllustration({ title, subtitle }: ChatEmptyIllustration
         <motion.div
           custom={1}
           variants={bubbleVariants}
-          animate="animate"
+          animate={reduceMotion ? undefined : 'animate'}
           className="absolute right-0 top-8 flex h-10 w-14 items-center justify-center rounded-2xl rounded-br-sm bg-primary/15 shadow-sm"
         >
           <span className="h-1.5 w-7 rounded-full bg-primary/40" />
@@ -50,7 +52,7 @@ export function ChatEmptyIllustration({ title, subtitle }: ChatEmptyIllustration
         <motion.div
           custom={2}
           variants={bubbleVariants}
-          animate="animate"
+          animate={reduceMotion ? undefined : 'animate'}
           className="absolute bottom-0 left-4 flex h-9 w-12 items-center justify-center rounded-2xl rounded-bl-sm bg-muted shadow-sm"
         >
           <MessageCircle className="size-4 text-muted-foreground/60" />

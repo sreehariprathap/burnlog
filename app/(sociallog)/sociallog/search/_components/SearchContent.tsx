@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { TrophyIcon } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
 import { Input } from '@/components/ui/input';
@@ -11,9 +12,27 @@ import { UserResults } from './UserResults';
 import { TopicResults } from './TopicResults';
 import { ReelsGrid } from './ReelsGrid';
 
+function tabFromUrl(value: string | null): 'users' | 'topics' | 'reels' {
+  if (value === 'search-topics') return 'topics';
+  if (value === 'search-reels') return 'reels';
+  return 'users';
+}
+
 export function SearchContent() {
-  const [tab, setTab] = useState<'users' | 'topics' | 'reels'>('users');
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const tab = tabFromUrl(searchParams.get('tab'));
   const [query, setQuery] = useState('');
+
+  function setTab(next: 'users' | 'topics' | 'reels') {
+    const params = new URLSearchParams(searchParams.toString());
+    // The outer SocialLog tab switcher also reads `tab` (search/messages),
+    // so non-default sub-tabs use distinct `search-*` values to stay
+    // addressable without hijacking the outer switch back to Home.
+    params.set('tab', next === 'users' ? 'search' : `search-${next}`);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }
 
   return (
     <div className="min-h-screen flex flex-col">
