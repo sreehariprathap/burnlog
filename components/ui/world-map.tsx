@@ -6,6 +6,7 @@ import { motion } from 'motion/react';
 import DottedMap from 'dotted-map';
 
 import { useTheme } from '@/components/ThemeProvider';
+import { cn } from '@/lib/utils';
 
 interface MapPoint {
   lat: number;
@@ -17,9 +18,10 @@ interface MapProps {
   dots?: Array<{ start: MapPoint; end: MapPoint }>;
   hotspots?: MapPoint[];
   lineColor?: string;
+  className?: string;
 }
 
-export default function WorldMap({ dots = [], hotspots = [], lineColor = 'var(--primary)' }: MapProps) {
+export default function WorldMap({ dots = [], hotspots = [], lineColor = 'var(--primary)', className }: MapProps) {
   const svgRef = useRef<SVGSVGElement>(null);
   const map = new DottedMap({ height: 100, grid: 'diagonal' });
 
@@ -48,7 +50,7 @@ export default function WorldMap({ dots = [], hotspots = [], lineColor = 'var(--
   };
 
   return (
-    <div className="w-full aspect-[2/1] dark:bg-black bg-white rounded-lg relative font-sans">
+    <div className={cn('w-full aspect-[2/1] dark:bg-black bg-white rounded-lg relative font-sans', className)}>
       {/* eslint-disable-next-line @next/next/no-img-element -- generated data: URI, not an optimizable asset */}
       <img
         src={`data:image/svg+xml;utf8,${encodeURIComponent(svgMap)}`}

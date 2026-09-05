@@ -6,18 +6,15 @@ import useSWR from 'swr';
 import { X } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
 import { GooeyInput } from '@/components/ui/gooey-input';
+import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/components/ui/use-toast';
 import { TitleCarousel } from '@/components/watchlog/TitleCarousel';
 import { WatchItemCard } from '@/components/watchlog/WatchItemCard';
 import { WatchDetailSheet } from '@/components/watchlog/WatchDetailSheet';
 import { BROWSE_GENRE_ROWS, REGIONAL_ROWS } from '@/lib/watchlog/discoverRows';
 import type { TmdbItem } from '@/lib/watchlog/types';
-
-type SortOption = 'popularity' | 'rating' | 'newest';
-type MediaFilter = 'all' | 'movie' | 'tv';
 
 async function fetchTrending(): Promise<TmdbItem[]> {
   const res = await fetch('/api/watchlog/tmdb/trending');
@@ -41,13 +38,6 @@ async function fetchSearch(query: string): Promise<TmdbItem[]> {
   return json.results ?? [];
 }
 
-function sortResults(results: TmdbItem[], sort: SortOption): TmdbItem[] {
-  const sorted = [...results];
-  if (sort === 'rating') sorted.sort((a, b) => b.voteAverage - a.voteAverage);
-  else if (sort === 'newest') sorted.sort((a, b) => (b.releaseYear ?? 0) - (a.releaseYear ?? 0));
-  return sorted;
-}
-
 function BrowseRow({ label, movieGenreId, tvGenreId, originalLanguage, onSelect }: {
   label: string;
   movieGenreId?: number;
@@ -66,8 +56,6 @@ function BrowseRow({ label, movieGenreId, tvGenreId, originalLanguage, onSelect 
 export function DiscoverContent() {
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const [sort, setSort] = useState<SortOption>('popularity');
-  const [mediaFilter, setMediaFilter] = useState<MediaFilter>('all');
   const [selected, setSelected] = useState<TmdbItem | null>(null);
   const { toast } = useToast();
 
@@ -75,11 +63,6 @@ export function DiscoverContent() {
   const { data: searchResults, isLoading: searchLoading } = useSWR(
     query.length > 1 ? ['watchlog-search', query] : null,
     () => fetchSearch(query)
-  );
-
-  const filteredSearchResults = sortResults(
-    (searchResults ?? []).filter((r) => mediaFilter === 'all' || r.mediaType === mediaFilter),
-    sort
   );
 
   async function addItem(item: TmdbItem, status: 'want' | 'completed' = 'want') {
@@ -133,32 +116,16 @@ export function DiscoverContent() {
       {searchOpen && (
         <div className="fixed inset-0 z-50 flex flex-col bg-background">
           <div className="flex items-center gap-2 p-4">
-            <GooeyInput placeholder="Search movies & TV..." value={query} onValueChange={setQuery} className="flex-1" />
+            <Input
+              autoFocus
+              placeholder="Search movies & TV..."
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              className="flex-1"
+            />
             <Button variant="ghost" size="icon" onClick={() => setSearchOpen(false)}>
               <X className="h-5 w-5" />
             </Button>
-          </div>
-          <div className="flex gap-2 px-4 pb-4">
-            <Select value={sort} onValueChange={(v) => setSort(v as SortOption)}>
-              <SelectTrigger className="w-36">
-                <SelectValue placeholder="Sort" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="popularity">Popularity</SelectItem>
-                <SelectItem value="rating">Rating</SelectItem>
-                <SelectItem value="newest">Newest</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={mediaFilter} onValueChange={(v) => setMediaFilter(v as MediaFilter)}>
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All</SelectItem>
-                <SelectItem value="movie">Movies</SelectItem>
-                <SelectItem value="tv">TV</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
           <div className="flex-1 overflow-y-auto px-4 pb-8">
             {query.length <= 1 ? (
@@ -170,7 +137,7 @@ export function DiscoverContent() {
               </div>
             ) : (
               <div className="grid grid-cols-2 gap-3">
-                {filteredSearchResults.map((item) => (
+                {(searchResults ?? []).map((item) => (
                   <WatchItemCard
                     key={`${item.mediaType}-${item.tmdbId}`}
                     item={item}

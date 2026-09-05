@@ -42,19 +42,19 @@ export function MapContent() {
           </Button>
         }
       />
-      <div className="p-4 flex flex-col gap-4">
+      <div className="flex flex-col gap-4">
         {isLoading ? (
-          <Skeleton className="w-full aspect-[2/1] rounded-lg" />
+          <Skeleton className="w-full aspect-[2/1] rounded-none" />
         ) : sorted.length === 0 ? (
-          <Card>
+          <Card className="mx-4">
             <CardContent className="pt-6 text-sm text-muted-foreground text-center">
               No visits logged yet. Tap &quot;Log a visit&quot; to add your first one.
             </CardContent>
           </Card>
         ) : (
-          <WorldMap dots={dots} hotspots={hotspots} />
+          <WorldMap dots={dots} hotspots={hotspots} className="rounded-none" />
         )}
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 px-4">
           {sorted.slice().reverse().map((visit) => (
             <Card key={visit.id}>
               <CardContent className="pt-4 flex items-center justify-between">

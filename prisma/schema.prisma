@@ -872,6 +872,10 @@ model SocialMessageThread {
   participantBId String   @db.Uuid
   lastMessageAt  DateTime @default(now())
   createdAt      DateTime @default(now())
+  // Heartbeat timestamps (see the thread heartbeat route + the message POST
+  // route's push-skip check) — last time each side had this thread open.
+  participantALastActiveAt DateTime?
+  participantBLastActiveAt DateTime?
 
   messages SocialMessage[]
 
