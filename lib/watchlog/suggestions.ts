@@ -1,5 +1,5 @@
 // lib/watchlog/suggestions.ts
-import { MOVIE_GENRES, TV_GENRES } from './tmdb';
+import { MOVIE_GENRES, TV_GENRES } from './discoverRows';
 import type { MediaType } from './types';
 
 export const MOOD_CHIPS = [

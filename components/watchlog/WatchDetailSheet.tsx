@@ -31,9 +31,6 @@ const STATUS_LABEL: Record<WatchItemRow['status'], string> = {
 };
 
 export function WatchDetailSheet({ item, open, onOpenChange, onAdd, onMarkWatched, onIgnore }: WatchDetailSheetProps) {
-  if (!item) return null;
-  const alreadyTracked = isWatchItemRow(item);
-
   const [trailerKey, setTrailerKey] = useState<string | null>(null);
 
   useEffect(() => {
@@ -42,7 +39,7 @@ export function WatchDetailSheet({ item, open, onOpenChange, onAdd, onMarkWatche
       return;
     }
     let cancelled = false;
-    fetch(`/api/watchlog/tmdb/videos?tmdbId=${item.tmdbId}&mediaType=${item.mediaType}`)
+    fetch(`/api/watchlog/tmdb/videos?tmdbId=${item?.tmdbId}&mediaType=${item?.mediaType}`)
       .then((res) => (res.ok ? res.json() : { trailerKey: null }))
       .then((json) => {
         if (!cancelled) setTrailerKey(json.trailerKey ?? null);
@@ -53,7 +50,10 @@ export function WatchDetailSheet({ item, open, onOpenChange, onAdd, onMarkWatche
     return () => {
       cancelled = true;
     };
-  }, [open, item]);
+  }, [open, item?.tmdbId, item?.mediaType]);
+
+  if (!item) return null;
+  const alreadyTracked = isWatchItemRow(item);
 
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>

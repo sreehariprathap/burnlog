@@ -15,7 +15,7 @@ import { WatchItemCard } from '@/components/watchlog/WatchItemCard';
 import { WatchDetailSheet } from '@/components/watchlog/WatchDetailSheet';
 import { Deck, DeckCards, DeckItem, DeckEmpty } from '@/components/ui/deck';
 import SiriOrb from '@/components/smoothui/siri-orb';
-import { MOVIE_GENRES, TV_GENRES } from '@/lib/watchlog/tmdb';
+import { MOVIE_GENRES, TV_GENRES } from '@/lib/watchlog/discoverRows';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 import { Star } from 'lucide-react';
@@ -107,7 +107,11 @@ export function HomeContent() {
   function toggleGenre(genre: string) {
     setSelectedGenres((prev) => {
       const next = new Set(prev);
-      next.has(genre) ? next.delete(genre) : next.add(genre);
+      if (next.has(genre)) {
+        next.delete(genre);
+      } else {
+        next.add(genre);
+      }
       return next;
     });
   }
@@ -171,6 +175,9 @@ export function HomeContent() {
             <Skeleton className="h-[480px] w-full rounded-xl" />
           ) : (
             <Deck className="h-[480px] w-full max-w-sm mx-auto">
+              <DeckEmpty>
+                <p className="text-sm">That&apos;s everything — tap the orb for more.</p>
+              </DeckEmpty>
               <DeckCards
                 currentIndex={deckIndex}
                 onCurrentIndexChange={setDeckIndex}
@@ -206,9 +213,6 @@ export function HomeContent() {
                     </div>
                   </DeckItem>
                 ))}
-                <DeckEmpty>
-                  <p className="text-sm">That's everything — tap the orb for more.</p>
-                </DeckEmpty>
               </DeckCards>
             </Deck>
           )}

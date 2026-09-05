@@ -30,7 +30,7 @@ export async function GET(request: Request) {
     }
 
     const settled = await Promise.all(calls);
-    const results = settled.flat().slice(0, 15);
+    const results = settled.map((r) => r.slice(0, 8)).flat().slice(0, 15);
     return NextResponse.json({ results });
   } catch (error) {
     console.error('watchlog tmdb discover error:', error);

@@ -1,5 +1,6 @@
 // lib/watchlog/tmdb.ts
 import type { MediaType, TmdbItem } from './types';
+import { genreIdsToNames } from './discoverRows';
 
 const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 
@@ -10,25 +11,6 @@ const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
 const TMDB_READ_ACCESS_TOKEN =
   process.env.TMDB_READ_ACCESS_TOKEN ||
   'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJmMTY3N2Q5NDNkZTk1NWFiY2FiZmFjZWYyOWUwOTYzMCIsIm5iZiI6MTc4ODUxMTkwNC41NDIsInN1YiI6IjZhOWE4NmEwYTlmY2QzN2YwODFmOTE3YSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.ov7OfcdWHskzTklvzL9UL2MuWGn8fYh1E-wCNWdwMxU';
-
-export const MOVIE_GENRES: Record<number, string> = {
-  28: 'Action', 12: 'Adventure', 16: 'Animation', 35: 'Comedy', 80: 'Crime',
-  99: 'Documentary', 18: 'Drama', 10751: 'Family', 14: 'Fantasy', 36: 'History',
-  27: 'Horror', 10402: 'Music', 9648: 'Mystery', 10749: 'Romance',
-  878: 'Science Fiction', 10770: 'TV Movie', 53: 'Thriller', 10752: 'War', 37: 'Western',
-};
-
-export const TV_GENRES: Record<number, string> = {
-  10759: 'Action & Adventure', 16: 'Animation', 35: 'Comedy', 80: 'Crime',
-  99: 'Documentary', 18: 'Drama', 10751: 'Family', 10762: 'Kids', 9648: 'Mystery',
-  10763: 'News', 10764: 'Reality', 10765: 'Sci-Fi & Fantasy', 10766: 'Soap',
-  10767: 'Talk', 10768: 'War & Politics', 37: 'Western',
-};
-
-export function genreIdsToNames(ids: number[], mediaType: MediaType): string[] {
-  const table = mediaType === 'movie' ? MOVIE_GENRES : TV_GENRES;
-  return ids.map((id) => table[id]).filter((name): name is string => Boolean(name));
-}
 
 interface RawTmdbResult {
   id?: unknown;
@@ -138,5 +120,3 @@ export async function fetchTrailerKey(
   const best = officialTrailer ?? anyTrailer ?? anyTeaser;
   return typeof best?.key === 'string' ? best.key : null;
 }
-
-export { BROWSE_GENRE_ROWS, REGIONAL_ROWS, type BrowseGenreRow, type RegionalRow } from './discoverRows';

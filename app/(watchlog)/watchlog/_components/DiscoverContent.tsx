@@ -102,9 +102,17 @@ export function DiscoverContent() {
       <TopBar title="Discover" />
       <div className="p-4 space-y-6">
         <div className="flex justify-center">
-          <button type="button" onClick={() => setSearchOpen(true)} className="w-full max-w-sm">
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setSearchOpen(true)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') setSearchOpen(true);
+            }}
+            className="w-full max-w-sm"
+          >
             <GooeyInput placeholder="Search movies & TV..." className="pointer-events-none w-full" />
-          </button>
+          </div>
         </div>
 
         {trendingLoading ? (

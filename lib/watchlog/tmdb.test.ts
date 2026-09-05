@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { mapTmdbResult, genreIdsToNames, MOVIE_GENRES, TV_GENRES, fetchTrailerKey, discoverTmdb } from './tmdb';
+import { mapTmdbResult, fetchTrailerKey, discoverTmdb } from './tmdb';
+import { genreIdsToNames, MOVIE_GENRES, TV_GENRES } from './discoverRows';
 
 describe('mapTmdbResult', () => {
   it('maps a movie result, deriving mediaType, releaseYear, and genre names', () => {

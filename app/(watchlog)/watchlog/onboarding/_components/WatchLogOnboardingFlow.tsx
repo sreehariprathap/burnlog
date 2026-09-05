@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { OnboardingProgressBar } from '@/components/onboarding/OnboardingProgressBar';
 import { appSearchColor } from '@/lib/search/registry';
-import { MOVIE_GENRES, TV_GENRES } from '@/lib/watchlog/tmdb';
+import { MOVIE_GENRES, TV_GENRES } from '@/lib/watchlog/discoverRows';
 import { cn } from '@/lib/utils';
 
 const GENRE_OPTIONS = Array.from(new Set([...Object.values(MOVIE_GENRES), ...Object.values(TV_GENRES)])).sort();
@@ -62,7 +62,11 @@ export function WatchLogOnboardingFlow() {
   function toggleGenre(genre: string) {
     setSelectedGenres((prev) => {
       const next = new Set(prev);
-      next.has(genre) ? next.delete(genre) : next.add(genre);
+      if (next.has(genre)) {
+        next.delete(genre);
+      } else {
+        next.add(genre);
+      }
       return next;
     });
   }
@@ -70,7 +74,11 @@ export function WatchLogOnboardingFlow() {
   function toggleType(id: string) {
     setSelectedTypes((prev) => {
       const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
       return next;
     });
   }
