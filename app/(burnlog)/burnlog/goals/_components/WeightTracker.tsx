@@ -17,6 +17,8 @@ type WeightEntry = {
   notes?: string;
 };
 
+const entryDateFormatter = new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+
 type WeightTrackerProps = {
   userId: string;
 };
@@ -180,11 +182,13 @@ export function WeightTracker({ userId }: WeightTrackerProps) {
         {chartData.map((entry) => {
           const height = ((entry.weight - min) / range) * 100;
           return (
-            <div 
-              key={entry.id} 
+            <div
+              key={entry.id}
+              role="img"
               className="bg-warning w-4 rounded-t-lg"
               style={{ height: `${Math.max(10, height)}%` }}
-              title={`${new Date(entry.date).toLocaleDateString()}: ${entry.weight}kg`}
+              title={`${entryDateFormatter.format(new Date(entry.date))}: ${entry.weight}kg`}
+              aria-label={`${entryDateFormatter.format(new Date(entry.date))}: ${entry.weight}kg`}
             />
           );
         })}
@@ -238,7 +242,7 @@ export function WeightTracker({ userId }: WeightTrackerProps) {
                     className="flex-1"
                   />
                   <Button type="submit" disabled={submitting || !weight}>
-                    {submitting ? 'Saving...' : 'Save'}
+                    {submitting ? 'Saving…' : 'Save'}
                   </Button>
                 </div>
               </div>
@@ -262,7 +266,7 @@ export function WeightTracker({ userId }: WeightTrackerProps) {
                 <div className="max-h-40 overflow-y-auto space-y-1">
                   {entries.slice(0, 5).map((entry) => (
                     <div key={entry.id} className="flex justify-between text-sm border-b pb-1">
-                      <span>{new Date(entry.date).toLocaleDateString()}</span>
+                      <span>{entryDateFormatter.format(new Date(entry.date))}</span>
                       <span className="font-medium">{entry.weight} kg</span>
                     </div>
                   ))}

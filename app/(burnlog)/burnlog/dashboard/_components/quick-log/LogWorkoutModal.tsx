@@ -177,7 +177,7 @@ export function LogWorkoutModal({ profileId, onClose, onSaved }: LogWorkoutModal
           {error && <p className="text-sm text-destructive">{error}</p>}
 
           <ThemedButton slot="primary-cta" onClick={handleSave} disabled={saving} className="w-full">
-            {saving ? 'Saving...' : 'Save'}
+            {saving ? 'Saving…' : 'Save'}
           </ThemedButton>
         </div>
       </DrawerContent>

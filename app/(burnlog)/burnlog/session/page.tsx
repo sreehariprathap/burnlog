@@ -2,9 +2,9 @@
 // NOTE: this is a Client Component ('use client'), so `export const metadata` can't live here —
 // it would need a Server Component wrapper (e.g. a server layout.tsx) to set the page <title>.
 'use client';
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import useSWR from 'swr';
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { workoutPlanQuery, dateSessionQuery } from '@/lib/burnlog/queries';
@@ -32,14 +32,62 @@ import { DailyRingsWidget } from '@/app/(burnlog)/burnlog/dashboard/_components/
 import { ProgramView } from './_components/ProgramView';
 
 export default function SessionsPage() {
+  return (
+    <Suspense fallback={null}>
+      <SessionsPageContent />
+    </Suspense>
+  );
+}
+
+function SessionsPageContent() {
   const router = useRouter();
-  const [day, setDay] = useState<number>(new Date().getDay());
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  // day/view/selectedDate mirror the URL (?day=&view=&date=) so refresh and
+  // the browser back/forward buttons preserve the selection instead of
+  // always resetting to "today".
+  const dayParam = Number(searchParams.get('day'));
+  const viewParam = searchParams.get('view');
+  const dateParam = searchParams.get('date');
+
+  const [day, setDay] = useState<number>(
+    Number.isInteger(dayParam) && dayParam >= 0 && dayParam <= 6 ? dayParam : new Date().getDay()
+  );
   const [logging, setLogging] = useState<boolean>(false);
   const [showAddModal, setShowAddModal] = useState<boolean>(false);
   const [showHistory, setShowHistory] = useState<boolean>(false);
-  const [view, setView] = useState<'day' | 'month' | 'program'>('day');
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [view, setView] = useState<'day' | 'month' | 'program'>(
+    viewParam === 'month' || viewParam === 'program' ? viewParam : 'day'
+  );
+  const [selectedDate, setSelectedDate] = useState<Date>(() => {
+    if (dateParam) {
+      const parsed = new Date(`${dateParam}T00:00:00`);
+      if (!Number.isNaN(parsed.getTime())) return parsed;
+    }
+    return new Date();
+  });
   const [ringsRefreshKey, setRingsRefreshKey] = useState(0);
+
+  // Updates whichever of day/view/selectedDate changed, both in state and
+  // in the URL, in a single navigation — the callers below often change more
+  // than one of these together (e.g. picking a date also changes the day
+  // and switches back to the day view).
+  const goTo = (overrides: Partial<{ day: number; view: 'day' | 'month' | 'program'; selectedDate: Date }>) => {
+    const nextDay = overrides.day ?? day;
+    const nextView = overrides.view ?? view;
+    const nextSelectedDate = overrides.selectedDate ?? selectedDate;
+
+    setDay(nextDay);
+    setView(nextView);
+    setSelectedDate(nextSelectedDate);
+
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('day', String(nextDay));
+    params.set('view', nextView);
+    params.set('date', toLocalDateString(nextSelectedDate));
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
 
   // 1️⃣ Profile + lifestyle/water settings — shared cache across every app page
   const { profile: profileData, loading: profileLoading } = useCurrentProfile();
@@ -125,7 +173,7 @@ export default function SessionsPage() {
           </Button>
         }/>
       <div className="sticky top-14 z-10 border-b bg-background/80 px-4 py-2 backdrop-blur">
-        <PlanViewToggle view={view} onChange={setView} />
+        <PlanViewToggle view={view} onChange={(newView) => goTo({ view: newView })} />
       </div>
 
       {view === 'program' ? (
@@ -137,9 +185,7 @@ export default function SessionsPage() {
             currentStreak={currentStreak}
             selectedDate={selectedDate}
             onSelectDate={(date) => {
-              setSelectedDate(date);
-              setDay(date.getDay());
-              setView('day');
+              goTo({ selectedDate: date, day: date.getDay(), view: 'day' });
             }}
           />
         )
@@ -149,8 +195,7 @@ export default function SessionsPage() {
         <WeekdayTabs
           value={day}
           onChange={(newDay) => {
-            setDay(newDay);
-            setSelectedDate(nearestPastOrTodayWeekday(newDay));
+            goTo({ day: newDay, selectedDate: nearestPastOrTodayWeekday(newDay) });
           }}
         />
       </div>

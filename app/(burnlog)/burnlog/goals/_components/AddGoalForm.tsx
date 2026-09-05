@@ -111,13 +111,21 @@ export function AddGoalForm({ onGoalAdded, userId }: AddGoalFormProps) {
           required
           min="0"
           step="any"
+          autoComplete="off"
         />
       </div>
 
       {error && <p className="text-sm text-destructive">{error}</p>}
 
       <Button type="submit" disabled={loading}>
-        {loading ? <Loader className='animate-spin'/>: 'Add Goal'}
+        {loading ? (
+          <>
+            <Loader className="animate-spin" aria-hidden="true" />
+            <span className="sr-only">Loading…</span>
+          </>
+        ) : (
+          'Add Goal'
+        )}
       </Button>
     </form>
   );

@@ -1,5 +1,6 @@
 // app/insights/page.tsx
 import type { Metadata } from 'next';
+import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import InsightsClient from './_components/InsightsClient';
@@ -83,13 +84,15 @@ export default async function InsightsPage() {
     <div className="flex flex-col h-screen">
       <TopBar title="Insights" actions={<RefreshInsightsButton />} />
       <main className="flex-1 overflow-auto px-4 pb-16">
-        <InsightsClient
-          weightEntries={weightEntries || []}
-          weightGoal={weightGoal }
-          calorieBurns={calorieBurns || []}
-          foodIntakes={foodIntakes || []}
-          staminaSessions={staminaSessions || []}
-        />
+        <Suspense fallback={null}>
+          <InsightsClient
+            weightEntries={weightEntries || []}
+            weightGoal={weightGoal }
+            calorieBurns={calorieBurns || []}
+            foodIntakes={foodIntakes || []}
+            staminaSessions={staminaSessions || []}
+          />
+        </Suspense>
       </main>
       <BottomNav />
     </div>

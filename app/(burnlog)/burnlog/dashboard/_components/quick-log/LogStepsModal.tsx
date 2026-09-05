@@ -70,7 +70,7 @@ export function LogStepsModal({ profileId, onClose, onSaved }: LogStepsModalProp
           {error && <p className="text-sm text-destructive">{error}</p>}
 
           <ThemedButton slot="primary-cta" onClick={handleSave} disabled={saving} className="w-full">
-            {saving ? 'Saving...' : 'Save'}
+            {saving ? 'Saving…' : 'Save'}
           </ThemedButton>
         </div>
       </DrawerContent>
