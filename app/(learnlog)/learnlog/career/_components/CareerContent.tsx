@@ -17,6 +17,12 @@ import { RoleDrawer } from './RoleDrawer';
 import { CertDrawer } from './CertDrawer';
 import { GoalDrawer } from './GoalDrawer';
 
+const careerDateFormatter = new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+
+function formatCareerDate(date: string): string {
+  return careerDateFormatter.format(new Date(date));
+}
+
 export function CareerContent() {
   const { profile } = useCurrentProfile();
   const [roleDrawerOpen, setRoleDrawerOpen] = useState(false);
@@ -60,7 +66,7 @@ export function CareerContent() {
                     <p className="font-medium">{r.title}</p>
                     {!r.endDate && <Badge>Current</Badge>}
                   </div>
-                  <p className="text-xs text-muted-foreground">{r.company} · {r.startDate}{r.endDate ? ` – ${r.endDate}` : ' – present'}</p>
+                  <p className="text-xs text-muted-foreground">{r.company} · {formatCareerDate(r.startDate)}{r.endDate ? ` – ${formatCareerDate(r.endDate)}` : ' – present'}</p>
                 </CardContent>
               </Card>
             ))}
@@ -77,7 +83,7 @@ export function CareerContent() {
                     {c.expiresAt && c.expiresAt < today && <Badge variant="destructive">Expired</Badge>}
                   </div>
                   {c.issuer && <p className="text-xs text-muted-foreground">{c.issuer}</p>}
-                  <p className="text-xs text-muted-foreground">Earned {c.earnedAt}{c.expiresAt ? ` · expires ${c.expiresAt}` : ''}</p>
+                  <p className="text-xs text-muted-foreground">Earned {formatCareerDate(c.earnedAt)}{c.expiresAt ? ` · expires ${formatCareerDate(c.expiresAt)}` : ''}</p>
                 </CardContent>
               </Card>
             ))}
@@ -90,7 +96,7 @@ export function CareerContent() {
               <Card key={g.id}>
                 <CardContent className="pt-4">
                   <p className="font-medium">{g.title}</p>
-                  {g.targetDate && <p className="text-xs text-muted-foreground">Target: {g.targetDate}</p>}
+                  {g.targetDate && <p className="text-xs text-muted-foreground">Target: {formatCareerDate(g.targetDate)}</p>}
                   <Button size="sm" variant="outline" className="mt-2" onClick={() => setShareGoal(g)}>
                     <Share2 className="h-3 w-3 mr-1" />Share
                   </Button>

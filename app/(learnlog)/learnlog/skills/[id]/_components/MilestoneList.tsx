@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/components/ui/use-toast';
 import type { SkillMilestoneRow } from '@/lib/learnlog/types';
 
@@ -58,8 +59,10 @@ export function MilestoneList({ skillId, milestones, onChanged }: MilestoneListP
         <p className="font-medium text-sm">Milestones</p>
         {milestones.map((m) => (
           <div key={m.id} className="flex items-center gap-2">
-            <Checkbox checked={!!m.achievedAt} onCheckedChange={() => toggleAchieved(m)} />
-            <span className={m.achievedAt ? 'line-through text-muted-foreground text-sm' : 'text-sm'}>{m.title}</span>
+            <Checkbox checked={!!m.achievedAt} onCheckedChange={() => toggleAchieved(m)} id={`milestone-${m.id}`} />
+            <Label htmlFor={`milestone-${m.id}`} className={m.achievedAt ? 'line-through text-muted-foreground text-sm font-normal' : 'text-sm font-normal'}>
+              {m.title}
+            </Label>
           </div>
         ))}
         <div className="flex gap-2">

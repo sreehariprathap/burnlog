@@ -12,6 +12,8 @@ import { Plus } from 'lucide-react';
 import { reflectionsQuery } from '@/lib/learnlog/queries';
 import { ReflectionDrawer } from './ReflectionDrawer';
 
+const reflectionDateFormatter = new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+
 export function ReflectionsContent() {
   const { profile } = useCurrentProfile();
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -52,7 +54,7 @@ export function ReflectionsContent() {
                   {r.tags.map((t) => <Badge key={t} variant="outline">{t}</Badge>)}
                 </div>
               )}
-              <p className="text-xs text-muted-foreground mt-1">{new Date(r.createdAt).toLocaleDateString()}</p>
+              <p className="text-xs text-muted-foreground mt-1">{reflectionDateFormatter.format(new Date(r.createdAt))}</p>
             </CardContent>
           </Card>
         ))}
