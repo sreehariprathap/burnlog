@@ -7,6 +7,7 @@ import { PlusIcon, Trash2Icon, MessageCircleIcon } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
 import { apiFetch } from '@/lib/apiFetch';
 import { formatRelative } from '@/lib/format';
+import { useConfirm } from '@/lib/useConfirm';
 
 interface ThreadRow {
   id: string;
@@ -24,11 +25,13 @@ async function fetcher(url: string) {
 export default function IntelLogChatListPage() {
   const { data, mutate } = useSWR<{ threads: ThreadRow[] }>('/api/intellog/chat/threads', fetcher);
   const threads = data?.threads ?? [];
+  const { confirm, ConfirmDialog } = useConfirm();
 
   async function handleDelete(e: React.MouseEvent, threadId: string) {
     e.preventDefault();
     e.stopPropagation();
-    if (!window.confirm('Delete this chat? This cannot be undone.')) return;
+    const ok = await confirm({ title: 'Delete this chat?', description: 'This cannot be undone.', destructive: true });
+    if (!ok) return;
     await apiFetch(`/api/intellog/chat/threads/${threadId}`, { method: 'DELETE' });
     await mutate();
   }
@@ -79,6 +82,7 @@ export default function IntelLogChatListPage() {
           ))
         )}
       </div>
+      {ConfirmDialog}
     </div>
   );
 }

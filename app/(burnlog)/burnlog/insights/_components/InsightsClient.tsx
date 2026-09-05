@@ -2,6 +2,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import {
   ComposedChart,
   Area,
@@ -444,7 +445,19 @@ export default function InsightsClient({
   foodIntakes,
   staminaSessions,
 }: InsightsClientProps) {
-  const [selectedIndex, setSelectedIndex] = useState(0);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const tabFromUrl = insightTabs.findIndex((t) => t.id === searchParams.get('insight'));
+  const [selectedIndex, setSelectedIndexState] = useState(tabFromUrl >= 0 ? tabFromUrl : 0);
+
+  const setSelectedIndex = (index: number) => {
+    setSelectedIndexState(index);
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('insight', insightTabs[index].id);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  };
 
   const processedWeightData = useMemo(() => {
     const startDate = weightEntries.length > 0 ? parseISO(weightEntries[0].date) : null;

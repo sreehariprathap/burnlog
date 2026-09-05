@@ -14,6 +14,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { formatCurrency } from '@/lib/format';
 import { usePayment } from '@/lib/moneylog/paymentContext';
 import { cartQuery, type CartItem } from '@/lib/shoppinglog/queries';
+import { useConfirm } from '@/lib/useConfirm';
 
 export function CartContent() {
   const router = useRouter();
@@ -21,9 +22,11 @@ export function CartContent() {
   const { data, isLoading, mutate } = useSWR<{ items: CartItem[] }>(cartQuery().key, cartQuery().fetcher);
   const [checkingOut, setCheckingOut] = useState(false);
   const [removingId, setRemovingId] = useState<string | null>(null);
+  const { confirm, ConfirmDialog } = useConfirm();
 
   const remove = async (listingId: string) => {
-    if (!window.confirm('Remove this item from your cart?')) return;
+    const confirmed = await confirm({ title: 'Remove this item?', description: 'It will be removed from your cart.' });
+    if (!confirmed) return;
     setRemovingId(listingId);
     const res = await apiFetch(`/api/shoppinglog/cart/${listingId}`, { method: 'DELETE' });
     if (res.ok) {
@@ -156,7 +159,7 @@ export function CartContent() {
                     onClick={() => remove(item.listing.id)}
                     aria-label="Remove from cart"
                     disabled={removingId === item.listing.id}
-                    className="text-muted-foreground hover:text-destructive disabled:opacity-50"
+                    className="text-muted-foreground hover:text-destructive disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 rounded"
                   >
                     <Trash2 className="size-4" />
                   </button>
@@ -180,6 +183,7 @@ export function CartContent() {
           </Card>
         </div>
       )}
+      {ConfirmDialog}
     </div>
   );
 }

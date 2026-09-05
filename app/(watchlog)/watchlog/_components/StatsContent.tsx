@@ -30,15 +30,15 @@ export function StatsContent() {
           <>
             <div className="grid grid-cols-2 gap-2">
               <StatCard className="text-center">
-                <p className="text-2xl font-bold">{stats.completedCount}</p>
+                <p className="text-2xl font-bold tabular-nums">{stats.completedCount}</p>
                 <p className="text-xs text-muted-foreground">Completed</p>
               </StatCard>
               <StatCard className="text-center">
-                <p className="text-2xl font-bold">{stats.hoursWatched.toFixed(1)}</p>
+                <p className="text-2xl font-bold tabular-nums">{stats.hoursWatched.toFixed(1)}</p>
                 <p className="text-xs text-muted-foreground">Hours watched</p>
               </StatCard>
               <StatCard className="text-center">
-                <p className="text-2xl font-bold">{stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '—'}</p>
+                <p className="text-2xl font-bold tabular-nums">{stats.averageRating > 0 ? stats.averageRating.toFixed(1) : '—'}</p>
                 <p className="text-xs text-muted-foreground">Avg rating</p>
               </StatCard>
             </div>

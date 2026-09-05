@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 import { CommentList } from './CommentList';
 import { apiFetch } from '@/lib/apiFetch';
 import { formatRelative } from '@/lib/format';
+import { useToast } from '@/components/ui/use-toast';
 
 export type FeedPost = {
   id: string;
@@ -42,6 +43,7 @@ export function PostCard({ post, currentProfileId }: { post: FeedPost; currentPr
   const [following, setFollowing] = useState(post.isFollowingAuthor);
   const [commentsOpen, setCommentsOpen] = useState(false);
   const [followBusy, setFollowBusy] = useState(false);
+  const { toast } = useToast();
 
   const vote = async (value: 1 | -1) => {
     const prevScore = score;
@@ -58,6 +60,11 @@ export function PostCard({ post, currentProfileId }: { post: FeedPost; currentPr
     if (!res.ok) {
       setScore(prevScore);
       setMyVote(prevVote);
+      toast({
+        title: 'Failed to save vote',
+        description: 'Something went wrong. Please try again.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -125,6 +132,8 @@ export function PostCard({ post, currentProfileId }: { post: FeedPost; currentPr
           </div>
         )}
         {post.mediaUrl && post.mediaType === 'video' && (
+          // No separate thumbnail/cover image exists in the feed data model yet
+          // (only mediaUrl for the video itself), so there's no poster source to use.
           <video src={post.mediaUrl} controls className="mt-3 max-h-96 w-full rounded-lg" />
         )}
 
@@ -144,6 +153,7 @@ export function PostCard({ post, currentProfileId }: { post: FeedPost; currentPr
               type="button"
               onClick={() => vote(1)}
               aria-label="Upvote"
+              aria-pressed={myVote === 1}
               className={cn('rounded-full p-1', myVote === 1 ? 'text-primary' : 'text-muted-foreground hover:text-foreground')}
             >
               <ArrowBigUp className="size-5" fill={myVote === 1 ? 'currentColor' : 'none'} />
@@ -153,6 +163,7 @@ export function PostCard({ post, currentProfileId }: { post: FeedPost; currentPr
               type="button"
               onClick={() => vote(-1)}
               aria-label="Downvote"
+              aria-pressed={myVote === -1}
               className={cn('rounded-full p-1', myVote === -1 ? 'text-primary' : 'text-muted-foreground hover:text-foreground')}
             >
               <ArrowBigDown className="size-5" fill={myVote === -1 ? 'currentColor' : 'none'} />

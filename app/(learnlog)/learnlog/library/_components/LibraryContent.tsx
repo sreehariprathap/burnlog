@@ -12,6 +12,7 @@ import { Plus, Star, Share2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/use-toast';
 import { createTaskLogTask, logToMoneyLog } from '@/lib/learnlog/crossApp';
+import { formatCurrency } from '@/lib/format';
 import { ShareGroupPanel } from '@/components/learnlog/ShareGroupPanel';
 import type { LibraryItemRow } from '@/lib/learnlog/types';
 import { libraryItemsQuery } from '@/lib/learnlog/queries';
@@ -102,7 +103,7 @@ export function LibraryContent() {
               <div className="flex items-center gap-2 mt-2">
                 <Button size="sm" variant="outline" onClick={() => handleAddToTaskLog(item)}>Add to TaskLog</Button>
                 {item.cost != null && (
-                  <Button size="sm" variant="outline" onClick={() => handleLogToMoneyLog(item)}>Log to MoneyLog (${item.cost})</Button>
+                  <Button size="sm" variant="outline" onClick={() => handleLogToMoneyLog(item)}>Log to MoneyLog ({formatCurrency(item.cost)})</Button>
                 )}
                 <Button size="sm" variant="outline" onClick={() => setShareItem(item)}><Share2 className="h-3 w-3 mr-1" />Share</Button>
               </div>

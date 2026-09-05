@@ -180,7 +180,7 @@ export function WalkTrackerModal({ profileId, onClose, onSaved }: WalkTrackerMod
               {error && <p className="text-sm text-destructive">{error}</p>}
 
               <ThemedButton slot="primary-cta" onClick={handleFinish} disabled={!canFinish || saving} className="w-full">
-                {saving ? 'Saving...' : 'Finish'}
+                {saving ? 'Saving…' : 'Finish'}
               </ThemedButton>
             </div>
           )}

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import useSWR from 'swr';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { PlusIcon, Inbox, Lightbulb, RefreshCwIcon } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
@@ -13,6 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
+import { useConfirm } from '@/lib/useConfirm';
 import { LANES, PRIORITIES, type IdeaRow, type TaskLane, type TaskRow } from '@/lib/tasklog/types';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { inboxTasksQuery, ideasQuery, ideaTaskCountsQuery } from '@/lib/tasklog/queries';
@@ -24,11 +26,25 @@ export function PlanContent() {
   const supabase = createClient();
   const { profile } = useCurrentProfile();
   const { toast } = useToast();
+  const { confirm, ConfirmDialog } = useConfirm();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const activeTab = searchParams.get('tab') === 'plan-ideas' ? 'ideas' : 'tasks';
   const [quickAddText, setQuickAddText] = useState('');
   const [parsing, setParsing] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [deletingTaskId, setDeletingTaskId] = useState<string | null>(null);
   const [deletingIdeaId, setDeletingIdeaId] = useState<string | null>(null);
+
+  function handleTabChange(tab: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    // The outer TaskLog tab switcher also reads `tab` (board/plan/goals), so
+    // the Ideas sub-tab uses the distinct `plan-ideas` value to stay
+    // addressable without hijacking the outer switch back to Home.
+    params.set('tab', tab === 'ideas' ? 'plan-ideas' : 'plan');
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }
 
   const {
     data: inboxData,
@@ -113,7 +129,13 @@ export function PlanContent() {
   }
 
   async function handleDelete(taskId: string, title: string) {
-    if (!window.confirm(`Delete "${title}"? This cannot be undone.`)) return;
+    const confirmed = await confirm({
+      title: `Delete "${title}"?`,
+      description: 'This cannot be undone.',
+      confirmLabel: 'Delete',
+      destructive: true,
+    });
+    if (!confirmed) return;
     setDeletingTaskId(taskId);
     try {
       const { error } = await supabase.from('tasklog_tasks').delete().eq('id', taskId);
@@ -161,7 +183,13 @@ export function PlanContent() {
 
   async function handleDeleteIdea(ideaId: string) {
     const idea = ideas.find((i) => i.id === ideaId);
-    if (!window.confirm(`Delete "${idea?.title ?? 'this idea'}"? This cannot be undone.`)) return;
+    const confirmed = await confirm({
+      title: `Delete "${idea?.title ?? 'this idea'}"?`,
+      description: 'This cannot be undone.',
+      confirmLabel: 'Delete',
+      destructive: true,
+    });
+    if (!confirmed) return;
     setDeletingIdeaId(ideaId);
     try {
       const { error } = await supabase.from('tasklog_ideas').delete().eq('id', ideaId);
@@ -254,7 +282,7 @@ export function PlanContent() {
           </Button>
         }
       />
-      <Tabs defaultValue="tasks" className="px-4 pt-3">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="px-4 pt-3">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="tasks">Tasks</TabsTrigger>
           <TabsTrigger value="ideas">Ideas</TabsTrigger>
@@ -269,7 +297,6 @@ export function PlanContent() {
               placeholder='Dump a task… e.g. "call mom tomorrow high priority"'
               disabled={parsing}
               autoComplete="off"
-              autoFocus
             />
             <Button type="submit" size="icon" aria-label="Add to Plan" disabled={parsing || !quickAddText.trim()}>
               {parsing ? <RefreshCwIcon className="h-4 w-4 animate-spin" /> : <PlusIcon className="h-4 w-4" />}
@@ -351,6 +378,7 @@ export function PlanContent() {
         idea={breakdownIdea}
         onConfirm={handleConfirmBreakdown}
       />
+      {ConfirmDialog}
     </div>
   );
 }

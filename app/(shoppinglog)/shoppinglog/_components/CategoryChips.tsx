@@ -20,9 +20,10 @@ export function CategoryChips({
       <button
         type="button"
         onClick={() => onSelect(null)}
+        aria-pressed={selected === null}
         className={cn(
-          'flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors',
-          selected === null ? 'border-primary bg-primary text-primary-foreground' : 'border-border text-muted-foreground'
+          'flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+          selected === null ? 'border-primary bg-primary text-primary-foreground' : 'border-border text-muted-foreground hover:bg-muted'
         )}
       >
         All
@@ -32,9 +33,10 @@ export function CategoryChips({
           key={c.id}
           type="button"
           onClick={() => onSelect(c.slug)}
+          aria-pressed={selected === c.slug}
           className={cn(
-            'flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors',
-            selected === c.slug ? 'border-primary bg-primary text-primary-foreground' : 'border-border text-muted-foreground'
+            'flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
+            selected === c.slug ? 'border-primary bg-primary text-primary-foreground' : 'border-border text-muted-foreground hover:bg-muted'
           )}
         >
           <CategoryIcon name={c.icon} className="size-3.5" />

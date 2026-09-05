@@ -50,7 +50,7 @@ function TaskLogTabSwitcher() {
     <>
       {tab === 'board' ? (
         <BoardContent />
-      ) : tab === 'plan' ? (
+      ) : tab === 'plan' || tab === 'plan-ideas' ? (
         <PlanContent />
       ) : tab === 'goals' ? (
         <GoalsContent />

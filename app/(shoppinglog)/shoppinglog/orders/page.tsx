@@ -2,7 +2,8 @@
 'use client';
 // Client Component — page metadata isn't applicable here (see layout.tsx for shared app metadata).
 
-import { useState } from 'react';
+import { Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import { Loader2, RefreshCw, Package } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
@@ -59,7 +60,20 @@ function OrderCard({ order, counterpartLabel, counterpartUsername }: { order: Or
 }
 
 export default function OrdersPage() {
-  const [tab, setTab] = useState<'purchases' | 'sales'>('purchases');
+  return (
+    <Suspense fallback={null}>
+      <OrdersPageInner />
+    </Suspense>
+  );
+}
+
+function OrdersPageInner() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const tab = (searchParams.get('tab') === 'sales' ? 'sales' : 'purchases') as 'purchases' | 'sales';
+  const setTab = (next: 'purchases' | 'sales') => {
+    router.replace(`/shoppinglog/orders?tab=${next}`);
+  };
   const { data, isLoading, mutate } = useSWR<{ purchases: PurchaseOrder[]; sales: SaleOrder[] }>('/api/shoppinglog/orders', fetcher);
 
   return (

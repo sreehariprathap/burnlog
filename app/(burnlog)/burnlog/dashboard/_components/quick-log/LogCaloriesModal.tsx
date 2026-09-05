@@ -311,7 +311,7 @@ export function LogCaloriesModal({ profileId, onClose, onSaved }: LogCaloriesMod
           {error && <p className="text-sm text-destructive">{error}</p>}
 
           <ThemedButton slot="primary-cta" onClick={handleSave} disabled={saving} className="w-full">
-            {saving ? 'Saving...' : 'Save'}
+            {saving ? 'Saving…' : 'Save'}
           </ThemedButton>
         </div>
       </DrawerContent>

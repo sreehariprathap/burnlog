@@ -63,11 +63,21 @@ export function MyDayClient() {
 
       <div className="mx-auto flex max-w-lg flex-col gap-4 p-4">
         <div className="flex items-center justify-between">
-          <Button variant="ghost" size="sm" onClick={() => goToDate(formatDate(subDays(new Date(`${date}T00:00:00`), 1), 'yyyy-MM-dd'))}>
+          <Button
+            variant="ghost"
+            size="sm"
+            aria-label="Previous day"
+            onClick={() => goToDate(formatDate(subDays(new Date(`${date}T00:00:00`), 1), 'yyyy-MM-dd'))}
+          >
             ←
           </Button>
           <p className="text-sm font-semibold">{dateLabel}</p>
-          <Button variant="ghost" size="sm" onClick={() => goToDate(formatDate(addDays(new Date(`${date}T00:00:00`), 1), 'yyyy-MM-dd'))}>
+          <Button
+            variant="ghost"
+            size="sm"
+            aria-label="Next day"
+            onClick={() => goToDate(formatDate(addDays(new Date(`${date}T00:00:00`), 1), 'yyyy-MM-dd'))}
+          >
             →
           </Button>
         </div>

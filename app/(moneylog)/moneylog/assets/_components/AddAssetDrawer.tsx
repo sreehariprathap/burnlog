@@ -30,6 +30,9 @@ export function AddAssetDrawer({ open, onOpenChange, onCreated }: AddAssetDrawer
   const [sipAmount, setSipAmount] = useState('');
   const [sipFrequency, setSipFrequency] = useState<string>('monthly');
   const [submitting, setSubmitting] = useState(false);
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [initialValueError, setInitialValueError] = useState<string | null>(null);
+  const [sipAmountError, setSipAmountError] = useState<string | null>(null);
 
   const reset = () => {
     setName('');
@@ -40,16 +43,32 @@ export function AddAssetDrawer({ open, onOpenChange, onCreated }: AddAssetDrawer
     setSipEnabled(false);
     setSipAmount('');
     setSipFrequency('monthly');
+    setNameError(null);
+    setInitialValueError(null);
+    setSipAmountError(null);
   };
 
   const submit = async () => {
+    setNameError(null);
+    setInitialValueError(null);
+    setSipAmountError(null);
+
     const value = Number(initialValue);
-    if (!name.trim() || !Number.isFinite(value) || value < 0) {
-      toast({ variant: 'destructive', title: 'Enter a name and a valid starting balance' });
-      return;
+    let hasError = false;
+    if (!name.trim()) {
+      setNameError('Enter a name');
+      hasError = true;
+    }
+    if (!Number.isFinite(value) || value < 0) {
+      setInitialValueError('Enter a valid starting balance');
+      hasError = true;
     }
     if (sipEnabled && (!sipAmount || !Number.isFinite(Number(sipAmount)) || Number(sipAmount) <= 0)) {
-      toast({ variant: 'destructive', title: 'Enter a valid SIP amount' });
+      setSipAmountError('Enter a valid SIP amount');
+      hasError = true;
+    }
+    if (hasError) {
+      toast({ variant: 'destructive', title: 'Fix the highlighted fields' });
       return;
     }
     setSubmitting(true);
@@ -86,6 +105,7 @@ export function AddAssetDrawer({ open, onOpenChange, onCreated }: AddAssetDrawer
           <div className="flex flex-col gap-2">
             <Label htmlFor="asset-name">Name</Label>
             <Input id="asset-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="HDFC Savings" />
+            {nameError && <p className="text-sm text-destructive">{nameError}</p>}
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="asset-category">Category</Label>
@@ -111,6 +131,7 @@ export function AddAssetDrawer({ open, onOpenChange, onCreated }: AddAssetDrawer
               onChange={(e) => setInitialValue(e.target.value)}
               placeholder="0.00"
             />
+            {initialValueError && <p className="text-sm text-destructive">{initialValueError}</p>}
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="asset-invested-value">Invested amount (optional)</Label>
@@ -156,6 +177,7 @@ export function AddAssetDrawer({ open, onOpenChange, onCreated }: AddAssetDrawer
                   onChange={(e) => setSipAmount(e.target.value)}
                   placeholder="0.00"
                 />
+                {sipAmountError && <p className="text-sm text-destructive">{sipAmountError}</p>}
               </div>
               <div className="flex flex-col gap-2">
                 <Label htmlFor="asset-sip-frequency">Frequency</Label>

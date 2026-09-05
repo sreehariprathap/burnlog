@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import useSWR from 'swr';
+import { ZoomIn, ZoomOut, Maximize } from 'lucide-react';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { TopBar } from '@/components/TopBar';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { isExplored, type TravelVisitRow } from '@/lib/travellog/types';
 import { visitsQuery } from '@/lib/travellog/queries';
 import { LogVisitDrawer } from './LogVisitDrawer';
-import WorldMap, { projectPoint, type MapPoint } from '@/components/ui/world-map';
+import WorldMap, { projectPoint, type MapPoint, type WorldMapHandle } from '@/components/ui/world-map';
 
 const COUNTRY_MAP_PADDING_DEG = 5;
 
@@ -43,6 +44,8 @@ export function MapContent() {
   const { profile } = useCurrentProfile();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [currentLocation, setCurrentLocation] = useState<MapPoint | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const mapRef = useRef<WorldMapHandle>(null);
   const { data: visits, isLoading, mutate } = useSWR(
     profile ? visitsQuery(profile.id).key : null,
     profile ? visitsQuery(profile.id).fetcher : null
@@ -52,9 +55,13 @@ export function MapContent() {
     if (!('geolocation' in navigator)) return;
     navigator.geolocation.getCurrentPosition(
       (pos) => setCurrentLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude, label: 'You are here' }),
-      () => {
-        // Permission denied/unavailable — the map just renders without a
-        // "you are here" marker, no error surfaced.
+      (err) => {
+        // Permission denied/unavailable — the map still renders fine without
+        // a "you are here" marker; only tell the user when they explicitly
+        // denied it (a timeout/unavailable position isn't worth surfacing).
+        if (err.code === err.PERMISSION_DENIED) {
+          setLocationError('Location access was denied, so we can’t show where you are on the map.');
+        }
       },
       { maximumAge: 5 * 60_000, timeout: 8_000 }
     );
@@ -122,17 +129,52 @@ export function MapContent() {
           </Card>
         ) : (
           <>
-            <WorldMap
-              dots={dots}
-              roadDots={roadDots}
-              hotspots={hotspots}
-              currentLocation={currentLocation ?? undefined}
-              interactive
-              className="rounded-none"
-            />
+            <div className="relative">
+              <WorldMap
+                ref={mapRef}
+                dots={dots}
+                roadDots={roadDots}
+                hotspots={hotspots}
+                currentLocation={currentLocation ?? undefined}
+                interactive
+                className="rounded-none"
+              />
+              <div className="absolute bottom-2 right-2 flex flex-col gap-1">
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="secondary"
+                  aria-label="Zoom in"
+                  onClick={() => mapRef.current?.zoomIn()}
+                >
+                  <ZoomIn className="size-4" />
+                </Button>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="secondary"
+                  aria-label="Zoom out"
+                  onClick={() => mapRef.current?.zoomOut()}
+                >
+                  <ZoomOut className="size-4" />
+                </Button>
+                <Button
+                  type="button"
+                  size="icon"
+                  variant="secondary"
+                  aria-label="Reset map view"
+                  onClick={() => mapRef.current?.reset()}
+                >
+                  <Maximize className="size-4" />
+                </Button>
+              </div>
+            </div>
             <p className="px-4 text-xs text-muted-foreground">
-              Scroll or pinch to zoom, drag to pan, double-click/tap to reset. Solid line = flights, dashed = road trips.
+              Scroll or pinch to zoom, drag to pan, double-click/tap to reset — or use the zoom buttons. Solid line = flights, dashed = road trips.
             </p>
+            {locationError && (
+              <p role="status" className="px-4 text-xs text-muted-foreground">{locationError}</p>
+            )}
 
             {byCountry.length > 1 && (
               <div className="flex flex-col gap-2 px-4">

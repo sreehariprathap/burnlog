@@ -34,12 +34,14 @@ export function ChatThreadView({ threadId: initialThreadId }: ChatThreadViewProp
   const [sending, setSending] = useState(false);
   const [failedMessage, setFailedMessage] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [modelsFailedToLoad, setModelsFailedToLoad] = useState(false);
   const listRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     apiFetch('/api/intellog/chat/models')
-      .then((res) => (res.ok ? res.json() : { models: [] }))
-      .then((data) => setModels(data.models ?? []));
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error('Failed to load models'))))
+      .then((data) => setModels(data.models ?? []))
+      .catch(() => setModelsFailedToLoad(true));
   }, []);
 
   useEffect(() => {
@@ -126,11 +128,11 @@ export function ChatThreadView({ threadId: initialThreadId }: ChatThreadViewProp
         )}
         {messages.map((m) =>
           m.role === 'user' ? (
-            <div key={m.id} className="ml-auto max-w-[80%] rounded-2xl bg-primary px-3 py-2 text-sm text-primary-foreground">
+            <div key={m.id} className="ml-auto max-w-[80%] break-words rounded-2xl bg-primary px-3 py-2 text-sm text-primary-foreground">
               {m.content}
             </div>
           ) : (
-            <div key={m.id} className="mr-auto max-w-[80%] rounded-2xl bg-muted px-3 py-2">
+            <div key={m.id} className="mr-auto max-w-[80%] break-words rounded-2xl bg-muted px-3 py-2">
               <MarkdownMessage content={m.content} />
             </div>
           )
@@ -155,6 +157,11 @@ export function ChatThreadView({ threadId: initialThreadId }: ChatThreadViewProp
           </div>
         )}
       </div>
+      {modelsFailedToLoad && (
+        <p role="alert" className="px-4 pb-1 text-xs text-destructive">
+          Couldn&apos;t load AI models — check your connection and reload the page.
+        </p>
+      )}
       <IntelChatPromptBar
         models={models}
         selectedModel={selectedModel}

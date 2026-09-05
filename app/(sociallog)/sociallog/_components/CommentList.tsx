@@ -56,7 +56,12 @@ export function CommentList({ postId }: { postId: string }) {
 
   return (
     <div className="mt-3 space-y-3 border-t pt-3">
-      {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+      {isLoading && (
+        <div role="status">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <span className="sr-only">Loading…</span>
+        </div>
+      )}
       {(data?.comments ?? []).map((c) => (
         <div key={c.id} className="flex gap-2">
           <Avatar className="size-7">
@@ -85,7 +90,7 @@ export function CommentList({ postId }: { postId: string }) {
             onChange={(e) => setText(e.target.value)}
             placeholder="Write a comment…"
             onKeyDown={(e) => {
-              if (e.key === 'Enter') handlePost();
+              if (e.key === 'Enter' && !e.nativeEvent.isComposing) handlePost();
             }}
           />
           <Button size="sm" onClick={handlePost} disabled={posting || !text.trim()}>

@@ -48,6 +48,8 @@ export function IntelChatPromptBar({ models, selectedModel, onModelChange, onSen
       <div className="rounded-2xl border bg-muted/30 p-2">
         <textarea
           ref={textareaRef}
+          name="message"
+          aria-label="Message"
           value={value}
           onChange={(e) => {
             setValue(e.target.value);

@@ -1,7 +1,7 @@
 // components/ui/world-map.tsx
 'use client';
 
-import { useMemo, useRef, useState } from 'react';
+import { forwardRef, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import DottedMap from 'dotted-map';
 
@@ -59,7 +59,16 @@ interface MapProps {
   interactive?: boolean;
 }
 
-export default function WorldMap({
+/** Imperative zoom controls for callers that render on-screen +/−/reset
+ * buttons as a keyboard/tap alternative to the scroll/pinch/drag gestures
+ * (`interactive` mode is otherwise gesture-only). */
+export interface WorldMapHandle {
+  zoomIn: () => void;
+  zoomOut: () => void;
+  reset: () => void;
+}
+
+const WorldMap = forwardRef<WorldMapHandle, MapProps>(function WorldMap({
   dots = [],
   roadDots = [],
   hotspots = [],
@@ -70,7 +79,7 @@ export default function WorldMap({
   className,
   viewBox = '0 0 800 400',
   interactive = false,
-}: MapProps) {
+}, ref) {
   const containerRef = useRef<HTMLDivElement>(null);
   const map = new DottedMap({ height: 100, grid: 'diagonal' });
 
@@ -198,6 +207,19 @@ export default function WorldMap({
     if (!interactive) return;
     setVb(baseViewBox);
   }
+
+  function zoomAtCenter(factor: number) {
+    const el = containerRef.current;
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    zoomAt(rect.left + rect.width / 2, rect.top + rect.height / 2, factor);
+  }
+
+  useImperativeHandle(ref, () => ({
+    zoomIn: () => zoomAtCenter(1 / 1.4),
+    zoomOut: () => zoomAtCenter(1.4),
+    reset: () => setVb(baseViewBox),
+  }));
 
   const activeViewBox = interactive ? vb : baseViewBox;
   // Marker radii/stroke/font sizes are tuned for the full 800-wide world
@@ -351,4 +373,8 @@ export default function WorldMap({
       </svg>
     </div>
   );
-}
+});
+
+WorldMap.displayName = 'WorldMap';
+
+export default WorldMap;

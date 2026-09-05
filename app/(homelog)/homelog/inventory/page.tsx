@@ -2,8 +2,9 @@
 'use client';
 // Client Component — page metadata isn't applicable here (see layout.tsx for shared app metadata).
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
 import Link from 'next/link';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
 import { MinusIcon, PlusIcon, Package, ShoppingCart, RefreshCw } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
@@ -17,6 +18,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { useHouseholdMe } from '@/lib/homelog/useHouseholdMe';
 import { useToast } from '@/components/ui/use-toast';
+import { useConfirm } from '@/lib/useConfirm';
 import { inventoryQuery, shoppingListQuery, type InventoryItem } from '@/lib/homelog/queries';
 
 const STATUS_LABEL: Record<InventoryItem['status'], string> = {
@@ -25,8 +27,20 @@ const STATUS_LABEL: Record<InventoryItem['status'], string> = {
   out: 'Out',
 };
 
-export default function InventoryPage() {
+function InventoryPageInner() {
   const { toast } = useToast();
+  const { confirm, ConfirmDialog } = useConfirm();
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const activeTab = searchParams.get('tab') === 'shopping' ? 'shopping' : 'inventory';
+
+  function handleTabChange(tab: string) {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set('tab', tab);
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }
+
   const { household, isLoading: householdLoading } = useHouseholdMe();
   const hasHousehold = !householdLoading && !!household;
 
@@ -120,7 +134,12 @@ export default function InventoryPage() {
   }
 
   async function handleDeleteItem(id: string) {
-    if (!window.confirm('Delete this item from your inventory?')) return;
+    const confirmed = await confirm({
+      title: 'Delete this item from your inventory?',
+      confirmLabel: 'Delete',
+      destructive: true,
+    });
+    if (!confirmed) return;
     setDeletingItemId(id);
     try {
       const res = await fetch(`/api/homelog/inventory/${id}`, { method: 'DELETE' });
@@ -187,7 +206,12 @@ export default function InventoryPage() {
   }
 
   async function handleRemoveShoppingItem(id: string) {
-    if (!window.confirm('Remove this item from the shopping list?')) return;
+    const confirmed = await confirm({
+      title: 'Remove this item from the shopping list?',
+      confirmLabel: 'Remove',
+      destructive: true,
+    });
+    if (!confirmed) return;
     setRemovingShoppingId(id);
     try {
       const res = await fetch(`/api/homelog/shopping-list/${id}`, { method: 'DELETE' });
@@ -243,7 +267,7 @@ export default function InventoryPage() {
         {loading ? (
           <Skeleton className="h-40 w-full" />
         ) : (
-          <Tabs defaultValue="inventory">
+          <Tabs value={activeTab} onValueChange={handleTabChange}>
             <TabsList className="w-full">
               <TabsTrigger value="inventory" className="flex-1">Inventory</TabsTrigger>
               <TabsTrigger value="shopping" className="flex-1">Shopping List</TabsTrigger>
@@ -260,7 +284,6 @@ export default function InventoryPage() {
                       <Label htmlFor="item-name">Name</Label>
                       <Input
                         id="item-name"
-                        autoFocus
                         autoComplete="off"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
@@ -422,6 +445,24 @@ export default function InventoryPage() {
         )}
       </div>
       <HomeLogBottomNav />
+      {ConfirmDialog}
     </div>
+  );
+}
+
+export default function InventoryPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="pb-24">
+          <TopBar title="Inventory" />
+          <div className="px-4 py-4">
+            <Skeleton className="h-40 w-full" />
+          </div>
+        </div>
+      }
+    >
+      <InventoryPageInner />
+    </Suspense>
   );
 }

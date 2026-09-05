@@ -8,8 +8,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { PRIORITIES, type TaskCategory, type TaskPriority, type TaskRow } from '@/lib/tasklog/types';
+import { LANES, PRIORITIES, type TaskCategory, type TaskLane, type TaskPriority, type TaskRow } from '@/lib/tasklog/types';
 import { EXPENSE_CATEGORIES } from '@/lib/financeCategories';
+import { useConfirm } from '@/lib/useConfirm';
 
 interface TaskDetailSheetProps {
   task: TaskRow | null;
@@ -24,12 +25,14 @@ export function TaskDetailSheet({ task, open, onOpenChange, onSave, onDelete }: 
   const [notes, setNotes] = useState('');
   const [category, setCategory] = useState<TaskCategory>('work');
   const [priority, setPriority] = useState<TaskPriority>('medium');
+  const [lane, setLane] = useState<TaskLane>('todo');
   const [dueDate, setDueDate] = useState('');
   const [cost, setCost] = useState('');
   const [costCategory, setCostCategory] = useState('');
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [titleError, setTitleError] = useState('');
+  const { confirm, ConfirmDialog } = useConfirm();
 
   useEffect(() => {
     if (!task) return;
@@ -37,6 +40,7 @@ export function TaskDetailSheet({ task, open, onOpenChange, onSave, onDelete }: 
     setNotes(task.notes ?? '');
     setCategory(task.category);
     setPriority(task.priority);
+    setLane(task.lane as TaskLane);
     setDueDate(task.dueDate ?? '');
     setCost(task.cost != null ? String(task.cost) : '');
     setCostCategory(task.costCategory ?? '');
@@ -60,6 +64,7 @@ export function TaskDetailSheet({ task, open, onOpenChange, onSave, onDelete }: 
         notes: notes.trim() || null,
         category,
         priority,
+        lane,
         dueDate: dueDate || null,
         cost: parsedCost,
         costCategory: parsedCost ? costCategory || 'other_expense' : null,
@@ -86,7 +91,13 @@ export function TaskDetailSheet({ task, open, onOpenChange, onSave, onDelete }: 
 
   async function handleDelete() {
     if (!task) return;
-    if (!window.confirm(`Delete "${task.title}"? This cannot be undone.`)) return;
+    const confirmed = await confirm({
+      title: `Delete "${task.title}"?`,
+      description: 'This cannot be undone.',
+      confirmLabel: 'Delete',
+      destructive: true,
+    });
+    if (!confirmed) return;
     setDeleting(true);
     try {
       await onDelete(task.id);
@@ -97,6 +108,7 @@ export function TaskDetailSheet({ task, open, onOpenChange, onSave, onDelete }: 
   }
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
@@ -155,6 +167,17 @@ export function TaskDetailSheet({ task, open, onOpenChange, onSave, onDelete }: 
             </div>
           </div>
           <div className="space-y-1.5">
+            <Label htmlFor="task-detail-lane">Lane</Label>
+            <Select value={lane} onValueChange={(v) => setLane(v as TaskLane)}>
+              <SelectTrigger id="task-detail-lane"><SelectValue placeholder="Move to lane…" /></SelectTrigger>
+              <SelectContent>
+                {LANES.map((l) => (
+                  <SelectItem key={l.id} value={l.id}>{l.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
             <Label htmlFor="task-detail-due-date">Due date</Label>
             <Input id="task-detail-due-date" type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
           </div>
@@ -162,6 +185,7 @@ export function TaskDetailSheet({ task, open, onOpenChange, onSave, onDelete }: 
             <Label>Cost (optional)</Label>
             <Input
               type="number"
+              inputMode="decimal"
               min="0"
               step="0.01"
               placeholder="0.00"
@@ -173,7 +197,7 @@ export function TaskDetailSheet({ task, open, onOpenChange, onSave, onDelete }: 
             <div className="space-y-1.5">
               <Label>Expense category</Label>
               <Select value={costCategory} onValueChange={setCostCategory}>
-                <SelectTrigger><SelectValue placeholder="Choose a category" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Choose a category…" /></SelectTrigger>
                 <SelectContent>
                   {EXPENSE_CATEGORIES.map((c) => (
                     <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
@@ -198,5 +222,7 @@ export function TaskDetailSheet({ task, open, onOpenChange, onSave, onDelete }: 
         </DialogFooter>
       </DialogContent>
     </Dialog>
+    {ConfirmDialog}
+    </>
   );
 }

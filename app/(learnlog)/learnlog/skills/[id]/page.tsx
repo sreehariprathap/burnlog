@@ -20,6 +20,8 @@ import { MilestoneList } from './_components/MilestoneList';
 import { NearbyClassesCard } from './_components/NearbyClassesCard';
 import { ShareGroupPanel } from '@/components/learnlog/ShareGroupPanel';
 
+const sessionDateFormatter = new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+
 async function fetchSkill(id: string): Promise<SkillRow> {
   const supabase = createClient();
   const { data, error } = await supabase.from('learnlog_skills').select('*').eq('id', id).single();
@@ -146,7 +148,7 @@ export default function SkillDetailPage() {
           {(sessions ?? []).map((s) => (
             <Card key={s.id}>
               <CardContent className="pt-3 pb-3 flex items-center justify-between text-sm">
-                <span>{s.date}{s.durationMinutes ? ` · ${s.durationMinutes} min` : ''}</span>
+                <span>{sessionDateFormatter.format(new Date(s.date))}{s.durationMinutes ? ` · ${s.durationMinutes} min` : ''}</span>
                 <span className="text-muted-foreground">+{s.xpEarned} XP</span>
               </CardContent>
             </Card>

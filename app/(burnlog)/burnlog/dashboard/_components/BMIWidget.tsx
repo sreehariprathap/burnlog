@@ -83,10 +83,12 @@ export function BMIWidget({ height, weight }: BMIWidgetProps) {
           </div>
           
           {/* Indicator */}
-          <div 
+          <div
             className="absolute h-5 w-2 bg-foreground rounded-full -top-1"
             style={{ left: `calc(${position}% - 2px)` }}
-          ></div>
+          >
+            <span className="sr-only">{bmiData.category} — BMI {roundedBmi}</span>
+          </div>
         </div>
       </CardContent>
     </Card>

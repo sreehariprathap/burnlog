@@ -106,7 +106,13 @@ function TaskForm({ profileId, onSaved, onCancel }: { profileId: string; onSaved
       <div className="space-y-1.5">
         <Label>What did you finish?</Label>
         <div className="flex gap-2">
-          <Input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Send project update" />
+          <Input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="e.g. Send project update"
+            name="task-title"
+            autoComplete="off"
+          />
           <Button type="button" variant="outline" onClick={handleSuggest} disabled={suggesting} aria-label="Suggest category and priority with AI">
             {suggesting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
           </Button>
@@ -133,7 +139,9 @@ function TaskForm({ profileId, onSaved, onCancel }: { profileId: string; onSaved
       <div className="flex gap-2 pt-1">
         <Button variant="outline" className="flex-1" onClick={onCancel}>Back</Button>
         <Button className="flex-1" onClick={handleSave} disabled={saving}>
-          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Mark done'}
+          <span aria-live="polite">
+            {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Mark done'}
+          </span>
         </Button>
       </div>
     </div>
@@ -236,7 +244,7 @@ export function QuickAddFab({ profileId, onSaved }: QuickAddFabProps) {
                     <button
                       key={opt.id}
                       onClick={() => setSelected(opt.id)}
-                      className="flex flex-col items-center gap-2 rounded-xl border p-4 text-center transition-transform active:scale-[0.98]"
+                      className="flex flex-col items-center gap-2 rounded-xl border p-4 text-center outline-none transition-transform active:scale-[0.98] focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                     >
                       <span
                         className="relative flex h-10 w-10 items-center justify-center rounded-full"

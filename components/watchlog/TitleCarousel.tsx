@@ -15,7 +15,12 @@ const TMDB_IMG_BASE = 'https://image.tmdb.org/t/p/w342';
 
 function TitleCard({ item, onClick }: { item: TmdbItem; onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} className="block w-full text-left">
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={item.title}
+      className="block w-full text-left transition-transform active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+    >
       <Card className="group relative flex h-[320px] w-full flex-col overflow-hidden rounded-xl border-0 shadow-sm transition-shadow duration-300 hover:shadow-md">
         <div className="relative aspect-[2/3] w-full overflow-hidden rounded-t-xl bg-muted">
           {item.posterPath ? (
@@ -23,6 +28,7 @@ function TitleCard({ item, onClick }: { item: TmdbItem; onClick: () => void }) {
               alt={item.title}
               className="object-cover transition-transform duration-300 group-hover:scale-105"
               fill
+              sizes="160px"
               src={`${TMDB_IMG_BASE}${item.posterPath}`}
             />
           ) : null}

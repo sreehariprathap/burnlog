@@ -21,6 +21,7 @@ import { StatCard } from '@/components/ui/stat-card';
 import { ListTodo, Scale } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { invitesQuery, choresQuery, balancesQuery } from '@/lib/homelog/queries';
+import { formatCurrency } from '@/lib/format';
 
 export default function HomeLogPage() {
   const { toast } = useToast();
@@ -59,6 +60,7 @@ export default function HomeLogPage() {
   const [inviteSuccess, setInviteSuccess] = useState('');
 
   const [confirmingLeave, setConfirmingLeave] = useState(false);
+  const [confirmingRemoveId, setConfirmingRemoveId] = useState<string | null>(null);
   const [leaving, setLeaving] = useState(false);
   const [removingMemberId, setRemovingMemberId] = useState<string | null>(null);
   const [respondingId, setRespondingId] = useState<string | null>(null);
@@ -168,7 +170,7 @@ export default function HomeLogPage() {
 
   async function handleRemoveMember(profileId: string) {
     if (!household) return;
-    if (!window.confirm('Remove this member from the household?')) return;
+    setConfirmingRemoveId(null);
     setRemovingMemberId(profileId);
     try {
       const res = await fetch(`/api/homelog/households/${household.id}/members/${profileId}`, { method: 'DELETE' });
@@ -211,7 +213,6 @@ export default function HomeLogPage() {
                     <Label htmlFor="household-name">Household name</Label>
                     <Input
                       id="household-name"
-                      autoFocus
                       autoComplete="off"
                       value={householdName}
                       onChange={(e) => setHouseholdName(e.target.value)}
@@ -271,7 +272,7 @@ export default function HomeLogPage() {
               </StatCard>
               <StatCard title="Your balance" icon={Scale}>
                 <p className={cn('text-2xl font-bold', myNetBalance < 0 ? 'text-destructive' : 'text-success')}>
-                  {myNetBalance === 0 ? 'Settled up' : `${myNetBalance > 0 ? '+' : ''}${myNetBalance.toFixed(2)}`}
+                  {myNetBalance === 0 ? 'Settled up' : `${myNetBalance > 0 ? '+' : ''}${formatCurrency(myNetBalance)}`}
                 </p>
               </StatCard>
             </div>
@@ -281,25 +282,54 @@ export default function HomeLogPage() {
               </CardHeader>
               <CardContent className="space-y-2">
                 {members.map((member) => (
-                  <div key={member.profileId} className="flex items-center justify-between rounded-md border p-3">
-                    <div>
-                      <p className="text-sm font-medium">{member.firstName}</p>
-                      <p className="text-xs text-muted-foreground">@{member.username}</p>
+                  <div key={member.profileId} className="rounded-md border p-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium">{member.firstName}</p>
+                        <p className="text-xs text-muted-foreground">@{member.username}</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="rounded-full bg-muted px-2 py-0.5 text-xs capitalize">{member.role}</span>
+                        {myRole === 'owner' && member.role !== 'owner' && confirmingRemoveId !== member.profileId && (
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setConfirmingRemoveId(member.profileId)}
+                            disabled={removingMemberId === member.profileId}
+                          >
+                            {removingMemberId === member.profileId ? 'Removing…' : 'Remove'}
+                          </Button>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <span className="rounded-full bg-muted px-2 py-0.5 text-xs capitalize">{member.role}</span>
-                      {myRole === 'owner' && member.role !== 'owner' && (
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => handleRemoveMember(member.profileId)}
-                          disabled={removingMemberId === member.profileId}
-                        >
-                          {removingMemberId === member.profileId ? 'Removing…' : 'Remove'}
-                        </Button>
-                      )}
-                    </div>
+                    {confirmingRemoveId === member.profileId && (
+                      <div className="mt-2 space-y-2">
+                        <p className="text-sm text-muted-foreground">
+                          Remove {member.firstName} from the household?
+                        </p>
+                        <div className="flex gap-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="destructive"
+                            onClick={() => handleRemoveMember(member.profileId)}
+                            disabled={removingMemberId === member.profileId}
+                          >
+                            {removingMemberId === member.profileId ? 'Removing…' : 'Confirm remove'}
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setConfirmingRemoveId(null)}
+                            disabled={removingMemberId === member.profileId}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </CardContent>

@@ -1,7 +1,7 @@
 // app/(shoppinglog)/shoppinglog/_components/ListingForm.tsx
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import { createClient } from '@/lib/supabase/client';
 import { Card, CardContent } from '@/components/ui/card';
@@ -42,6 +42,9 @@ export function ListingForm({
   const { profile } = useCurrentProfile();
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const titleRef = useRef<HTMLInputElement>(null);
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
+  const priceRef = useRef<HTMLInputElement>(null);
 
   const [title, setTitle] = useState(initial?.title ?? '');
   const [description, setDescription] = useState(initial?.description ?? '');
@@ -53,6 +56,16 @@ export function ListingForm({
   const [uploading, setUploading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [dirty, setDirty] = useState(false);
+
+  useEffect(() => {
+    function handleBeforeUnload(e: BeforeUnloadEvent) {
+      if (!dirty) return;
+      e.preventDefault();
+    }
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [dirty]);
 
   const handleFile = async (file: File) => {
     if (!profile) return;
@@ -81,7 +94,22 @@ export function ListingForm({
   };
 
   const handleSubmit = async () => {
-    if (!title.trim() || !description.trim() || !price || !categoryId) {
+    if (!title.trim()) {
+      setError('Title, description, price, and category are required');
+      titleRef.current?.focus();
+      return;
+    }
+    if (!description.trim()) {
+      setError('Title, description, price, and category are required');
+      descriptionRef.current?.focus();
+      return;
+    }
+    if (!price) {
+      setError('Title, description, price, and category are required');
+      priceRef.current?.focus();
+      return;
+    }
+    if (!categoryId) {
       setError('Title, description, price, and category are required');
       return;
     }
@@ -89,6 +117,7 @@ export function ListingForm({
     setError(null);
     try {
       await onSubmit({ title, description, price, condition, categoryId, stockQuantity, images });
+      setDirty(false);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to save listing';
       setError(message);
@@ -111,10 +140,13 @@ export function ListingForm({
           <Label htmlFor="listing-title">Title</Label>
           <Input
             id="listing-title"
-            autoFocus
+            ref={titleRef}
             autoComplete="off"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => {
+              setTitle(e.target.value);
+              setDirty(true);
+            }}
             placeholder="e.g. Standing Desk"
           />
         </div>
@@ -122,8 +154,12 @@ export function ListingForm({
           <Label htmlFor="listing-description">Description</Label>
           <Textarea
             id="listing-description"
+            ref={descriptionRef}
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            onChange={(e) => {
+              setDescription(e.target.value);
+              setDirty(true);
+            }}
             placeholder="Condition details, dimensions, pickup info…"
           />
         </div>
@@ -132,17 +168,21 @@ export function ListingForm({
             <Label htmlFor="listing-price">Price ($)</Label>
             <Input
               id="listing-price"
+              ref={priceRef}
               type="number"
               inputMode="decimal"
               min="0"
               step="0.01"
               value={price}
-              onChange={(e) => setPrice(e.target.value)}
+              onChange={(e) => {
+                setPrice(e.target.value);
+                setDirty(true);
+              }}
             />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="listing-condition">Condition</Label>
-            <Select value={condition} onValueChange={(v) => setCondition(v as 'new' | 'used')}>
+            <Select value={condition} onValueChange={(v) => { setCondition(v as 'new' | 'used'); setDirty(true); }}>
               <SelectTrigger id="listing-condition"><SelectValue /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="new">New</SelectItem>
@@ -154,7 +194,7 @@ export function ListingForm({
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1.5">
             <Label htmlFor="listing-category">Category</Label>
-            <Select value={categoryId} onValueChange={setCategoryId}>
+            <Select value={categoryId} onValueChange={(v) => { setCategoryId(v); setDirty(true); }}>
               <SelectTrigger id="listing-category"><SelectValue /></SelectTrigger>
               <SelectContent>
                 {categories.map((c) => (
@@ -171,7 +211,10 @@ export function ListingForm({
               inputMode="numeric"
               min="1"
               value={stockQuantity}
-              onChange={(e) => setStockQuantity(e.target.value)}
+              onChange={(e) => {
+                setStockQuantity(e.target.value);
+                setDirty(true);
+              }}
             />
           </div>
         </div>
@@ -184,9 +227,12 @@ export function ListingForm({
                 <Image src={url} alt="" fill sizes="80px" className="rounded-md object-cover" />
                 <button
                   type="button"
-                  onClick={() => setImages((prev) => prev.filter((u) => u !== url))}
+                  onClick={() => {
+                    setImages((prev) => prev.filter((u) => u !== url));
+                    setDirty(true);
+                  }}
                   aria-label="Remove photo"
-                  className="absolute -right-1.5 -top-1.5 rounded-full bg-background p-0.5 shadow"
+                  className="absolute -right-1.5 -top-1.5 rounded-full bg-background p-0.5 shadow hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <X className="size-3.5" />
                 </button>
@@ -196,7 +242,7 @@ export function ListingForm({
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={uploading}
-              className="flex size-20 items-center justify-center rounded-md border border-dashed text-muted-foreground"
+              className="flex size-20 items-center justify-center rounded-md border border-dashed text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               {uploading ? <Loader2 className="size-5 animate-spin" /> : <ImagePlus className="size-5" />}
             </button>
@@ -214,7 +260,7 @@ export function ListingForm({
           </div>
         </div>
 
-        {error && <p className="text-xs text-destructive">{error}</p>}
+        {error && <p role="alert" aria-live="polite" className="text-xs text-destructive">{error}</p>}
 
         <Button type="submit" className="w-full" disabled={submitting}>
           {submitting ? <Loader2 className="size-4 animate-spin" /> : submitLabel}

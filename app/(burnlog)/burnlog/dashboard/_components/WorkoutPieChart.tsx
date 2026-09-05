@@ -1,18 +1,18 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
+import { Dumbbell } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 
-// Workout distribution data type
+// Workout distribution data type — the caller supplies real counts (e.g. by
+// bodyPart), this component owns color assignment.
 type WorkoutData = {
   name: string;
   value: number;
-  color: string;
 };
 
 type WorkoutPieChartProps = {
-  data?: WorkoutData[];
+  data: WorkoutData[];
 };
 
 const CHART_COLORS = [
@@ -20,19 +20,43 @@ const CHART_COLORS = [
   'var(--chart-3)',
   'var(--chart-2)',
   'var(--chart-5)',
+  'var(--chart-4)',
 ];
 
-export function WorkoutPieChart({
-  data = [
-    { name: 'Push', value: 3, color: CHART_COLORS[0] },
-    { name: 'Pull', value: 2, color: CHART_COLORS[1] },
-    { name: 'Legs', value: 2, color: CHART_COLORS[2] },
-    { name: 'Rest', value: 1, color: CHART_COLORS[3] },
-  ],
-}: WorkoutPieChartProps) {
+type CustomTooltipProps = {
+  active?: boolean;
+  payload?: { name: string; value: number; payload: { color: string } }[];
+};
+
+type CustomLegendProps = {
+  payload?: { value: string; color: string }[];
+};
+
+export function WorkoutPieChart({ data }: WorkoutPieChartProps) {
   const total = data.reduce((sum, entry) => sum + entry.value, 0);
 
-  const CustomTooltip = ({ active, payload }: any) => {
+  if (total === 0) {
+    return (
+      <Card className="col-span-4 row-span-2">
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Workout Distribution</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex h-[200px] flex-col items-center justify-center gap-2 text-center">
+            <Dumbbell className="h-8 w-8 text-muted-foreground" aria-hidden="true" />
+            <p className="text-sm text-muted-foreground">Log a workout to see your breakdown</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const chartData = data.map((entry, index) => ({
+    ...entry,
+    color: CHART_COLORS[index % CHART_COLORS.length],
+  }));
+
+  const CustomTooltip = ({ active, payload }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
       const entry = payload[0];
       const percent = total > 0 ? Math.round((entry.value / total) * 100) : 0;
@@ -54,9 +78,9 @@ export function WorkoutPieChart({
     return null;
   };
 
-  const CustomLegend = ({ payload }: any) => (
+  const CustomLegend = ({ payload }: CustomLegendProps) => (
     <ul className="mt-1 flex flex-wrap items-center justify-center gap-x-4 gap-y-1.5">
-      {payload?.map((entry: any) => (
+      {payload?.map((entry) => (
         <li key={entry.value} className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <span
             className="size-2.5 shrink-0 rounded-full"
@@ -78,7 +102,7 @@ export function WorkoutPieChart({
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
               <Pie
-                data={data}
+                data={chartData}
                 cx="50%"
                 cy="46%"
                 innerRadius={62}
@@ -88,7 +112,7 @@ export function WorkoutPieChart({
                 dataKey="value"
                 stroke="none"
               >
-                {data.map((entry, index) => (
+                {chartData.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.color} />
                 ))}
               </Pie>

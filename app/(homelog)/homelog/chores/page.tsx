@@ -18,6 +18,7 @@ import { Switch } from '@/components/ui/switch';
 import { ListTodo, RefreshCw } from 'lucide-react';
 import { useHouseholdMe } from '@/lib/homelog/useHouseholdMe';
 import { useToast } from '@/components/ui/use-toast';
+import { useConfirm } from '@/lib/useConfirm';
 import { choresQuery } from '@/lib/homelog/queries';
 import { cn } from '@/lib/utils';
 
@@ -29,6 +30,7 @@ const MONTHS = [
 
 function ChoresPageInner() {
   const { toast } = useToast();
+  const { confirm, ConfirmDialog } = useConfirm();
   const searchParams = useSearchParams();
   // Set by chore-assignment/completion push notifications (see the `url`
   // built in api/homelog/chores/instances/[id]/{complete,reassign}) so
@@ -167,7 +169,13 @@ function ChoresPageInner() {
   }
 
   async function handleDelete(choreId: string) {
-    if (!window.confirm('Delete this chore? This cannot be undone.')) return;
+    const confirmed = await confirm({
+      title: 'Delete this chore?',
+      description: 'This cannot be undone.',
+      confirmLabel: 'Delete',
+      destructive: true,
+    });
+    if (!confirmed) return;
     setDeletingId(choreId);
     try {
       const res = await fetch(`/api/homelog/chores/${choreId}`, { method: 'DELETE' });
@@ -221,7 +229,6 @@ function ChoresPageInner() {
                 <Label htmlFor="chore-title">Title</Label>
                 <Input
                   id="chore-title"
-                  autoFocus
                   autoComplete="off"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
@@ -403,6 +410,7 @@ function ChoresPageInner() {
         )}
       </div>
       <HomeLogBottomNav />
+      {ConfirmDialog}
     </div>
   );
 }

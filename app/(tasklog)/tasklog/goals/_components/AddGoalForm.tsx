@@ -72,7 +72,6 @@ export function AddGoalForm({ profileId, onGoalAdded }: AddGoalFormProps) {
               }}
               placeholder="e.g. Get better at Spanish"
               autoComplete="off"
-              autoFocus
               aria-invalid={!!error}
               aria-describedby={error ? 'goal-title-error' : undefined}
             />

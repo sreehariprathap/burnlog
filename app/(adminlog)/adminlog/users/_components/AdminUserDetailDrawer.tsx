@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Loader2, RotateCcw, Wallet } from 'lucide-react';
 import { formatCurrency } from '@/lib/format';
 import { apiFetch } from '@/lib/apiFetch';
@@ -17,6 +17,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/components/ui/use-toast';
+import { useConfirm } from '@/lib/useConfirm';
 
 // Loose shape mirroring `profiles`' ~40 columns — only a handful are read
 // or edited here; see useCurrentProfile's CurrentProfile for the same
@@ -50,7 +51,9 @@ const APP_OPTIONS = (Object.keys(APPS) as AppId[]).filter((id) => id !== 'logboo
 
 export function AdminUserDetailDrawer({ userId, onOpenChange, onSaved }: AdminUserDetailDrawerProps) {
   const { toast } = useToast();
+  const { confirm, ConfirmDialog } = useConfirm();
   const [user, setUser] = useState<AdminUserDetail | null>(null);
+  const initialIsAdminRef = useRef<boolean | null>(null);
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [resetting, setResetting] = useState(false);
@@ -73,6 +76,7 @@ export function AdminUserDetailDrawer({ userId, onOpenChange, onSaved }: AdminUs
       if (res.ok) {
         const data = await res.json();
         setUser(data.user);
+        initialIsAdminRef.current = data.user.isAdmin;
         setBalance(typeof data.balance === 'number' ? data.balance : null);
       } else {
         toast({ title: 'Could not load user', variant: 'destructive' });
@@ -93,6 +97,16 @@ export function AdminUserDetailDrawer({ userId, onOpenChange, onSaved }: AdminUs
 
   async function handleSave() {
     if (!user) return;
+    if (user.isAdmin !== initialIsAdminRef.current) {
+      const ok = await confirm({
+        title: user.isAdmin ? 'Grant admin access?' : 'Revoke admin access?',
+        description: user.isAdmin
+          ? `${user.firstName} ${user.lastName} will be able to access this admin panel and manage all users.`
+          : `${user.firstName} ${user.lastName} will lose access to this admin panel.`,
+        destructive: !user.isAdmin,
+      });
+      if (!ok) return;
+    }
     setSaving(true);
     const res = await apiFetch(`/api/adminlog/users/${user.id}`, {
       method: 'PATCH',
@@ -109,6 +123,7 @@ export function AdminUserDetailDrawer({ userId, onOpenChange, onSaved }: AdminUs
     });
     setSaving(false);
     if (res.ok) {
+      initialIsAdminRef.current = user.isAdmin;
       toast({ title: 'User updated' });
       onSaved();
     } else {
@@ -308,6 +323,7 @@ export function AdminUserDetailDrawer({ userId, onOpenChange, onSaved }: AdminUs
           )}
         </div>
       </DrawerContent>
+      {ConfirmDialog}
     </Drawer>
   );
 }

@@ -142,7 +142,12 @@ export default function SocialLogThreadPage() {
       <TopBar title="Conversation" onClose={() => router.push('/sociallog?tab=messages')} />
       <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col overflow-hidden">
         <div className="flex-1 space-y-2 overflow-y-auto p-4">
-          {loading && <Loader2 className="h-6 w-6 animate-spin" />}
+          {loading && (
+            <div role="status">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span className="sr-only">Loading…</span>
+            </div>
+          )}
           {showEmptyState && (
             <ChatEmptyIllustration title="No messages yet" subtitle="Say hi to start the conversation" />
           )}
@@ -174,7 +179,7 @@ export default function SocialLogThreadPage() {
             onChange={(e) => setText(e.target.value)}
             placeholder="Message…"
             onKeyDown={(e) => {
-              if (e.key === 'Enter') handleSend();
+              if (e.key === 'Enter' && !e.nativeEvent.isComposing) handleSend();
             }}
           />
           <Button size="icon" aria-label="Send message" onClick={handleSend} disabled={sending || !text.trim()}>

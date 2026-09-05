@@ -99,7 +99,8 @@ export default function AdminToolsPage() {
           )}
 
           <Button onClick={handleSendTestPush} disabled={testSending}>
-            {testSending ? 'Sending...' : 'Send Test Push'}
+            {testSending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            {testSending ? 'Sending…' : 'Send Test Push'}
           </Button>
 
           {testPushFailed && <PushEnableHelp />}

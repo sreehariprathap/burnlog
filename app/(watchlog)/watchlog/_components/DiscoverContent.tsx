@@ -1,7 +1,7 @@
 // app/(watchlog)/watchlog/_components/DiscoverContent.tsx
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import useSWR from 'swr';
 import { X } from 'lucide-react';
 import { TopBar } from '@/components/TopBar';
@@ -59,11 +59,20 @@ export function DiscoverContent() {
   const [selected, setSelected] = useState<TmdbItem | null>(null);
   const { toast } = useToast();
 
-  const { data: trending, isLoading: trendingLoading } = useSWR('watchlog-trending', fetchTrending);
-  const { data: searchResults, isLoading: searchLoading } = useSWR(
+  const { data: trending, isLoading: trendingLoading, error: trendingError } = useSWR('watchlog-trending', fetchTrending);
+  const { data: searchResults, isLoading: searchLoading, error: searchError } = useSWR(
     query.length > 1 ? ['watchlog-search', query] : null,
     () => fetchSearch(query)
   );
+
+  useEffect(() => {
+    if (!searchOpen) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === 'Escape') setSearchOpen(false);
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [searchOpen]);
 
   async function addItem(item: TmdbItem, status: 'want' | 'completed' = 'want') {
     const res = await fetch('/api/watchlog/items', {
@@ -85,21 +94,23 @@ export function DiscoverContent() {
       <TopBar title="Discover" />
       <div className="p-4 space-y-6">
         <div className="flex justify-center">
-          <div
-            role="button"
-            tabIndex={0}
+          <button
+            type="button"
             onClick={() => setSearchOpen(true)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' || e.key === ' ') setSearchOpen(true);
-            }}
-            className="w-full max-w-sm"
+            aria-label="Search movies and TV shows"
+            className="w-full max-w-sm rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             <GooeyInput placeholder="Search movies & TV..." className="pointer-events-none w-full" />
-          </div>
+          </button>
         </div>
 
         {trendingLoading ? (
           <Skeleton className="h-[320px] w-full rounded-xl" />
+        ) : trendingError ? (
+          <div className="flex h-[320px] w-full flex-col items-center justify-center gap-2 rounded-xl border border-dashed p-6 text-center">
+            <p className="text-sm font-medium">Couldn&apos;t load trending titles</p>
+            <p className="text-xs text-muted-foreground">Check your connection and try again.</p>
+          </div>
         ) : (
           <TitleCarousel title="Trending This Week" items={trending ?? []} onSelect={setSelected} />
         )}
@@ -114,20 +125,20 @@ export function DiscoverContent() {
       </div>
 
       {searchOpen && (
-        <div className="fixed inset-0 z-50 flex flex-col bg-background">
+        <div className="fixed inset-0 z-50 flex flex-col bg-background" style={{ overscrollBehavior: 'contain' }}>
           <div className="flex items-center gap-2 p-4">
             <Input
-              autoFocus
+              aria-label="Search movies and TV shows"
               placeholder="Search movies & TV..."
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="flex-1"
             />
-            <Button variant="ghost" size="icon" onClick={() => setSearchOpen(false)}>
+            <Button variant="ghost" size="icon" onClick={() => setSearchOpen(false)} aria-label="Close search">
               <X className="h-5 w-5" />
             </Button>
           </div>
-          <div className="flex-1 overflow-y-auto px-4 pb-8">
+          <div className="flex-1 overflow-y-auto px-4 pb-8" style={{ overscrollBehavior: 'contain' }}>
             {query.length <= 1 ? (
               <p className="text-sm text-muted-foreground text-center py-12">Start typing to search.</p>
             ) : searchLoading ? (
@@ -135,6 +146,8 @@ export function DiscoverContent() {
                 <Skeleton className="h-56 w-full rounded-xl" />
                 <Skeleton className="h-56 w-full rounded-xl" />
               </div>
+            ) : searchError ? (
+              <p className="text-sm text-muted-foreground text-center py-12">Search failed — check your connection and try again.</p>
             ) : (
               <div className="grid grid-cols-2 gap-3">
                 {(searchResults ?? []).map((item) => (

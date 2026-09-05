@@ -114,7 +114,6 @@ export function RecurringItemForm({ lockedType, onSubmit, submitLabel = 'Add' }:
           onChange={(e) => setLabel(e.target.value)}
           placeholder="e.g. Rent"
           autoComplete="off"
-          autoFocus
         />
       </div>
 

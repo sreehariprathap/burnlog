@@ -154,8 +154,8 @@ export function WeeklyTripStack({
       onTouchMove={handleTouchMove}
       onTouchStart={handleTouchStart}
       ref={containerRef}
-      role="application"
-      style={{ minHeight: `${CARD_HEIGHT + CARD_PADDING}px`, touchAction: 'none' }}
+      role="group"
+      style={{ minHeight: `${CARD_HEIGHT + CARD_PADDING}px`, touchAction: 'pan-y' }}
       tabIndex={0}
     >
       {items.map((item, i) => {

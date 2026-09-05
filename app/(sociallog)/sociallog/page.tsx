@@ -45,7 +45,7 @@ function SocialLogTabSwitcher() {
 
   return (
     <>
-      {tab === 'search' ? (
+      {tab === 'search' || tab === 'search-topics' || tab === 'search-reels' ? (
         <SearchContent />
       ) : tab === 'messages' ? (
         <MessagesContent />

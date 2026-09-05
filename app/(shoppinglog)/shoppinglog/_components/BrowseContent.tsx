@@ -102,8 +102,8 @@ export function BrowseContent() {
               aria-pressed={condition === c}
               className={
                 condition === c
-                  ? 'rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground'
-                  : 'rounded-full px-3 py-1 text-xs font-medium text-muted-foreground'
+                  ? 'rounded-full bg-secondary px-3 py-1 text-xs font-medium text-secondary-foreground hover:bg-secondary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
+                  : 'rounded-full px-3 py-1 text-xs font-medium text-muted-foreground hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2'
               }
             >
               {c === 'all' ? 'All conditions' : c === 'new' ? 'New' : 'Used'}
@@ -111,7 +111,12 @@ export function BrowseContent() {
           ))}
         </div>
 
-        {isLoading && <Loader2 className="h-6 w-6 animate-spin" />}
+        {isLoading && (
+          <div role="status" aria-live="polite" className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Loader2 className="h-6 w-6 animate-spin" aria-hidden="true" />
+            <span className="sr-only">Loading…</span>
+          </div>
+        )}
         {!isLoading && (listingData?.listings.length ?? 0) === 0 && (
           <div className="flex flex-col items-center gap-2 py-12 text-center">
             <SearchX className="size-8 text-muted-foreground" />

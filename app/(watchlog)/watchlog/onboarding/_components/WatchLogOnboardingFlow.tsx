@@ -30,9 +30,10 @@ function ChipPicker({ options, selected, onToggle }: { options: string[]; select
         <button
           key={option}
           type="button"
+          aria-pressed={selected.has(option)}
           onClick={() => onToggle(option)}
           className={cn(
-            'rounded-full border px-3 py-1.5 text-sm transition-colors',
+            'rounded-full border px-3 py-1.5 text-sm transition-colors active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2',
             selected.has(option)
               ? 'bg-primary text-primary-foreground border-primary'
               : 'bg-background text-foreground border-border'
@@ -138,8 +139,8 @@ export function WatchLogOnboardingFlow() {
           />
         </section>
 
-        <Button onClick={handleContinue} disabled={saving}>
-          {saving ? 'Setting up...' : 'Continue'}
+        <Button onClick={handleContinue} disabled={saving} className="active:scale-[0.98]">
+          {saving ? 'Setting up…' : 'Continue'}
         </Button>
       </div>
     </div>
