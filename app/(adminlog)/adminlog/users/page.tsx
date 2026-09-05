@@ -67,6 +67,7 @@ export default function AdminUsersPage() {
       </p>
 
       <Input
+        aria-label="Search by name or username"
         placeholder="Search by name or username"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
@@ -85,7 +86,7 @@ export default function AdminUsersPage() {
               tabIndex={0}
               onClick={() => setSelectedUserId(u.id)}
               onKeyDown={(e) => e.key === 'Enter' && setSelectedUserId(u.id)}
-              className="cursor-pointer transition-colors hover:bg-accent/50"
+              className="cursor-pointer transition-colors hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
             >
               <CardContent className="flex items-center gap-3 p-4">
                 <Avatar>
