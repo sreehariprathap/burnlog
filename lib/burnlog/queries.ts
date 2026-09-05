@@ -75,3 +75,43 @@ export function dateSessionQuery(profileId: string, dateStr: string) {
     fetcher: () => fetchDateSession(createClient(), profileId, dateStr),
   };
 }
+
+export type WorkoutDistributionEntry = { name: string; value: number };
+
+/**
+ * Tallies completed sessions from the trailing 7 days by `bodyPart` (Push,
+ * Pull, Legs, Full Body, Cardio, Rest, ...) for the dashboard's workout
+ * distribution chart. Reads the same `sessions.sessionData` blob as
+ * `fetchDateSession`/`extractBurnlogSnapshot` — there is no separate
+ * "workouts" table that already tracks this.
+ */
+export async function fetchWeeklyWorkoutDistribution(
+  supabase: SupabaseClient,
+  profileId: string
+): Promise<WorkoutDistributionEntry[]> {
+  const windowStart = new Date();
+  windowStart.setDate(windowStart.getDate() - 7);
+
+  const { data, error } = await supabase
+    .from('sessions')
+    .select('sessionData')
+    .eq('profileId', profileId)
+    .gte('date', windowStart.toISOString());
+  if (error) throw error;
+
+  const counts = new Map<string, number>();
+  for (const row of (data ?? []) as { sessionData: DateSession }[]) {
+    const bodyPart = row.sessionData?.completed ? row.sessionData.bodyPart : undefined;
+    if (!bodyPart) continue;
+    counts.set(bodyPart, (counts.get(bodyPart) ?? 0) + 1);
+  }
+
+  return Array.from(counts.entries()).map(([name, value]) => ({ name, value }));
+}
+
+export function workoutDistributionQuery(profileId: string) {
+  return {
+    key: ['burnlog-workout-distribution', profileId] as const,
+    fetcher: () => fetchWeeklyWorkoutDistribution(createClient(), profileId),
+  };
+}

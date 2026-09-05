@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 // Note: this page is a Client Component ("use client"), so a `metadata` export
 // isn't possible here — it would need a server wrapper to set the page title.
@@ -7,7 +6,7 @@ import { useState } from 'react';
 import dynamic from 'next/dynamic';
 import useSWR from 'swr';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
-import { fitnessGoalsQuery, type FitnessGoal } from '@/lib/burnlog/queries';
+import { fitnessGoalsQuery, workoutDistributionQuery, type FitnessGoal } from '@/lib/burnlog/queries';
 import { CalendarRange, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 import { TopBar } from '@/components/TopBar';
@@ -32,19 +31,23 @@ const WorkoutPieChart = dynamic(
 );
 
 export default function DashboardPage() {
-  const { profile: userProfile, loading: profileLoading } = useCurrentProfile() as { profile: any; loading: boolean };
+  const { profile: userProfile, loading: profileLoading } = useCurrentProfile();
   const [refreshKey, setRefreshKey] = useState(0);
 
   const { data: goals, isLoading: goalsLoading, mutate: mutateGoals } = useSWR<FitnessGoal[]>(
     userProfile ? fitnessGoalsQuery(userProfile.id).key : null,
     userProfile ? fitnessGoalsQuery(userProfile.id).fetcher : null
   );
+  const { data: workoutDistribution, mutate: mutateWorkoutDistribution } = useSWR(
+    userProfile ? workoutDistributionQuery(userProfile.id).key : null,
+    userProfile ? workoutDistributionQuery(userProfile.id).fetcher : null
+  );
   const [refreshing, setRefreshing] = useState(false);
 
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
-      await mutateGoals();
+      await Promise.all([mutateGoals(), mutateWorkoutDistribution()]);
       setRefreshKey((k) => k + 1);
     } finally {
       setRefreshing(false);
@@ -55,14 +58,6 @@ export default function DashboardPage() {
 
   // Get first weight goal for BMI widget (if exists)
   const weightGoal = (goals ?? []).find(g => g.goalType === 'weight_loss' || g.goalType === 'weight_gain');
-  
-  // Example workout data for pie chart
-  const workoutData = [
-    { name: 'Push', value: 3, color: 'var(--chart-1)' },
-    { name: 'Pull', value: 2, color: 'var(--chart-3)' },
-    { name: 'Legs', value: 2, color: 'var(--chart-2)' },
-    { name: 'Rest', value: 1, color: 'var(--chart-5)' },
-  ];
 
   return (
     <div className="pb-16">
@@ -86,10 +81,10 @@ export default function DashboardPage() {
         {userProfile && (
           <ConsistencyTracker
             profileId={userProfile.id}
-            currentStreak={userProfile.currentStreak}
-            xp={userProfile.xp}
-            level={userProfile.level}
-            lastConsistencyBonusWeek={userProfile.lastConsistencyBonusWeek}
+            currentStreak={userProfile.currentStreak as number}
+            xp={userProfile.xp as number}
+            level={userProfile.level as number}
+            lastConsistencyBonusWeek={userProfile.lastConsistencyBonusWeek as string | null}
             refreshKey={refreshKey}
           />
         )}
@@ -97,8 +92,8 @@ export default function DashboardPage() {
         {/* Meal Prep Banner */}
         {userProfile && (
           <MealPrepBanner
-            mealPrepDayOfWeek={userProfile.mealPrepDayOfWeek ?? null}
-            lastMealPlanGeneratedAt={userProfile.lastMealPlanGeneratedAt ?? null}
+            mealPrepDayOfWeek={(userProfile.mealPrepDayOfWeek as number | null | undefined) ?? null}
+            lastMealPlanGeneratedAt={(userProfile.lastMealPlanGeneratedAt as string | null | undefined) ?? null}
           />
         )}
 
@@ -122,37 +117,33 @@ export default function DashboardPage() {
         {userProfile && (
           <WaterIntakeTracker
             profileId={userProfile.id}
-            waterUnit={userProfile.waterUnit}
-            glassSizeMl={userProfile.glassSizeMl}
-            waterGoalMl={userProfile.waterGoalMl}
+            waterUnit={userProfile.waterUnit as 'glasses' | 'liters'}
+            glassSizeMl={userProfile.glassSizeMl as number}
+            waterGoalMl={userProfile.waterGoalMl as number}
           />
         )}
 
-        {/* New Insight Widgets in Grid Layout */}
-        <div className="grid grid-cols-4 gap-4">
-          {/* BMI Widget - 4x1 */}
-          <BMIWidget 
-            height={userProfile?.height || 175} 
-            weight={userProfile?.weight || 70} 
+        {/* New Insight Widgets */}
+        <div className="flex flex-col gap-4">
+          <BMIWidget
+            height={(userProfile?.height as number | undefined) || 175}
+            weight={(userProfile?.weight as number | undefined) || 70}
           />
-          
-          {/* Goal Progress Widget - 4x1 */}
-          <GoalProgressWidget 
+
+          <GoalProgressWidget
             loading={loading}
             goal={weightGoal ? {
               id: weightGoal.id,
               goalType: weightGoal.goalType,
               targetValue: Number(weightGoal.targetValue),
-              currentValue: userProfile?.weight || 75,
+              currentValue: (userProfile?.weight as number | undefined) || 75,
               unit: 'kg'
             } : undefined}
           />
-          
-          {/* Shortcut Widget - 4x1 */}
+
           <ShortcutWidget />
-          
-          {/* Workout Pie Chart - 4x2 */}
-          <WorkoutPieChart data={workoutData} />
+
+          <WorkoutPieChart data={workoutDistribution ?? []} />
         </div>
         
         {/* Goals List */}
