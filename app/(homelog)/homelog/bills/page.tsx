@@ -218,7 +218,6 @@ export default function BillsPage() {
                     <Label htmlFor="expense-label">Label</Label>
                     <Input
                       id="expense-label"
-                      autoFocus
                       autoComplete="off"
                       value={label}
                       onChange={(e) => setLabel(e.target.value)}
@@ -257,7 +256,7 @@ export default function BillsPage() {
                     <div className="space-y-2">
                       {members.map((member) => (
                         <div key={member.profileId} className="flex items-center gap-2">
-                          <Label htmlFor={`share-${member.profileId}`} className="w-24 text-sm font-normal">
+                          <Label htmlFor={`share-${member.profileId}`} className="w-24 truncate text-sm font-normal">
                             {member.firstName}
                           </Label>
                           <Input
