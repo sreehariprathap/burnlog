@@ -58,9 +58,28 @@ export function AppThemeSettingsEffect() {
       if (background) root.style.setProperty('--background', background);
       else root.style.removeProperty('--background');
 
-      // Radius is global-only — no per-app override.
+      // Radius, spacing, border, and shadow are global-only — no per-app override.
       if (global?.radius) root.style.setProperty('--radius', global.radius);
       else root.style.removeProperty('--radius');
+
+      if (global?.spacing) root.style.setProperty('--spacing', global.spacing);
+      else root.style.removeProperty('--spacing');
+
+      const border = isDark ? global?.borderDark : global?.borderLight;
+      if (border) root.style.setProperty('--border', border);
+      else root.style.removeProperty('--border');
+
+      const shadowTiers = [
+        ['shadowXs', '--app-shadow-xs'],
+        ['shadowSm', '--app-shadow-sm'],
+        ['shadowMd', '--app-shadow-md'],
+        ['shadowLg', '--app-shadow-lg'],
+      ] as const;
+      for (const [field, cssVar] of shadowTiers) {
+        const value = global?.[field];
+        if (value) root.style.setProperty(cssVar, value);
+        else root.style.removeProperty(cssVar);
+      }
     }
 
     apply();

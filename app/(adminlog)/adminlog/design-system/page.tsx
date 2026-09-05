@@ -38,8 +38,13 @@ function PresetCard({
         </div>
         <p className="text-sm text-muted-foreground">{preset.description}</p>
         <div
-          className="flex items-center justify-between border p-3"
-          style={{ background: preset.theme.backgroundLight ?? '#f9f9f9', borderRadius: radius }}
+          className="flex items-center justify-between p-3"
+          style={{
+            background: preset.theme.backgroundLight ?? '#f9f9f9',
+            borderRadius: radius,
+            border: `1px solid ${preset.theme.borderLight ?? '#e5e5e5'}`,
+            boxShadow: preset.theme.shadowMd ?? undefined,
+          }}
         >
           <span
             className="text-sm"
@@ -100,8 +105,9 @@ export default function DesignSystemPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-6">
       <p className="text-sm text-muted-foreground">
-        One-click bundles of color, shape, and typography, applied globally across every app. This
-        just pre-fills App Theme and Typography (both global scope) — fine-tune further on those
+        One-click bundles of color, radius, spacing, border, shadow, and typography, applied globally
+        across every app — every Button, Card, Input, Dialog, and menu picks these up automatically.
+        This just pre-fills App Theme and Typography (both global scope) — fine-tune further on those
         pages afterward, or per-app there as usual.
       </p>
 

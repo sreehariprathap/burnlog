@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/serviceRole';
 import { requireAdminCaller } from '@/lib/adminlog/testOnboarding';
 import { isAppId } from '@/lib/appMode';
-import { isValidCssColor, isValidRadius, type AppThemeFields } from '@/lib/theme/appTheme';
+import { isValidCssColor, isValidRadius, isValidSpacing, isValidBoxShadow, type AppThemeFields } from '@/lib/theme/appTheme';
 
 type Row = AppThemeFields & { id: string };
 
@@ -21,7 +21,9 @@ export async function GET() {
     const admin = createServiceRoleClient();
     const { data, error } = await admin
       .from('adminlog_app_theme_settings')
-      .select('id, primaryLight, backgroundLight, primaryDark, backgroundDark, radius');
+      .select(
+        'id, primaryLight, backgroundLight, primaryDark, backgroundDark, radius, spacing, borderLight, borderDark, shadowXs, shadowSm, shadowMd, shadowLg'
+      );
     if (error) throw error;
 
     const rows = (data ?? []) as Row[];
@@ -68,14 +70,25 @@ export async function PUT(request: Request) {
       update[key] = value;
     }
 
-    if (fields.radius !== undefined) {
-      const value = fields.radius;
+    const validators: Record<string, (v: unknown) => boolean> = {
+      radius: isValidRadius,
+      spacing: isValidSpacing,
+      borderLight: isValidCssColor,
+      borderDark: isValidCssColor,
+      shadowXs: isValidBoxShadow,
+      shadowSm: isValidBoxShadow,
+      shadowMd: isValidBoxShadow,
+      shadowLg: isValidBoxShadow,
+    };
+    for (const [key, isValid] of Object.entries(validators)) {
+      const value = fields[key];
+      if (value === undefined) continue;
       if (value === null) {
-        update.radius = null;
-      } else if (!isValidRadius(value)) {
-        return NextResponse.json({ error: 'Invalid radius' }, { status: 400 });
+        update[key] = null;
+      } else if (!isValid(value)) {
+        return NextResponse.json({ error: `Invalid ${key}` }, { status: 400 });
       } else {
-        update.radius = value;
+        update[key] = value as string;
       }
     }
 

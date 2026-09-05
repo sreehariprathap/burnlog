@@ -1627,6 +1627,19 @@ model AppThemeSetting {
   /// Border radius (e.g. "0.5rem"). Only meaningful on the "global" row —
   /// per-app radius overrides aren't supported.
   radius          String?
+  /// Base spacing unit (e.g. "0.25rem") — Tailwind's --spacing multiplies
+  /// every p-*/m-*/gap-*/w-*/h-* utility against this. Global-only.
+  spacing         String?
+  /// Hairline/border color, light & dark. Global-only — wins over every
+  /// per-app border color hardcoded in globals.css when set.
+  borderLight     String?
+  borderDark      String?
+  /// Elevation (box-shadow) overrides for the xs/sm/md/lg tiers used across
+  /// Button/Input/Select/Card/Dialog/DropdownMenu. Global-only.
+  shadowXs        String?
+  shadowSm        String?
+  shadowMd        String?
+  shadowLg        String?
   updatedAt       DateTime @updatedAt
 
   @@map("adminlog_app_theme_settings")

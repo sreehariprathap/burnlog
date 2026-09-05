@@ -77,6 +77,19 @@ function Preview({ primary, background, label }: { primary?: string; background?
   );
 }
 
+// Global-only fields (no per-app override) rendered as plain text inputs,
+// shown only when scope === 'global'.
+const GLOBAL_ONLY_FIELDS: { key: keyof AppThemeFields; label: string; placeholder: string }[] = [
+  { key: 'radius', label: 'Border radius', placeholder: 'unset — uses default (0.625rem)' },
+  { key: 'spacing', label: 'Base spacing unit', placeholder: 'unset — uses default (0.25rem)' },
+  { key: 'borderLight', label: 'Border color (light mode)', placeholder: 'unset — per-app default' },
+  { key: 'borderDark', label: 'Border color (dark mode)', placeholder: 'unset — per-app default' },
+  { key: 'shadowXs', label: 'Shadow — xs', placeholder: 'unset — uses default' },
+  { key: 'shadowSm', label: 'Shadow — sm', placeholder: 'unset — uses default' },
+  { key: 'shadowMd', label: 'Shadow — md', placeholder: 'unset — uses default' },
+  { key: 'shadowLg', label: 'Shadow — lg', placeholder: 'unset — uses default' },
+];
+
 const SCOPE_OPTIONS: { value: 'global' | AppId; label: string }[] = [
   { value: 'global', label: 'Global (default for every app)' },
   ...(Object.values(APPS).map((a) => ({ value: a.id, label: a.name })) as { value: AppId; label: string }[]),
@@ -131,7 +144,9 @@ export default function AppThemePage() {
       backgroundLight: null,
       primaryDark: null,
       backgroundDark: null,
-      ...(scope === 'global' ? { radius: null } : {}),
+      ...(scope === 'global'
+        ? Object.fromEntries(GLOBAL_ONLY_FIELDS.map((f) => [f.key, null]))
+        : {}),
     };
     if (scope === 'global') setGlobalState({});
     else setApps((prev) => ({ ...prev, [scope]: {} }));
@@ -158,7 +173,8 @@ export default function AppThemePage() {
       <p className="text-sm text-muted-foreground">
         Sets the primary and background colors, light & dark, globally or per app. An app-level value
         always wins over global; leaving a field blank falls back to global, then to that app&rsquo;s
-        built-in default.
+        built-in default. Radius, spacing, border color, and shadows are global-only and apply to
+        every app.
       </p>
 
       <div className="space-y-2">
@@ -188,22 +204,23 @@ export default function AppThemePage() {
                   onChange={(v) => setField(key, v)}
                 />
               ))}
-              {scope === 'global' && (
-                <div className="space-y-1.5">
-                  <Label htmlFor="radius">Border radius</Label>
-                  <input
-                    id="radius"
-                    type="text"
-                    value={global.radius ?? ''}
-                    onChange={(e) => {
-                      const raw = e.target.value.trim();
-                      setGlobalState((prev) => ({ ...prev, radius: raw === '' ? null : raw }));
-                    }}
-                    placeholder="unset — uses default (0.625rem)"
-                    className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
-                  />
-                </div>
-              )}
+              {scope === 'global' &&
+                GLOBAL_ONLY_FIELDS.map((f) => (
+                  <div key={f.key} className="space-y-1.5">
+                    <Label htmlFor={f.key}>{f.label}</Label>
+                    <input
+                      id={f.key}
+                      type="text"
+                      value={global[f.key] ?? ''}
+                      onChange={(e) => {
+                        const raw = e.target.value.trim();
+                        setGlobalState((prev) => ({ ...prev, [f.key]: raw === '' ? null : raw }));
+                      }}
+                      placeholder={f.placeholder}
+                      className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
+                    />
+                  </div>
+                ))}
               <div className="flex gap-2 pt-2">
                 <Button type="button" disabled={saving} onClick={() => save(current)}>
                   {saving ? <Loader2 className="size-4 animate-spin" /> : 'Save'}
