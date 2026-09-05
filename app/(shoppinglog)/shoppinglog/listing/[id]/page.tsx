@@ -165,7 +165,7 @@ export default function ListingDetailPage() {
                 key={url}
                 type="button"
                 onClick={() => setImageIndex(i)}
-                className={cn('relative h-16 w-16 shrink-0 overflow-hidden rounded-md border-2', i === imageIndex ? 'border-primary' : 'border-transparent')}
+                className={cn('relative h-16 w-16 shrink-0 overflow-hidden rounded-md border-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2', i === imageIndex ? 'border-primary' : 'border-transparent')}
                 aria-label={`Show photo ${i + 1}`}
               >
                 <Image src={url} alt="" fill sizes="64px" className="object-cover" />
@@ -249,7 +249,14 @@ export default function ListingDetailPage() {
               </p>
               <div className="flex gap-1">
                 {[1, 2, 3, 4, 5].map((n) => (
-                  <button key={n} type="button" onClick={() => setReviewRating(n)} aria-label={`${n} stars`}>
+                  <button
+                    key={n}
+                    type="button"
+                    onClick={() => setReviewRating(n)}
+                    aria-label={`${n} stars`}
+                    aria-pressed={n <= reviewRating}
+                    className="rounded focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
                     <Star className={cn('size-5', n <= reviewRating ? 'fill-current text-warning' : 'text-muted-foreground')} />
                   </button>
                 ))}

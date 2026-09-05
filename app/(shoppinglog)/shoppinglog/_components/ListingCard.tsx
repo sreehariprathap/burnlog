@@ -20,8 +20,8 @@ export type ListingSummary = {
 
 export function ListingCard({ listing }: { listing: ListingSummary }) {
   return (
-    <Link href={`/shoppinglog/listing/${listing.id}`}>
-      <Card className="overflow-hidden py-0">
+    <Link href={`/shoppinglog/listing/${listing.id}`} className="block rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2">
+      <Card className="overflow-hidden py-0 transition-transform active:scale-[0.98]">
         <div className="relative aspect-square bg-muted">
           {listing.coverImageUrl ? (
             <Image
