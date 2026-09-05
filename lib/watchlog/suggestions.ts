@@ -1,5 +1,5 @@
 // lib/watchlog/suggestions.ts
-import { MOVIE_GENRES, TV_GENRES } from './tmdb';
+import { MOVIE_GENRES, TV_GENRES } from './discoverRows';
 import type { MediaType } from './types';
 
 export const MOOD_CHIPS = [
@@ -17,6 +17,7 @@ export interface SuggestRequest {
   moods: string[];
   freeText: string | null;
   likedGenres: string[];
+  preferredContentTypes: string[];
 }
 
 export interface SuggestFilters {
@@ -44,8 +45,11 @@ export function buildSuggestUserPrompt(req: SuggestRequest): string {
   const genresLine = req.likedGenres.length > 0
     ? `They've previously rated these genres highly: ${req.likedGenres.join(', ')}.`
     : "They don't have enough rated history yet — lean on the mood alone.";
+  const contentTypesLine = req.preferredContentTypes.length > 0
+    ? `They especially enjoy: ${req.preferredContentTypes.join(', ')}.`
+    : '';
 
-  return `${moodLine}\n${freeTextLine}\n${genresLine}\n\nPick whichever of movie or tv best fits the mood, and 1-3 genre ids for it.`;
+  return `${moodLine}\n${freeTextLine}\n${genresLine}\n${contentTypesLine}\n\nPick whichever of movie or tv best fits the mood, and 1-3 genre ids for it.`;
 }
 
 function isValidMediaType(v: unknown): v is MediaType {

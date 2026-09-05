@@ -71,14 +71,28 @@ export async function POST(request: Request) {
       moods: Array.isArray(body.moods) ? body.moods : [],
       freeText: body.freeText ?? null,
       likedGenres: Array.isArray(body.likedGenres) ? body.likedGenres : [],
+      preferredContentTypes: Array.isArray(body.preferredContentTypes) ? body.preferredContentTypes : [],
     };
 
     MODEL = await getModel(supabase, 'watchlog-suggest');
 
-    const { data: profile } = await supabase.from('profiles').select('id').eq('userId', user.id).single();
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id, watchlogFavoriteGenres, watchlogContentTypes')
+      .eq('userId', user.id)
+      .single();
     if (!profile) {
       return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
     }
+
+    // Merge the profile's stored onboarding preferences into whatever the
+    // caller explicitly sent — additive personalization, not a replacement,
+    // so every caller (onboarding, Home's orb, future callers) benefits
+    // from the stored preferences without needing to know about them.
+    req.likedGenres = Array.from(new Set([...req.likedGenres, ...(profile.watchlogFavoriteGenres ?? [])]));
+    req.preferredContentTypes = Array.from(
+      new Set([...req.preferredContentTypes, ...(profile.watchlogContentTypes ?? [])])
+    );
 
     try {
       const responsePayload = await runAiJob(

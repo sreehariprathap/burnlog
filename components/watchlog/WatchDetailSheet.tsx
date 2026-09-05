@@ -3,6 +3,7 @@
 
 import Image from 'next/image';
 import { Star } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -30,6 +31,27 @@ const STATUS_LABEL: Record<WatchItemRow['status'], string> = {
 };
 
 export function WatchDetailSheet({ item, open, onOpenChange, onAdd, onMarkWatched, onIgnore }: WatchDetailSheetProps) {
+  const [trailerKey, setTrailerKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!open || !item) {
+      setTrailerKey(null);
+      return;
+    }
+    let cancelled = false;
+    fetch(`/api/watchlog/tmdb/videos?tmdbId=${item?.tmdbId}&mediaType=${item?.mediaType}`)
+      .then((res) => (res.ok ? res.json() : { trailerKey: null }))
+      .then((json) => {
+        if (!cancelled) setTrailerKey(json.trailerKey ?? null);
+      })
+      .catch(() => {
+        if (!cancelled) setTrailerKey(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open, item?.tmdbId, item?.mediaType]);
+
   if (!item) return null;
   const alreadyTracked = isWatchItemRow(item);
 
@@ -86,6 +108,21 @@ export function WatchDetailSheet({ item, open, onOpenChange, onAdd, onMarkWatche
               </Button>
             )}
           </div>
+
+          {trailerKey && (
+            <div className="mt-6">
+              <p className="text-sm font-medium mb-2">Trailer</p>
+              <div className="aspect-video w-full overflow-hidden rounded-xl">
+                <iframe
+                  className="h-full w-full"
+                  src={`https://www.youtube.com/embed/${trailerKey}`}
+                  title="Trailer"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            </div>
+          )}
         </div>
       </DrawerContent>
     </Drawer>
