@@ -11,34 +11,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { isExplored, type TravelVisitRow } from '@/lib/travellog/types';
 import { visitsQuery } from '@/lib/travellog/queries';
 import { LogVisitDrawer } from './LogVisitDrawer';
-import WorldMap, { projectPoint, type MapPoint, type WorldMapHandle } from '@/components/ui/world-map';
-
-const COUNTRY_MAP_PADDING_DEG = 5;
-
-function countryViewBox(points: MapPoint[]): string {
-  const projected = points.map((p) => projectPoint(p.lat, p.lng));
-  const padX = (COUNTRY_MAP_PADDING_DEG / 360) * 800;
-  const padY = (COUNTRY_MAP_PADDING_DEG / 180) * 400;
-  const minX = Math.max(0, Math.min(...projected.map((p) => p.x)) - padX);
-  const maxX = Math.min(800, Math.max(...projected.map((p) => p.x)) + padX);
-  const minY = Math.max(0, Math.min(...projected.map((p) => p.y)) - padY);
-  const maxY = Math.min(400, Math.max(...projected.map((p) => p.y)) + padY);
-  // Keep the 2:1 aspect ratio the map is rendered at, otherwise the crop
-  // looks stretched — widen whichever axis is too narrow for it. The floor
-  // keeps a single-city country (a zero-size bounding box) from cropping
-  // down to a comically zoomed-in dot with oversized text.
-  const w = Math.max(maxX - minX, 60);
-  const h = Math.max(maxY - minY, 30);
-  const aspect = 2;
-  if (w / h > aspect) {
-    const targetH = w / aspect;
-    const cy = (minY + maxY) / 2;
-    return `${minX} ${cy - targetH / 2} ${w} ${targetH}`;
-  }
-  const targetW = h * aspect;
-  const cx = (minX + maxX) / 2;
-  return `${cx - targetW / 2} ${minY} ${targetW} ${h}`;
-}
+import WorldMap, { type MapPoint, type WorldMapHandle } from '@/components/ui/world-map';
+import { countryViewBox } from '@/lib/travellog/countryViewBox';
 
 export function MapContent() {
   const { profile } = useCurrentProfile();
@@ -197,22 +171,6 @@ export function MapContent() {
             )}
           </>
         )}
-        <div className="grid grid-cols-1 gap-2 px-4 sm:grid-cols-2">
-          {sorted.slice().reverse().map((visit) => (
-            <Card key={visit.id}>
-              <CardContent className="pt-4 flex items-center justify-between">
-                <div>
-                  <p className="font-medium">{visit.placeName}, {visit.country}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {visit.arrivalDate}{visit.departureDate ? ` – ${visit.departureDate}` : ''}
-                    {' · '}{visit.travelMode === 'road_trip' ? 'Road trip' : 'Flight'}
-                    {isExplored(visit) ? ' · Explored' : ''}
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
       </div>
       {profile && (
         <LogVisitDrawer
