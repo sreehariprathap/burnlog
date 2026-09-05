@@ -1004,6 +1004,10 @@ model TravelVisit {
   arrivalDate   DateTime  @db.Date
   departureDate DateTime? @db.Date
   notes         String?
+  /// 'flight' | 'road_trip' — lets the map draw flights (the chronological
+  /// residence/travel chain) and road trips (spokes from whichever flight
+  /// visit was "home" at the time) as visually separate paths.
+  travelMode    String    @default("flight")
   createdAt     DateTime  @default(now())
   tripPlanId    String?     @db.Uuid
   plan          TravelPlan? @relation(fields: [tripPlanId], references: [id])

@@ -10,6 +10,7 @@ export interface TravelVisitRow {
   arrivalDate: string;       // 'YYYY-MM-DD'
   departureDate: string | null; // 'YYYY-MM-DD', null = single-day visit
   notes: string | null;
+  travelMode: 'flight' | 'road_trip';
   createdAt: string;
 }
 

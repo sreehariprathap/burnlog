@@ -35,6 +35,7 @@ export function LogVisitDrawer({ profileId, open, onOpenChange, onSaved }: LogVi
   const [placeError, setPlaceError] = useState<string | null>(null);
   const [coordError, setCoordError] = useState<string | null>(null);
   const [tripPlanId, setTripPlanId] = useState<string>('none');
+  const [travelMode, setTravelMode] = useState<'flight' | 'road_trip'>('flight');
   const [trips, setTrips] = useState<{ id: string; destination: string }[]>([]);
 
   useEffect(() => {
@@ -57,6 +58,7 @@ export function LogVisitDrawer({ profileId, open, onOpenChange, onSaved }: LogVi
     setPlaceError(null);
     setCoordError(null);
     setTripPlanId('none');
+    setTravelMode('flight');
   }
 
   async function handleLookup() {
@@ -103,6 +105,7 @@ export function LogVisitDrawer({ profileId, open, onOpenChange, onSaved }: LogVi
         arrivalDate,
         departureDate: departureDate || null,
         notes: notes.trim() || null,
+        travelMode,
       });
       if (error) throw error;
       toast({ description: `Logged ${placeName.trim()}.` });
@@ -157,6 +160,16 @@ export function LogVisitDrawer({ profileId, open, onOpenChange, onSaved }: LogVi
               <Label htmlFor="departureDate">Departure (optional)</Label>
               <Input id="departureDate" type="date" value={departureDate} onChange={(e) => setDepartureDate(e.target.value)} />
             </div>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="travelMode">How did you get there?</Label>
+            <Select value={travelMode} onValueChange={(v) => setTravelMode(v as 'flight' | 'road_trip')}>
+              <SelectTrigger id="travelMode"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="flight">Flight</SelectItem>
+                <SelectItem value="road_trip">Road trip</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           {trips.length > 0 && (
             <div className="flex flex-col gap-2">
