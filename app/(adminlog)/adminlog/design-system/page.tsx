@@ -6,7 +6,15 @@ import { useRequireAdmin } from '@/lib/adminlog/useRequireAdmin';
 import { apiFetch } from '@/lib/apiFetch';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { APPS, type AppId } from '@/lib/appMode';
 import { DESIGN_SYSTEM_PRESETS, type DesignSystemPreset } from '@/lib/theme/designSystems';
+
+const SCOPE_OPTIONS: { value: 'global' | AppId; label: string }[] = [
+  { value: 'global', label: 'Global (overrides every app)' },
+  ...(Object.values(APPS).map((a) => ({ value: a.id, label: a.name })) as { value: AppId; label: string }[]),
+];
 
 function PresetCard({
   preset,
@@ -71,6 +79,7 @@ export default function DesignSystemPage() {
   const { profile, loading: profileLoading } = useRequireAdmin();
   const [applyingId, setApplyingId] = useState<string | null>(null);
   const [appliedId, setAppliedId] = useState<string | null>(null);
+  const [scope, setScope] = useState<'global' | AppId>('global');
 
   async function apply(preset: DesignSystemPreset) {
     setApplyingId(preset.id);
@@ -80,12 +89,12 @@ export default function DesignSystemPage() {
         apiFetch('/api/adminlog/app-theme', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ scope: 'global', ...preset.theme }),
+          body: JSON.stringify({ scope, ...preset.theme }),
         }),
         apiFetch('/api/adminlog/typography', {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ scope: 'global', ...preset.typography }),
+          body: JSON.stringify({ scope, ...preset.typography }),
         }),
       ]);
       setAppliedId(preset.id);
@@ -105,15 +114,32 @@ export default function DesignSystemPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-6">
       <p className="text-sm text-muted-foreground">
-        One-click bundles of color, radius, spacing, border, shadow, and typography, applied globally
-        across every app — every Button, Card, Input, Dialog, and menu picks these up automatically.
-        This just pre-fills App Theme and Typography (both global scope) — fine-tune further on those
-        pages afterward, or per-app there as usual.
+        One-click bundles of color, radius, spacing, border, shadow, and typography — every Button,
+        Card, Input, Dialog, and menu picks these up automatically. Applying just pre-fills App Theme
+        and Typography at the scope below, so you can fine-tune further on those pages afterward.
       </p>
+
+      <div className="space-y-2">
+        <Label htmlFor="scope">Apply to</Label>
+        <Select value={scope} onValueChange={(v) => setScope(v as 'global' | AppId)}>
+          <SelectTrigger id="scope" className="w-full"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            {SCOPE_OPTIONS.map((o) => (
+              <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-muted-foreground">
+          {scope === 'global'
+            ? 'Global writes an override that wins over every app’s own built-in palette — every app will look the same until you set per-app values.'
+            : `Only ${APPS[scope].name} changes. Every other app keeps its current look.`}
+        </p>
+      </div>
 
       {appliedId && (
         <div className="flex items-center gap-2 rounded-md border border-success/40 bg-success/10 px-3 py-2 text-sm text-success-foreground">
-          <Check className="size-4" /> Applied {DESIGN_SYSTEM_PRESETS.find((p) => p.id === appliedId)?.name}.
+          <Check className="size-4" /> Applied {DESIGN_SYSTEM_PRESETS.find((p) => p.id === appliedId)?.name}{' '}
+          to {scope === 'global' ? 'every app' : APPS[scope].name}.
         </div>
       )}
 
