@@ -7,6 +7,7 @@ import InsightsClient from './_components/InsightsClient';
 import { RefreshInsightsButton } from './_components/RefreshInsightsButton';
 import { TopBar } from '@/components/TopBar';
 import { BottomNav } from '@/components/BottomNav';
+import type { GoalFocus } from '@/lib/ai/types';
 
 export const metadata: Metadata = {
   title: 'Insights - burnlog',
@@ -32,7 +33,7 @@ export default async function InsightsPage() {
   // profiles.id, not the auth user id directly)
   const { data: profile } = await supabase
     .from('profiles')
-    .select('id')
+    .select('id, lifestyle')
     .eq('userId', user.id)
     .single();
 
@@ -45,7 +46,7 @@ export default async function InsightsPage() {
   // 3) Fetch all datasets in parallel
   const [
     { data: weightEntries = [] },
-    { data: weightGoal = null },
+    { data: fitnessGoals = [] },
     { data: calorieBurns = [] },
     { data: foodIntakes = [] },
     { data: staminaSessions = [] },
@@ -58,10 +59,7 @@ export default async function InsightsPage() {
     supabase
       .from('fitness_goals')
       .select('*')
-      .eq('profileId', profileId)
-      .eq('goalType', 'weight_loss')
-      .order('createdAt', { ascending: false })
-      .single(),
+      .eq('profileId', profileId),
     supabase
       .from('calorie_burns')
       .select('*')
@@ -79,6 +77,10 @@ export default async function InsightsPage() {
       .order('date', { ascending: true }),
   ]);
 
+  const weightGoal = (fitnessGoals ?? []).find((g) => g.goalType === 'weight_loss') ?? null;
+  const goalFocus =
+    ((profile.lifestyle as { goalFocus?: GoalFocus } | null)?.goalFocus as GoalFocus | undefined) ?? null;
+
   // 4) Render
   return (
     <div className="flex flex-col h-screen">
@@ -87,10 +89,12 @@ export default async function InsightsPage() {
         <Suspense fallback={null}>
           <InsightsClient
             weightEntries={weightEntries || []}
-            weightGoal={weightGoal }
+            weightGoal={weightGoal}
             calorieBurns={calorieBurns || []}
             foodIntakes={foodIntakes || []}
             staminaSessions={staminaSessions || []}
+            goalFocus={goalFocus}
+            fitnessGoals={fitnessGoals || []}
           />
         </Suspense>
       </main>
