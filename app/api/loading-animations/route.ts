@@ -22,7 +22,11 @@ export async function GET() {
 
     const animations: Record<string, { src: string; kind: 'lottie' } | { src: null; kind: 'siri_orb' } | null> = {};
     for (const row of data ?? []) {
-      const anim = row.adminlog_lottie_animations as { id: string; kind: string; filePath: string | null } | null;
+      // Supabase's select-string type inference can't see this repo's schema
+      // (no generated Database types), so it defaults the nested resource to
+      // an array; at runtime PostgREST returns a single object (or null)
+      // here since animationId is a to-one FK from this row's perspective.
+      const anim = row.adminlog_lottie_animations as unknown as { id: string; kind: string; filePath: string | null } | null;
       if (!anim) {
         animations[row.appId] = null;
         continue;
