@@ -1,4 +1,4 @@
-package com.burnlog.app;
+package com.logbook.app;
 
 import com.getcapacitor.BridgeActivity;
 
