@@ -1,6 +1,6 @@
 // lib/ai/openrouter.ts
 import OpenAI from 'openai';
-import { BODY_PARTS, type BodyPart, type LifestyleAnswers, type WorkoutPlanEntry } from './types';
+import { BODY_PARTS, type BodyPart, type FitnessLevel, type LifestyleAnswers, type WorkoutPlanEntry } from './types';
 
 export const client = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
@@ -46,6 +46,12 @@ const GOAL_FOCUS_LABEL: Record<LifestyleAnswers['goalFocus'], string> = {
   improve_stamina: 'Improve stamina',
   general_health: 'General health',
   athletic_performance: 'Athletic performance',
+};
+
+const FITNESS_LEVEL_LABEL: Record<FitnessLevel, string> = {
+  beginner: 'Beginner (new to structured training)',
+  intermediate: 'Intermediate (consistent training for 6+ months)',
+  advanced: 'Advanced (consistent training for 2+ years)',
 };
 
 function buildEnvironmentContext(lifestyle: LifestyleAnswers): string {
@@ -171,6 +177,40 @@ function buildWorkoutTypeGuidance(lifestyle: LifestyleAnswers): string {
   return parts.join(' ');
 }
 
+/** Extra prompt guidance keyed off the user's primary goal — layered on top of buildWorkoutTypeGuidance's environment-based rules, never overriding the Push/Pull/Legs gym gate. */
+function buildGoalFocusGuidance(lifestyle: LifestyleAnswers): string {
+  const loc = lifestyle.equipment?.trainingLocation ?? 'mixed';
+  const gymAvailable = loc === 'commercial_gym' || loc === 'home_gym' || loc === 'mixed';
+  switch (lifestyle.goalFocus) {
+    case 'build_muscle':
+      return gymAvailable
+        ? 'Goal is building muscle: favor higher-frequency resistance training. If the user trains at a gym, prefer true Push/Pull/Legs-style splits over generic Full Body days to maximize weekly volume per muscle group.'
+        : 'Goal is building muscle: favor higher-frequency resistance-style Bodyweight or Full Body days (e.g. progressive calisthenics) since the user does not have gym access.';
+    case 'improve_stamina':
+      return 'Goal is improving stamina: bias the weekly schedule toward Cardio, Outdoor Cardio, and Full Body days over isolated strength splits.';
+    case 'athletic_performance':
+      return 'Goal is athletic performance: bias toward Full Body and Cardio days that build functional, multi-joint strength and conditioning over isolated splits.';
+    case 'lose_weight':
+      return 'Goal is losing weight: favor a Full Body + Cardio mix that maximizes calorie burn per session over isolated splits.';
+    case 'general_health':
+    default:
+      return 'Goal is general health: use a balanced mix of the available workout types.';
+  }
+}
+
+/** Extra prompt guidance keyed off training experience — defaults to intermediate (no extra guidance) when unset. */
+function buildFitnessLevelGuidance(fitnessLevel: FitnessLevel | undefined): string {
+  switch (fitnessLevel ?? 'intermediate') {
+    case 'beginner':
+      return 'Fitness level is beginner: favor Full Body days over isolated splits even when the user trains at a gym, and use the lower end of their preferred training days for non-Rest days.';
+    case 'advanced':
+      return 'Fitness level is advanced: gym-accessible split-style training (Push/Pull/Legs) is fully appropriate if it otherwise fits the goal and environment guidance above.';
+    case 'intermediate':
+    default:
+      return '';
+  }
+}
+
 // Keyword -> bodyPart(s) map used to turn free-text exclusion statements
 // (from the onboarding "injuries/limitations" field or an "Ask AI" custom
 // instruction, e.g. "I don't have legs" or "no leg day please") into hard
@@ -222,6 +262,8 @@ export function buildPrompt(profile: ProfileContext, lifestyle: LifestyleAnswers
   const environmentContext = buildEnvironmentContext(lifestyle);
   const commuteContext = buildCommuteContext(lifestyle);
   const typeGuidance = buildWorkoutTypeGuidance(lifestyle);
+  const goalFocusGuidance = buildGoalFocusGuidance(lifestyle);
+  const fitnessLevelGuidance = buildFitnessLevelGuidance(lifestyle.fitnessLevel);
   const excludedBodyParts = detectExcludedBodyParts(lifestyle.injuries, customInstructions);
 
   return `You are a certified personal trainer generating a personalised weekly workout schedule.
@@ -238,6 +280,7 @@ Lifestyle:
 ${commuteContext}
 - Current exercise frequency: ${EXERCISE_FREQUENCY_LABEL[lifestyle.exerciseFrequency]}
 - Primary goal: ${GOAL_FOCUS_LABEL[lifestyle.goalFocus]}
+- Fitness level: ${FITNESS_LEVEL_LABEL[lifestyle.fitnessLevel ?? 'intermediate']}
 - Injuries or limitations: ${lifestyle.injuries || 'None reported'}
 - Preferred training days per week: ${lifestyle.preferredTrainingDays}
 
@@ -245,7 +288,7 @@ Training environment:
 ${environmentContext || '- Not specified (assume mixed gym access)'}
 
 IMPORTANT — workout type selection rules:
-${typeGuidance}
+${typeGuidance} ${goalFocusGuidance}${fitnessLevelGuidance ? ` ${fitnessLevelGuidance}` : ''}
 
 Generate a 7-day workout schedule, one entry per day of the week (dayOfWeek 0=Sunday through
 6=Saturday). Exactly ${lifestyle.preferredTrainingDays} days must have a non-"Rest" bodyPart;

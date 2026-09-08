@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Loader2 } from 'lucide-react';
-import type { LifestyleAnswers, CommuteDetails } from '@/lib/ai/types';
+import { GOAL_FOCUS_OPTIONS, FITNESS_LEVEL_OPTIONS, type LifestyleAnswers, type FitnessLevel, type CommuteDetails } from '@/lib/ai/types';
 
 type LifestyleFormProps = {
   submitting: boolean;
@@ -30,6 +30,7 @@ export function LifestyleForm({ submitting, initialAnswers, onSubmit }: Lifestyl
   );
   const [exerciseFrequency, setExerciseFrequency] = useState<LifestyleAnswers['exerciseFrequency']>(initialAnswers?.exerciseFrequency ?? '1-2');
   const [goalFocus, setGoalFocus] = useState<LifestyleAnswers['goalFocus']>(initialAnswers?.goalFocus ?? 'general_health');
+  const [fitnessLevel, setFitnessLevel] = useState<FitnessLevel>(initialAnswers?.fitnessLevel ?? 'intermediate');
   const [injuries, setInjuries] = useState(initialAnswers?.injuries ?? '');
   const [preferredTrainingDays, setPreferredTrainingDays] = useState(initialAnswers?.preferredTrainingDays ?? 4);
 
@@ -48,6 +49,7 @@ export function LifestyleForm({ submitting, initialAnswers, onSubmit }: Lifestyl
       commuteDetails,
       exerciseFrequency,
       goalFocus,
+      fitnessLevel,
       injuries,
       preferredTrainingDays,
     });
@@ -154,11 +156,21 @@ export function LifestyleForm({ submitting, initialAnswers, onSubmit }: Lifestyl
             <Select value={goalFocus} onValueChange={(v) => setGoalFocus(v as LifestyleAnswers['goalFocus'])}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value="lose_weight">Lose weight</SelectItem>
-                <SelectItem value="build_muscle">Build muscle</SelectItem>
-                <SelectItem value="improve_stamina">Improve stamina</SelectItem>
-                <SelectItem value="general_health">General health</SelectItem>
-                <SelectItem value="athletic_performance">Athletic performance</SelectItem>
+                {GOAL_FOCUS_OPTIONS.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Fitness level</Label>
+            <Select value={fitnessLevel} onValueChange={(v) => setFitnessLevel(v as FitnessLevel)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {FITNESS_LEVEL_OPTIONS.map((o) => (
+                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

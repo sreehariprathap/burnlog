@@ -163,18 +163,39 @@ export type MealPlanningAnswers = {
   kitchenAppliances: string[]; // [] means "not cooking at home"
 };
 
+export type GoalFocus =
+  | 'lose_weight'
+  | 'build_muscle'
+  | 'improve_stamina'
+  | 'general_health'
+  | 'athletic_performance';
+
+export const GOAL_FOCUS_OPTIONS: { value: GoalFocus; label: string }[] = [
+  { value: 'lose_weight', label: 'Lose weight' },
+  { value: 'build_muscle', label: 'Build muscle' },
+  { value: 'improve_stamina', label: 'Improve stamina' },
+  { value: 'general_health', label: 'General health' },
+  { value: 'athletic_performance', label: 'Athletic performance' },
+];
+
+/** Physical-capability signal used to tailor workout volume/complexity — see buildGoalFocusGuidance/buildFitnessLevelGuidance in lib/ai/openrouter.ts. */
+export type FitnessLevel = 'beginner' | 'intermediate' | 'advanced';
+
+export const FITNESS_LEVEL_OPTIONS: { value: FitnessLevel; label: string }[] = [
+  { value: 'beginner', label: 'Beginner — new to structured training' },
+  { value: 'intermediate', label: 'Intermediate — training consistently for 6+ months' },
+  { value: 'advanced', label: 'Advanced — training consistently for 2+ years' },
+];
+
 export type LifestyleAnswers = {
   jobType: 'desk' | 'physical' | 'mixed' | 'not_working';
   hoursSitting: '<2' | '2-4' | '4-6' | '6-8' | '8+';
   commuteActivity: 'sedentary' | 'walk_or_bike';
   commuteDetails?: CommuteDetails;
   exerciseFrequency: 'none' | '1-2' | '3-4' | '5+';
-  goalFocus:
-    | 'lose_weight'
-    | 'build_muscle'
-    | 'improve_stamina'
-    | 'general_health'
-    | 'athletic_performance';
+  goalFocus: GoalFocus;
+  /** Optional so existing saved profiles without it stay valid; buildPrompt defaults to 'intermediate'. */
+  fitnessLevel?: FitnessLevel;
   injuries: string;
   preferredTrainingDays: number; // 3-6
   activityPreferences?: ActivityPreferences;

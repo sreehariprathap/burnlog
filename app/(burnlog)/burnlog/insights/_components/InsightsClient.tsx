@@ -27,6 +27,8 @@ import {
   type ChartConfig,
 } from '@/components/ui/chart';
 import { Scale, Flame, Utensils, Heart, HeartPulse, TrendingUp, Zap, Repeat, BarChart3, Users } from 'lucide-react';
+import type { GoalFocus } from '@/lib/ai/types';
+import { orderMetricsByGoalFocus, goalTypeForMetric, averageValue, calculateGoalStatus, type MetricKey } from '@/lib/burnlog/insightsGoal';
 
 // Types
 interface WeightEntry {
@@ -77,9 +79,9 @@ interface InsightsClientProps {
   calorieBurns: CalorieBurn[];
   foodIntakes: FoodIntake[];
   staminaSessions: StaminaSession[];
+  goalFocus: GoalFocus | null;
+  fitnessGoals: { goalType: string; targetValue: number }[];
 }
-
-type MetricKey = 'weight' | 'calories' | 'food' | 'stamina';
 
 const METRIC_EMPTY_STATE: Record<MetricKey, { IconComponent: typeof Scale; message: string }> = {
   weight: { IconComponent: Scale, message: 'Log your weight to see trends here.' },
@@ -282,10 +284,12 @@ function MetricSlide({
   metric,
   chartData,
   weightGoal,
+  goalStatus,
 }: {
   metric: MetricKey;
   chartData: Array<{ date: string; [key: string]: any }>;
   weightGoal: Goal | null;
+  goalStatus: string | null;
 }) {
   const meta = METRIC_META[metric];
 
@@ -384,6 +388,7 @@ function MetricSlide({
           <CardContent className="pt-0">
             <p className="text-sm">{trend.trend}</p>
             {metric === 'weight' && weightGoal && <p className="text-xs text-muted-foreground mt-1">{forecast}</p>}
+            {goalStatus && <p className="text-xs text-muted-foreground mt-1">{goalStatus}</p>}
           </CardContent>
         </Card>
 
@@ -427,13 +432,14 @@ function MetricSlide({
   );
 }
 
-const insightTabs: TabItem[] = [
-  { id: 'weight', icon: Scale, label: 'Weight', color: 'var(--chart-1)' },
-  { id: 'calories', icon: Flame, label: 'Calories', color: 'var(--chart-2)' },
-  { id: 'food', icon: Utensils, label: 'Food', color: 'var(--chart-3)' },
-  { id: 'stamina', icon: HeartPulse, label: 'Stamina', color: 'var(--chart-4)' },
-  { id: 'benchmark', icon: Users, label: 'Benchmarks', color: 'var(--chart-5)' },
-];
+const METRIC_TAB_META: Record<MetricKey, TabItem> = {
+  weight: { id: 'weight', icon: Scale, label: 'Weight', color: 'var(--chart-1)' },
+  calories: { id: 'calories', icon: Flame, label: 'Calories', color: 'var(--chart-2)' },
+  food: { id: 'food', icon: Utensils, label: 'Food', color: 'var(--chart-3)' },
+  stamina: { id: 'stamina', icon: HeartPulse, label: 'Stamina', color: 'var(--chart-4)' },
+};
+
+const BENCHMARK_TAB: TabItem = { id: 'benchmark', icon: Users, label: 'Benchmarks', color: 'var(--chart-5)' };
 
 const METRICS: MetricKey[] = ['weight', 'calories', 'food', 'stamina'];
 
@@ -444,10 +450,18 @@ export default function InsightsClient({
   calorieBurns,
   foodIntakes,
   staminaSessions,
+  goalFocus,
+  fitnessGoals,
 }: InsightsClientProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+
+  const orderedMetrics = useMemo(() => orderMetricsByGoalFocus(goalFocus), [goalFocus]);
+  const insightTabs: TabItem[] = useMemo(
+    () => [...orderedMetrics.map((m) => METRIC_TAB_META[m]), BENCHMARK_TAB],
+    [orderedMetrics]
+  );
 
   const tabFromUrl = insightTabs.findIndex((t) => t.id === searchParams.get('insight'));
   const [selectedIndex, setSelectedIndexState] = useState(tabFromUrl >= 0 ? tabFromUrl : 0);
@@ -508,6 +522,27 @@ export default function InsightsClient({
     stamina: processedStaminaData,
   };
 
+  const goalStatusByMetric = useMemo(() => {
+    const result: Partial<Record<MetricKey, string | null>> = {};
+    const leadingMetric = orderedMetrics[0];
+    for (const metric of METRICS) {
+      if (metric !== leadingMetric || metric === 'weight') {
+        result[metric] = null;
+        continue;
+      }
+      const goalType = goalTypeForMetric(metric);
+      const target = goalType ? fitnessGoals.find((g) => g.goalType === goalType)?.targetValue : undefined;
+      const data = dataByMetric[metric];
+      if (!goalType || !target || data.length === 0) {
+        result[metric] = null;
+        continue;
+      }
+      const avg = averageValue(data, METRIC_META[metric].dataKey);
+      result[metric] = calculateGoalStatus(avg, target, METRIC_META[metric].unit);
+    }
+    return result;
+  }, [orderedMetrics, fitnessGoals, dataByMetric]);
+
   return (
     <div className="flex flex-col gap-4">
       <div className="sticky top-0 z-10 -mx-4 border-b bg-background/80 px-4 py-2 backdrop-blur">
@@ -517,8 +552,14 @@ export default function InsightsClient({
         selectedIndex={selectedIndex}
         onSelect={setSelectedIndex}
         slides={[
-          ...METRICS.map((metric) => (
-            <MetricSlide key={metric} metric={metric} chartData={dataByMetric[metric]} weightGoal={weightGoal} />
+          ...orderedMetrics.map((metric) => (
+            <MetricSlide
+              key={metric}
+              metric={metric}
+              chartData={dataByMetric[metric]}
+              weightGoal={weightGoal}
+              goalStatus={goalStatusByMetric[metric] ?? null}
+            />
           )),
           <Card key="benchmark">
             <CardHeader>
