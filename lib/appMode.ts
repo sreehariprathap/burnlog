@@ -231,4 +231,14 @@ export function setAppTheme(app: AppId): void {
   }
 
   setActiveApp(app);
+
+  // Everything that resolves per-app settings (AppThemeSettingsEffect,
+  // TypographySettingsEffect, useActiveApp) watches <html>'s attributes for
+  // the switch. Class alone isn't a reliable signal: burnlog, adminlog and
+  // intellog have no themeClass, so switching between two of those mutates
+  // no class at all. Stamping the id here guarantees an observable change on
+  // every switch, and makes the active app visible in DevTools. Set last, so
+  // observers (which fire on the microtask after this function returns) read
+  // an already-updated getActiveApp().
+  root.dataset.app = app;
 }

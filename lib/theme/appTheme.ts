@@ -10,6 +10,18 @@ export interface AppThemeFields {
   backgroundLight?: string | null;
   primaryDark?: string | null;
   backgroundDark?: string | null;
+  /** Border radius (e.g. "0.5rem"). Global-only — no per-app override. */
+  radius?: string | null;
+  /** Base spacing unit (e.g. "0.25rem"). Global-only. */
+  spacing?: string | null;
+  /** Hairline/border color, light & dark. Global-only. */
+  borderLight?: string | null;
+  borderDark?: string | null;
+  /** Elevation (box-shadow) overrides for the xs/sm/md/lg tiers. Global-only. */
+  shadowXs?: string | null;
+  shadowSm?: string | null;
+  shadowMd?: string | null;
+  shadowLg?: string | null;
 }
 
 export const APP_THEME_FIELD_KEYS = [
@@ -33,6 +45,26 @@ const COLOR_PATTERN = /^(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\)|oklch\([^)]+\))$/;
 
 export function isValidCssColor(value: unknown): value is string {
   return typeof value === 'string' && COLOR_PATTERN.test(value.trim());
+}
+
+// e.g. "0", "0.5rem", "8px"
+const RADIUS_PATTERN = /^\d+(\.\d+)?(rem|px)?$/;
+
+export function isValidRadius(value: unknown): value is string {
+  return typeof value === 'string' && RADIUS_PATTERN.test(value.trim());
+}
+
+// Same shape as radius — a single CSS length (spacing is also a length unit).
+export const isValidSpacing = isValidRadius;
+
+// Loose validation for a CSS box-shadow value (possibly multiple
+// comma-separated layers) — permits the characters real shadow values use
+// (lengths, rgb()/rgba()/oklch() colors, percentages) while rejecting
+// anything that could break out of a CSS custom property value.
+const BOX_SHADOW_PATTERN = /^[a-zA-Z0-9 ,.#%()/\-]{1,300}$/;
+
+export function isValidBoxShadow(value: unknown): value is string {
+  return typeof value === 'string' && BOX_SHADOW_PATTERN.test(value.trim());
 }
 
 /** Resolved value for one field: app override wins, else global, else

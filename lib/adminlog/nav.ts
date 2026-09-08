@@ -23,6 +23,7 @@ import {
   Megaphone,
   Paintbrush,
   Film,
+  SwatchBook,
 } from 'lucide-react';
 
 export type AdminNavCategoryKey = 'general' | 'ai' | 'error' | 'ui-themes' | 'user';
@@ -84,6 +85,8 @@ export const ADMIN_NAV: AdminNavCategory[] = [
       { href: '/adminlog/loading-animations', label: 'Loading Animations', description: 'Manage the Lottie animations shown while switching apps, and assign one to each app.', icon: Film },
       { href: '/adminlog/typography', label: 'Typography', description: 'Pick the app\'s heading and body fonts.', icon: Type },
       { href: '/adminlog/app-theme', label: 'App Theme', description: 'Set primary and background colors, light & dark, globally or per app.', icon: Paintbrush },
+      { href: '/adminlog/design-system', label: 'Design Systems', description: 'Apply a curated color, shape, and typography bundle across the whole app.', icon: SwatchBook },
+      { href: '/adminlog/color-combos', label: 'Color Combos', description: 'Create and manage custom color palettes, or browse template examples.', icon: Palette },
     ],
   },
   {

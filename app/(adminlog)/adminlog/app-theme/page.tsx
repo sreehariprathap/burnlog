@@ -77,10 +77,35 @@ function Preview({ primary, background, label }: { primary?: string; background?
   );
 }
 
+// Shape and elevation fields (per-app-overridable).
+const SHAPE_FIELDS: { key: keyof AppThemeFields; label: string; placeholder: string }[] = [
+  { key: 'radius', label: 'Border radius', placeholder: 'unset — uses default (0.625rem)' },
+  { key: 'spacing', label: 'Base spacing unit', placeholder: 'unset — uses default (0.25rem)' },
+  { key: 'borderLight', label: 'Border color (light mode)', placeholder: 'unset — uses default' },
+  { key: 'borderDark', label: 'Border color (dark mode)', placeholder: 'unset — uses default' },
+  { key: 'shadowXs', label: 'Shadow — xs', placeholder: 'unset — uses default' },
+  { key: 'shadowSm', label: 'Shadow — sm', placeholder: 'unset — uses default' },
+  { key: 'shadowMd', label: 'Shadow — md', placeholder: 'unset — uses default' },
+  { key: 'shadowLg', label: 'Shadow — lg', placeholder: 'unset — uses default' },
+];
+
 const SCOPE_OPTIONS: { value: 'global' | AppId; label: string }[] = [
-  { value: 'global', label: 'Global (default for every app)' },
+  // Deliberately not "default for every app": a global colour is written as
+  // an inline style on <html>, which beats each app's own `.app-*` palette
+  // in globals.css. It overrides app identity rather than backstopping it.
+  { value: 'global', label: 'Global (overrides every app)' },
   ...(Object.values(APPS).map((a) => ({ value: a.id, label: a.name })) as { value: AppId; label: string }[]),
 ];
+
+interface ColorComboRow {
+  id: string;
+  name: string;
+  primaryLight: string;
+  primaryDark: string;
+  backgroundLight: string;
+  backgroundDark: string;
+  isTemplate: boolean;
+}
 
 export default function AppThemePage() {
   const { profile, loading: profileLoading } = useRequireAdmin();
@@ -89,20 +114,39 @@ export default function AppThemePage() {
   const [scope, setScope] = useState<'global' | AppId>('global');
   const [global, setGlobalState] = useState<AppThemeFields>({});
   const [apps, setApps] = useState<Record<string, AppThemeFields>>({});
+  const [combos, setCombos] = useState<ColorComboRow[]>([]);
 
   useEffect(() => {
     if (!profile?.isAdmin) return;
     (async () => {
       setLoading(true);
-      const res = await apiFetch('/api/adminlog/app-theme');
-      if (res.ok) {
-        const data = await res.json();
+      const [themeRes, comboRes] = await Promise.all([
+        apiFetch('/api/adminlog/app-theme'),
+        apiFetch('/api/adminlog/color-combos'),
+      ]);
+      if (themeRes.ok) {
+        const data = await themeRes.json();
         setGlobalState(data.global ?? {});
         setApps(data.apps ?? {});
       }
+      if (comboRes.ok) setCombos(await comboRes.json());
       setLoading(false);
     })();
   }, [profile?.isAdmin]);
+
+  /** Drops a saved palette's four colours into the current scope's fields.
+   * Left unsaved on purpose — the admin can preview the swatches, tweak,
+   * then hit Save, same as hand-entered values. */
+  function applyCombo(combo: ColorComboRow) {
+    const colors: AppThemeFields = {
+      primaryLight: combo.primaryLight,
+      primaryDark: combo.primaryDark,
+      backgroundLight: combo.backgroundLight,
+      backgroundDark: combo.backgroundDark,
+    };
+    if (scope === 'global') setGlobalState((prev) => ({ ...prev, ...colors }));
+    else setApps((prev) => ({ ...prev, [scope]: { ...prev[scope], ...colors } }));
+  }
 
   const current: AppThemeFields = scope === 'global' ? global : (apps[scope] ?? {});
 
@@ -126,7 +170,13 @@ export default function AppThemePage() {
   }
 
   async function resetScope() {
-    const cleared: AppThemeFields = { primaryLight: null, backgroundLight: null, primaryDark: null, backgroundDark: null };
+    const cleared: AppThemeFields = {
+      primaryLight: null,
+      backgroundLight: null,
+      primaryDark: null,
+      backgroundDark: null,
+      ...Object.fromEntries(SHAPE_FIELDS.map((f) => [f.key, null])),
+    };
     if (scope === 'global') setGlobalState({});
     else setApps((prev) => ({ ...prev, [scope]: {} }));
     await save(cleared);
@@ -150,9 +200,9 @@ export default function AppThemePage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-6">
       <p className="text-sm text-muted-foreground">
-        Sets the primary and background colors, light & dark, globally or per app. An app-level value
-        always wins over global; leaving a field blank falls back to global, then to that app&rsquo;s
-        built-in default.
+        Sets colors, radius, spacing, border, and shadows globally or per app. An app-level value always wins
+        over global; leaving a field blank falls back to global, then to the default. Pick from color combos below
+        or hand-enter colors directly.
       </p>
 
       <div className="space-y-2">
@@ -166,6 +216,37 @@ export default function AppThemePage() {
           </SelectContent>
         </Select>
       </div>
+
+      {combos.length > 0 && (
+        <Card>
+          <CardContent className="space-y-3 p-4">
+            <div>
+              <p className="text-sm font-medium">Palettes</p>
+              <p className="text-xs text-muted-foreground">
+                Fills the four colour fields below for the current scope. Nothing is written until
+                you hit Save. Manage these in AdminLog &rsaquo; UI &rsaquo; Color Combos.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {combos.map((combo) => (
+                <button
+                  key={combo.id}
+                  type="button"
+                  onClick={() => applyCombo(combo)}
+                  title={`Apply ${combo.name}`}
+                  className="flex items-center gap-2 rounded-md border px-2 py-1.5 text-xs transition-colors hover:bg-accent"
+                >
+                  <span className="flex gap-0.5" aria-hidden>
+                    <span className="size-4 rounded-sm border" style={{ background: combo.primaryLight }} />
+                    <span className="size-4 rounded-sm border" style={{ background: combo.primaryDark }} />
+                  </span>
+                  {combo.name}
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <Card>
         <CardContent className="space-y-4 p-4">
@@ -181,6 +262,27 @@ export default function AppThemePage() {
                   inheritedFrom={scope !== 'global' ? 'global' : undefined}
                   onChange={(v) => setField(key, v)}
                 />
+              ))}
+              {SHAPE_FIELDS.map((f) => (
+                <div key={f.key} className="space-y-1.5">
+                  <Label htmlFor={f.key}>{f.label}</Label>
+                  <input
+                    id={f.key}
+                    type="text"
+                    value={current[f.key] ?? ''}
+                    onChange={(e) => {
+                      const raw = e.target.value.trim();
+                      const value = raw === '' ? null : raw;
+                      if (scope === 'global') {
+                        setGlobalState((prev) => ({ ...prev, [f.key]: value }));
+                      } else {
+                        setApps((prev) => ({ ...prev, [scope]: { ...prev[scope], [f.key]: value } }));
+                      }
+                    }}
+                    placeholder={f.placeholder}
+                    className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
+                  />
+                </div>
               ))}
               <div className="flex gap-2 pt-2">
                 <Button type="button" disabled={saving} onClick={() => save(current)}>
