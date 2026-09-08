@@ -12,6 +12,9 @@ import { CalorieTracker } from './_components/CalorieTracker';
 import { WeightTracker } from './_components/WeightTracker';
 import { AddGoalForm } from './_components/AddGoalForm';
 import { GoalsList } from './_components/GoalsList';
+import { GoalFocusCard } from './_components/GoalFocusCard';
+import { RegeneratePlanCard } from './_components/RegeneratePlanCard';
+import type { LifestyleAnswers } from '@/lib/ai/types';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { fitnessGoalsQuery, type FitnessGoal } from '@/lib/burnlog/queries';
 import { TopBar } from '@/components/TopBar';
@@ -36,6 +39,7 @@ export default function GoalsPage() {
   const { toast } = useToast();
   const { profile, loading: profileLoading } = useCurrentProfile();
   const userId = profile?.userId ?? null;
+  const lifestyle = (profile?.lifestyle as LifestyleAnswers | null) ?? null;
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -66,6 +70,10 @@ export default function GoalsPage() {
 
   const handleGoalAdded = (newGoal: Goal) => {
     mutateGoals([...goals, newGoal], { revalidate: false });
+  };
+
+  const handleGoalsSeeded = (newGoals: Goal[]) => {
+    mutateGoals([...goals, ...newGoals], { revalidate: false });
   };
 
   return (
@@ -105,6 +113,15 @@ export default function GoalsPage() {
           onSelect={setSelectedIndex}
           slides={[
             <div key="goals-list" className="space-y-4">
+              {profile && (
+                <GoalFocusCard
+                  profileId={profile.id}
+                  lifestyle={lifestyle}
+                  existingGoalTypes={goals.map((g) => g.goalType)}
+                  onGoalsSeeded={handleGoalsSeeded}
+                />
+              )}
+              {profile && lifestyle && <RegeneratePlanCard profileId={profile.id} lifestyle={lifestyle} />}
               {goals.length > 0 ? (
                 <GoalsList goals={goals} />
               ) : (
