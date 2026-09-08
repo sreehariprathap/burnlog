@@ -22,6 +22,7 @@ import {
   Type,
   Megaphone,
   Paintbrush,
+  Film,
   SwatchBook,
 } from 'lucide-react';
 
@@ -81,6 +82,7 @@ export const ADMIN_NAV: AdminNavCategory[] = [
       { href: '/adminlog/button-theme', label: 'Button Theme', description: 'Pick which visual style each themeable button element uses across the app.', icon: Palette },
       { href: '/adminlog/micro-interactions', label: 'Micro Interactions', description: 'Turn on press/hover/stagger animations across the app.', icon: Sparkles },
       { href: '/adminlog/app-icons', label: 'App Icons', description: 'Switch every sub-app\'s icon between animated Lucide icons and plain letter badges.', icon: Shapes },
+      { href: '/adminlog/loading-animations', label: 'Loading Animations', description: 'Manage the Lottie animations shown while switching apps, and assign one to each app.', icon: Film },
       { href: '/adminlog/typography', label: 'Typography', description: 'Pick the app\'s heading and body fonts.', icon: Type },
       { href: '/adminlog/app-theme', label: 'App Theme', description: 'Set primary and background colors, light & dark, globally or per app.', icon: Paintbrush },
       { href: '/adminlog/design-system', label: 'Design Systems', description: 'Apply a curated color, shape, and typography bundle across the whole app.', icon: SwatchBook },

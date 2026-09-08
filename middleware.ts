@@ -74,7 +74,11 @@ export async function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     // match everything except /api, /_next/static, /_next/image, favicon.ico, the PWA
-    // manifest/service-worker/workbox assets, or image files
-    '/((?!api|_next/static|_next/image|favicon\\.ico|manifest\\.webmanifest|sw\\.js|workbox-.*\\.js|fallback-.*\\.js|.*\\.(?:png|jpg|jpeg|svg)).*)',
+    // manifest/service-worker/workbox assets, image files, or the lottie
+    // animation JSONs under /lottie (decorative assets — auth-gating them
+    // means a redirect turns their JSON response into the /login page's
+    // HTML, which lottie-web then fails to parse, so the animation never
+    // renders)
+    '/((?!api|_next/static|_next/image|favicon\\.ico|manifest\\.webmanifest|sw\\.js|workbox-.*\\.js|fallback-.*\\.js|lottie/.*\\.json|.*\\.(?:png|jpg|jpeg|svg)).*)',
   ],
 };
