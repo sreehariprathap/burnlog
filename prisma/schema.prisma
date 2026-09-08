@@ -1631,7 +1631,7 @@ model AppThemeSetting {
   /// Border radius (e.g. "0.5rem"). Per-app-overridable.
   radius          String?
   /// Base spacing unit (e.g. "0.25rem") — Tailwind's --spacing multiplies
-  /// every p-*/m-*/gap-*/w-*/h-* utility against this. Per-app-overridable.
+  /// every p-, m-, gap-, w-, h- utility against this. Per-app-overridable.
   spacing         String?
   /// Hairline/border color, light & dark. Per-app-overridable.
   borderLight     String?
@@ -1716,4 +1716,34 @@ model WatchIgnore {
 
   @@unique([profileId, tmdbId, mediaType])
   @@map("watch_ignores")
+}
+
+/// Library of Lottie animations (or the built-in Siri orb) available to
+/// assign to an app's loading screen. Built-ins are seeded read-only;
+/// admins add custom ones via AdminLog > Loading Animations.
+model LottieAnimation {
+  id               String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name             String
+  kind             String   @default("lottie") // 'lottie' | 'siri_orb'
+  isReadOnly       Boolean  @default(false)
+  filePath         String?  // set only for the 5 built-in files under public/lottie/
+  data             Json?    // set only for admin-uploaded/pasted animations
+  createdByAdminId String?  @db.Uuid
+  createdAt        DateTime @default(now())
+
+  assignments AppLottieAssignment[]
+
+  @@map("adminlog_lottie_animations")
+}
+
+/// Which LottieAnimation (if any) each app shows during app-switch.
+/// One row per AppId, including 'intellog'.
+model AppLottieAssignment {
+  appId            String   @id
+  animationId      String?  @db.Uuid
+  animation        LottieAnimation? @relation(fields: [animationId], references: [id], onDelete: SetNull)
+  updatedAt        DateTime @updatedAt
+  updatedByAdminId String?  @db.Uuid
+
+  @@map("adminlog_lottie_assignments")
 }

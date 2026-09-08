@@ -49,6 +49,7 @@
     "date-fns": "^4.1.0",
     "dotted-map": "^3.1.0",
     "embla-carousel-react": "^8.6.0",
+    "lottie-react": "^3.1.1",
     "lucide-react": "^0.503.0",
     "motion": "^13.1.1",
     "next": "15.3.8",
