@@ -23,11 +23,16 @@ export function AppSwitcher({ open, onOpenChange }: AppSwitcherProps) {
   const [activeApp, setActiveAppState] = useState<AppId>('logbook');
   const [defaultApp, setDefaultAppState] = useState<AppId>('logbook');
   const [visibleApps, setVisibleApps] = useState(Object.values(APPS));
+  // Bumped every time the drawer opens so each icon's `key` below changes,
+  // forcing a fresh mount — that's what makes the pop-in animation actually
+  // replay on every trigger instead of only on the component's first-ever mount.
+  const [sessionId, setSessionId] = useState(0);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressFired = useRef(false);
 
   useEffect(() => {
     if (!open) return;
+    setSessionId((id) => id + 1);
     const active = getActiveApp();
     setActiveAppState(active);
     setDefaultAppState(getDefaultApp());
@@ -78,13 +83,9 @@ export function AppSwitcher({ open, onOpenChange }: AppSwitcherProps) {
         </DrawerHeader>
         <AppSwitcherChat open={open} />
         <div className="grid grid-cols-4 gap-4 p-4 pb-8 overflow-y-auto">
-          {open && visibleApps.map((app, index) => (
-            // Conditionally mounted (not just animate-toggled) so every trigger of the
-            // hub is a fresh mount — otherwise this races vaul's own sheet-opening
-            // transition and finishes invisibly while the drawer is still sliding in.
-            // The 0.15s base delay lets the sheet settle before the icons pop in.
+          {visibleApps.map((app, index) => (
             <motion.button
-              key={app.id}
+              key={`${app.id}-${sessionId}`}
               type="button"
               initial={{ opacity: 0, scale: 0.4 }}
               animate={{ opacity: 1, scale: 1 }}
