@@ -1,6 +1,14 @@
 'use client';
+import { useState } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 const PROVIDERS = [
   {
@@ -37,8 +45,18 @@ const PROVIDERS = [
 
 export function OAuthButtons() {
   const supabase = createClient();
+  const [showAppleDialog, setShowAppleDialog] = useState(false);
+  const [showFacebookDialog, setShowFacebookDialog] = useState(false);
 
   const handleOAuth = (provider: 'google' | 'facebook' | 'apple') => {
+    if (provider === 'apple') {
+      setShowAppleDialog(true);
+      return;
+    }
+    if (provider === 'facebook') {
+      setShowFacebookDialog(true);
+      return;
+    }
     supabase.auth.signInWithOAuth({
       provider,
       options: { redirectTo: `${window.location.origin}/auth/callback` },
@@ -46,19 +64,44 @@ export function OAuthButtons() {
   };
 
   return (
-    <div className="flex justify-center gap-3">
-      {PROVIDERS.map(p => (
-        <Button
-          key={p.id}
-          type="button"
-          variant="outline"
-          size="icon"
-          aria-label={p.label}
-          onClick={() => handleOAuth(p.id)}
-        >
-          {p.icon}
-        </Button>
-      ))}
-    </div>
+    <>
+      <div className="flex justify-center gap-3">
+        {PROVIDERS.map(p => (
+          <Button
+            key={p.id}
+            type="button"
+            variant="outline"
+            size="icon"
+            aria-label={p.label}
+            onClick={() => handleOAuth(p.id)}
+          >
+            {p.icon}
+          </Button>
+        ))}
+      </div>
+      <Dialog open={showAppleDialog} onOpenChange={setShowAppleDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Sign in with Apple isn&apos;t enabled yet</DialogTitle>
+            <DialogDescription>
+              Apple requires a paid Apple Developer account ($99/year) to offer
+              Sign in with Apple. We haven&apos;t turned it on yet — use Google
+              for now.
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+      <Dialog open={showFacebookDialog} onOpenChange={setShowFacebookDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Sign in with Facebook is unavailable</DialogTitle>
+            <DialogDescription>
+              Our Meta developer account got blocked, so Facebook login is
+              down for now. Please use Google to sign in instead.
+            </DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
