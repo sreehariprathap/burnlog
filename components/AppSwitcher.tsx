@@ -78,13 +78,17 @@ export function AppSwitcher({ open, onOpenChange }: AppSwitcherProps) {
         </DrawerHeader>
         <AppSwitcherChat open={open} />
         <div className="grid grid-cols-4 gap-4 p-4 pb-8 overflow-y-auto">
-          {visibleApps.map((app, index) => (
+          {open && visibleApps.map((app, index) => (
+            // Conditionally mounted (not just animate-toggled) so every trigger of the
+            // hub is a fresh mount — otherwise this races vaul's own sheet-opening
+            // transition and finishes invisibly while the drawer is still sliding in.
+            // The 0.15s base delay lets the sheet settle before the icons pop in.
             <motion.button
               key={app.id}
               type="button"
               initial={{ opacity: 0, scale: 0.4 }}
-              animate={open ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.4 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 22, delay: index * 0.03 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 22, delay: 0.15 + index * 0.03 }}
               onPointerDown={() => startLongPress(app.id)}
               onPointerUp={() => cancelLongPress()}
               onPointerLeave={() => cancelLongPress()}

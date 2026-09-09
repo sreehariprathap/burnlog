@@ -76,7 +76,7 @@ export default function AiInsightsPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-8 p-6 text-center">
+    <div className="min-h-screen flex flex-col items-center justify-center gap-8 p-6 pb-24 text-center">
       <HorizontalStepper
         steps={[
           { label: 'Profile', state: 'completed' },

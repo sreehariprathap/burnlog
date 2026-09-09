@@ -68,7 +68,7 @@ export default function OnboardingAppsPage() {
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 pb-24">
       <div className="w-full max-w-md space-y-6">
         <HorizontalStepper
           steps={[

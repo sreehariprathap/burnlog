@@ -320,7 +320,7 @@ export function AiSetupFlow() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+    <div className="min-h-screen flex items-center justify-center p-4 pb-24 bg-background">
       {step === 'consent' && (
         <ConsentStep onAccept={() => setStep('health')} onDecline={handleSkip} />
       )}
