@@ -26,13 +26,12 @@ registerRoute(
   })
 );
 
-registerRoute(
-  ({ url }) => /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i.test(url.href),
-  new CacheFirst({
-    cacheName: 'google-fonts',
-    plugins: [new ExpirationPlugin({ maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 30 })],
-  })
-);
+// Google Fonts is NOT registered here even though Workbox recipes usually
+// cache it: fetching a cross-origin URL from inside the service worker is
+// subject to /sw.js's own CSP response header (default-src 'self'), which
+// blocks the connection outright (see the catch-all route below). Leaving
+// it unmatched lets the browser fetch/cache it directly via its own
+// <link rel="stylesheet"> request, unaffected by the SW's CSP.
 
 registerRoute(
   ({ url }) => /\.(?:eot|otf|ttc|ttf|woff|woff2|font\.css)$/i.test(url.pathname),

@@ -1,19 +1,12 @@
 // app/api/loading-animations/route.ts
 import { NextResponse } from 'next/server';
-import { createClient } from '@/lib/supabase/server';
 import { createServiceRoleClient } from '@/lib/supabase/serviceRole';
 
-// Any signed-in user reads the resolved per-app animation source — this is
-// what SwitchLoader fetches on every app-switch. AdminLog > Loading
+// Public read — SwitchLoader fetches the resolved per-app animation source
+// on every page, including logged-out ones like /login. AdminLog > Loading
 // Animations does the CRUD, at /api/adminlog/loading-animations.
 export async function GET() {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-    }
-
     const admin = createServiceRoleClient();
     const { data, error } = await admin
       .from('adminlog_lottie_assignments')
