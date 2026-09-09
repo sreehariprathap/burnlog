@@ -9,8 +9,9 @@ import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { APPS, getActiveApp } from '@/lib/appMode';
 import { useAppSwitch } from '@/lib/appSwitchContext';
-import { SEARCH_REGISTRY, appSearchColor, type SearchItem } from '@/lib/search/registry';
+import { SEARCH_REGISTRY, type SearchItem } from '@/lib/search/registry';
 import { useMountAnimation } from '@/lib/useMountAnimation';
+import { useAppThemeColors } from '@/lib/theme/useAppThemeColors';
 
 function useDebounce<T>(value: T, delayMs: number): T {
   const [debounced, setDebounced] = useState(value);
@@ -36,6 +37,7 @@ interface GlobalSearchProps {
 export function GlobalSearch({ onNavigate, placeholder }: GlobalSearchProps) {
   const router = useRouter();
   const { switchTo } = useAppSwitch();
+  const { colorFor } = useAppThemeColors();
   const [query, setQuery] = useState('');
   const [highlighted, setHighlighted] = useState(0);
   const debouncedQuery = useDebounce(query, 150);
@@ -114,7 +116,7 @@ export function GlobalSearch({ onNavigate, placeholder }: GlobalSearchProps) {
           )}
           {filtered.map((item, index) => {
             const Icon = item.icon;
-            const color = appSearchColor(item.app);
+            const color = colorFor(item.app);
             return (
               <button
                 key={`${item.app}-${item.href}`}

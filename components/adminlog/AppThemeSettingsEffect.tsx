@@ -2,22 +2,8 @@
 
 import { useEffect, useRef } from 'react';
 import useSWR from 'swr';
-import { apiFetch } from '@/lib/apiFetch';
 import { getActiveApp } from '@/lib/appMode';
-import { resolveThemeField, type AppThemeFields } from '@/lib/theme/appTheme';
-
-const APP_THEME_KEY = 'adminlog-app-theme-settings';
-
-interface AppThemePayload {
-  global: AppThemeFields;
-  apps: Record<string, AppThemeFields>;
-}
-
-async function fetchAppTheme(): Promise<AppThemePayload> {
-  const res = await apiFetch('/api/adminlog/app-theme');
-  if (!res.ok) return { global: {}, apps: {} };
-  return res.json();
-}
+import { resolveThemeField, APP_THEME_KEY, fetchAppTheme } from '@/lib/theme/appTheme';
 
 /** Mounted once in RootLayoutClient. Every app's default primary/background
  * (light & dark) already lives in globals.css as `.app-<id>` /

@@ -10,7 +10,7 @@ import { AppIcon } from '@/components/AppIcon';
 import { useToast } from '@/components/ui/use-toast';
 import { OnboardingProgressBar } from '@/components/onboarding/OnboardingProgressBar';
 import { HorizontalStepper } from '@/components/ui/horizontal-stepper';
-import { appSearchColor } from '@/lib/search/registry';
+import { useAppSearchColor } from '@/lib/search/useAppSearchColor';
 
 const SELECTABLE_APPS_BASE = Object.values(APPS).filter(
   (app) => app.id !== 'logbook' && app.id !== 'adminlog'
@@ -23,6 +23,7 @@ export default function OnboardingAppsPage() {
   const [selected, setSelected] = useState<Set<AppId>>(new Set());
   const [saving, setSaving] = useState(false);
   const [aiEnabled, setAiEnabled] = useState(false);
+  const logbookColor = useAppSearchColor('logbook');
 
   useEffect(() => {
     (async () => {
@@ -106,7 +107,7 @@ export default function OnboardingAppsPage() {
           {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Continue'}
         </Button>
       </div>
-      <OnboardingProgressBar current={3} total={3} color={appSearchColor('logbook')} />
+      <OnboardingProgressBar current={3} total={3} color={logbookColor} />
     </div>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Loader2 } from 'lucide-react';
@@ -10,7 +10,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useToast } from '@/components/ui/use-toast';
 import { OnboardingProgressBar } from '@/components/onboarding/OnboardingProgressBar';
 import { HorizontalStepper } from '@/components/ui/horizontal-stepper';
-import { appSearchColor } from '@/lib/search/registry';
+import { useAppSearchColor } from '@/lib/search/useAppSearchColor';
 
 const BENEFITS = [
   'Your fitness coach adjusts your plan as your workouts and meals change.',
@@ -23,6 +23,28 @@ export default function AiInsightsPage() {
   const supabase = createClient();
   const { toast } = useToast();
   const [saving, setSaving] = useState(false);
+  const [checking, setChecking] = useState(true);
+  const logbookColor = useAppSearchColor('logbook');
+
+  useEffect(() => {
+    (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        router.replace('/login');
+        return;
+      }
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('aiEnabled')
+        .eq('userId', user.id)
+        .single();
+      if (profile?.aiEnabled) {
+        router.replace('/onboarding/apps');
+        return;
+      }
+      setChecking(false);
+    })();
+  }, [supabase, router]);
 
   async function choose(aiEnabled: boolean) {
     setSaving(true);
@@ -43,6 +65,14 @@ export default function AiInsightsPage() {
       return;
     }
     router.push('/onboarding/apps');
+  }
+
+  if (checking) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        <Loader2 className="animate-spin h-8 w-8" />
+      </div>
+    );
   }
 
   return (
@@ -78,7 +108,7 @@ export default function AiInsightsPage() {
         If you turn this on, your activity across the apps you use may be used to power AI features and improve how they work. See our{' '}
         <Link href="/privacy" className="underline">Privacy Policy</Link>.
       </p>
-      <OnboardingProgressBar current={2} total={3} color={appSearchColor('logbook')} />
+      <OnboardingProgressBar current={2} total={3} color={logbookColor} />
     </div>
   );
 }

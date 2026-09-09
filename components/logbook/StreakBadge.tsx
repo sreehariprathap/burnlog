@@ -1,6 +1,9 @@
 // components/logbook/StreakBadge.tsx
 import { Flame } from 'lucide-react';
 import { StatCard } from '@/components/ui/stat-card';
+// Server component — uses the static default color, not the live
+// useAppSearchColor hook (lib/search/useAppSearchColor.ts), since hooks
+// require a client component. Documented exception, same as *Mark.tsx.
 import { appSearchColor } from '@/lib/search/registry';
 
 interface StreakBadgeProps {

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ConsentStep } from './ConsentStep';
 import { HealthBasicsStep } from './HealthBasicsStep';
 import { OnboardingProgressBar } from '@/components/onboarding/OnboardingProgressBar';
-import { appSearchColor } from '@/lib/search/registry';
+import { useAppSearchColor } from '@/lib/search/useAppSearchColor';
 import { LifestyleForm } from './LifestyleForm';
 import { GoalsStep, type GoalEntry } from './GoalsStep';
 import { ActivityPreferencesStep } from './ActivityPreferencesStep';
@@ -40,6 +40,7 @@ export function AiSetupFlow() {
   const onboardingStep = Number(searchParams.get('step'));
   const onboardingTotal = Number(searchParams.get('total'));
   const supabase = createClient();
+  const burnlogColor = useAppSearchColor('burnlog');
 
   const [step, setStep] = useState<Step>('loading');
   const [profileId, setProfileId] = useState<string | null>(null);
@@ -72,7 +73,7 @@ export function AiSetupFlow() {
       }
       const { data: profile } = await supabase
         .from('profiles')
-        .select('id, lifestyle, height, weight, activityLevel')
+        .select('id, lifestyle, height, weight, activityLevel, aiEnabled')
         .eq('userId', user.id)
         .single();
 
@@ -92,7 +93,7 @@ export function AiSetupFlow() {
       );
       setEnabledKeys(ORDERED_PAGE_KEYS.filter((k) => enabledSet.has(k)));
 
-      setStep('consent');
+      setStep(profile.aiEnabled ? 'health' : 'consent');
     })();
   }, [supabase, router]);
 
@@ -395,7 +396,7 @@ export function AiSetupFlow() {
       )}
 
       {onboardingStep > 0 && onboardingTotal > 0 && (
-        <OnboardingProgressBar current={onboardingStep} total={onboardingTotal} color={appSearchColor('burnlog')} />
+        <OnboardingProgressBar current={onboardingStep} total={onboardingTotal} color={burnlogColor} />
       )}
     </div>
   );

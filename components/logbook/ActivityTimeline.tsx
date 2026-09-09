@@ -5,6 +5,9 @@ import type { LogbookActivityEvent } from '@/lib/logbook/today';
 import { appSearchColor } from '@/lib/search/registry';
 import { RevealOnScroll } from '@/components/ui/reveal-on-scroll';
 
+// Server component — uses the static default color, not the live
+// useAppSearchColor hook (lib/search/useAppSearchColor.ts), since hooks
+// require a client component. Documented exception, same as *Mark.tsx.
 const APP_META: Record<LogbookActivityEvent['app'], { icon: LucideIcon; color: string }> = {
   burnlog: { icon: Flame, color: appSearchColor('burnlog') },
   tasklog: { icon: ListChecks, color: appSearchColor('tasklog') },

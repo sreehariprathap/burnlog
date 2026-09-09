@@ -14,7 +14,7 @@ import { apiFetch } from '@/lib/apiFetch';
 import { formatRelative } from '@/lib/format';
 import { useMountAnimation } from '@/lib/useMountAnimation';
 import { AppIcon } from '@/components/AppIcon';
-import { appSearchColor } from '@/lib/search/registry';
+import { useAppSearchColor } from '@/lib/search/useAppSearchColor';
 import { isAppId, type AppId } from '@/lib/appMode';
 
 // Matches the drawer's own close transition (vaul's default
@@ -97,7 +97,7 @@ function NotificationItem({
   }
 
   const appId = isAppId(n.app) ? n.app : null;
-  const color = appId ? appSearchColor(appId) : 'var(--muted-foreground)';
+  const color = useAppSearchColor(appId);
 
   return (
     <motion.div

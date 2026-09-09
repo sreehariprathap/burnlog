@@ -3,7 +3,7 @@
 import { CheckCircle2, Circle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { MyDayBlock } from '@/lib/myday/types';
-import { appSearchColor } from '@/lib/search/registry';
+import { useAppThemeColors } from '@/lib/theme/useAppThemeColors';
 
 interface DayTimelineProps {
   blocks: MyDayBlock[];
@@ -14,13 +14,6 @@ interface DayTimelineProps {
 const START_HOUR = 5;
 const END_HOUR = 23;
 const ROW_HEIGHT_PX = 64;
-
-const SOURCE_COLORS: Record<MyDayBlock['source'], string> = {
-  manual: 'var(--muted-foreground)',
-  burnlog: appSearchColor('burnlog'),
-  tasklog: appSearchColor('tasklog'),
-  moneylog: appSearchColor('moneylog'),
-};
 
 function timeToMinutes(time: string): number {
   const [h, m] = time.split(':').map(Number);
@@ -35,6 +28,13 @@ function formatHourLabel(hour: number): string {
 }
 
 export function DayTimeline({ blocks, onBlockClick, onSlotClick }: DayTimelineProps) {
+  const { colorFor } = useAppThemeColors();
+  const sourceColors: Record<MyDayBlock['source'], string> = {
+    manual: 'var(--muted-foreground)',
+    burnlog: colorFor('burnlog'),
+    tasklog: colorFor('tasklog'),
+    moneylog: colorFor('moneylog'),
+  };
   const gridStartMinutes = START_HOUR * 60;
   const hours = Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => START_HOUR + i);
 
@@ -59,7 +59,7 @@ export function DayTimeline({ blocks, onBlockClick, onSlotClick }: DayTimelinePr
             24,
             ((timeToMinutes(block.endTime) - timeToMinutes(block.startTime)) / 60) * ROW_HEIGHT_PX
           );
-          const color = SOURCE_COLORS[block.source];
+          const color = sourceColors[block.source];
 
           return (
             <button

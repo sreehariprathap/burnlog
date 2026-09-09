@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { mutate } from 'swr';
 import { Loader2, X } from 'lucide-react';
 import { useRequireAdmin } from '@/lib/adminlog/useRequireAdmin';
 import { apiFetch } from '@/lib/apiFetch';
@@ -12,6 +13,7 @@ import { APPS, type AppId } from '@/lib/appMode';
 import {
   APP_THEME_FIELD_KEYS,
   APP_THEME_FIELD_LABELS,
+  APP_THEME_KEY,
   resolveThemeField,
   type AppThemeFields,
   type AppThemeFieldKey,
@@ -167,6 +169,11 @@ export default function AppThemePage() {
       body: JSON.stringify({ scope, ...fields }),
     });
     setSaving(false);
+    // Every consumer of the live per-app color (AppThemeSettingsEffect,
+    // useAppThemeColors, *Mark.tsx, search) shares this SWR key — revalidate
+    // it so the change is visible immediately instead of waiting out the
+    // 60s dedupingInterval.
+    mutate(APP_THEME_KEY);
   }
 
   async function resetScope() {

@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import useSWR from 'swr';
 import { Sunrise, Flame, ListChecks, Wallet } from 'lucide-react';
-import { appSearchColor } from '@/lib/search/registry';
+import { useAppThemeColors } from '@/lib/theme/useAppThemeColors';
 import { TopBar } from '@/components/TopBar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,7 @@ function greeting(): string {
 export default function MorningBriefPage() {
   const router = useRouter();
   const { profile, loading: profileLoading } = useCurrentProfile();
+  const { colorFor } = useAppThemeColors();
   const { data, isLoading } = useSWR(
     profile ? todayQuery().key : null,
     profile ? todayQuery().fetcher : null
@@ -87,19 +88,19 @@ export default function MorningBriefPage() {
               <Card>
                 <CardContent className="divide-y p-0">
                   <div className="flex items-center gap-3 p-4">
-                    <Flame className="h-4 w-4" style={{ color: appSearchColor('burnlog') }} />
+                    <Flame className="h-4 w-4" style={{ color: colorFor('burnlog') }} />
                     <span className="flex-1 text-sm">Calories burned</span>
                     <span className="text-sm font-semibold tabular-nums">{formatCalories(burnTarget)}</span>
                   </div>
                   <div className="flex items-center gap-3 p-4">
-                    <ListChecks className="h-4 w-4" style={{ color: appSearchColor('tasklog') }} />
+                    <ListChecks className="h-4 w-4" style={{ color: colorFor('tasklog') }} />
                     <span className="flex-1 text-sm">Tasks planned</span>
                     <span className="text-sm font-semibold tabular-nums">
                       {taskTarget > 0 ? `${taskTarget} task${taskTarget === 1 ? '' : 's'}` : 'None yet'}
                     </span>
                   </div>
                   <div className="flex items-center gap-3 p-4">
-                    <Wallet className="h-4 w-4" style={{ color: appSearchColor('moneylog') }} />
+                    <Wallet className="h-4 w-4" style={{ color: colorFor('moneylog') }} />
                     <span className="flex-1 text-sm">Daily budget</span>
                     <span className="text-sm font-semibold tabular-nums">
                       {budgetTarget > 0 ? formatCurrency(Math.round(budgetTarget)) : 'Not set'}

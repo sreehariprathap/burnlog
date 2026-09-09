@@ -8,16 +8,16 @@ import { cn } from '@/lib/utils';
 import { useAppSwitch } from '@/lib/appSwitchContext';
 import type { AppId } from '@/lib/appMode';
 import type { LogbookCard } from '@/lib/logbook/today';
-import { appSearchColor } from '@/lib/search/registry';
+import { useAppThemeColors } from '@/lib/theme/useAppThemeColors';
 import { currencyLocale, isCurrencyCode } from '@/lib/currency';
 
-const CARD_META: Record<LogbookCard['app'], { icon: LucideIcon; color: string; appId: AppId }> = {
-  burnlog: { icon: Flame, color: appSearchColor('burnlog'), appId: 'burnlog' },
-  tasklog: { icon: ListChecks, color: appSearchColor('tasklog'), appId: 'tasklog' },
-  moneylog: { icon: Wallet, color: appSearchColor('moneylog'), appId: 'moneylog' },
-  homelog: { icon: House, color: appSearchColor('homelog'), appId: 'homelog' },
-  sociallog: { icon: MessageCircle, color: appSearchColor('sociallog'), appId: 'sociallog' },
-  shoppinglog: { icon: ShoppingBag, color: appSearchColor('shoppinglog'), appId: 'shoppinglog' },
+const CARD_META: Record<LogbookCard['app'], { icon: LucideIcon; appId: AppId }> = {
+  burnlog: { icon: Flame, appId: 'burnlog' },
+  tasklog: { icon: ListChecks, appId: 'tasklog' },
+  moneylog: { icon: Wallet, appId: 'moneylog' },
+  homelog: { icon: House, appId: 'homelog' },
+  sociallog: { icon: MessageCircle, appId: 'sociallog' },
+  shoppinglog: { icon: ShoppingBag, appId: 'shoppinglog' },
 };
 
 // Hero tiles bookend the grid — everything else sits two-per-row between them.
@@ -59,6 +59,7 @@ interface LogCardsGridProps {
 
 export function LogCardsGrid({ cards }: LogCardsGridProps) {
   const { switchTo } = useAppSwitch();
+  const { colorFor } = useAppThemeColors();
 
   return (
     <BentoGrid>
@@ -72,7 +73,7 @@ export function LogCardsGrid({ cards }: LogCardsGridProps) {
         // default with that app's own color, the same lookup GlobalSearch
         // uses for the identical "another app's color, outside its theme
         // context" problem.
-        const tileColor = appSearchColor(meta.appId);
+        const tileColor = colorFor(meta.appId);
 
         return (
           <StatCard
@@ -88,7 +89,7 @@ export function LogCardsGrid({ cards }: LogCardsGridProps) {
             <div className={cn('flex flex-col gap-2', isHero && 'lg:flex-row lg:items-center lg:justify-between')}>
               <div className={cn('flex flex-1 flex-col gap-2', isHero && 'lg:flex-row lg:items-center lg:gap-4')}>
                 <div className="flex items-center justify-between">
-                  <Icon className={cn('h-5 w-5', isHero && 'lg:h-6 lg:w-6')} style={{ color: meta.color }} />
+                  <Icon className={cn('h-5 w-5', isHero && 'lg:h-6 lg:w-6')} style={{ color: tileColor }} />
                   {card.pct !== null && (
                     <span className="text-xs font-semibold tabular-nums text-muted-foreground lg:hidden">
                       {card.pct}%
@@ -104,7 +105,7 @@ export function LogCardsGrid({ cards }: LogCardsGridProps) {
                 <div className={cn('h-1.5 w-full overflow-hidden rounded-full bg-muted', isHero && 'lg:w-40')}>
                   <div
                     className="h-full rounded-full transition-all"
-                    style={{ width: `${Math.min(100, card.pct)}%`, backgroundColor: meta.color }}
+                    style={{ width: `${Math.min(100, card.pct)}%`, backgroundColor: tileColor }}
                   />
                 </div>
               )}

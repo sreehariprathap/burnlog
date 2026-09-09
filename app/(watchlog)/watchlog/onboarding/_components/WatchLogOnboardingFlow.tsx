@@ -9,7 +9,7 @@ import { TopBar } from '@/components/TopBar';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { OnboardingProgressBar } from '@/components/onboarding/OnboardingProgressBar';
-import { appSearchColor } from '@/lib/search/registry';
+import { useAppSearchColor } from '@/lib/search/useAppSearchColor';
 import { MOVIE_GENRES, TV_GENRES } from '@/lib/watchlog/discoverRows';
 import { cn } from '@/lib/utils';
 
@@ -55,6 +55,7 @@ export function WatchLogOnboardingFlow() {
   const { profile } = useCurrentProfile();
   const { toast } = useToast();
   const supabase = createClient();
+  const watchlogColor = useAppSearchColor('watchlog');
 
   const [selectedGenres, setSelectedGenres] = useState<Set<string>>(new Set());
   const [selectedTypes, setSelectedTypes] = useState<Set<string>>(new Set());
@@ -119,7 +120,7 @@ export function WatchLogOnboardingFlow() {
     <div className="min-h-screen pb-24">
       <TopBar title="Set up WatchLog" onClose={() => router.push(returnTo)} />
       {onboardingStep > 0 && onboardingTotal > 0 && (
-        <OnboardingProgressBar current={onboardingStep} total={onboardingTotal} color={appSearchColor('watchlog')} />
+        <OnboardingProgressBar current={onboardingStep} total={onboardingTotal} color={watchlogColor} />
       )}
       <div className="p-4 flex flex-col gap-6">
         <section className="space-y-3">

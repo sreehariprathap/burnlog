@@ -44,6 +44,7 @@ import {
   BarChart3,
 } from 'lucide-react';
 import type { AppId } from '@/lib/appMode';
+import { APP_COLOR_DEFAULTS } from '@/lib/theme/appColorDefaults';
 
 export interface SearchItem {
   app: AppId;
@@ -53,26 +54,12 @@ export interface SearchItem {
   icon: LucideIcon;
 }
 
-// Fixed per-app colors, independent of the ambient .app-* theme class — a
-// search result can render before that app's theme is active (same reason
-// the *Mark components hardcode their own color; see HomeLogMark).
-const APP_COLOR: Record<AppId, string> = {
-  logbook: '#4F46E5',
-  burnlog: '#F97316',
-  moneylog: '#22C55E',
-  tasklog: '#3B82F6',
-  homelog: '#9253DA',
-  sociallog: '#A10059',
-  shoppinglog: '#D46000',
-  travellog: '#C2703A',
-  learnlog: '#FF3366',
-  adminlog: '#475569',
-  intellog: '#8B5CF6',
-  watchlog: '#DC2626',
-};
-
+/** Default-only per-app color — used before AdminLog > UI > App Theme's
+ * live value has loaded, or from non-component call sites that can't use
+ * the useAppSearchColor hook (lib/search/useAppSearchColor.ts). Prefer that
+ * hook in any client component so admin color changes are reflected. */
 export function appSearchColor(app: AppId): string {
-  return APP_COLOR[app];
+  return APP_COLOR_DEFAULTS[app];
 }
 
 /** Major pages/features across every sub-app, for the cross-app search. */

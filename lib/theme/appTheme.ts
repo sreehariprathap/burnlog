@@ -5,6 +5,24 @@
 // back to the "global" row's same field, then to whatever globals.css
 // already hardcodes for that app (see AppThemeSettingsEffect).
 
+import { apiFetch } from '@/lib/apiFetch';
+
+export const APP_THEME_KEY = 'adminlog-app-theme-settings';
+
+export interface AppThemePayload {
+  global: AppThemeFields;
+  apps: Record<string, AppThemeFields>;
+}
+
+/** Shared SWR fetcher/key — import these rather than re-declaring, so every
+ * caller (AppThemeSettingsEffect, useAppThemeColors, ...) hits the same SWR
+ * cache entry instead of issuing separate requests. */
+export async function fetchAppTheme(): Promise<AppThemePayload> {
+  const res = await apiFetch('/api/adminlog/app-theme');
+  if (!res.ok) return { global: {}, apps: {} };
+  return res.json();
+}
+
 export interface AppThemeFields {
   primaryLight?: string | null;
   backgroundLight?: string | null;

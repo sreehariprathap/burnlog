@@ -3,7 +3,7 @@
 import { Suspense, useEffect, type ReactNode } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { setAppTheme, type AppId } from '@/lib/appMode';
-import { appSearchColor } from '@/lib/search/registry';
+import { useAppSearchColor } from '@/lib/search/useAppSearchColor';
 import { OnboardingProgressBar } from './OnboardingProgressBar';
 
 interface OnboardingStepShellProps {
@@ -18,8 +18,9 @@ function ProgressFromParams({ app }: { app: AppId }) {
   const searchParams = useSearchParams();
   const step = Number(searchParams.get('step'));
   const total = Number(searchParams.get('total'));
+  const color = useAppSearchColor(app);
   if (!step || !total) return null;
-  return <OnboardingProgressBar current={step} total={total} color={appSearchColor(app)} />;
+  return <OnboardingProgressBar current={step} total={total} color={color} />;
 }
 
 /** Consistent themed frame for a per-app onboarding page — sets that app's

@@ -11,11 +11,12 @@ import { Loader2 } from 'lucide-react';
 import { generateUsername, isValidUsername } from '@/lib/username';
 import { OnboardingProgressBar } from '@/components/onboarding/OnboardingProgressBar';
 import { HorizontalStepper } from '@/components/ui/horizontal-stepper';
-import { appSearchColor } from '@/lib/search/registry';
+import { useAppSearchColor } from '@/lib/search/useAppSearchColor';
 
 export default function ProfileSetupPage() {
   const router = useRouter();
   const supabase = createClient();
+  const logbookColor = useAppSearchColor('logbook');
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string|null>(null);
@@ -257,7 +258,7 @@ export default function ProfileSetupPage() {
           </form>
         </CardContent>
       </Card>
-      <OnboardingProgressBar current={1} total={3} color={appSearchColor('logbook')} />
+      <OnboardingProgressBar current={1} total={3} color={logbookColor} />
     </div>
   );
 }

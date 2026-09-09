@@ -15,7 +15,7 @@ import { SparklesIcon } from '@/components/icons/animated/sparkles';
 import { BookTextIcon } from '@/components/icons/animated/book-text';
 import { Clapperboard } from 'lucide-react';
 import { useAnimatedAppIconsEnabled, APP_ICON_LETTERS } from '@/lib/animatedAppIcons';
-import { appSearchColor } from '@/lib/search/registry';
+import { useAppSearchColor } from '@/lib/search/useAppSearchColor';
 import { cn } from '@/lib/utils';
 import type { AppId } from '@/lib/appMode';
 
@@ -78,7 +78,7 @@ function AnimatedAppIcon({ id, size, color, className }: { id: AppId; size: numb
  * — a hardcoded `<XLogMark>` won't respond to the toggle. */
 export function AppIcon({ id, size, className }: { id: AppId; size: number; className?: string }) {
   const animated = useAnimatedAppIconsEnabled();
-  const color = appSearchColor(id);
+  const color = useAppSearchColor(id);
 
   if (animated) {
     return <AnimatedAppIcon id={id} size={size} color={color} className={className} />;

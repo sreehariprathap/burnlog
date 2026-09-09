@@ -14,7 +14,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/components/ui/use-toast';
 import type { OnboardingResult } from '@/lib/learnlog/onboarding';
 import { OnboardingProgressBar } from '@/components/onboarding/OnboardingProgressBar';
-import { appSearchColor } from '@/lib/search/registry';
+import { useAppSearchColor } from '@/lib/search/useAppSearchColor';
 
 export function LearnLogOnboardingFlow() {
   const router = useRouter();
@@ -25,6 +25,7 @@ export function LearnLogOnboardingFlow() {
   const { profile } = useCurrentProfile();
   const { toast } = useToast();
   const supabase = createClient();
+  const learnlogColor = useAppSearchColor('learnlog');
 
   const [interests, setInterests] = useState('');
   const [readingGoals, setReadingGoals] = useState('');
@@ -170,7 +171,7 @@ export function LearnLogOnboardingFlow() {
         )}
       </div>
       {onboardingStep > 0 && onboardingTotal > 0 && (
-        <OnboardingProgressBar current={onboardingStep} total={onboardingTotal} color={appSearchColor('learnlog')} />
+        <OnboardingProgressBar current={onboardingStep} total={onboardingTotal} color={learnlogColor} />
       )}
     </div>
   );
