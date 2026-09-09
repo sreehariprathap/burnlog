@@ -20,7 +20,15 @@ export async function PUT(request: Request) {
     const admin = createServiceRoleClient();
     const { error } = await admin
       .from('adminlog_lottie_assignments')
-      .upsert({ appId, animationId: animationId ?? null, updatedByAdminId: caller.id }, { onConflict: 'appId' });
+      .upsert(
+        {
+          appId,
+          animationId: animationId ?? null,
+          updatedByAdminId: caller.id,
+          updatedAt: new Date().toISOString(),
+        },
+        { onConflict: 'appId' }
+      );
     if (error) throw error;
 
     return NextResponse.json({ success: true });

@@ -33,16 +33,22 @@ registerRoute(
 // it unmatched lets the browser fetch/cache it directly via its own
 // <link rel="stylesheet"> request, unaffected by the SW's CSP.
 
+// Same-origin only, for the same reason as the Google Fonts note above —
+// this used to match by extension alone, which also caught cross-origin
+// fonts.gstatic.com woff2 files and hit the same CSP block.
 registerRoute(
-  ({ url }) => /\.(?:eot|otf|ttc|ttf|woff|woff2|font\.css)$/i.test(url.pathname),
+  ({ url }) => url.origin === self.location.origin && /\.(?:eot|otf|ttc|ttf|woff|woff2|font\.css)$/i.test(url.pathname),
   new StaleWhileRevalidate({
     cacheName: 'static-font-assets',
     plugins: [new ExpirationPlugin({ maxEntries: 10, maxAgeSeconds: 60 * 60 * 24 * 7 })],
   })
 );
 
+// Same-origin only — matching by extension alone would also catch
+// cross-origin images (TMDB posters, Supabase storage avatars, both used via
+// next.config.ts's remotePatterns) and hit the same SW-CSP block.
 registerRoute(
-  ({ url }) => /\.(?:jpg|jpeg|gif|png|webp|svg|ico)$/i.test(url.pathname),
+  ({ url }) => url.origin === self.location.origin && /\.(?:jpg|jpeg|gif|png|webp|svg|ico)$/i.test(url.pathname),
   new CacheFirst({
     cacheName: 'static-image-assets',
     plugins: [new ExpirationPlugin({ maxEntries: 64, maxAgeSeconds: 60 * 60 * 24 * 30 })],
