@@ -2,7 +2,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { getDay, getDate as getDateOfMonth } from 'date-fns';
 import type { RecurringItemRow } from '@/lib/financePeriods';
-import type { MyDayBlock, MyDayData, MyDayUnscheduledItem } from './types';
+import { ensureHabitOccurrences } from '@/lib/habits/materialize';
+import type { MyDayBlock, MyDayData, MyDayUnscheduledItem, MyDayHabitOccurrence } from './types';
 
 interface MyDayBlockRow {
   id: string;
@@ -49,6 +50,8 @@ async function computeActual(
 }
 
 export async function getMyDayForDate(supabase: SupabaseClient, profileId: string, date: string): Promise<MyDayData> {
+  await ensureHabitOccurrences(supabase, profileId, date);
+
   const { data: blockRows } = await supabase
     .from('myday_blocks')
     .select('id, title, notes, startTime, endTime, source, sourceId, completed')
@@ -129,5 +132,32 @@ export async function getMyDayForDate(supabase: SupabaseClient, profileId: strin
     });
   }
 
-  return { date, blocks, unscheduled };
+  const { data: profileHabits } = await supabase
+    .from('habits')
+    .select('id, title, sourceApp')
+    .eq('profileId', profileId)
+    .eq('isActive', true);
+
+  const habitById = new Map(
+    ((profileHabits as { id: string; title: string; sourceApp: string | null }[]) || []).map((h) => [h.id, h])
+  );
+
+  let habits: MyDayHabitOccurrence[] = [];
+  if (habitById.size > 0) {
+    const { data: habitOccurrenceRows } = await supabase
+      .from('habit_occurrences')
+      .select('id, habitId, completed')
+      .eq('date', date)
+      .in('habitId', Array.from(habitById.keys()));
+
+    habits = ((habitOccurrenceRows as { id: string; habitId: string; completed: boolean }[]) || [])
+      .map((row) => {
+        const habit = habitById.get(row.habitId);
+        if (!habit) return null;
+        return { id: row.id, habitId: row.habitId, title: habit.title, sourceApp: habit.sourceApp, completed: row.completed };
+      })
+      .filter((h): h is MyDayHabitOccurrence => h !== null);
+  }
+
+  return { date, blocks, unscheduled, habits };
 }
