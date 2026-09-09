@@ -91,6 +91,7 @@ model Profile {
   householdInvitesReceived  HouseholdInvite[] @relation("HouseholdInviteRecipient")
   choresAssigned      HouseholdChoreInstance[] @relation("ChoreAssigned")
   choresCompleted     HouseholdChoreInstance[] @relation("ChoreCompletedBy")
+  habits              Habit[]
   shoppingListAdded   HouseholdShoppingListItem[]
   expensesPaid        HouseholdExpense[] @relation("ExpensePaidBy")
   expenseSplitsOwed   HouseholdExpenseSplit[] @relation("ExpenseSplitOwed")
@@ -1218,6 +1219,43 @@ model HouseholdChoreInstance {
   createdAt            DateTime  @default(now())
 
   @@map("household_chore_instances")
+}
+
+/// a user-defined habit, one-time or recurring, optionally routed to an app by AI intent classification
+model Habit {
+  id             String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile        Profile  @relation(fields: [profileId], references: [id])
+  profileId      String   @db.Uuid
+  title          String
+  sourceApp      String? // AppId (e.g. 'burnlog' | 'travellog' | 'tasklog' | 'homelog' | ...); null = generic/unassigned
+  recurrenceType String // 'once' | 'daily' | 'weekly'
+  daysOfWeek     Int[]    @default([]) // 0=Sun..6=Sat; used when recurrenceType = 'weekly'
+  intervalWeeks  Int      @default(1) // "every N weeks"; used when recurrenceType = 'weekly'
+  endType        String   @default("never") // 'never' | 'on_date' | 'after_n'
+  endDate        DateTime? @db.Date // used when endType = 'on_date'
+  endCount       Int? // used when endType = 'after_n'
+  startDate      DateTime @db.Date
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  occurrences    HabitOccurrence[]
+
+  @@index([profileId])
+  @@map("habits")
+}
+
+/// a single materialized due-date for a habit — completion persists per-occurrence
+model HabitOccurrence {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  habit       Habit     @relation(fields: [habitId], references: [id], onDelete: Cascade)
+  habitId     String    @db.Uuid
+  date        DateTime  @db.Date
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@unique([habitId, date])
+  @@index([date])
+  @@map("habit_occurrences")
 }
 
 /// household-owned supply item — quantity/threshold drive shopping-list auto-population
