@@ -40,3 +40,38 @@ describe('buildPrompt', () => {
     );
   });
 });
+
+describe('buildPrompt — fitness level', () => {
+  it('defaults to Intermediate when fitnessLevel is omitted', () => {
+    const prompt = buildPrompt(profile, lifestyle);
+    expect(prompt).toContain('Fitness level: Intermediate');
+  });
+
+  it('includes beginner guidance when fitnessLevel is beginner', () => {
+    const prompt = buildPrompt(profile, { ...lifestyle, fitnessLevel: 'beginner' });
+    expect(prompt).toContain('Fitness level: Beginner');
+    expect(prompt).toContain('favor Full Body days over isolated splits even when the user trains at a gym');
+  });
+
+  it('includes advanced guidance when fitnessLevel is advanced', () => {
+    const prompt = buildPrompt(profile, { ...lifestyle, fitnessLevel: 'advanced' });
+    expect(prompt).toContain('gym-accessible split-style training (Push/Pull/Legs) is fully appropriate');
+  });
+});
+
+describe('buildPrompt — goal focus guidance', () => {
+  it('tells the model to prefer real splits for build_muscle at a gym', () => {
+    const gymLifestyle: LifestyleAnswers = {
+      ...lifestyle,
+      goalFocus: 'build_muscle',
+      equipment: { trainingLocation: 'commercial_gym', availableEquipment: ['Barbell', 'Dumbbells'] },
+    };
+    const prompt = buildPrompt(profile, gymLifestyle);
+    expect(prompt).toContain('prefer true Push/Pull/Legs-style splits over generic Full Body days');
+  });
+
+  it('biases toward cardio for improve_stamina', () => {
+    const prompt = buildPrompt(profile, { ...lifestyle, goalFocus: 'improve_stamina' });
+    expect(prompt).toContain('bias the weekly schedule toward Cardio, Outdoor Cardio, and Full Body days');
+  });
+});
