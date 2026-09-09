@@ -21,10 +21,19 @@ export interface MyDayUnscheduledItem {
   label: string; // e.g. 'Planned workout', 'Task due today', 'Bill due'
 }
 
+export interface MyDayHabitOccurrence {
+  id: string;
+  habitId: string;
+  title: string;
+  sourceApp: string | null; // AppId | null
+  completed: boolean;
+}
+
 export interface MyDayData {
   date: string; // 'yyyy-MM-dd'
   blocks: MyDayBlock[];
   unscheduled: MyDayUnscheduledItem[];
+  habits: MyDayHabitOccurrence[];
 }
 
 export interface MyDayCalendarMonth {
