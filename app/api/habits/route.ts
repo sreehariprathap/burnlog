@@ -22,18 +22,29 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json();
-    const { title, sourceApp, recurrenceType, daysOfWeek, intervalWeeks, endType, endDate, endCount, startDate } =
-      body as {
-        title?: string;
-        sourceApp?: string | null;
-        recurrenceType?: HabitRecurrenceType;
-        daysOfWeek?: number[];
-        intervalWeeks?: number;
-        endType?: HabitEndType;
-        endDate?: string | null;
-        endCount?: number | null;
-        startDate?: string;
-      };
+    const {
+      title,
+      sourceApp,
+      recurrenceType,
+      daysOfWeek,
+      intervalWeeks,
+      endType,
+      endDate,
+      endCount,
+      startDate,
+      preferredStartTime,
+    } = body as {
+      title?: string;
+      sourceApp?: string | null;
+      recurrenceType?: HabitRecurrenceType;
+      daysOfWeek?: number[];
+      intervalWeeks?: number;
+      endType?: HabitEndType;
+      endDate?: string | null;
+      endCount?: number | null;
+      startDate?: string;
+      preferredStartTime?: string | null;
+    };
 
     if (!title?.trim() || !recurrenceType || !startDate) {
       return NextResponse.json({ error: 'title, recurrenceType, and startDate are required' }, { status: 400 });
@@ -53,6 +64,7 @@ export async function POST(request: Request) {
           endDate: endDate ?? null,
           endCount: endCount ?? null,
           startDate,
+          preferredStartTime: preferredStartTime?.trim() || null,
         },
       ])
       .select('id')

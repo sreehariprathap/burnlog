@@ -1331,6 +1331,7 @@ model Habit {
   endDate        DateTime? @db.Date // used when endType = 'on_date'
   endCount       Int? // used when endType = 'after_n'
   startDate      DateTime @db.Date
+  preferredStartTime String? // 'HH:mm'; fixed MyDay placement when set, else materializeSourceBlocks default
   isActive       Boolean  @default(true)
   createdAt      DateTime @default(now())
   occurrences    HabitOccurrence[]
