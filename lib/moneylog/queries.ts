@@ -48,10 +48,12 @@ export type RecurringItem = {
   category: string;
   label: string;
   amount: number;
-  frequency: 'weekly' | 'monthly' | 'yearly';
+  frequency: 'weekly' | 'monthly' | 'yearly' | 'biweekly' | 'semimonthly';
   dayOfWeek: number | null;
   dayOfMonth: number | null;
   monthOfYear: number | null;
+  anchorDate: string | null;
+  secondDayOfMonth: number | null;
   startDate: string;
   endDate: string | null;
   isActive: boolean;
