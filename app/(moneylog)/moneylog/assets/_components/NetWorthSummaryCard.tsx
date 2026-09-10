@@ -3,7 +3,6 @@
 
 import { Wallet } from 'lucide-react';
 import { formatCurrency } from '@/lib/format';
-import { cn } from '@/lib/utils';
 
 interface NetWorthSummaryCardProps {
   netWorth: number;
@@ -11,21 +10,19 @@ interface NetWorthSummaryCardProps {
 }
 
 // Same gradient-card visual language as AssetWalletCard (kibo-ui's
-// CreditCard, simplified) — this is the aggregate across every asset, so it
-// gets its own distinct (brand-toned) gradient rather than any one asset
-// category's.
+// CreditCard, simplified) — this is a binary status signal (positive vs.
+// negative), not an arbitrary category, so it stays on the existing
+// semantic --success/--destructive tokens rather than the category hue
+// palette AssetWalletCard uses.
 export function NetWorthSummaryCard({ netWorth, assetCount }: NetWorthSummaryCardProps) {
+  const tone = netWorth < 0 ? 'var(--destructive)' : 'var(--success)';
   return (
     <div
-      className={cn(
-        'relative w-full overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-600 to-emerald-950 p-5 text-white shadow-lg',
-        netWorth < 0 && 'from-red-600 to-red-950'
-      )}
+      className="relative w-full overflow-hidden rounded-2xl p-5 text-white shadow-lg"
+      style={{ background: `linear-gradient(135deg, ${tone}, color-mix(in oklch, ${tone}, black 35%))` }}
     >
       <div className="flex items-center justify-between">
-        <span className="text-xs font-medium uppercase tracking-wide text-white/70">
-          Net Worth
-        </span>
+        <span className="text-xs font-medium uppercase tracking-wide text-white/70">Net Worth</span>
         <Wallet className="h-5 w-5 text-white/70" aria-hidden="true" />
       </div>
       <p className="mt-6 font-mono text-3xl font-semibold tabular-nums" style={{ lineHeight: '100%' }}>
