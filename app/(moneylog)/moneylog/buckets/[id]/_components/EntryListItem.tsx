@@ -11,7 +11,7 @@ export function EntryListItem({ entry }: { entry: Entry }) {
           {new Date(entry.createdAt).toLocaleDateString()} · {entry.source === 'auto_rule' ? 'Auto rule' : 'Manual'}
         </p>
       </div>
-      <span className={isContribution ? 'text-green-600' : 'text-destructive'}>
+      <span className={isContribution ? 'text-success' : 'text-destructive'}>
         {isContribution ? '+' : '-'}${entry.amount.toFixed(2)}
       </span>
     </div>
