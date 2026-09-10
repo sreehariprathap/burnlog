@@ -36,7 +36,10 @@ export function CurrencyTransferCard({
   return (
     <div className="flex flex-col items-center gap-4 py-4">
       <div className="relative flex h-16 w-16 items-center justify-center">
-        <div className="absolute inset-0 rounded-full bg-primary/20 blur-xl" />
+        <div
+          className="absolute inset-0 rounded-full bg-primary"
+          style={{ opacity: 'var(--card-glow-opacity, 0.2)', filter: 'blur(var(--card-glow-blur, 24px))' }}
+        />
         <motion.div
           key={status}
           initial={{ scale: 0.6, opacity: 0 }}
