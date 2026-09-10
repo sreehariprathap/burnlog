@@ -1685,6 +1685,18 @@ model AppThemeSetting {
   @@map("adminlog_app_theme_settings")
 }
 
+/// Admin-controlled gradient/glow intensity for dashboard cards. Same
+/// scoping convention as AppThemeSetting — id is "global" or an AppId;
+/// an app-level row overrides "global", which overrides the "subtle"
+/// hardcoded default (see lib/theme/cardGlow.ts).
+model CardGlowSetting {
+  id        String   @id // "global" | AppId
+  preset    String   @default("subtle") // "off" | "subtle" | "vibrant"
+  updatedAt DateTime @updatedAt
+
+  @@map("adminlog_card_glow_settings")
+}
+
 /// Named color palettes (combos) that admins can create and reuse. Each palette
 /// bundles primaryLight/Dark and backgroundLight/Dark into a cohesive four-color set.
 model ColorCombo {
