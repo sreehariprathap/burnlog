@@ -14,7 +14,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Target, Pencil } from 'lucide-react';
+import Link from 'next/link';
+import { Target, Pencil, PiggyBank } from 'lucide-react';
 import { FINANCIAL_GOAL_TYPES } from '@/lib/financialGoalTypes';
 import { EXPENSE_CATEGORIES, categoryLabel } from '@/lib/financeCategories';
 import { computeGoalProgress, type FinancialGoalRow } from '@/lib/financeGoalProgress';
@@ -93,17 +94,34 @@ export function FinancialGoalsList({ goals, profileId, onGoalUpdated }: Financia
     setEditingId(null);
   }
 
-  if (goals.length === 0) {
-    return (
+  const bucketsLink = (
+    <Link href="/moneylog/buckets">
       <Card>
-        <CardHeader>
-          <CardTitle>No financial goals yet</CardTitle>
-        </CardHeader>
-        <CardContent className="text-center space-y-2">
-          <Target className="w-10 h-10 mx-auto text-primary" aria-hidden="true" />
-          <p className="text-sm text-muted-foreground">Add your first goal below to start tracking progress.</p>
+        <CardContent className="pt-4 flex items-center gap-3">
+          <PiggyBank className="size-5 text-muted-foreground" />
+          <div>
+            <p className="text-sm font-medium">Savings Buckets</p>
+            <p className="text-xs text-muted-foreground">Travel fund, car fund, and other named goals</p>
+          </div>
         </CardContent>
       </Card>
+    </Link>
+  );
+
+  if (goals.length === 0) {
+    return (
+      <div className="space-y-4">
+        {bucketsLink}
+        <Card>
+          <CardHeader>
+            <CardTitle>No financial goals yet</CardTitle>
+          </CardHeader>
+          <CardContent className="text-center space-y-2">
+            <Target className="w-10 h-10 mx-auto text-primary" aria-hidden="true" />
+            <p className="text-sm text-muted-foreground">Add your first goal below to start tracking progress.</p>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
@@ -112,6 +130,7 @@ export function FinancialGoalsList({ goals, profileId, onGoalUpdated }: Financia
 
   return (
     <div className="space-y-4">
+      {bucketsLink}
       {goals.map((goal) => {
         const createdAt = new Date(goal.createdAt);
 
