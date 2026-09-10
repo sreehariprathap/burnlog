@@ -8,15 +8,19 @@
 
 import { formatCurrency } from '@/lib/format';
 import { assetCategoryLabel } from '@/lib/moneylog/assetCategories';
+import { glowGradient } from '@/lib/theme/glowPalette';
 import { cn } from '@/lib/utils';
 
-const CATEGORY_GRADIENTS: Record<string, string> = {
-  bank: 'from-blue-600 to-blue-900',
-  investment: 'from-purple-600 to-purple-900',
-  cash: 'from-emerald-600 to-emerald-900',
-  debt: 'from-red-600 to-red-900',
-  other: 'from-slate-600 to-slate-900',
-};
+// Stable per-category index into the shared chart palette (glowGradient) —
+// categories stay visually distinct from each other, but draw from the
+// same 5-color palette every other identity-gradient card uses instead of
+// each card inventing its own hex values.
+const CATEGORY_ORDER = ['bank', 'investment', 'cash', 'debt', 'other'] as const;
+
+function categoryIndex(category: string): number {
+  const i = CATEGORY_ORDER.indexOf(category as (typeof CATEGORY_ORDER)[number]);
+  return i === -1 ? CATEGORY_ORDER.length - 1 : i;
+}
 
 interface AssetWalletCardProps {
   name: string;
@@ -26,15 +30,10 @@ interface AssetWalletCardProps {
 }
 
 export function AssetWalletCard({ name, category, value, className }: AssetWalletCardProps) {
-  const gradient = CATEGORY_GRADIENTS[category] ?? CATEGORY_GRADIENTS.other;
-
   return (
     <div
-      className={cn(
-        'relative aspect-[8560/5398] w-full max-w-96 overflow-hidden rounded-2xl bg-gradient-to-br p-5 text-white shadow-lg',
-        gradient,
-        className
-      )}
+      className={cn('relative aspect-[8560/5398] w-full max-w-96 overflow-hidden rounded-2xl p-5 text-white shadow-lg', className)}
+      style={{ background: glowGradient(categoryIndex(category)) }}
     >
       <div className="flex items-center justify-between">
         <span className="text-xs font-medium uppercase tracking-wide text-white/70">
