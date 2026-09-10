@@ -3,7 +3,8 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import { getDay, getDate as getDateOfMonth } from 'date-fns';
 import type { RecurringItemRow } from '@/lib/financePeriods';
 import { ensureHabitOccurrences } from '@/lib/habits/materialize';
-import type { MyDayBlock, MyDayData, MyDayUnscheduledItem, MyDayHabitOccurrence } from './types';
+import { ensureMyDaySourceBlocksMaterialized } from './materializeSourceBlocks';
+import type { MyDayBlock, MyDayData, MyDayUnscheduledItem } from './types';
 
 interface MyDayBlockRow {
   id: string;
@@ -35,7 +36,31 @@ async function computeActual(
     return data ? Boolean(data.completedAt) : null;
   }
 
+  if (source === 'habit') {
+    const { data } = await supabase
+      .from('habit_occurrences')
+      .select('completed')
+      .eq('id', sourceId)
+      .maybeSingle();
+    return data ? Boolean(data.completed) : null;
+  }
+
+  if (source === 'homelog') {
+    const { data } = await supabase
+      .from('household_chore_instances')
+      .select('completedAt')
+      .eq('id', sourceId)
+      .maybeSingle();
+    return data ? Boolean(data.completedAt) : null;
+  }
+
   if (source === 'burnlog') {
+    // sourceId is either a sessions.id (a logged block — already happened,
+    // definitely "actual") or a workout_plans.id (a planned-day block, whose
+    // actual status is "did any session get logged that date").
+    const { data: session } = await supabase.from('sessions').select('id').eq('id', sourceId).maybeSingle();
+    if (session) return true;
+
     const { data } = await supabase
       .from('sessions')
       .select('id')
@@ -51,6 +76,7 @@ async function computeActual(
 
 export async function getMyDayForDate(supabase: SupabaseClient, profileId: string, date: string): Promise<MyDayData> {
   await ensureHabitOccurrences(supabase, profileId, date);
+  await ensureMyDaySourceBlocksMaterialized(supabase, profileId, date);
 
   const { data: blockRows } = await supabase
     .from('myday_blocks')
@@ -74,48 +100,20 @@ export async function getMyDayForDate(supabase: SupabaseClient, profileId: strin
     }))
   );
 
-  const scheduledSourceIds = new Set(rows.filter((r) => r.sourceId).map((r) => r.sourceId as string));
-
   const target = new Date(`${date}T00:00:00`);
-  const dayOfWeek = getDay(target);
   const dayOfMonth = getDateOfMonth(target);
+  const dayOfWeek = getDay(target);
 
+  const { data: recurringRes } = await supabase
+    .from('recurring_items')
+    .select('*')
+    .eq('profileId', profileId)
+    .eq('isActive', true)
+    .eq('type', 'expense');
+
+  const scheduledSourceIds = new Set(rows.filter((r) => r.sourceId).map((r) => r.sourceId as string));
   const unscheduled: MyDayUnscheduledItem[] = [];
-
-  const [workoutPlanRes, taskRes, recurringRes] = await Promise.all([
-    supabase.from('workout_plans').select('id, bodyPart').eq('profileId', profileId).eq('dayOfWeek', dayOfWeek),
-    supabase
-      .from('tasklog_tasks')
-      .select('id, title, completedAt')
-      .eq('profileId', profileId)
-      .or(`dueDate.eq.${date},plannedForToday.eq.true`),
-    supabase.from('recurring_items').select('*').eq('profileId', profileId).eq('isActive', true).eq('type', 'expense'),
-  ]);
-
-  for (const plan of (workoutPlanRes.data as { id: string; bodyPart: string }[]) || []) {
-    if (scheduledSourceIds.has(plan.id)) continue;
-    unscheduled.push({
-      key: `burnlog:${plan.id}`,
-      title: `${plan.bodyPart} day`,
-      source: 'burnlog',
-      sourceId: plan.id,
-      label: 'Planned workout',
-    });
-  }
-
-  for (const task of (taskRes.data as { id: string; title: string; completedAt: string | null }[]) || []) {
-    if (task.completedAt) continue;
-    if (scheduledSourceIds.has(task.id)) continue;
-    unscheduled.push({
-      key: `tasklog:${task.id}`,
-      title: task.title,
-      source: 'tasklog',
-      sourceId: task.id,
-      label: 'Task due today',
-    });
-  }
-
-  const recurringItems = (recurringRes.data as RecurringItemRow[]) || [];
+  const recurringItems = (recurringRes as RecurringItemRow[]) || [];
   for (const item of recurringItems) {
     const isDueToday =
       (item.frequency === 'monthly' && item.dayOfMonth === dayOfMonth) ||
@@ -132,32 +130,5 @@ export async function getMyDayForDate(supabase: SupabaseClient, profileId: strin
     });
   }
 
-  const { data: profileHabits } = await supabase
-    .from('habits')
-    .select('id, title, sourceApp')
-    .eq('profileId', profileId)
-    .eq('isActive', true);
-
-  const habitById = new Map(
-    ((profileHabits as { id: string; title: string; sourceApp: string | null }[]) || []).map((h) => [h.id, h])
-  );
-
-  let habits: MyDayHabitOccurrence[] = [];
-  if (habitById.size > 0) {
-    const { data: habitOccurrenceRows } = await supabase
-      .from('habit_occurrences')
-      .select('id, habitId, completed')
-      .eq('date', date)
-      .in('habitId', Array.from(habitById.keys()));
-
-    habits = ((habitOccurrenceRows as { id: string; habitId: string; completed: boolean }[]) || [])
-      .map((row) => {
-        const habit = habitById.get(row.habitId);
-        if (!habit) return null;
-        return { id: row.id, habitId: row.habitId, title: habit.title, sourceApp: habit.sourceApp, completed: row.completed };
-      })
-      .filter((h): h is MyDayHabitOccurrence => h !== null);
-  }
-
-  return { date, blocks, unscheduled, habits };
+  return { date, blocks, unscheduled };
 }

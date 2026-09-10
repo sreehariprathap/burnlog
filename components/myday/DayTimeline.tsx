@@ -9,11 +9,16 @@ interface DayTimelineProps {
   blocks: MyDayBlock[];
   onBlockClick: (block: MyDayBlock) => void;
   onSlotClick: (startTime: string) => void;
+  onToggleActual: (block: MyDayBlock) => void;
 }
 
 const START_HOUR = 5;
 const END_HOUR = 23;
 const ROW_HEIGHT_PX = 64;
+
+// Sources whose "actual" status can be toggled from My Day directly.
+// burnlog is read-only here — you can't toggle a workout into existing.
+const TOGGLEABLE_SOURCES: MyDayBlock['source'][] = ['habit', 'tasklog', 'homelog'];
 
 function timeToMinutes(time: string): number {
   const [h, m] = time.split(':').map(Number);
@@ -27,13 +32,15 @@ function formatHourLabel(hour: number): string {
   return `${hour - 12}pm`;
 }
 
-export function DayTimeline({ blocks, onBlockClick, onSlotClick }: DayTimelineProps) {
+export function DayTimeline({ blocks, onBlockClick, onSlotClick, onToggleActual }: DayTimelineProps) {
   const { colorFor } = useAppThemeColors();
   const sourceColors: Record<MyDayBlock['source'], string> = {
     manual: 'var(--muted-foreground)',
     burnlog: colorFor('burnlog'),
     tasklog: colorFor('tasklog'),
     moneylog: colorFor('moneylog'),
+    homelog: colorFor('homelog'),
+    habit: 'var(--chart-2)',
   };
   const gridStartMinutes = START_HOUR * 60;
   const hours = Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => START_HOUR + i);
@@ -60,6 +67,10 @@ export function DayTimeline({ blocks, onBlockClick, onSlotClick }: DayTimelinePr
             ((timeToMinutes(block.endTime) - timeToMinutes(block.startTime)) / 60) * ROW_HEIGHT_PX
           );
           const color = sourceColors[block.source];
+          const canToggle =
+            TOGGLEABLE_SOURCES.includes(block.source) &&
+            block.actual !== null &&
+            !(block.source === 'homelog' && block.actual);
 
           return (
             <button
@@ -70,12 +81,23 @@ export function DayTimeline({ blocks, onBlockClick, onSlotClick }: DayTimelinePr
               style={{ top, height, borderLeftColor: color }}
             >
               <div className="flex items-center gap-1.5">
-                {block.actual !== null &&
-                  (block.actual ? (
-                    <CheckCircle2 className="h-3.5 w-3.5 text-success" />
-                  ) : (
-                    <Circle className="h-3.5 w-3.5 text-muted-foreground" />
-                  ))}
+                {block.actual !== null && (
+                  <span
+                    role={canToggle ? 'button' : undefined}
+                    aria-label={canToggle ? 'Toggle complete' : undefined}
+                    onClick={(e) => {
+                      if (!canToggle) return;
+                      e.stopPropagation();
+                      onToggleActual(block);
+                    }}
+                  >
+                    {block.actual ? (
+                      <CheckCircle2 className="h-3.5 w-3.5 text-success" />
+                    ) : (
+                      <Circle className="h-3.5 w-3.5 text-muted-foreground" />
+                    )}
+                  </span>
+                )}
                 <p className={cn('truncate text-xs font-medium', block.completed && 'text-muted-foreground line-through')}>
                   {block.title}
                 </p>

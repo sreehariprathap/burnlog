@@ -178,12 +178,25 @@ model WorkoutPlan {
   profile      Profile  @relation(fields: [profileId], references: [id])
   profileId    String   @db.Uuid
   dayOfWeek    Int // 0=Sun, 1=Mon … 6=Sat
-  bodyPart     String // e.g. "Push", "Pull"
+  bodyPart     String // e.g. "Push", "Pull" — label from WorkoutType
+  time         String? // "HH:MM", null = flexible / no preferred time
   repeatWeekly Boolean  @default(false)
   createdAt    DateTime @default(now())
 
   @@unique([profileId, dayOfWeek])
   @@map("workout_plans")
+}
+
+/// admin-managed options for the BurnLog workout-plan day picker (was a
+/// hardcoded Push/Pull/Legs/... list) — see AdminLog > BurnLog > Workout Types
+model WorkoutType {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  label     String   @unique
+  sortOrder Int      @default(0)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  @@map("burnlog_workout_types")
 }
 
 /// gym sessions
@@ -1113,7 +1126,7 @@ model MydayBlock {
   notes     String?
   startTime String // 'HH:mm'
   endTime   String // 'HH:mm'
-  source    String   @default("manual") // 'manual' | 'burnlog' | 'tasklog' | 'moneylog'
+  source    String   @default("manual") // 'manual' | 'burnlog' | 'tasklog' | 'moneylog' | 'habit' | 'homelog'
   sourceId  String?  @db.Uuid // links back to the originating row for actual-status lookup
   completed Boolean  @default(false)
   createdAt DateTime @default(now())

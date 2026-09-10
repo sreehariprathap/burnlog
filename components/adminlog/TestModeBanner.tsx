@@ -41,18 +41,19 @@ export function TestModeBanner() {
   return (
     <div
       role="status"
-      className="fixed inset-x-0 top-0 z-[100] flex items-center justify-center gap-3 bg-amber-500 px-4 py-2 text-center text-sm font-medium text-black"
-      style={{ paddingTop: 'env(safe-area-inset-top, 0.5rem)' }}
+      aria-label="Test mode active — running as the onboarding test account"
+      className="fixed inset-x-0 top-0 z-[100] flex items-center justify-center gap-1.5 whitespace-nowrap bg-amber-500 px-3 py-0.5 text-center text-[11px] font-medium leading-tight text-black"
+      style={{ paddingTop: 'env(safe-area-inset-top, 0.125rem)' }}
     >
-      <FlaskConical className="w-4 h-4" aria-hidden="true" />
-      TEST MODE — running as the onboarding test account
+      <FlaskConical className="h-3 w-3 shrink-0" aria-hidden="true" />
+      <span className="truncate">TEST MODE</span>
       <button
         type="button"
         onClick={handleExit}
         disabled={exiting}
-        className="ml-2 rounded-md bg-black/10 px-2 py-0.5 font-semibold hover:bg-black/20 disabled:opacity-50"
+        className="shrink-0 rounded bg-black/10 px-1.5 py-0.5 text-[10px] font-semibold hover:bg-black/20 disabled:opacity-50"
       >
-        Exit Test Mode
+        Exit
       </button>
     </div>
   );

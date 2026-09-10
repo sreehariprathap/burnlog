@@ -24,10 +24,12 @@ function ProgressFromParams({ app }: { app: AppId }) {
 }
 
 /** Consistent themed frame for a per-app onboarding page — sets that app's
- * theme on mount, centers its content in a card, and shows the shared
- * bottom progress bar when reached via the onboarding sequence. Does not
- * own any skip/continue logic; each flow keeps its own (see the scope note
- * in the Foundation implementation plan, Task 9). */
+ * theme on mount, centers its content column, and shows the shared bottom
+ * progress bar when reached via the onboarding sequence. Renders no card
+ * chrome of its own — every step component supplies its own `<Card>`, so
+ * this shell only owns width/centering to avoid a card-in-a-card look. Does
+ * not own any skip/continue logic; each flow keeps its own (see the scope
+ * note in the Foundation implementation plan, Task 9). */
 export function OnboardingStepShell({ app, children }: OnboardingStepShellProps) {
   useEffect(() => {
     setAppTheme(app);
@@ -35,7 +37,7 @@ export function OnboardingStepShell({ app, children }: OnboardingStepShellProps)
 
   return (
     <div className="min-h-screen px-4 pb-24 pt-6">
-      <div className="mx-auto w-full max-w-md rounded-2xl border bg-card p-5 shadow-sm">
+      <div className="mx-auto w-full max-w-md">
         {children}
       </div>
       <Suspense fallback={null}>

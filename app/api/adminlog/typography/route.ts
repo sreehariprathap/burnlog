@@ -8,16 +8,10 @@ import { isFontId, isFontWeight, isHeadingScale, type TypographyFields } from '@
 
 type Row = TypographyFields & { id: string };
 
-// Readable by any signed-in user — every page reads this to resolve which
-// fonts/weight/scale to render, not just adminlog.
+// Public read — every page, including logged-out ones like /login, reads
+// this to resolve which fonts/weight/scale to render.
 export async function GET() {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-    }
-
     const admin = createServiceRoleClient();
     const { data, error } = await admin
       .from('adminlog_typography_settings')

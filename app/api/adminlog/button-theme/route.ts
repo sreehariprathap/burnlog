@@ -6,18 +6,12 @@ import { requireAdminCaller } from '@/lib/adminlog/testOnboarding';
 import { isAppId } from '@/lib/appMode';
 import { BUTTON_SLOTS, isButtonStyle } from '@/lib/buttonThemes';
 
-// Readable by any signed-in user — every app reads this to decide how its
-// themed buttons should render, not just adminlog. Shape mirrors the
+// Public read — every page, including logged-out ones like /login, reads
+// this to decide how its themed buttons should render. Shape mirrors the
 // app-theme and typography routes: a global map plus per-app maps, with the
 // caller resolving app-over-global.
 export async function GET() {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-    }
-
     const admin = createServiceRoleClient();
     const { data, error } = await admin
       .from('adminlog_button_theme_settings')

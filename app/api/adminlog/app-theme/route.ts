@@ -8,16 +8,10 @@ import { isValidCssColor, isValidRadius, isValidSpacing, isValidBoxShadow, type 
 
 type Row = AppThemeFields & { id: string };
 
-// Readable by any signed-in user — every page reads this to resolve which
-// primary/background colors to render, not just adminlog.
+// Public read — every page, including logged-out ones like /login, reads
+// this to resolve which primary/background colors to render.
 export async function GET() {
   try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-    }
-
     const admin = createServiceRoleClient();
     const { data, error } = await admin
       .from('adminlog_app_theme_settings')

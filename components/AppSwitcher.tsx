@@ -23,11 +23,16 @@ export function AppSwitcher({ open, onOpenChange }: AppSwitcherProps) {
   const [activeApp, setActiveAppState] = useState<AppId>('logbook');
   const [defaultApp, setDefaultAppState] = useState<AppId>('logbook');
   const [visibleApps, setVisibleApps] = useState(Object.values(APPS));
+  // Bumped every time the drawer opens so each icon's `key` below changes,
+  // forcing a fresh mount — that's what makes the pop-in animation actually
+  // replay on every trigger instead of only on the component's first-ever mount.
+  const [sessionId, setSessionId] = useState(0);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressFired = useRef(false);
 
   useEffect(() => {
     if (!open) return;
+    setSessionId((id) => id + 1);
     const active = getActiveApp();
     setActiveAppState(active);
     setDefaultAppState(getDefaultApp());
@@ -80,11 +85,11 @@ export function AppSwitcher({ open, onOpenChange }: AppSwitcherProps) {
         <div className="grid grid-cols-4 gap-4 p-4 pb-8 overflow-y-auto">
           {visibleApps.map((app, index) => (
             <motion.button
-              key={app.id}
+              key={`${app.id}-${sessionId}`}
               type="button"
               initial={{ opacity: 0, scale: 0.4 }}
-              animate={open ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.4 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 22, delay: index * 0.03 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ type: 'spring', stiffness: 300, damping: 22, delay: 0.15 + index * 0.03 }}
               onPointerDown={() => startLongPress(app.id)}
               onPointerUp={() => cancelLongPress()}
               onPointerLeave={() => cancelLongPress()}

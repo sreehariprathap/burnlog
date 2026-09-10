@@ -171,7 +171,7 @@ export default function ProfileSetupPage() {
   if (profileExists) return <div className="h-screen flex items-center justify-center"><Loader2 className="animate-spin"/></div>;
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center gap-6 bg-gray-50 p-4">
+    <div className="min-h-screen flex flex-col items-center justify-center gap-6 bg-gray-50 p-4 pb-24">
       <HorizontalStepper
         steps={[
           { label: 'Profile', state: 'active' },

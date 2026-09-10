@@ -9,15 +9,17 @@ import { TopBar } from '@/components/TopBar';
 import { Button } from '@/components/ui/button';
 import { ThemedButton } from '@/components/ui/themed-button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { createClient } from '@/lib/supabase/client';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
+import { markTaskComplete } from '@/lib/tasklog/completeTask';
+import type { StreakProfile } from '@/lib/tasklog/streak';
 import { DayTimeline } from '@/components/myday/DayTimeline';
 import { UnscheduledTray } from '@/components/myday/UnscheduledTray';
 import { AddBlockSheet } from '@/components/myday/AddBlockSheet';
 import { MyDayCalendarDialog } from '@/components/myday/MyDayCalendarDialog';
-import { HabitsChecklist } from '@/components/myday/HabitsChecklist';
 import { HabitCreateSheet } from '@/components/myday/HabitCreateSheet';
 import { RadialMenu, type RadialMenuItem } from '@/components/kokonutui/radial-menu';
-import type { MyDayBlock, MyDayUnscheduledItem, MyDayHabitOccurrence } from '@/lib/myday/types';
+import type { MyDayBlock, MyDayUnscheduledItem } from '@/lib/myday/types';
 import { myDayQuery, todayKey } from '@/lib/logbook/queries';
 
 type SheetState =
@@ -50,12 +52,36 @@ export function MyDayClient() {
     closeSheet();
   };
 
-  async function handleToggleHabit(habit: MyDayHabitOccurrence, completed: boolean) {
-    await fetch(`/api/habits/occurrences/${habit.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ completed }),
-    });
+  async function handleToggleActual(block: MyDayBlock) {
+    if (!block.sourceId) return;
+    const supabase = createClient();
+
+    if (block.source === 'habit') {
+      await fetch(`/api/habits/occurrences/${block.sourceId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ completed: !block.actual }),
+      });
+    } else if (block.source === 'tasklog') {
+      if (!profile) return;
+      const { data: task } = await supabase
+        .from('tasklog_tasks')
+        .select('id, goalId, title, cost, costCategory, costLoggedAt')
+        .eq('id', block.sourceId)
+        .single();
+      if (!task) return;
+      const streakProfile: StreakProfile = {
+        id: profile.id,
+        taskLogCurrentStreak: profile.taskLogCurrentStreak as number,
+        taskLogLongestStreak: profile.taskLogLongestStreak as number,
+        lastTaskLogStreakDate: profile.lastTaskLogStreakDate as string | null,
+      };
+      await markTaskComplete(supabase, task, streakProfile, !block.actual);
+    } else if (block.source === 'homelog') {
+      if (block.actual) return; // one-way, matches HomeLog's own completion flow
+      await fetch(`/api/homelog/chores/instances/${block.sourceId}/complete`, { method: 'POST' });
+    }
+
     mutate();
   }
 
@@ -113,8 +139,8 @@ export function MyDayClient() {
               blocks={data.blocks}
               onBlockClick={(block) => setSheet({ mode: 'edit', block })}
               onSlotClick={(startTime) => setSheet({ mode: 'new', startTime })}
+              onToggleActual={handleToggleActual}
             />
-            <HabitsChecklist habits={data.habits} onToggle={handleToggleHabit} />
           </>
         )}
       </div>
