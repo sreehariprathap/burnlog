@@ -3,11 +3,10 @@
 import { useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import useSWR from 'swr';
-import { CalendarClock, CalendarDays, Plus, RefreshCw } from 'lucide-react';
+import { CalendarDays, RefreshCw } from 'lucide-react';
 import { format as formatDate, addDays, subDays } from 'date-fns';
 import { TopBar } from '@/components/TopBar';
 import { Button } from '@/components/ui/button';
-import { ThemedButton } from '@/components/ui/themed-button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { createClient } from '@/lib/supabase/client';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
@@ -18,7 +17,6 @@ import { UnscheduledTray } from '@/components/myday/UnscheduledTray';
 import { AddBlockSheet } from '@/components/myday/AddBlockSheet';
 import { MyDayCalendarDialog } from '@/components/myday/MyDayCalendarDialog';
 import { HabitCreateSheet } from '@/components/myday/HabitCreateSheet';
-import { RadialMenu, type RadialMenuItem } from '@/components/kokonutui/radial-menu';
 import type { MyDayBlock, MyDayUnscheduledItem } from '@/lib/myday/types';
 import { myDayQuery, todayKey } from '@/lib/logbook/queries';
 
@@ -40,7 +38,6 @@ export function MyDayClient() {
   );
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [sheet, setSheet] = useState<SheetState>({ mode: 'closed' });
-  const [fabMenuOpen, setFabMenuOpen] = useState(false);
 
   const goToDate = (next: string) => router.push(`/logbook?tab=myday&date=${next}`);
 
@@ -144,37 +141,6 @@ export function MyDayClient() {
           </>
         )}
       </div>
-
-      <ThemedButton
-        slot="fab"
-        onClick={() => setFabMenuOpen((prev) => !prev)}
-        size="icon"
-        className="fixed bottom-24 right-4 z-20 h-14 w-14 rounded-full shadow-lg"
-        aria-label="Add to your day"
-      >
-        <Plus className="h-6 w-6" />
-      </ThemedButton>
-
-      <RadialMenu
-        open={fabMenuOpen}
-        onClose={() => setFabMenuOpen(false)}
-        items={
-          [
-            {
-              key: 'block',
-              label: 'Block',
-              icon: <CalendarClock className="h-5 w-5" />,
-              onSelect: () => setSheet({ mode: 'new' }),
-            },
-            {
-              key: 'habit',
-              label: 'Habit',
-              icon: <Plus className="h-5 w-5" />,
-              onSelect: () => setSheet({ mode: 'newHabit' }),
-            },
-          ] satisfies RadialMenuItem[]
-        }
-      />
 
       {sheet.mode === 'newHabit' && <HabitCreateSheet date={date} onClose={closeSheet} onSaved={handleSheetSaved} />}
 

@@ -11,6 +11,7 @@ import {
   ListChecks,
   Wallet,
   Moon,
+  CalendarClock,
   Sparkles,
   ChevronLeft,
   Loader2,
@@ -27,9 +28,12 @@ import { LogWorkoutModal } from '@/app/(burnlog)/burnlog/dashboard/_components/q
 import { LogStepsModal } from '@/app/(burnlog)/burnlog/dashboard/_components/quick-log/LogStepsModal';
 import { WalkTrackerModal } from '@/app/(burnlog)/burnlog/dashboard/_components/quick-log/WalkTrackerModal';
 import { LogTransactionModal } from '@/app/(moneylog)/moneylog/_components/LogTransactionModal';
+import { AddBlockSheet } from '@/components/myday/AddBlockSheet';
+import { HabitCreateSheet } from '@/components/myday/HabitCreateSheet';
+import { todayKey } from '@/lib/logbook/queries';
 import type { TaskCategory, TaskPriority } from '@/lib/tasklog/types';
 
-type QuickAddOption = 'meal' | 'workout' | 'steps' | 'walk' | 'task' | 'expense' | 'sleep';
+type QuickAddOption = 'meal' | 'workout' | 'steps' | 'walk' | 'task' | 'expense' | 'sleep' | 'block' | 'habit';
 
 interface QuickAddFabProps {
   profileId: string;
@@ -47,6 +51,8 @@ const OPTIONS: { id: QuickAddOption; label: string; app: string; icon: LucideIco
   { id: 'task', label: 'Complete Task', app: 'tasklog', icon: ListChecks, color: '#3B82F6', available: true, ai: true },
   { id: 'expense', label: 'Log Expense', app: 'moneylog', icon: Wallet, color: '#22C55E', available: true, ai: true },
   { id: 'sleep', label: 'Log Sleep', app: 'lifelog', icon: Moon, color: '#8B5CF6', available: false, ai: false },
+  { id: 'block', label: 'Add Block', app: 'logbook', icon: CalendarClock, color: '#6366F1', available: true, ai: false },
+  { id: 'habit', label: 'Add Habit', app: 'logbook', icon: Plus, color: '#6366F1', available: true, ai: false },
 ];
 
 const TASK_CATEGORIES: readonly TaskCategory[] = ['life', 'work'];
@@ -171,6 +177,8 @@ const SAVED_MESSAGES: Record<QuickAddOption, string> = {
   task: 'Task marked done',
   expense: 'Expense logged',
   sleep: 'Sleep logged',
+  block: 'Block added to MyDay',
+  habit: 'Habit added to MyDay',
 };
 
 export function QuickAddFab({ profileId, onSaved }: QuickAddFabProps) {
@@ -207,6 +215,12 @@ export function QuickAddFab({ profileId, onSaved }: QuickAddFabProps) {
   }
   if (selected === 'expense') {
     return <LogTransactionModal profileId={profileId} onClose={() => setSelected(null)} onSaved={handleSaved} />;
+  }
+  if (selected === 'block') {
+    return <AddBlockSheet date={todayKey()} onClose={() => setSelected(null)} onSaved={handleSaved} />;
+  }
+  if (selected === 'habit') {
+    return <HabitCreateSheet date={todayKey()} onClose={() => setSelected(null)} onSaved={handleSaved} />;
   }
 
   return (
