@@ -1782,6 +1782,18 @@ model AppThemeSetting {
   @@map("adminlog_app_theme_settings")
 }
 
+/// AdminLog > UI > "v2 (Beta)" — a single global boolean switching core
+/// chrome primitives (Button/Card/Input/bottom-nav) between the flat look
+/// and the glass look. Global only — no per-app scoping, unlike the other
+/// settings tables below (see lib/theme/uiVersion.ts).
+model UiVersionSetting {
+  id        String   @id @default("global")
+  enabled   Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+
+  @@map("adminlog_ui_version_settings")
+}
+
 /// Admin-controlled gradient/glow intensity for dashboard cards. Same
 /// scoping convention as AppThemeSetting — id is "global" or an AppId;
 /// an app-level row overrides "global", which overrides the "subtle"
