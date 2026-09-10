@@ -22,6 +22,8 @@ import { GetStartedCard } from './GetStartedCard';
 import { NetSummaryCard } from './NetSummaryCard';
 import { NetWorthCard } from './NetWorthCard';
 import { MoneyLogFab } from './MoneyLogFab';
+import { SpendableCard } from './SpendableCard';
+import { UnloggedOccurrencePrompts } from './UnloggedOccurrencePrompts';
 
 const periodTabs: TabItem[] = [
   { id: 'weekly', icon: CalendarDays, label: 'Weekly', color: 'var(--chart-1)' },
@@ -163,6 +165,12 @@ export function HomeContent() {
           </Button>
         }
       />
+      {profileId && (
+        <div className="px-4 pt-2 space-y-2">
+          <UnloggedOccurrencePrompts profileId={profileId} onLogged={() => setRefreshKey((k) => k + 1)} />
+          <SpendableCard profileId={profileId} refreshKey={refreshKey} />
+        </div>
+      )}
       <div className="sticky top-14 z-10 border-b bg-background/80 px-4 py-2 backdrop-blur">
         <SmoothTabs items={periodTabs} selectedIndex={selectedIndex} onSelect={setSelectedIndex} showLabels />
       </div>
