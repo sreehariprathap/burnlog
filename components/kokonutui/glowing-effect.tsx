@@ -171,7 +171,10 @@ function GlowingEffectComponent({
           "--repeating-conic-gradient-times": "5",
           "--gradient": gradient,
           "--movement-duration": `${movementDuration}s`,
-          filter: blur > 0 ? `blur(${blur}px)` : undefined,
+          // Explicit blur prop wins (some callers deliberately tune this
+          // per-instance); otherwise falls back to AdminLog > UI > Card
+          // Glow's admin-controlled blur.
+          filter: blur > 0 ? `blur(${blur}px)` : "blur(var(--card-glow-blur, 0px))",
         } as React.CSSProperties
       }
       className={cn("pointer-events-none absolute inset-0 rounded-[inherit]", className)}
