@@ -14,11 +14,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { UsernameSearchInput } from '@/components/UsernameSearchInput';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerDescription } from '@/components/ui/drawer';
 import { useHouseholdMe } from '@/lib/homelog/useHouseholdMe';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { useToast } from '@/components/ui/use-toast';
 import { StatCard } from '@/components/ui/stat-card';
-import { ListTodo, Scale } from 'lucide-react';
+import { PeopleStack } from '@/components/kokonutui/people-stack';
+import { ListTodo, Scale, Home as HomeIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { invitesQuery, choresQuery, balancesQuery } from '@/lib/homelog/queries';
 import { formatCurrency } from '@/lib/format';
@@ -43,12 +46,26 @@ export default function HomeLogPage() {
   );
 
   const todayStr = new Date().toISOString().slice(0, 10);
-  const choresDueToday = (choresForStats ?? []).filter((c) => c.instance?.dueDate === todayStr).length;
+  const choresDue = (choresForStats ?? []).filter((c) => c.instance?.dueDate === todayStr);
+  const choresDueToday = choresDue.length;
   const myNetBalance = (balancesForStats ?? []).reduce((sum, b) => {
     if (b.memberA === profile?.id) return sum - b.net;
     if (b.memberB === profile?.id) return sum + b.net;
     return sum;
   }, 0);
+  // Positive amount = they owe you; negative = you owe them — same sign
+  // convention as myNetBalance above, just kept per-person instead of summed.
+  const balanceBreakdown = (balancesForStats ?? [])
+    .filter((b) => b.memberA === profile?.id || b.memberB === profile?.id)
+    .map((b) => ({
+      name: b.memberA === profile?.id ? b.memberBName : b.memberAName,
+      amount: b.memberA === profile?.id ? -b.net : b.net,
+    }))
+    .filter((b) => b.amount !== 0);
+
+  const [choresDialogOpen, setChoresDialogOpen] = useState(false);
+  const [balanceDialogOpen, setBalanceDialogOpen] = useState(false);
+  const [householdDrawerOpen, setHouseholdDrawerOpen] = useState(false);
 
   const [householdName, setHouseholdName] = useState('');
   const [creating, setCreating] = useState(false);
@@ -267,136 +284,236 @@ export default function HomeLogPage() {
         ) : (
           <>
             <div className="grid grid-cols-2 gap-3">
-              <StatCard title="Chores due today" icon={ListTodo}>
+              <StatCard
+                title="Chores due today"
+                icon={ListTodo}
+                role="button"
+                tabIndex={0}
+                onClick={() => setChoresDialogOpen(true)}
+                onKeyDown={(e) => e.key === 'Enter' && setChoresDialogOpen(true)}
+                className="cursor-pointer"
+              >
                 <p className="text-2xl font-bold">{choresDueToday}</p>
               </StatCard>
-              <StatCard title="Your balance" icon={Scale}>
+              <StatCard
+                title="Your balance"
+                icon={Scale}
+                role="button"
+                tabIndex={0}
+                onClick={() => setBalanceDialogOpen(true)}
+                onKeyDown={(e) => e.key === 'Enter' && setBalanceDialogOpen(true)}
+                className="cursor-pointer"
+              >
                 <p className={cn('text-2xl font-bold', myNetBalance < 0 ? 'text-destructive' : 'text-success')}>
                   {myNetBalance === 0 ? 'Settled up' : `${myNetBalance > 0 ? '+' : ''}${formatCurrency(myNetBalance)}`}
                 </p>
               </StatCard>
             </div>
-            <Card>
-              <CardHeader>
-                <CardTitle>{household.name}</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {members.map((member) => (
-                  <div key={member.profileId} className="rounded-md border p-3">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium">{member.firstName}</p>
-                        <p className="text-xs text-muted-foreground">@{member.username}</p>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="rounded-full bg-muted px-2 py-0.5 text-xs capitalize">{member.role}</span>
-                        {myRole === 'owner' && member.role !== 'owner' && confirmingRemoveId !== member.profileId && (
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => setConfirmingRemoveId(member.profileId)}
-                            disabled={removingMemberId === member.profileId}
-                          >
-                            {removingMemberId === member.profileId ? 'Removing…' : 'Remove'}
-                          </Button>
-                        )}
-                      </div>
-                    </div>
-                    {confirmingRemoveId === member.profileId && (
-                      <div className="mt-2 space-y-2">
-                        <p className="text-sm text-muted-foreground">
-                          Remove {member.firstName} from the household?
-                        </p>
-                        <div className="flex gap-2">
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleRemoveMember(member.profileId)}
-                            disabled={removingMemberId === member.profileId}
-                          >
-                            {removingMemberId === member.profileId ? 'Removing…' : 'Confirm remove'}
-                          </Button>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            onClick={() => setConfirmingRemoveId(null)}
-                            disabled={removingMemberId === member.profileId}
-                          >
-                            Cancel
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Invite by username</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleInvite} className="flex gap-2">
-                  <Label htmlFor="invite-username" className="sr-only">
-                    Username to invite
-                  </Label>
-                  <UsernameSearchInput
-                    id="invite-username"
-                    value={inviteUsername}
-                    onChange={setInviteUsername}
-                  />
-                  <Button type="submit" disabled={inviting}>
-                    {inviting ? 'Sending…' : 'Invite'}
-                  </Button>
-                </form>
-                {inviteError && (
-                  <p
-                    className={cn(
-                      'mt-2 text-sm',
-                      inviteError.includes('already part of a household') ? 'text-muted-foreground' : 'text-destructive'
-                    )}
-                  >
-                    {inviteError}
-                  </p>
-                )}
-                {inviteSuccess && <p className="mt-2 text-sm text-success">{inviteSuccess}</p>}
-              </CardContent>
-            </Card>
 
             <Card>
               <CardContent className="pt-6">
-                {!confirmingLeave ? (
-                  <Button type="button" variant="outline" onClick={() => setConfirmingLeave(true)}>
-                    Leave household
-                  </Button>
-                ) : (
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">
-                      {myRole === 'owner' && members.length > 1
-                        ? 'You are the owner — ownership will transfer to another member. Leave anyway?'
-                        : myRole === 'owner'
-                          ? "You're the only member — the household will be deleted. Leave anyway?"
-                          : 'Are you sure you want to leave this household?'}
-                    </p>
-                    <div className="flex gap-2">
-                      <Button type="button" variant="destructive" onClick={handleLeave} disabled={leaving}>
-                        {leaving ? 'Leaving…' : 'Confirm leave'}
-                      </Button>
-                      <Button type="button" variant="outline" onClick={() => setConfirmingLeave(false)} disabled={leaving}>
-                        Cancel
-                      </Button>
+                <button
+                  type="button"
+                  onClick={() => setHouseholdDrawerOpen(true)}
+                  className="flex w-full flex-col items-start gap-4 rounded-md text-left outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
+                      <HomeIcon className="h-6 w-6 text-primary" />
                     </div>
+                    <p className="text-2xl font-bold">{household.name}</p>
                   </div>
-                )}
+                  <PeopleStack
+                    size={40}
+                    people={members.map((member) => ({
+                      id: member.profileId,
+                      name: member.firstName,
+                      avatarUrl: member.avatarUrl,
+                      ring:
+                        member.role === 'owner' && member.profileId === profile?.id
+                          ? 'both'
+                          : member.role === 'owner'
+                            ? 'owner'
+                            : member.profileId === profile?.id
+                              ? 'self'
+                              : undefined,
+                    }))}
+                  />
+                </button>
               </CardContent>
             </Card>
           </>
         )}
       </div>
+
+      {household && (
+        <>
+          <Dialog open={choresDialogOpen} onOpenChange={setChoresDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Chores due today</DialogTitle>
+                <DialogDescription>
+                  {choresDue.length === 0 ? 'Nothing due today.' : `${choresDue.length} chore${choresDue.length === 1 ? '' : 's'} due today.`}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-2">
+                {choresDue.map((chore) => (
+                  <div key={chore.id} className="flex items-center justify-between rounded-md border p-3">
+                    <p className="text-sm font-medium">{chore.title}</p>
+                    <p className="text-xs text-muted-foreground">{chore.instance?.assignedName ?? 'Unassigned'}</p>
+                  </div>
+                ))}
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <Dialog open={balanceDialogOpen} onOpenChange={setBalanceDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Your balance</DialogTitle>
+                <DialogDescription>
+                  {myNetBalance === 0 ? "You're settled up with everyone." : 'Amounts you owe, and amounts owed to you.'}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-2">
+                {balanceBreakdown.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">No outstanding balances.</p>
+                ) : (
+                  balanceBreakdown.map((b) => (
+                    <div key={b.name} className="flex items-center justify-between rounded-md border p-3">
+                      <p className="text-sm font-medium">{b.name}</p>
+                      <p className={cn('text-sm font-semibold', b.amount < 0 ? 'text-destructive' : 'text-success')}>
+                        {b.amount < 0
+                          ? `You owe ${formatCurrency(Math.abs(b.amount))}`
+                          : `Owes you ${formatCurrency(b.amount)}`}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          <Drawer open={householdDrawerOpen} onOpenChange={setHouseholdDrawerOpen}>
+            <DrawerContent className="max-h-[85vh]">
+              <DrawerHeader>
+                <DrawerTitle>{household.name}</DrawerTitle>
+                <DrawerDescription>Members, invites, and household settings.</DrawerDescription>
+              </DrawerHeader>
+              <div className="space-y-4 overflow-y-auto px-4 pb-6">
+                <div className="space-y-2">
+                  {members.map((member) => (
+                    <div key={member.profileId} className="rounded-md border p-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-medium">
+                            {member.firstName}
+                            {member.profileId === profile?.id && ' (you)'}
+                          </p>
+                          <p className="text-xs text-muted-foreground">@{member.username}</p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="rounded-full bg-muted px-2 py-0.5 text-xs capitalize">{member.role}</span>
+                          {myRole === 'owner' && member.role !== 'owner' && confirmingRemoveId !== member.profileId && (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => setConfirmingRemoveId(member.profileId)}
+                              disabled={removingMemberId === member.profileId}
+                            >
+                              {removingMemberId === member.profileId ? 'Removing…' : 'Remove'}
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                      {confirmingRemoveId === member.profileId && (
+                        <div className="mt-2 space-y-2">
+                          <p className="text-sm text-muted-foreground">
+                            Remove {member.firstName} from the household?
+                          </p>
+                          <div className="flex gap-2">
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleRemoveMember(member.profileId)}
+                              disabled={removingMemberId === member.profileId}
+                            >
+                              {removingMemberId === member.profileId ? 'Removing…' : 'Confirm remove'}
+                            </Button>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setConfirmingRemoveId(null)}
+                              disabled={removingMemberId === member.profileId}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <div className="space-y-2 border-t pt-4">
+                  <Label htmlFor="invite-username">Invite by username</Label>
+                  <form onSubmit={handleInvite} className="flex gap-2">
+                    <UsernameSearchInput
+                      id="invite-username"
+                      value={inviteUsername}
+                      onChange={setInviteUsername}
+                    />
+                    <Button type="submit" disabled={inviting}>
+                      {inviting ? 'Sending…' : 'Invite'}
+                    </Button>
+                  </form>
+                  {inviteError && (
+                    <p
+                      className={cn(
+                        'text-sm',
+                        inviteError.includes('already part of a household') ? 'text-muted-foreground' : 'text-destructive'
+                      )}
+                    >
+                      {inviteError}
+                    </p>
+                  )}
+                  {inviteSuccess && <p className="text-sm text-success">{inviteSuccess}</p>}
+                </div>
+
+                <div className="border-t pt-4">
+                  {!confirmingLeave ? (
+                    <Button type="button" variant="outline" onClick={() => setConfirmingLeave(true)}>
+                      Leave household
+                    </Button>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground">
+                        {myRole === 'owner' && members.length > 1
+                          ? 'You are the owner — ownership will transfer to another member. Leave anyway?'
+                          : myRole === 'owner'
+                            ? "You're the only member — the household will be deleted. Leave anyway?"
+                            : 'Are you sure you want to leave this household?'}
+                      </p>
+                      <div className="flex gap-2">
+                        <Button type="button" variant="destructive" onClick={handleLeave} disabled={leaving}>
+                          {leaving ? 'Leaving…' : 'Confirm leave'}
+                        </Button>
+                        <Button type="button" variant="outline" onClick={() => setConfirmingLeave(false)} disabled={leaving}>
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </DrawerContent>
+          </Drawer>
+        </>
+      )}
+
       <HomeLogBottomNav />
     </div>
   );

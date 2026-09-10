@@ -15,6 +15,7 @@ export interface MemberInfo {
   joinedAt: string;
   username: string;
   firstName: string;
+  avatarUrl: string | null;
 }
 
 interface HouseholdMeResponse {
