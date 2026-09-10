@@ -32,14 +32,20 @@ interface TripVisit {
 interface TripDetail {
   plan: {
     id: string;
+    origin: string | null;
     destination: string;
     hotel: string | null;
     startDate: string;
     endDate: string;
+    departureTime: string | null;
+    returnTime: string | null;
     numPeople: number;
     transportMode: string;
     budget: number | null;
     budgetCurrency: string;
+    accommodationBooked: boolean;
+    accommodationNights: number | null;
+    accommodationPaid: number | null;
     itinerary: Itinerary;
   };
   myRole: 'owner' | 'member';
@@ -72,14 +78,21 @@ export default function TripDetailPage() {
   }
 
   const req: ItineraryRequest = {
+    origin: data.plan.origin ?? '',
     destination: data.plan.destination,
     hotel: data.plan.hotel ?? '',
     startDate: data.plan.startDate,
     endDate: data.plan.endDate,
+    departureTime: data.plan.departureTime ?? '',
+    returnTime: data.plan.returnTime ?? '',
     numPeople: data.plan.numPeople,
     transportMode: data.plan.transportMode as ItineraryRequest['transportMode'],
     budget: data.plan.budget,
     budgetCurrency: data.plan.budgetCurrency,
+    accommodationBooked: data.plan.accommodationBooked,
+    accommodationNights: data.plan.accommodationNights,
+    accommodationPaid: data.plan.accommodationPaid,
+    flightCostOverride: null,
   };
 
   return (

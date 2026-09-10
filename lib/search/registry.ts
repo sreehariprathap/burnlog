@@ -27,7 +27,6 @@ import {
   PackageCheck,
   Heart,
   Store,
-  Map,
   CalendarRange,
   Sparkles,
   Settings,
@@ -111,8 +110,7 @@ export const SEARCH_REGISTRY: SearchItem[] = [
   { app: 'shoppinglog', label: 'Sell', description: 'Create and manage your own listings', href: '/shoppinglog?tab=sell', icon: Store },
   { app: 'shoppinglog', label: 'Config', description: 'ShoppingLog settings and export (ShoppingLog)', href: '/shoppinglog/config', icon: Settings },
 
-  { app: 'travellog', label: 'Home', description: 'Visit stats: total visits, countries, explored stops (TravelLog)', href: '/travellog', icon: LayoutDashboard },
-  { app: 'travellog', label: 'Map', description: 'Your world map of visited places', href: '/travellog?tab=map', icon: Map },
+  { app: 'travellog', label: 'Home', description: 'Your travel passport: visit stats and stamps (TravelLog)', href: '/travellog', icon: LayoutDashboard },
   { app: 'travellog', label: 'Plan', description: 'AI-assisted trip planner (TravelLog)', href: '/travellog?tab=plan', icon: CalendarRange },
   { app: 'travellog', label: 'Suggestions', description: 'AI-assisted, affordable trip suggestions', href: '/travellog?tab=suggestions', icon: Sparkles },
   { app: 'travellog', label: 'Config', description: 'Country setting for holiday lookup, and more (TravelLog)', href: '/travellog/config', icon: Settings },

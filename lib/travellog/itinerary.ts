@@ -3,14 +3,21 @@
 export type TransportMode = 'car' | 'public_transit' | 'flight' | 'mixed';
 
 export interface ItineraryRequest {
+  origin: string;
   destination: string;
   hotel: string;
   startDate: string; // 'YYYY-MM-DD'
   endDate: string;   // 'YYYY-MM-DD'
+  departureTime: string; // 'HH:mm' — when they leave origin on startDate
+  returnTime: string;    // 'HH:mm' — when they expect to be back on endDate
   numPeople: number;
   transportMode: TransportMode;
   budget: number | null;
   budgetCurrency: string;
+  accommodationBooked: boolean;
+  accommodationNights: number | null; // set when accommodationBooked
+  accommodationPaid: number | null;   // amount already paid, set when accommodationBooked
+  flightCostOverride: number | null;  // user-supplied override for the AI's flight estimate
 }
 
 export interface Activity {
@@ -40,6 +47,10 @@ export interface BudgetBreakdown {
 export interface Itinerary {
   days: ItineraryDay[];
   budgetBreakdown: BudgetBreakdown;
+  /** AI-estimated total round-trip flight cost for numPeople, in `currency` — null when transportMode has no flight leg. */
+  flightCostEstimate: number | null;
+  /** Suggested places/areas to stay — only populated when the request's accommodation isn't booked yet. */
+  accommodationSuggestions: string[];
   totalEstimatedCost: number;
   currency: string;
 }
@@ -60,6 +71,15 @@ export function buildUserPrompt(req: ItineraryRequest): string {
   const budgetLine = req.budget != null
     ? `Total budget: ${req.budget} ${req.budgetCurrency}.`
     : 'No strict budget specified; estimate realistic costs.';
+
+  const isFlying = req.transportMode === 'flight' || req.transportMode === 'mixed';
+  const flightLine = isFlying
+    ? `Estimate "flightCostEstimate": a realistic TOTAL round-trip flight cost from ${req.origin} to ${req.destination} for ${req.numPeople} people, in ${req.budgetCurrency}, based on typical market prices. This is separate from budgetBreakdown.transport, which covers local transport only.`
+    : 'Set "flightCostEstimate" to null — this trip has no flight leg.';
+
+  const accommodationLine = req.accommodationBooked
+    ? `Accommodation is already booked and paid for: ${req.accommodationNights} night(s), ${req.accommodationPaid} ${req.budgetCurrency} already paid. Set budgetBreakdown.accommodation to 0 (it's already covered) and "accommodationSuggestions" to an empty array.`
+    : `Accommodation is NOT booked yet. Estimate a realistic budgetBreakdown.accommodation for the stay, and suggest 2-3 real-sounding places to stay in "accommodationSuggestions" (each a short string: name or neighbourhood + why it fits this trip).`;
 
   const schema = `
 {
@@ -87,6 +107,8 @@ export function buildUserPrompt(req: ItineraryRequest): string {
     "activities": 0.0,
     "transport": 0.0
   },
+  "flightCostEstimate": 450.0,
+  "accommodationSuggestions": ["Example Hotel, Old Town — walkable to most activities"],
   "totalEstimatedCost": 0.0,
   "currency": "USD"
 }
@@ -94,10 +116,13 @@ export function buildUserPrompt(req: ItineraryRequest): string {
 
   return `Plan a vacation itinerary with the following details:
 
+Origin: ${req.origin || 'Not specified'}
 Destination: ${req.destination}
 Hotel / Accommodation: ${req.hotel || 'Not specified'}
 Start date: ${req.startDate}
 End date: ${req.endDate}
+Departure time from origin: ${req.departureTime || 'Not specified'}
+Expected return time: ${req.returnTime || 'Not specified'}
 Number of people: ${req.numPeople}
 Transport mode: ${req.transportMode}
 ${budgetLine}
@@ -105,13 +130,19 @@ Output currency: ${req.budgetCurrency}
 
 Transport guidance: ${transportHint}
 
+Travel time: the traveller leaves ${req.origin || 'their origin'} at ${req.departureTime || 'an unspecified time'} on ${req.startDate} and must be back by ${req.returnTime || 'an unspecified time'} on ${req.endDate}. Account for realistic travel time to/from ${req.destination} for the ${req.transportMode} mode — don't schedule Day 1 activities before a plausible arrival, and leave enough buffer on the last day to depart in time for the return.
+
+Flight cost: ${flightLine}
+
+Accommodation: ${accommodationLine}
+
 Requirements:
 - Create one entry per day between startDate and endDate (inclusive).
 - Each day should have at least 3 activities: morning (e.g. 08:00-10:00), afternoon (e.g. 13:00-15:00), and evening (e.g. 18:00-20:00).
 - Provide realistic lat/lng coordinates for every location.
 - estimatedCost is per-person in ${req.budgetCurrency}.
 - transportNote must reflect the chosen transport mode (${req.transportMode}).
-- budgetBreakdown totals should equal totalEstimatedCost (for ${req.numPeople} people).
+- totalEstimatedCost must equal the sum of budgetBreakdown values plus flightCostEstimate (if not null), for ${req.numPeople} people.
 - currency field must be "${req.budgetCurrency}".
 
 Respond with ONLY valid JSON matching this schema exactly:
@@ -175,6 +206,10 @@ export function validateItinerary(raw: unknown): Itinerary {
   return {
     days: r.days as ItineraryDay[],
     budgetBreakdown: r.budgetBreakdown,
+    flightCostEstimate: typeof r.flightCostEstimate === 'number' ? r.flightCostEstimate : null,
+    accommodationSuggestions: Array.isArray(r.accommodationSuggestions)
+      ? r.accommodationSuggestions.filter((s): s is string => typeof s === 'string')
+      : [],
     totalEstimatedCost: r.totalEstimatedCost,
     currency: r.currency,
   };

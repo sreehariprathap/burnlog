@@ -4,8 +4,10 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Plane } from 'lucide-react';
 import type { ItineraryRequest, Itinerary } from '@/lib/travellog/itinerary';
 
 const CONVERT_TARGETS = ['USD', 'EUR', 'GBP', 'JPY', 'INR', 'AUD', 'CAD', 'THB'];
@@ -21,7 +23,7 @@ function formatCurrency(amount: number, currency: string): string {
 type ItineraryReviewProps = {
   req: ItineraryRequest;
   itinerary: Itinerary;
-  onAccept?: () => void;
+  onAccept?: (finalItinerary: Itinerary) => void;
   onStartOver?: () => void;
   accepting?: boolean;
 };
@@ -29,12 +31,15 @@ type ItineraryReviewProps = {
 export function ItineraryReview({ req, itinerary, onAccept, onStartOver, accepting = false }: ItineraryReviewProps) {
   const [selectedDay, setSelectedDay] = useState(0);
   const [convertTo, setConvertTo] = useState(itinerary.currency);
-  const [convertedTotal, setConvertedTotal] = useState<number | null>(null);
+  const [convertRate, setConvertRate] = useState<number | null>(null);
   const [converting, setConverting] = useState(false);
+  const [flightCostInput, setFlightCostInput] = useState(
+    itinerary.flightCostEstimate != null ? String(itinerary.flightCostEstimate) : ''
+  );
 
   useEffect(() => {
     if (convertTo === itinerary.currency) {
-      setConvertedTotal(null);
+      setConvertRate(null);
       return;
     }
     let cancelled = false;
@@ -43,7 +48,7 @@ export function ItineraryReview({ req, itinerary, onAccept, onStartOver, accepti
       .then((res) => res.json())
       .then((data) => {
         if (!cancelled && typeof data.rate === 'number') {
-          setConvertedTotal(itinerary.totalEstimatedCost * data.rate);
+          setConvertRate(data.rate);
         }
       })
       .finally(() => {
@@ -52,7 +57,7 @@ export function ItineraryReview({ req, itinerary, onAccept, onStartOver, accepti
     return () => {
       cancelled = true;
     };
-  }, [convertTo, itinerary.currency, itinerary.totalEstimatedCost]);
+  }, [convertTo, itinerary.currency]);
 
   const currentDay = itinerary.days[selectedDay];
   const budgetItems: Array<{ label: string; amount: number }> = [
@@ -62,7 +67,24 @@ export function ItineraryReview({ req, itinerary, onAccept, onStartOver, accepti
     { label: 'Transport', amount: itinerary.budgetBreakdown.transport },
   ];
 
-  const isOverBudget = req.budget != null && itinerary.totalEstimatedCost > req.budget;
+  // The flight estimate is the one number worth letting the user override —
+  // airfare varies far more by booking timing/carrier than an LLM can know.
+  // Overriding it re-derives the total rather than trusting the model's math.
+  const aiFlightCost = itinerary.flightCostEstimate ?? 0;
+  const finalFlightCost = itinerary.flightCostEstimate != null && flightCostInput.trim()
+    ? Number(flightCostInput) || 0
+    : itinerary.flightCostEstimate;
+  const finalTotal = itinerary.totalEstimatedCost - aiFlightCost + (finalFlightCost ?? 0);
+  const isOverBudget = req.budget != null && finalTotal > req.budget;
+
+  function handleAccept() {
+    if (!onAccept) return;
+    onAccept({
+      ...itinerary,
+      flightCostEstimate: finalFlightCost,
+      totalEstimatedCost: finalTotal,
+    });
+  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -97,6 +119,45 @@ export function ItineraryReview({ req, itinerary, onAccept, onStartOver, accepti
         </div>
       )}
 
+      {itinerary.accommodationSuggestions.length > 0 && (
+        <Card>
+          <CardHeader><CardTitle className="text-base">Places to stay</CardTitle></CardHeader>
+          <CardContent className="flex flex-col gap-2">
+            {itinerary.accommodationSuggestions.map((s, i) => (
+              <p key={i} className="text-sm text-muted-foreground">• {s}</p>
+            ))}
+          </CardContent>
+        </Card>
+      )}
+
+      {itinerary.flightCostEstimate != null && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <Plane className="h-4 w-4" /> Estimated flight cost
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-2">
+            <p className="text-xs text-muted-foreground">
+              AI estimate for {req.numPeople} {req.numPeople === 1 ? 'person' : 'people'}, round trip. Adjust it if you know the real price.
+            </p>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="flightCost" className="sr-only">Flight cost</Label>
+              <Input
+                id="flightCost"
+                type="number"
+                min={0}
+                step="0.01"
+                value={flightCostInput}
+                onChange={(e) => setFlightCostInput(e.target.value)}
+                className="max-w-40"
+              />
+              <span className="text-sm text-muted-foreground">{itinerary.currency}</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader><CardTitle>Budget overview</CardTitle></CardHeader>
         <CardContent className="flex flex-col gap-2">
@@ -106,12 +167,24 @@ export function ItineraryReview({ req, itinerary, onAccept, onStartOver, accepti
               <span className="font-medium">{formatCurrency(item.amount, itinerary.currency)}</span>
             </div>
           ))}
+          {itinerary.flightCostEstimate != null && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Flights</span>
+              <span className="font-medium">{formatCurrency(finalFlightCost ?? 0, itinerary.currency)}</span>
+            </div>
+          )}
           <div className="border-t pt-2 mt-1 flex items-center justify-between">
             <span className="font-semibold">Total estimated</span>
             <span className={`font-semibold ${isOverBudget ? 'text-destructive' : ''}`}>
-              {formatCurrency(itinerary.totalEstimatedCost, itinerary.currency)}
+              {formatCurrency(finalTotal, itinerary.currency)}
             </span>
           </div>
+          {req.accommodationBooked && (
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Already paid for stay</span>
+              <span>{formatCurrency(req.accommodationPaid ?? 0, req.budgetCurrency)}</span>
+            </div>
+          )}
           {req.budget != null && (
             <div className="flex items-center justify-between text-sm">
               <span className="text-muted-foreground">Your budget</span>
@@ -129,8 +202,8 @@ export function ItineraryReview({ req, itinerary, onAccept, onStartOver, accepti
               </SelectContent>
             </Select>
             {converting && <Loader2 className="animate-spin w-4 h-4" />}
-            {!converting && convertedTotal != null && (
-              <span className="text-sm font-medium">{formatCurrency(convertedTotal, convertTo)}</span>
+            {!converting && convertRate != null && (
+              <span className="text-sm font-medium">{formatCurrency(finalTotal * convertRate, convertTo)}</span>
             )}
           </div>
         </CardContent>
@@ -144,7 +217,7 @@ export function ItineraryReview({ req, itinerary, onAccept, onStartOver, accepti
             </Button>
           )}
           {onAccept && (
-            <Button type="button" className="flex-1" onClick={onAccept} disabled={accepting}>
+            <Button type="button" className="flex-1" onClick={handleAccept} disabled={accepting}>
               {accepting ? <Loader2 className="animate-spin w-5 h-5" /> : 'Accept trip plan'}
             </Button>
           )}

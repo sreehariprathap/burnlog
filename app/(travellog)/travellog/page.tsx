@@ -7,9 +7,6 @@ import { Loader2 } from 'lucide-react';
 import { TravelLogBottomNav } from '@/components/TravelLogBottomNav';
 import { HomeContent } from './_components/HomeContent';
 
-const MapContent = dynamic(() => import('./map/_components/MapContent').then((m) => m.MapContent), {
-  loading: () => <TabLoading />,
-});
 const TripsContent = dynamic(() => import('./trips/_components/TripsContent').then((m) => m.TripsContent), {
   loading: () => <TabLoading />,
 });
@@ -30,12 +27,13 @@ function TabLoading() {
 }
 
 /**
- * /travellog is a single page for all five of its nav tabs (Home, Map,
- * Trips, Plan, Suggest) — see TravelLogBottomNav, which switches between
- * them via `?tab=` instead of navigating. Map in particular (world-map
- * visualization) stays dynamically imported so that heavy code only loads
- * once someone actually switches to it. /travellog/trips/[id] (a trip's own
- * detail page) stays a real, separate route — only the list view merged in.
+ * /travellog is a single page for all four of its nav tabs (Home, Trips,
+ * Plan, Suggest) — see TravelLogBottomNav, which switches between them via
+ * `?tab=` instead of navigating. The old Map tab (world-map visualization)
+ * is hidden — its route/components still exist, just unreachable from the
+ * switcher, so `?tab=map` falls through to Home below. /travellog/trips/[id]
+ * (a trip's own detail page) stays a real, separate route — only the list
+ * view merged in.
  */
 export default function TravelLogPage() {
   return (
@@ -51,9 +49,7 @@ function TravelLogTabSwitcher() {
 
   return (
     <>
-      {tab === 'map' ? (
-        <MapContent />
-      ) : tab === 'trips' ? (
+      {tab === 'trips' ? (
         <TripsContent />
       ) : tab === 'plan' ? (
         <PlanContent />

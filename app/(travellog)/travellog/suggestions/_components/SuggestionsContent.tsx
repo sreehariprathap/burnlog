@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
@@ -8,9 +8,10 @@ import { TopBar } from '@/components/TopBar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Plane, RefreshCw } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import useSWR from 'swr';
+import { glowGradient } from '@/lib/theme/glowPalette';
 import { computeFreeWindows, type FreeWindow } from '@/lib/travellog/freeTime';
 import { computeAverageMonthlySurplus } from '@/lib/travellog/affordability';
 import { fetchUpcomingHolidays, type Holiday } from '@/lib/travellog/holidays';
@@ -39,6 +40,7 @@ export function SuggestionsContent() {
   const [surplus, setSurplus] = useState(0);
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [suggestions, setSuggestions] = useState<TripSuggestion[] | null>(null);
+  const [restoring, setRestoring] = useState(true);
   const [generating, setGenerating] = useState(false);
 
   const { data: weeklySuggestions = [] } = useSWR<TripCardItem[]>(
@@ -126,6 +128,33 @@ export function SuggestionsContent() {
     }
   }
 
+  // Same cache-on-mount pattern as WatchLog's suggestion orb: restore the
+  // last generated batch instantly, and only fall back to a fresh AI call
+  // when there's nothing cached yet — so this tab never opens empty needing
+  // a manual click just to see something.
+  const initializedForProfile = useRef<string | null>(null);
+  useEffect(() => {
+    if (!profile || signalsLoading || freeWindows.length === 0 || initializedForProfile.current === profile.id) return;
+    initializedForProfile.current = profile.id;
+
+    (async () => {
+      try {
+        const res = await fetch('/api/ai/travellog/suggestions');
+        const body = await res.json();
+        if (body?.cached?.response?.suggestions) {
+          setSuggestions(body.cached.response.suggestions);
+        } else {
+          await handleGenerate();
+        }
+      } catch {
+        await handleGenerate();
+      } finally {
+        setRestoring(false);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [profile, signalsLoading, freeWindows]);
+
   function handlePlanTrip(s: TripSuggestion) {
     const params = new URLSearchParams({
       destination: s.destination,
@@ -166,20 +195,36 @@ export function SuggestionsContent() {
           </Card>
         ) : (
           <>
-            <Button onClick={handleGenerate} disabled={generating}>
-              {generating ? <Loader2 className="animate-spin w-5 h-5" /> : 'Refresh suggestions'}
-            </Button>
-            {suggestions?.map((s, i) => (
-              <Card key={i}>
-                <CardContent className="pt-4 flex flex-col gap-2">
-                  <p className="font-medium">{s.destination}</p>
-                  <p className="text-xs text-muted-foreground">{s.startDate} – {s.endDate}</p>
-                  <p className="text-sm font-semibold text-primary">{formatCurrency(s.estimatedCost, s.currency)}</p>
-                  <p className="text-sm text-muted-foreground">{s.rationale}</p>
-                  <Button size="sm" onClick={() => handlePlanTrip(s)}>Plan this trip</Button>
-                </CardContent>
-              </Card>
-            ))}
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-muted-foreground">Suggested trips</h2>
+              <Button size="sm" variant="outline" onClick={handleGenerate} disabled={generating || restoring}>
+                {generating ? <Loader2 className="h-4 w-4 animate-spin" /> : <RefreshCw className="h-4 w-4" />}
+              </Button>
+            </div>
+            {restoring || (generating && !suggestions) ? (
+              <div className="space-y-3">
+                <Skeleton className="w-full h-40 rounded-2xl" />
+                <Skeleton className="w-full h-40 rounded-2xl" />
+              </div>
+            ) : (
+              suggestions?.map((s, i) => (
+                <Card key={i} className="overflow-hidden">
+                  <div
+                    className="flex h-16 items-center gap-2 px-4 text-white"
+                    style={{ background: glowGradient(i) }}
+                  >
+                    <Plane className="h-5 w-5 shrink-0" aria-hidden="true" />
+                    <p className="truncate text-lg font-semibold">{s.destination}</p>
+                  </div>
+                  <CardContent className="pt-4 flex flex-col gap-2">
+                    <p className="text-xs text-muted-foreground">{s.startDate} – {s.endDate}</p>
+                    <p className="text-sm font-semibold text-primary">{formatCurrency(s.estimatedCost, s.currency)}</p>
+                    <p className="text-sm text-muted-foreground">{s.rationale}</p>
+                    <Button size="sm" onClick={() => handlePlanTrip(s)}>Plan this trip</Button>
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </>
         )}
       </div>

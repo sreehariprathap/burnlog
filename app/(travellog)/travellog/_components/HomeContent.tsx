@@ -2,17 +2,20 @@
 
 import { useMemo, useState } from 'react';
 import useSWR from 'swr';
+import { Plus } from 'lucide-react';
 import { useCurrentProfile } from '@/lib/useCurrentProfile';
 import { TopBar } from '@/components/TopBar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
+import { ThemedButton } from '@/components/ui/themed-button';
 import { MotionCarousel } from '@/components/kokonutui/motion-carousel';
 import WorldMap from '@/components/ui/world-map';
 import { PassportStamp } from '@/components/travellog/PassportStamp';
 import { countryViewBox } from '@/lib/travellog/countryViewBox';
 import { isExplored, type TravelVisitRow } from '@/lib/travellog/types';
 import { visitsQuery } from '@/lib/travellog/queries';
+import { TripPlannerFlow } from '../plan/_components/TripPlannerFlow';
 
 function formatDate(date: string): string {
   return new Date(`${date}T00:00:00`).toLocaleDateString(undefined, {
@@ -134,6 +137,7 @@ export function HomeContent() {
   );
   const [page, setPage] = useState(0);
   const [selected, setSelected] = useState<TravelVisitRow | null>(null);
+  const [plannerOpen, setPlannerOpen] = useState(false);
 
   const loading = profileLoading || isLoading;
   const sorted = useMemo(() => visits ?? [], [visits]);
@@ -199,6 +203,27 @@ export function HomeContent() {
           </>
         )}
       </div>
+
+      <ThemedButton
+        slot="fab"
+        onClick={() => setPlannerOpen(true)}
+        size="icon"
+        className="fixed bottom-24 right-4 z-20 h-14 w-14 rounded-full shadow-lg"
+        aria-label="Log a trip"
+      >
+        <Plus className="h-6 w-6" />
+      </ThemedButton>
+
+      <Drawer open={plannerOpen} onOpenChange={setPlannerOpen}>
+        <DrawerContent className="max-h-[90vh]">
+          <DrawerHeader>
+            <DrawerTitle>Log a trip</DrawerTitle>
+          </DrawerHeader>
+          <div className="overflow-y-auto px-4 pb-6">
+            <TripPlannerFlow onAccepted={() => setPlannerOpen(false)} />
+          </div>
+        </DrawerContent>
+      </Drawer>
 
       <Drawer open={selected !== null} onOpenChange={(open) => !open && setSelected(null)}>
         <DrawerContent>

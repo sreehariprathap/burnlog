@@ -25,16 +25,26 @@ export async function POST(request: Request) {
     if (!body.destination || !body.startDate || !body.endDate || !body.transportMode) {
       return NextResponse.json({ error: 'Missing required trip details' }, { status: 400 });
     }
+    if (body.accommodationBooked && (body.accommodationNights == null || body.accommodationPaid == null)) {
+      return NextResponse.json({ error: 'Nights and amount paid are required when accommodation is already booked' }, { status: 400 });
+    }
 
     const req: ItineraryRequest = {
+      origin: body.origin || '',
       destination: body.destination,
       hotel: body.hotel || '',
       startDate: body.startDate,
       endDate: body.endDate,
+      departureTime: body.departureTime || '',
+      returnTime: body.returnTime || '',
       numPeople: body.numPeople ?? 1,
       transportMode: body.transportMode,
       budget: body.budget ?? null,
       budgetCurrency: body.budgetCurrency || 'USD',
+      accommodationBooked: body.accommodationBooked ?? false,
+      accommodationNights: body.accommodationBooked ? body.accommodationNights ?? null : null,
+      accommodationPaid: body.accommodationBooked ? body.accommodationPaid ?? null : null,
+      flightCostOverride: body.flightCostOverride ?? null,
     };
 
     MODEL = await getModel(supabase, 'travellog-itinerary');

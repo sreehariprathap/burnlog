@@ -5,7 +5,7 @@ import { Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { motion } from 'motion/react';
-import { MapIcon, UsersIcon, SparklesIcon, PiggyBankIcon } from 'lucide-react';
+import { UsersIcon, SparklesIcon, PiggyBankIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { AppIcon } from '@/components/AppIcon';
 import { ConfigMenu } from '@/components/ConfigMenu';
@@ -16,7 +16,6 @@ import { visitsQuery, tripsQuery, weeklySuggestionsQuery } from '@/lib/travellog
 
 const tabs = [
   { tab: 'home', href: '/travellog?tab=home', label: 'Home', Icon: null },
-  { tab: 'map', href: '/travellog?tab=map', label: 'Map', Icon: MapIcon },
   { tab: 'trips', href: '/travellog?tab=trips', label: 'Trips', Icon: UsersIcon },
   { tab: 'plan', href: '/travellog?tab=plan', label: 'Plan', Icon: SparklesIcon },
   { tab: 'suggestions', href: '/travellog?tab=suggestions', label: 'Suggest', Icon: PiggyBankIcon },
@@ -44,9 +43,9 @@ function TravelLogBottomNavInner() {
   // the old pathname-based check's behavior there.
   const onTripDetail = pathname.startsWith('/travellog/trips/');
 
-  // Warms Home/Map (shared visitsQuery), Trips, and Suggestions' weekly
-  // list. Plan has no page-level query to preload (an AI-generation form,
-  // not a list/lookup page).
+  // Warms Home's visitsQuery, Trips, and Suggestions' weekly list. Plan has
+  // no page-level query to preload (an AI-generation form, not a
+  // list/lookup page).
   const { profile } = useCurrentProfile();
   usePreloadRoutes(
     profile

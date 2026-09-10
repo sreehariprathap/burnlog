@@ -16,6 +16,43 @@ const client = new OpenAI({
   apiKey: process.env.NEXT_OPENROUTER_KEY,
 });
 
+/**
+ * Returns the most recent successful suggestion batch for this profile, if
+ * any — same cache-on-mount pattern as watchlog's /api/ai/watchlog/suggest
+ * GET. Every POST already logs its request/response to ai_jobs via
+ * runAiJob, so this is a plain read with no extra storage.
+ */
+export async function GET() {
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
+    }
+
+    const { data: profile } = await supabase.from('profiles').select('id').eq('userId', user.id).single();
+    if (!profile) {
+      return NextResponse.json({ error: 'Profile not found' }, { status: 404 });
+    }
+
+    const { data: job } = await supabase
+      .from('ai_jobs')
+      .select('input, output')
+      .eq('profileId', profile.id)
+      .eq('app', 'travellog')
+      .eq('jobType', 'travellog-suggestions')
+      .eq('status', 'success')
+      .order('createdAt', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    return NextResponse.json({ cached: job ? { request: job.input, response: job.output } : null });
+  } catch (error) {
+    console.error('travellog suggestions cache lookup error:', error);
+    return NextResponse.json({ cached: null });
+  }
+}
+
 export async function POST(request: Request) {
   let MODEL = 'unknown';
   try {
