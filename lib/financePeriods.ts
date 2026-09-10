@@ -55,6 +55,8 @@ export interface RecurringItemRow {
   dayOfWeek: number | null;
   dayOfMonth: number | null;
   monthOfYear: number | null;
+  anchorDate: string | null;
+  secondDayOfMonth: number | null;
   startDate: string;
   endDate: string | null;
   isActive: boolean;
@@ -119,6 +121,26 @@ export function expandRecurringInRange(
         ) {
           results.push({ type: item.type, category: item.category, amount: item.amount, date: occurrence });
         }
+      }
+    } else if (item.frequency === 'biweekly' && item.anchorDate) {
+      const anchor = new Date(item.anchorDate);
+      // Round the gap between anchor and range start down to the nearest
+      // whole 14-day step so the loop's first candidate lands on or just
+      // before `start`, then walks forward — handles anchors both inside
+      // and long before the query range.
+      const msPerDay = 24 * 60 * 60 * 1000;
+      const daysSinceAnchor = Math.floor((start.getTime() - anchor.getTime()) / msPerDay);
+      const stepsSinceAnchor = Math.floor(daysSinceAnchor / 14);
+      let cursor = new Date(anchor.getTime() + stepsSinceAnchor * 14 * msPerDay);
+      while (cursor <= end) {
+        if (
+          cursor >= start &&
+          cursor >= itemStart &&
+          (!itemEnd || cursor <= itemEnd)
+        ) {
+          results.push({ type: item.type, category: item.category, amount: item.amount, date: cursor });
+        }
+        cursor = new Date(cursor.getTime() + 14 * msPerDay);
       }
     }
   }

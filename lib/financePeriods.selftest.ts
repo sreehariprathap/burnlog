@@ -31,6 +31,7 @@ async function main() {
   const weeklyItem = {
     id: '1', type: 'expense', category: 'groceries', label: 'Groceries', amount: 50,
     frequency: 'weekly', dayOfWeek: 1, dayOfMonth: null, monthOfYear: null,
+    anchorDate: null, secondDayOfMonth: null,
     startDate: new Date(2026, 0, 1).toISOString(), endDate: null, isActive: true,
   };
   const monthRange = getPeriodRange('monthly', new Date(2026, 2, 1)); // March 2026 has 5 Mondays
@@ -42,6 +43,7 @@ async function main() {
   const monthlyItem = {
     id: '2', type: 'income', category: 'salary', label: 'Salary', amount: 3000,
     frequency: 'monthly', dayOfWeek: null, dayOfMonth: 31, monthOfYear: null,
+    anchorDate: null, secondDayOfMonth: null,
     startDate: new Date(2026, 0, 1).toISOString(), endDate: null, isActive: true,
   };
   const febRange = getPeriodRange('monthly', new Date(2026, 1, 1)); // Feb 2026, not a leap year -> 28 days
@@ -53,12 +55,33 @@ async function main() {
   const yearlyItem = {
     id: '3', type: 'expense', category: 'insurance', label: 'Car Insurance', amount: 1200,
     frequency: 'yearly', dayOfWeek: null, dayOfMonth: 15, monthOfYear: 6,
+    anchorDate: null, secondDayOfMonth: null,
     startDate: new Date(2025, 0, 1).toISOString(), endDate: null, isActive: true,
   };
   const yearRange = getPeriodRange('yearly', new Date(2026, 0, 1));
   const yearlyOccurrences = expandRecurringInRange([yearlyItem], yearRange.start, yearRange.end);
   assert(yearlyOccurrences.length === 1, 'yearly item expands to exactly one occurrence per year in range');
   assert(yearlyOccurrences[0]?.date.getMonth() === 5 && yearlyOccurrences[0]?.date.getDate() === 15, 'yearly occurrence lands on June 15');
+
+  // expandRecurringInRange — biweekly (every 14 days from anchorDate)
+  const biweeklyItem = {
+    id: '7', type: 'income', category: 'salary', label: 'Paycheck', amount: 1500,
+    frequency: 'biweekly', dayOfWeek: null, dayOfMonth: null, monthOfYear: null,
+    anchorDate: new Date(2026, 0, 2).toISOString(), secondDayOfMonth: null, // Jan 2, 2026 (Friday)
+    startDate: new Date(2026, 0, 1).toISOString(), endDate: null, isActive: true,
+  };
+  const marchRange = getPeriodRange('monthly', new Date(2026, 2, 1)); // March 2026: 31 days
+  const biweeklyOccurrences = expandRecurringInRange([biweeklyItem], marchRange.start, marchRange.end);
+  // Jan 2 + 14*k: Jan 2, 16, 30, Feb 13, 27, Mar 13, 27 -> two in March
+  assert(biweeklyOccurrences.length === 2, `biweekly item expands to 2 occurrences in March 2026 (got ${biweeklyOccurrences.length})`);
+  assert(
+    biweeklyOccurrences.every((o) => o.date.getDate() === 13 || o.date.getDate() === 27),
+    `biweekly occurrences land on the 13th and 27th (got ${biweeklyOccurrences.map((o) => o.date.getDate())})`
+  );
+
+  // expandRecurringInRange — biweekly with no anchorDate produces nothing
+  const biweeklyNoAnchor = { ...biweeklyItem, id: '8', anchorDate: null };
+  assert(expandRecurringInRange([biweeklyNoAnchor], marchRange.start, marchRange.end).length === 0, 'biweekly item without anchorDate produces no occurrences');
 
   // expandRecurringInRange — inactive items excluded
   const inactiveItem = { ...weeklyItem, id: '4', isActive: false };
