@@ -130,7 +130,9 @@ const CircleProgress = ({ data, index }: CircleProgressProps) => {
             strokeLinecap="round"
             strokeWidth={strokeWidth}
             style={{
-              filter: "drop-shadow(0 0 6px rgba(0,0,0,0.15))",
+              // Falls back to the original fixed 6px / 0.15 alpha when the
+              // admin-controlled vars are unset (AdminLog > UI > Card Glow).
+              filter: "drop-shadow(0 0 var(--card-glow-blur, 6px) rgba(0,0,0,var(--card-glow-opacity, 0.15)))",
             }}
             transition={{
               duration: 1.8,
