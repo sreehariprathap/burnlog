@@ -208,6 +208,27 @@
   --glass-border: color-mix(in oklab, var(--foreground) 10%, transparent);
   --glass-border-secondary: color-mix(in oklab, var(--foreground) 20%, transparent);
   --glass-divider: color-mix(in oklab, var(--foreground) 10%, transparent);
+  /* v1 (default/current) values for the surface tokens components render
+   * with. Copied verbatim from today's literal Tailwind utilities so v1 is
+   * provably a no-op — see the :root[data-ui-version="v2"] block below for
+   * the glass values these switch to. */
+  --surface-card-bg: var(--card);
+  --surface-card-border: var(--border);
+  --surface-card-shadow: var(--app-shadow-sm);
+  --surface-card-blur: 0px;
+  --surface-card-radius: var(--radius-xl);
+  --surface-button-chrome-bg: var(--background);
+  --surface-button-chrome-border: var(--border);
+  --surface-button-chrome-shadow: var(--app-shadow-xs);
+  --surface-button-chrome-blur: 0px;
+  --surface-button-elevated-shadow: var(--app-shadow-xs);
+  --surface-input-bg: transparent;
+  --surface-input-border: var(--input);
+  --surface-input-radius: var(--radius-md);
+  --surface-nav-bg: color-mix(in oklab, var(--background) 40%, transparent);
+  --surface-nav-border: rgb(255 255 255 / 0.1);
+  --surface-nav-blur: 12px;
+  --surface-nav-shadow: var(--app-shadow-lg);
   /* Unified clean background across all apps; foreground/accents are app-themed */
   --background: #f9f9f9;
   --foreground: oklch(0.33 0.074 30); /* #5B3228 - Dark */
@@ -247,6 +268,27 @@
   --sidebar-accent-foreground: oklch(0.33 0.074 30); /* #5B3228 - Dark */
   --sidebar-border: oklch(0.85 0.05 90); /* Slightly darker than light theme */
   --sidebar-ring: oklch(0.76 0.16 60); /* #FF9E4F - Primary */
+}
+
+/* UI v2 (glass) — redefines every --surface-* token from the glass
+ * primitives above. Toggled by UiVersionSettingsEffect stamping
+ * data-ui-version on <html>; see docs/superpowers/specs/2026-09-10-ui-v2-glass-toggle-design.md */
+:root[data-ui-version="v2"] {
+  --surface-card-bg: var(--color-glass);
+  --surface-card-border: var(--color-glass-border);
+  --surface-card-shadow: var(--shadow-glass);
+  --surface-card-blur: var(--blur-glass);
+  --surface-button-chrome-bg: var(--color-glass);
+  --surface-button-chrome-border: var(--color-glass-border);
+  --surface-button-chrome-shadow: var(--shadow-glass);
+  --surface-button-chrome-blur: var(--blur-glass);
+  --surface-button-elevated-shadow: var(--shadow-glass);
+  --surface-input-bg: var(--color-glass);
+  --surface-input-border: var(--color-glass-border-secondary);
+  --surface-nav-bg: var(--color-glass);
+  --surface-nav-border: var(--color-glass-border);
+  --surface-nav-blur: var(--blur-glass);
+  --surface-nav-shadow: var(--shadow-glass);
 }
 
 /* Explicit rules rather than relying on Tailwind's --font-sans -> Preflight
@@ -1098,6 +1140,42 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/* UI v2 (glass) surface classes — unlayered, so they beat Tailwind's
+ * layered utility classes regardless of specificity (see the h1-h6 comment
+ * above for why that's the established convention in this file). Values
+ * come from the --surface-* tokens, which flip between v1/v2 above. */
+.surface-card {
+  background-color: var(--surface-card-bg);
+  border-color: var(--surface-card-border);
+  box-shadow: var(--surface-card-shadow);
+  backdrop-filter: blur(var(--surface-card-blur));
+  border-radius: var(--surface-card-radius);
+}
+
+.surface-button-chrome {
+  background-color: var(--surface-button-chrome-bg);
+  border-color: var(--surface-button-chrome-border);
+  box-shadow: var(--surface-button-chrome-shadow);
+  backdrop-filter: blur(var(--surface-button-chrome-blur));
+}
+
+.surface-button-elevated {
+  box-shadow: var(--surface-button-elevated-shadow);
+}
+
+.surface-input {
+  background-color: var(--surface-input-bg);
+  border-color: var(--surface-input-border);
+  border-radius: var(--surface-input-radius);
+}
+
+.surface-nav {
+  background-color: var(--surface-nav-bg);
+  border: 1px solid var(--surface-nav-border);
+  backdrop-filter: blur(var(--surface-nav-blur));
+  box-shadow: var(--surface-nav-shadow);
 }
 
 .glowing-effect-glow {
