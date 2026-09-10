@@ -110,3 +110,26 @@ export function assetsQuery() {
     fetcher: fetchAssetsSummary,
   };
 }
+
+export type BucketSummary = {
+  id: string;
+  name: string;
+  targetAmount: number | null;
+  targetDate: string | null;
+  balance: number;
+  progress: number | null;
+  createdAt: string;
+};
+
+export async function fetchBuckets(): Promise<{ buckets: BucketSummary[] }> {
+  const res = await apiFetch('/api/moneylog/buckets');
+  if (!res.ok) throw new Error('Failed to load buckets');
+  return res.json();
+}
+
+export function bucketsQuery() {
+  return {
+    key: '/api/moneylog/buckets',
+    fetcher: fetchBuckets,
+  };
+}
