@@ -1126,7 +1126,7 @@ model MydayBlock {
   notes     String?
   startTime String // 'HH:mm'
   endTime   String // 'HH:mm'
-  source    String   @default("manual") // 'manual' | 'burnlog' | 'tasklog' | 'moneylog'
+  source    String   @default("manual") // 'manual' | 'burnlog' | 'tasklog' | 'moneylog' | 'habit' | 'homelog'
   sourceId  String?  @db.Uuid // links back to the originating row for actual-status lookup
   completed Boolean  @default(false)
   createdAt DateTime @default(now())
