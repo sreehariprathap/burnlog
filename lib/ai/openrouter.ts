@@ -253,7 +253,7 @@ export function enforceExclusions(plan: WorkoutPlanEntry[], excluded: BodyPart[]
   if (excluded.length === 0) return plan;
   const fallback = SAFE_FALLBACK_ORDER.find((bp) => !excluded.includes(bp)) ?? 'Rest';
   return plan.map((entry) =>
-    excluded.includes(entry.bodyPart) ? { ...entry, bodyPart: fallback } : entry
+    (excluded as string[]).includes(entry.bodyPart) ? { ...entry, bodyPart: fallback } : entry
   );
 }
 

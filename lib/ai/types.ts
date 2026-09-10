@@ -15,7 +15,11 @@ export type BodyPart = (typeof BODY_PARTS)[number];
 
 export type WorkoutPlanEntry = {
   dayOfWeek: number; // 0=Sun ... 6=Sat
-  bodyPart: BodyPart;
+  // AI generation always emits one of BodyPart, but the plan preview lets the
+  // user reassign a day to any admin-managed workout type (AdminLog > BurnLog
+  // > Workout Types), which may go beyond that fixed list — hence `string`.
+  bodyPart: string;
+  time?: string | null; // "HH:MM", null/undefined = flexible / no preferred time
 };
 
 export const ACTIVITY_TYPES = ['Weights', 'Cardio', 'Sports', 'Yoga', 'HIIT', 'Swimming', 'Bodyweight', 'Cycling', 'Running'] as const;

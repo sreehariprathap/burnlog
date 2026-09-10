@@ -9,7 +9,7 @@ export default function OnboardingCompletePage() {
   const router = useRouter();
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center gap-8 overflow-hidden p-6 text-center">
+    <div className="relative flex min-h-screen flex-col items-center justify-center gap-8 overflow-hidden bg-white p-6 text-center">
       <FireworksBackground />
       <div className="relative z-10 flex flex-col items-center gap-4">
         <LogbookMark size={64} />

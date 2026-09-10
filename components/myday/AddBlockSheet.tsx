@@ -116,13 +116,13 @@ export function AddBlockSheet({
             <Input id="myday-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Morning run" />
           </div>
           <div className="grid grid-cols-2 gap-2">
-            <div className="space-y-1">
+            <div className="min-w-0 space-y-1">
               <Label htmlFor="myday-start">Start</Label>
-              <Input id="myday-start" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
+              <Input id="myday-start" type="time" className="w-full min-w-0" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
             </div>
-            <div className="space-y-1">
+            <div className="min-w-0 space-y-1">
               <Label htmlFor="myday-end">End</Label>
-              <Input id="myday-end" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
+              <Input id="myday-end" type="time" className="w-full min-w-0" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
             </div>
           </div>
           <div className="space-y-1">

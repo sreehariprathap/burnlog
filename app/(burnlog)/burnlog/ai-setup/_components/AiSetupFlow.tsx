@@ -245,6 +245,7 @@ export function AiSetupFlow() {
         profileId,
         dayOfWeek: entry.dayOfWeek,
         bodyPart: entry.bodyPart,
+        time: entry.time ?? null,
         repeatWeekly: true,
       }));
       const { error: planError } = await supabase
