@@ -8,6 +8,7 @@ import {
 import { TypographySettingsEffect } from "@/components/adminlog/TypographySettingsEffect";
 import { AppThemeSettingsEffect } from "@/components/adminlog/AppThemeSettingsEffect";
 import { CardGlowSettingsEffect } from "@/components/adminlog/CardGlowSettingsEffect";
+import { UiVersionSettingsEffect } from "@/components/adminlog/UiVersionSettingsEffect";
 import "./globals.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -138,6 +139,7 @@ export default function RootLayoutClient({
                 <TypographySettingsEffect />
                 <AppThemeSettingsEffect />
                 <CardGlowSettingsEffect />
+                <UiVersionSettingsEffect />
                 <SwitchLoader />
                 <ToastContainer
                   position="top-center"
