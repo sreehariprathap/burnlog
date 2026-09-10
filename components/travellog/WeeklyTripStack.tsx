@@ -3,6 +3,7 @@
 import { motion, useMotionValue, useReducedMotion } from 'motion/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { MapPin } from 'lucide-react';
+import { glowGradient } from '@/lib/theme/glowPalette';
 import { cn } from '@/lib/utils';
 
 const SCROLL_TIMEOUT_OFFSET = 100;
@@ -28,14 +29,6 @@ export interface TripCardItem {
   startDate: string;
   endDate: string;
 }
-
-const AURORA_GRADIENTS = [
-  'linear-gradient(135deg, #f6a63f, #e8447b)',
-  'linear-gradient(135deg, #17b47a, #4a95f0)',
-  'linear-gradient(135deg, #4a95f0, #8b5fe8)',
-  'linear-gradient(135deg, #e8447b, #8b5fe8)',
-  'linear-gradient(135deg, #f6a63f, #17b47a)',
-];
 
 export function WeeklyTripStack({
   items,
@@ -186,7 +179,7 @@ export function WeeklyTripStack({
           >
             <div
               className="flex h-16 items-center gap-2 px-4 text-white"
-              style={{ background: AURORA_GRADIENTS[i % AURORA_GRADIENTS.length] }}
+              style={{ background: glowGradient(i) }}
             >
               <MapPin className="h-5 w-5 shrink-0" aria-hidden="true" />
               <div className="truncate text-lg font-semibold">{item.destination}</div>
