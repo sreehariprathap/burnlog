@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { ChevronLeft } from 'lucide-react';
 import SiriOrb from '@/components/smoothui/siri-orb';
 import { Button } from '@/components/ui/button';
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer';
 import { APPS, type AppId } from '@/lib/appMode';
 import type { HabitEndType, HabitRecurrenceType } from '@/lib/habits/habitRecurrence';
 
@@ -90,9 +92,29 @@ export function HabitCreateSheet({ date, onClose, onSaved }: HabitCreateSheetPro
     setDaysOfWeek((prev) => (prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day].sort((a, b) => a - b)));
   }
 
+  const title = state.step === 'capture' ? 'New habit' : state.step === 'confirm' ? state.result.title : 'Repeat';
+  const back =
+    state.step === 'confirm'
+      ? () => setState({ step: 'capture' })
+      : state.step === 'recurrence'
+        ? () => setState({ step: 'confirm', result: state.result })
+        : null;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-end bg-black/40" onClick={onClose}>
-      <div className="w-full rounded-t-2xl bg-background p-4" onClick={(e) => e.stopPropagation()}>
+    <Drawer open onOpenChange={(isOpen) => !isOpen && onClose()}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerTitle className="flex items-center gap-2">
+            {back && (
+              <button onClick={back} aria-label="Back" className="text-muted-foreground">
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+            )}
+            {title}
+          </DrawerTitle>
+        </DrawerHeader>
+
+        <div className="px-4 pb-6 overflow-y-auto">
         {state.step === 'capture' && (
           <div className="flex flex-col items-center gap-4 py-6">
             <SiriOrb state={thinking ? 'thinking' : 'idle'} size="72px" />
@@ -212,7 +234,8 @@ export function HabitCreateSheet({ date, onClose, onSaved }: HabitCreateSheetPro
             </Button>
           </div>
         )}
-      </div>
-    </div>
+        </div>
+      </DrawerContent>
+    </Drawer>
   );
 }
