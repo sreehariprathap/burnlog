@@ -1,5 +1,5 @@
 // lib/myday/types.ts
-export type MyDaySource = 'manual' | 'burnlog' | 'tasklog' | 'moneylog';
+export type MyDaySource = 'manual' | 'burnlog' | 'tasklog' | 'moneylog' | 'habit' | 'homelog';
 
 export interface MyDayBlock {
   id: string;
@@ -14,26 +14,17 @@ export interface MyDayBlock {
 }
 
 export interface MyDayUnscheduledItem {
-  key: string; // stable React key, e.g. `tasklog:${id}`
+  key: string; // stable React key, e.g. `moneylog:${id}`
   title: string;
-  source: Exclude<MyDaySource, 'manual'>;
+  source: Extract<MyDaySource, 'moneylog'>;
   sourceId: string;
-  label: string; // e.g. 'Planned workout', 'Task due today', 'Bill due'
-}
-
-export interface MyDayHabitOccurrence {
-  id: string;
-  habitId: string;
-  title: string;
-  sourceApp: string | null; // AppId | null
-  completed: boolean;
+  label: string; // e.g. 'Bill due'
 }
 
 export interface MyDayData {
   date: string; // 'yyyy-MM-dd'
   blocks: MyDayBlock[];
   unscheduled: MyDayUnscheduledItem[];
-  habits: MyDayHabitOccurrence[];
 }
 
 export interface MyDayCalendarMonth {
