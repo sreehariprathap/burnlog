@@ -18,6 +18,9 @@ export const TEST_ONBOARDING_TABLES: ReadonlyArray<{ table: string; label: strin
   { table: 'learnlog_career_goals', label: 'LearnLog career goals' },
   { table: 'learnlog_library_items', label: 'LearnLog library items' },
   { table: 'household_chores', label: 'HomeLog chores' },
+  // habit_occurrences cascades off habits, so deleting habits is enough.
+  { table: 'myday_blocks', label: 'MyDay blocks' },
+  { table: 'habits', label: 'MyDay habits' },
 ];
 
 export async function requireAdminCaller(
