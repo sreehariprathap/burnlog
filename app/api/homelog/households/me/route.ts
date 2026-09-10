@@ -39,7 +39,7 @@ export async function GET() {
     ]);
 
     const profileIds = (memberRows ?? []).map((m) => m.profileId);
-    const { data: profiles } = await admin.from('profiles').select('id, username, firstName').in('id', profileIds);
+    const { data: profiles } = await admin.from('profiles').select('id, username, firstName, avatarUrl').in('id', profileIds);
     const profileById = new Map((profiles ?? []).map((p) => [p.id, p]));
 
     const members = (memberRows ?? []).map((m) => ({
@@ -48,6 +48,7 @@ export async function GET() {
       joinedAt: m.joinedAt,
       username: profileById.get(m.profileId)?.username ?? 'unknown',
       firstName: profileById.get(m.profileId)?.firstName ?? 'Unknown',
+      avatarUrl: profileById.get(m.profileId)?.avatarUrl ?? null,
     }));
 
     return NextResponse.json({ household, members, myRole: myMembership.role, myProfileId: me.id });

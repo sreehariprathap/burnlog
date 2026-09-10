@@ -10,6 +10,7 @@ import { TEST_ONBOARDING_TABLES } from '@/lib/adminlog/testOnboarding';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
+import { useToast } from '@/components/ui/use-toast';
 
 type TestOnboardingData = {
   profile: Record<string, unknown> | null;
@@ -46,6 +47,7 @@ function buildSummary(data: TestOnboardingData): string[] {
 export default function TestOnboardingPage() {
   const { profile, loading } = useRequireAdmin();
   const { data, mutate, isLoading } = useSWR('adminlog-test-onboarding', fetchTestOnboarding);
+  const { toast } = useToast();
   const [starting, setStarting] = useState(false);
   const [resetting, setResetting] = useState(false);
 
@@ -84,8 +86,17 @@ export default function TestOnboardingPage() {
     setResetting(true);
     try {
       const res = await fetch('/api/adminlog/test-onboarding', { method: 'DELETE' });
-      if (!res.ok) throw new Error('Failed to reset test profile');
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        throw new Error(body?.error ?? 'Failed to reset test profile');
+      }
       await mutate();
+    } catch (err) {
+      toast({
+        title: 'Reset failed',
+        description: err instanceof Error ? err.message : 'Could not reset the test profile.',
+        variant: 'destructive',
+      });
     } finally {
       setResetting(false);
     }

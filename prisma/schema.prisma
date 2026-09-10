@@ -1140,25 +1140,31 @@ model TravelSuggestion {
 
 /// an AI-generated day-by-day trip itinerary; the full itinerary JSON is stored as-is, keyed by day/activity — see docs/superpowers/specs/2026-09-01-icemyvacation-planner-design.md for its shape
 model TravelPlan {
-  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  profile        Profile   @relation(fields: [profileId], references: [id])
-  profileId      String    @db.Uuid
-  destination    String
-  hotel          String?
-  startDate      DateTime  @db.Date
-  endDate        DateTime  @db.Date
-  numPeople      Int       @default(1)
-  transportMode  String
-  budget         Float?
-  budgetCurrency String    @default("USD")
-  itinerary      Json
-  status         String    @default("draft")
-  acceptedAt     DateTime?
-  createdAt      DateTime  @default(now())
-  tasks          Task[]
-  members        TravelPlanMember[]
-  invites        TravelPlanInvite[]
-  taggedVisits   TravelVisit[]
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile             Profile   @relation(fields: [profileId], references: [id])
+  profileId           String    @db.Uuid
+  origin              String?
+  destination         String
+  hotel               String?
+  startDate           DateTime  @db.Date
+  endDate             DateTime  @db.Date
+  departureTime       String? // 'HH:mm' — when they leave origin on startDate
+  returnTime          String? // 'HH:mm' — when they expect to be back on endDate
+  numPeople           Int       @default(1)
+  transportMode       String
+  budget              Float?
+  budgetCurrency      String    @default("USD")
+  accommodationBooked Boolean   @default(false)
+  accommodationNights Int?
+  accommodationPaid   Float?
+  itinerary           Json
+  status              String    @default("draft")
+  acceptedAt          DateTime?
+  createdAt           DateTime  @default(now())
+  tasks               Task[]
+  members             TravelPlanMember[]
+  invites             TravelPlanInvite[]
+  taggedVisits        TravelVisit[]
 
   @@map("travellog_plans")
 }

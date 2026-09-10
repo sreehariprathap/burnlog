@@ -27,21 +27,27 @@ export async function acceptTravelPlan(
   profileId: string,
   req: ItineraryRequest,
   itinerary: Itinerary
-): Promise<{ tasksCreated: number }> {
+): Promise<{ tasksCreated: number; planId: string }> {
   const acceptedAt = new Date().toISOString();
 
   const { data: plan, error: planError } = await supabase
     .from('travellog_plans')
     .insert({
       profileId,
+      origin: req.origin || null,
       destination: req.destination,
       hotel: req.hotel || null,
       startDate: req.startDate,
       endDate: req.endDate,
+      departureTime: req.departureTime || null,
+      returnTime: req.returnTime || null,
       numPeople: req.numPeople,
       transportMode: req.transportMode,
       budget: req.budget,
       budgetCurrency: req.budgetCurrency,
+      accommodationBooked: req.accommodationBooked,
+      accommodationNights: req.accommodationNights,
+      accommodationPaid: req.accommodationPaid,
       itinerary,
       status: 'accepted',
       acceptedAt,
@@ -75,10 +81,12 @@ export async function acceptTravelPlan(
   if (req.transportMode === 'flight' || req.transportMode === 'mixed') {
     logisticsTasks.push({ title: `Book flights to ${req.destination}`, priority: 'high' });
   }
-  logisticsTasks.push({
-    title: req.hotel ? `Confirm booking: ${req.hotel}` : `Book accommodation in ${req.destination}`,
-    priority: 'high',
-  });
+  if (!req.accommodationBooked) {
+    logisticsTasks.push({
+      title: req.hotel ? `Confirm booking: ${req.hotel}` : `Book accommodation in ${req.destination}`,
+      priority: 'high',
+    });
+  }
   logisticsTasks.push({ title: `Pack for ${req.destination} trip`, priority: 'high' });
 
   const dayTasks = itinerary.days.map((day) => ({
@@ -111,5 +119,5 @@ export async function acceptTravelPlan(
   const { error: tasksError } = await supabase.from('tasklog_tasks').insert(taskRows);
   if (tasksError) throw tasksError;
 
-  return { tasksCreated: taskRows.length };
+  return { tasksCreated: taskRows.length, planId: plan.id };
 }
