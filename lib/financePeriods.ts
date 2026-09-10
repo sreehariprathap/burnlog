@@ -142,6 +142,26 @@ export function expandRecurringInRange(
         }
         cursor = new Date(cursor.getTime() + 14 * msPerDay);
       }
+    } else if (item.frequency === 'semimonthly' && item.dayOfMonth !== null && item.secondDayOfMonth !== null) {
+      let cursor = new Date(start.getFullYear(), start.getMonth(), 1);
+      while (cursor <= end) {
+        const year = cursor.getFullYear();
+        const monthIndex = cursor.getMonth();
+        const firstDay = clampDayOfMonth(year, monthIndex, item.dayOfMonth);
+        const secondDayRaw = item.secondDayOfMonth === 0 ? 31 : item.secondDayOfMonth; // 0 sentinel -> clamp forces last day
+        const secondDay = clampDayOfMonth(year, monthIndex, secondDayRaw);
+        for (const day of [firstDay, secondDay]) {
+          const occurrence = new Date(year, monthIndex, day);
+          if (
+            isWithinInterval(occurrence, { start, end }) &&
+            occurrence >= itemStart &&
+            (!itemEnd || occurrence <= itemEnd)
+          ) {
+            results.push({ type: item.type, category: item.category, amount: item.amount, date: occurrence });
+          }
+        }
+        cursor = new Date(year, monthIndex + 1, 1);
+      }
     }
   }
 

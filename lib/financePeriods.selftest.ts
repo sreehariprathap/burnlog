@@ -83,6 +83,30 @@ async function main() {
   const biweeklyNoAnchor = { ...biweeklyItem, id: '8', anchorDate: null };
   assert(expandRecurringInRange([biweeklyNoAnchor], marchRange.start, marchRange.end).length === 0, 'biweekly item without anchorDate produces no occurrences');
 
+  // expandRecurringInRange — semimonthly (two fixed calendar dates, second = last day of month)
+  const semimonthlyItem = {
+    id: '9', type: 'income', category: 'salary', label: 'Salary', amount: 2000,
+    frequency: 'semimonthly', dayOfWeek: null, dayOfMonth: 15, monthOfYear: null,
+    anchorDate: null, secondDayOfMonth: 0, // 0 = last day of month
+    startDate: new Date(2026, 0, 1).toISOString(), endDate: null, isActive: true,
+  };
+  const febSemiRange = getPeriodRange('monthly', new Date(2026, 1, 1)); // Feb 2026 (28 days)
+  const febSemiOccurrences = expandRecurringInRange([semimonthlyItem], febSemiRange.start, febSemiRange.end);
+  assert(febSemiOccurrences.length === 2, `semimonthly item expands to 2 occurrences in Feb 2026 (got ${febSemiOccurrences.length})`);
+  assert(
+    febSemiOccurrences.some((o) => o.date.getDate() === 15) && febSemiOccurrences.some((o) => o.date.getDate() === 28),
+    `semimonthly occurrences land on the 15th and last day (28th) of Feb (got ${febSemiOccurrences.map((o) => o.date.getDate())})`
+  );
+
+  // expandRecurringInRange — semimonthly with a literal (non-last-day) second date
+  const semimonthlyLiteral = { ...semimonthlyItem, id: '10', secondDayOfMonth: 30 };
+  const aprSemiRange = getPeriodRange('monthly', new Date(2026, 3, 1)); // April 2026 (30 days)
+  const aprSemiOccurrences = expandRecurringInRange([semimonthlyLiteral], aprSemiRange.start, aprSemiRange.end);
+  assert(
+    aprSemiOccurrences.some((o) => o.date.getDate() === 15) && aprSemiOccurrences.some((o) => o.date.getDate() === 30),
+    `semimonthly with secondDayOfMonth=30 lands on the 15th and 30th in April (got ${aprSemiOccurrences.map((o) => o.date.getDate())})`
+  );
+
   // expandRecurringInRange — inactive items excluded
   const inactiveItem = { ...weeklyItem, id: '4', isActive: false };
   assert(expandRecurringInRange([inactiveItem], monthRange.start, monthRange.end).length === 0, 'inactive items produce no occurrences');
