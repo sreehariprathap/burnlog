@@ -48,10 +48,12 @@ export type RecurringItem = {
   category: string;
   label: string;
   amount: number;
-  frequency: 'weekly' | 'monthly' | 'yearly';
+  frequency: 'weekly' | 'monthly' | 'yearly' | 'biweekly' | 'semimonthly';
   dayOfWeek: number | null;
   dayOfMonth: number | null;
   monthOfYear: number | null;
+  anchorDate: string | null;
+  secondDayOfMonth: number | null;
   startDate: string;
   endDate: string | null;
   isActive: boolean;
@@ -106,5 +108,28 @@ export function assetsQuery() {
   return {
     key: '/api/moneylog/assets',
     fetcher: fetchAssetsSummary,
+  };
+}
+
+export type BucketSummary = {
+  id: string;
+  name: string;
+  targetAmount: number | null;
+  targetDate: string | null;
+  balance: number;
+  progress: number | null;
+  createdAt: string;
+};
+
+export async function fetchBuckets(): Promise<{ buckets: BucketSummary[] }> {
+  const res = await apiFetch('/api/moneylog/buckets');
+  if (!res.ok) throw new Error('Failed to load buckets');
+  return res.json();
+}
+
+export function bucketsQuery() {
+  return {
+    key: '/api/moneylog/buckets',
+    fetcher: fetchBuckets,
   };
 }

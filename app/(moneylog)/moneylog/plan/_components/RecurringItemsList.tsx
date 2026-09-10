@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Trash2, Loader2, RotateCw } from 'lucide-react';
 import { categoryLabel } from '@/lib/financeCategories';
 import { formatCurrency } from '@/lib/format';
+import { BucketRulesSection } from './BucketRulesSection';
 import type { PlanRecurringItem } from './PlanContent';
 
 const WEEKDAY_SHORT = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
@@ -26,13 +27,24 @@ function ordinalSuffix(day: number): string {
   }
 }
 
+function secondDayLabel(secondDayOfMonth: number): string {
+  return secondDayOfMonth === 0 ? 'the last day' : `the ${secondDayOfMonth}${ordinalSuffix(secondDayOfMonth)}`;
+}
+
 function frequencyLabel(item: PlanRecurringItem): string {
   if (item.frequency === 'weekly') {
     return `Weekly on ${WEEKDAY_SHORT[item.dayOfWeek ?? 0]}`;
   }
+  if (item.frequency === 'biweekly') {
+    return item.anchorDate ? `Biweekly from ${new Date(item.anchorDate).toLocaleDateString()}` : 'Biweekly';
+  }
   if (item.frequency === 'monthly') {
     const day = item.dayOfMonth ?? 1;
     return `Monthly on the ${day}${ordinalSuffix(day)}`;
+  }
+  if (item.frequency === 'semimonthly') {
+    const first = item.dayOfMonth ?? 1;
+    return `Twice a month: the ${first}${ordinalSuffix(first)} and ${secondDayLabel(item.secondDayOfMonth ?? 0)}`;
   }
   const day = item.dayOfMonth ?? 1;
   return `Yearly on ${MONTH_SHORT[(item.monthOfYear ?? 1) - 1]} ${day}`;
@@ -67,29 +79,32 @@ export function RecurringItemsList({ items, onDelete }: RecurringItemsListProps)
         </CardHeader>
         <CardContent className="space-y-2">
           {group.map((item) => (
-            <div key={item.id} className="flex items-center justify-between border-b pb-2 last:border-0 last:pb-0">
-              <div>
-                <p className="font-medium">{item.label}</p>
-                <p className="text-xs text-muted-foreground">
-                  {categoryLabel(item.category)} · {frequencyLabel(item)}
-                </p>
+            <div key={item.id} className="border-b pb-2 last:border-0 last:pb-0">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">{item.label}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {categoryLabel(item.category)} · {frequencyLabel(item)}
+                  </p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <span className="font-semibold">{formatCurrency(item.amount)}</span>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDeleteClick(item)}
+                    disabled={deletingId === item.id}
+                    aria-label={`Delete ${item.label}`}
+                  >
+                    {deletingId === item.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
               </div>
-              <div className="flex items-center gap-3">
-                <span className="font-semibold">{formatCurrency(item.amount)}</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleDeleteClick(item)}
-                  disabled={deletingId === item.id}
-                  aria-label={`Delete ${item.label}`}
-                >
-                  {deletingId === item.id ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : (
-                    <Trash2 className="h-4 w-4" />
-                  )}
-                </Button>
-              </div>
+              <BucketRulesSection recurringItemId={item.id} recurringItemType={item.type} />
             </div>
           ))}
         </CardContent>

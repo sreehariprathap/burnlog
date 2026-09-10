@@ -27,10 +27,13 @@ export function RecurringItemForm({ lockedType, onSubmit, submitLabel = 'Add' }:
   const [category, setCategory] = useState<string>(categories[0].value);
   const [label, setLabel] = useState('');
   const [amount, setAmount] = useState('');
-  const [frequency, setFrequency] = useState<'weekly' | 'monthly' | 'yearly'>('monthly');
+  const [frequency, setFrequency] = useState<'weekly' | 'monthly' | 'yearly' | 'biweekly' | 'semimonthly'>('monthly');
   const [dayOfWeek, setDayOfWeek] = useState('1');
   const [dayOfMonth, setDayOfMonth] = useState('1');
   const [monthOfYear, setMonthOfYear] = useState('1');
+  const [anchorDate, setAnchorDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [secondDayOfMonth, setSecondDayOfMonth] = useState('1');
+  const [secondDayIsLastOfMonth, setSecondDayIsLastOfMonth] = useState(true);
   const [error, setError] = useState('');
 
   function handleTypeChange(next: 'income' | 'expense') {
@@ -59,8 +62,11 @@ export function RecurringItemForm({ lockedType, onSubmit, submitLabel = 'Add' }:
       amount: amountNum,
       frequency,
       dayOfWeek: frequency === 'weekly' ? Number(dayOfWeek) : null,
-      dayOfMonth: frequency === 'monthly' || frequency === 'yearly' ? Number(dayOfMonth) : null,
+      dayOfMonth: frequency === 'monthly' || frequency === 'yearly' || frequency === 'semimonthly' ? Number(dayOfMonth) : null,
       monthOfYear: frequency === 'yearly' ? Number(monthOfYear) : null,
+      anchorDate: frequency === 'biweekly' ? new Date(anchorDate).toISOString() : null,
+      secondDayOfMonth:
+        frequency === 'semimonthly' ? (secondDayIsLastOfMonth ? 0 : Number(secondDayOfMonth)) : null,
     });
 
     setLabel('');
@@ -139,7 +145,9 @@ export function RecurringItemForm({ lockedType, onSubmit, submitLabel = 'Add' }:
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="weekly">Weekly</SelectItem>
+            <SelectItem value="biweekly">Biweekly</SelectItem>
             <SelectItem value="monthly">Monthly</SelectItem>
+            <SelectItem value="semimonthly">Twice a month</SelectItem>
             <SelectItem value="yearly">Yearly</SelectItem>
           </SelectContent>
         </Select>
@@ -163,9 +171,9 @@ export function RecurringItemForm({ lockedType, onSubmit, submitLabel = 'Add' }:
         </div>
       )}
 
-      {(frequency === 'monthly' || frequency === 'yearly') && (
+      {(frequency === 'monthly' || frequency === 'yearly' || frequency === 'semimonthly') && (
         <div className="space-y-1.5">
-          <Label htmlFor="recurring-day-of-month">Day of month</Label>
+          <Label htmlFor="recurring-day-of-month">{frequency === 'semimonthly' ? 'First day of month' : 'Day of month'}</Label>
           <Input
             id="recurring-day-of-month"
             type="number"
@@ -174,6 +182,53 @@ export function RecurringItemForm({ lockedType, onSubmit, submitLabel = 'Add' }:
             max="31"
             value={dayOfMonth}
             onChange={(e) => setDayOfMonth(e.target.value)}
+          />
+        </div>
+      )}
+
+      {frequency === 'semimonthly' && (
+        <div className="space-y-1.5">
+          <Label htmlFor="recurring-second-day">Second date</Label>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant={secondDayIsLastOfMonth ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setSecondDayIsLastOfMonth(true)}
+            >
+              Last day of month
+            </Button>
+            <Button
+              type="button"
+              variant={!secondDayIsLastOfMonth ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setSecondDayIsLastOfMonth(false)}
+            >
+              Specific day
+            </Button>
+          </div>
+          {!secondDayIsLastOfMonth && (
+            <Input
+              id="recurring-second-day"
+              type="number"
+              inputMode="numeric"
+              min="1"
+              max="31"
+              value={secondDayOfMonth}
+              onChange={(e) => setSecondDayOfMonth(e.target.value)}
+            />
+          )}
+        </div>
+      )}
+
+      {frequency === 'biweekly' && (
+        <div className="space-y-1.5">
+          <Label htmlFor="recurring-anchor-date">Anchor date (a date this was/will be paid)</Label>
+          <Input
+            id="recurring-anchor-date"
+            type="date"
+            value={anchorDate}
+            onChange={(e) => setAnchorDate(e.target.value)}
           />
         </div>
       )}

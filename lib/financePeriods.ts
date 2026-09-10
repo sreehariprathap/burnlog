@@ -55,6 +55,8 @@ export interface RecurringItemRow {
   dayOfWeek: number | null;
   dayOfMonth: number | null;
   monthOfYear: number | null;
+  anchorDate: string | null;
+  secondDayOfMonth: number | null;
   startDate: string;
   endDate: string | null;
   isActive: boolean;
@@ -119,6 +121,46 @@ export function expandRecurringInRange(
         ) {
           results.push({ type: item.type, category: item.category, amount: item.amount, date: occurrence });
         }
+      }
+    } else if (item.frequency === 'biweekly' && item.anchorDate) {
+      const anchor = new Date(item.anchorDate);
+      // Round the gap between anchor and range start down to the nearest
+      // whole 14-day step so the loop's first candidate lands on or just
+      // before `start`, then walks forward — handles anchors both inside
+      // and long before the query range.
+      const msPerDay = 24 * 60 * 60 * 1000;
+      const daysSinceAnchor = Math.floor((start.getTime() - anchor.getTime()) / msPerDay);
+      const stepsSinceAnchor = Math.floor(daysSinceAnchor / 14);
+      let cursor = new Date(anchor.getTime() + stepsSinceAnchor * 14 * msPerDay);
+      while (cursor <= end) {
+        if (
+          cursor >= start &&
+          cursor >= itemStart &&
+          (!itemEnd || cursor <= itemEnd)
+        ) {
+          results.push({ type: item.type, category: item.category, amount: item.amount, date: cursor });
+        }
+        cursor = new Date(cursor.getTime() + 14 * msPerDay);
+      }
+    } else if (item.frequency === 'semimonthly' && item.dayOfMonth !== null && item.secondDayOfMonth !== null) {
+      let cursor = new Date(start.getFullYear(), start.getMonth(), 1);
+      while (cursor <= end) {
+        const year = cursor.getFullYear();
+        const monthIndex = cursor.getMonth();
+        const firstDay = clampDayOfMonth(year, monthIndex, item.dayOfMonth);
+        const secondDayRaw = item.secondDayOfMonth === 0 ? 31 : item.secondDayOfMonth; // 0 sentinel -> clamp forces last day
+        const secondDay = clampDayOfMonth(year, monthIndex, secondDayRaw);
+        for (const day of [firstDay, secondDay]) {
+          const occurrence = new Date(year, monthIndex, day);
+          if (
+            isWithinInterval(occurrence, { start, end }) &&
+            occurrence >= itemStart &&
+            (!itemEnd || occurrence <= itemEnd)
+          ) {
+            results.push({ type: item.type, category: item.category, amount: item.amount, date: occurrence });
+          }
+        }
+        cursor = new Date(year, monthIndex + 1, 1);
       }
     }
   }

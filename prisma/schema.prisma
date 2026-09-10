@@ -76,6 +76,7 @@ model Profile {
   paymentsAsPayee Payment[] @relation("PaymentPayee")
   assets Asset[]
   FinancialGoal      FinancialGoal[]
+  SavingsBucket      SavingsBucket[]
   StepEntry          StepEntry[]
   WaterEntry         WaterEntry[]
   MealPlanEntry      MealPlanEntry[]
@@ -564,19 +565,27 @@ model RecurringItem {
   category    String // e.g. 'salary', 'rent', 'mobile_bill', 'other_expense'
   label       String // user-facing name, e.g. "Rent"
   amount      Float
-  frequency   String // 'weekly' | 'monthly' | 'yearly'
+  frequency   String // 'weekly' | 'monthly' | 'yearly' | 'biweekly' | 'semimonthly'
   dayOfWeek   Int? // 0-6, used when frequency = 'weekly'
-  dayOfMonth  Int? // 1-31, used when frequency = 'monthly' | 'yearly'
+  dayOfMonth  Int? // 1-31, used when frequency = 'monthly' | 'yearly' | 'semimonthly' (first date)
   monthOfYear Int? // 1-12, used when frequency = 'yearly'
+  anchorDate       DateTime? // reference payday for 'biweekly' — occurrences fall every 14 days from this date
+  secondDayOfMonth Int? // second calendar day for 'semimonthly' (first date reuses dayOfMonth); 0 means "last day of month"
   startDate   DateTime @default(now())
   endDate     DateTime?
   isActive    Boolean  @default(true)
   createdAt   DateTime @default(now())
 
+  occurrences     RecurringItemOccurrence[]
+  transactions    FinanceTransaction[]
+  bucketEntries   BucketEntry[]
+  allocationRules BucketAllocationRule[]
+
   @@map("recurring_items")
 }
 
-/// one-off income/expense entries (manual logs, not from a recurring template)
+/// one-off income/expense entries (manual logs, not from a recurring template) —
+/// recurringItemId is set only when this row was created by logging a recurring occurrence
 model FinanceTransaction {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   profile   Profile  @relation(fields: [profileId], references: [id])
@@ -590,8 +599,76 @@ model FinanceTransaction {
   createdAt DateTime @default(now())
   paymentId String?  @db.Uuid
   payment   Payment? @relation(fields: [paymentId], references: [id])
+  recurringItemId String? @db.Uuid
+  recurringItem   RecurringItem? @relation(fields: [recurringItemId], references: [id])
+  occurrence      RecurringItemOccurrence?
 
   @@map("finance_transactions")
+}
+
+/// records that a specific scheduled RecurringItem date was actually logged —
+/// the hook that fires BucketAllocationRules and prevents double-logging the same date
+model RecurringItemOccurrence {
+  id                   String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recurringItem        RecurringItem      @relation(fields: [recurringItemId], references: [id], onDelete: Cascade)
+  recurringItemId      String             @db.Uuid
+  occurrenceDate       DateTime           @db.Date
+  financeTransaction   FinanceTransaction @relation(fields: [financeTransactionId], references: [id])
+  financeTransactionId String             @unique @db.Uuid
+  createdAt            DateTime           @default(now())
+
+  @@unique([recurringItemId, occurrenceDate])
+  @@map("recurring_item_occurrences")
+}
+
+/// a named savings goal fund (Travel, Car, New Shoes, ...) — balance and target
+/// progress are computed by summing BucketEntry rows, never stored
+model SavingsBucket {
+  id           String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  profile      Profile   @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId    String    @db.Uuid
+  name         String
+  targetAmount Float?
+  targetDate   DateTime?
+  archivedAt   DateTime?
+  createdAt    DateTime  @default(now())
+
+  entries BucketEntry[]
+  rules   BucketAllocationRule[]
+
+  @@map("savings_buckets")
+}
+
+/// the bucket ledger — contributions and withdrawals; fully independent of
+/// FinanceTransaction (a contribution never creates a transaction row)
+model BucketEntry {
+  id                    String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  bucket                SavingsBucket @relation(fields: [bucketId], references: [id], onDelete: Cascade)
+  bucketId              String        @db.Uuid
+  type                  String // 'contribution' | 'withdrawal'
+  amount                Float // always positive; `type` gives sign
+  note                  String?
+  source                String // 'manual' | 'auto_rule'
+  sourceRecurringItem   RecurringItem? @relation(fields: [sourceRecurringItemId], references: [id])
+  sourceRecurringItemId String?       @db.Uuid
+  createdAt             DateTime      @default(now())
+
+  @@map("bucket_entries")
+}
+
+/// "when this income recurring item's occurrence is logged, auto-contribute to this bucket"
+model BucketAllocationRule {
+  id              String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  recurringItem   RecurringItem @relation(fields: [recurringItemId], references: [id], onDelete: Cascade)
+  recurringItemId String        @db.Uuid
+  bucket          SavingsBucket @relation(fields: [bucketId], references: [id], onDelete: Cascade)
+  bucketId        String        @db.Uuid
+  mode            String // 'fixed_amount' | 'percentage'
+  value           Float // dollar amount, or percentage points (e.g. 20 = 20%)
+  isActive        Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+
+  @@map("bucket_allocation_rules")
 }
 
 /// a single cross-profile transfer initiated through the shared payment sheet —
