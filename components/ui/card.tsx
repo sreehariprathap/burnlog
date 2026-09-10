@@ -28,7 +28,7 @@ function Card({ className, glassSize, glassEffect = true, style, children, ...re
     <div
       data-slot="card"
       className={cn(
-        "relative flex flex-col rounded-xl border bg-card text-card-foreground shadow-sm",
+        "relative flex flex-col border text-card-foreground surface-card",
         cardVariants({ glassSize }),
         className
       )}
