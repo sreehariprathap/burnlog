@@ -13,7 +13,7 @@ export interface PersonStackItem {
 }
 
 const RING_COLORS = {
-  owner: '#F59E0B', // amber-500
+  owner: 'var(--warning)',
   self: 'var(--primary)',
 } as const;
 
