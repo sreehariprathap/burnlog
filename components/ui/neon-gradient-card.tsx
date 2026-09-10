@@ -121,13 +121,11 @@ export const NeonGradientCard: React.FC<NeonGradientCardProps> = ({
           // tight grids everywhere (2-3 columns), and a width-scaled blur
           // (the old `width / 3`) radiates far past a card's own edges,
           // bleeding into neighbors instead of staying a contained glow.
-          // Kept small (6px, down from 10px) because the total bleed beyond
-          // the card's own box is roughly borderSize + this blur value —
-          // any container that clips overflow (a carousel slide, a scroll
-          // area) needs at least that much gutter or the glow gets a hard
-          // cut edge instead of fading out. 6px keeps that ask modest enough
-          // to fit inside the padding most containers already have.
-          "--after-blur": "6px",
+          // Driven by AdminLog > UI > Card Glow (CardGlowSettingsEffect sets
+          // --card-glow-blur/--card-glow-opacity on <html>); falls back to
+          // the original fixed 6px / 60% when unset.
+          "--after-blur": "var(--card-glow-blur, 6px)",
+          "--after-opacity": "var(--card-glow-opacity, 0.6)",
         } as CSSProperties
       }
       className={cn(
@@ -149,7 +147,7 @@ export const NeonGradientCard: React.FC<NeonGradientCardProps> = ({
           "before:animate-background-position-spin",
           "after:absolute after:-top-(--border-size) after:-left-(--border-size) after:-z-10 after:block",
           "after:h-(--pseudo-element-height) after:w-(--pseudo-element-width) after:rounded-(--border-radius) after:blur-(--after-blur) after:content-['']",
-          "after:bg-[linear-gradient(0deg,var(--neon-first-color),var(--neon-second-color))] after:bg-size-[100%_200%] after:opacity-60",
+          "after:bg-[linear-gradient(0deg,var(--neon-first-color),var(--neon-second-color))] after:bg-size-[100%_200%] after:opacity-(--after-opacity)",
           "after:animate-background-position-spin",
           "dark:bg-neutral-900",
           "wrap-break-word"
