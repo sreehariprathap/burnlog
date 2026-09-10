@@ -110,7 +110,7 @@ export default function PWATest() {
   return (
     <div className="container mx-auto p-6 max-w-2xl">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-2">PWA Status Check</h1>
+        <h1 className="text-heading-4 font-bold mb-2">PWA Status Check</h1>
         <p className="text-gray-600">
           Test your Progressive Web App features
         </p>

@@ -13,7 +13,7 @@ export default function OnboardingCompletePage() {
       <FireworksBackground />
       <div className="relative z-10 flex flex-col items-center gap-4">
         <LogbookMark size={64} />
-        <h1 className="text-3xl font-bold">Welcome to LogBook</h1>
+        <h1 className="text-heading-4 font-bold">Welcome to LogBook</h1>
         <p className="max-w-sm text-sm text-muted-foreground">
           Everything&apos;s set up — your day, across every app you picked, starts now.
         </p>

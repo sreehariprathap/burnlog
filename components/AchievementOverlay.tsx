@@ -69,7 +69,7 @@ export function AchievementOverlay({
           </div>
 
           <SparklesText
-            className="text-3xl"
+            className="text-heading-4"
             colors={SPARKLE_COLORS}
             sparklesCount={12}
           >

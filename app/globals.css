@@ -74,6 +74,63 @@
   --shadow-sm: var(--app-shadow-sm);
   --shadow-md: var(--app-shadow-md);
   --shadow-lg: var(--app-shadow-lg);
+  /* Glass surface elevation + blur, sourced from the DesignCode UI kit
+   * (Figma). Additive alongside --shadow-* above — opt in per component via
+   * shadow-glass / backdrop-blur-glass, nothing existing switches to it. */
+  --shadow-glass: 0 10px 10px 0 rgb(0 0 0 / 0.1), 0 4px 4px 0 rgb(0 0 0 / 0.05), 0 1px 0px 0 rgb(0 0 0 / 0.05);
+  --blur-glass: 20px;
+  /* Type scale from the DesignCode UI kit, kept on our own fonts (Figtree
+   * body / Quicksand headings) rather than the kit's Inter. Additive: no
+   * existing h1-h6/text-* usage changes until a component opts in. */
+  --text-heading-1: 60px;
+  --text-heading-1--line-height: 1;
+  --text-heading-1--letter-spacing: -0.05em;
+  --text-heading-2: 50px;
+  --text-heading-2--line-height: 1;
+  --text-heading-2--letter-spacing: -0.04em;
+  --text-heading-3: 40px;
+  --text-heading-3--line-height: 1;
+  --text-heading-3--letter-spacing: -0.04em;
+  --text-heading-4: 30px;
+  --text-heading-4--line-height: 1;
+  --text-heading-4--letter-spacing: -0.04em;
+  --text-heading-5: 24px;
+  --text-heading-5--line-height: 1;
+  --text-heading-5--letter-spacing: -0.04em;
+  --text-headline: 20px;
+  --text-headline--line-height: 1.5;
+  --text-body-lg: 18px;
+  --text-body-lg--line-height: 1.5;
+  --text-body: 16px;
+  --text-body--line-height: 1.5;
+  --text-footnote: 14px;
+  --text-footnote--line-height: 1.4286;
+  --text-caption: 13px;
+  --text-caption--line-height: 1.5385;
+  --text-small: 12px;
+  --text-small--line-height: 1.5;
+  --text-mobile-heading-1: 40px;
+  --text-mobile-heading-1--line-height: 1;
+  --text-mobile-heading-1--letter-spacing: -0.04em;
+  --text-mobile-heading-2: 30px;
+  --text-mobile-heading-2--line-height: 1;
+  --text-mobile-heading-2--letter-spacing: -0.04em;
+  --text-mobile-heading-3: 28px;
+  --text-mobile-heading-3--line-height: 1;
+  --text-mobile-heading-3--letter-spacing: -0.04em;
+  --text-mobile-heading-4: 24px;
+  --text-mobile-heading-4--line-height: 1;
+  --text-mobile-heading-4--letter-spacing: -0.04em;
+  /* Foreground opacity scale + glass container surface, all derived from
+   * the current --foreground/--card so every per-app theme (and dark mode)
+   * gets correctly hue-matched secondary/tertiary text and glass panels
+   * without redefining anything per app. */
+  --color-foreground-secondary: var(--foreground-secondary);
+  --color-foreground-tertiary: var(--foreground-tertiary);
+  --color-glass: var(--glass-bg);
+  --color-glass-border: var(--glass-border);
+  --color-glass-border-secondary: var(--glass-border-secondary);
+  --color-glass-divider: var(--glass-divider);
   --animate-background-position-spin: background-position-spin 3000ms infinite alternate;
   @keyframes background-position-spin {
   0% {
@@ -141,6 +198,16 @@
   --app-shadow-sm: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
   --app-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --app-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+  /* Foreground opacity scale + glass surface primitives (DesignCode UI kit).
+   * Derived from --foreground/--card via color-mix rather than copying the
+   * kit's literal black/white values, so they track each .app-* theme and
+   * .dark automatically instead of needing per-app/per-mode overrides. */
+  --foreground-secondary: color-mix(in oklab, var(--foreground) 70%, transparent);
+  --foreground-tertiary: color-mix(in oklab, var(--foreground) 50%, transparent);
+  --glass-bg: color-mix(in oklab, var(--card) 60%, transparent);
+  --glass-border: color-mix(in oklab, var(--foreground) 10%, transparent);
+  --glass-border-secondary: color-mix(in oklab, var(--foreground) 20%, transparent);
+  --glass-divider: color-mix(in oklab, var(--foreground) 10%, transparent);
   /* Unified clean background across all apps; foreground/accents are app-themed */
   --background: #f9f9f9;
   --foreground: oklch(0.33 0.074 30); /* #5B3228 - Dark */

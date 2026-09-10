@@ -44,6 +44,10 @@ export function TripPlannerFlow({ initial, onAccepted }: TripPlannerFlowProps) {
       toast({ description: `Trip saved — ${tasksCreated} task${tasksCreated === 1 ? '' : 's'} created.` });
       setAccepted({ planId, destination: generated.req.destination });
     } catch (err) {
+      // Temporary diagnostic: acceptTravelPlan's insert chain throws PostgrestError
+      // objects whose useful detail (code/hint/details) doesn't reach the toast.
+      // Logging the full object until we've root-caused the "Something went wrong" reports.
+      console.error('[TripPlannerFlow] acceptTravelPlan failed:', err);
       toast({
         title: 'Could not save trip plan',
         description: err instanceof Error ? err.message : 'Something went wrong.',

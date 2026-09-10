@@ -329,13 +329,13 @@ export function WorkoutHistory({ onClose }: WorkoutHistoryProps) {
       <div className="grid grid-cols-2 gap-4">
         <Card>
           <CardContent className="pt-6 text-center">
-            <div className="text-3xl font-bold">{stats.total}</div>
+            <div className="text-heading-4 font-bold">{stats.total}</div>
             <p className="text-sm text-muted-foreground">Total Workouts</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6 text-center">
-            <div className="text-3xl font-bold">
+            <div className="text-heading-4 font-bold">
               {stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0}%
             </div>
             <p className="text-sm text-muted-foreground">Completion Rate</p>
@@ -343,13 +343,13 @@ export function WorkoutHistory({ onClose }: WorkoutHistoryProps) {
         </Card>
         <Card>
           <CardContent className="pt-6 text-center">
-            <div className="text-3xl font-bold">{stats.streak}</div>
+            <div className="text-heading-4 font-bold">{stats.streak}</div>
             <p className="text-sm text-muted-foreground">Current Streak</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6 text-center">
-            <div className="text-3xl font-bold">{stats.averageDuration}</div>
+            <div className="text-heading-4 font-bold">{stats.averageDuration}</div>
             <p className="text-sm text-muted-foreground">Avg. Minutes</p>
           </CardContent>
         </Card>

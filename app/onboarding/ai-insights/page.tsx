@@ -86,7 +86,7 @@ export default function AiInsightsPage() {
       />
       <SiriOrb size="140px" state={saving ? 'thinking' : 'idle'} />
       <div className="max-w-sm space-y-4">
-        <h1 className="text-3xl font-bold">Let AI help set things up</h1>
+        <h1 className="text-heading-4 font-bold">Let AI help set things up</h1>
         <ul className="space-y-2 text-left text-sm text-muted-foreground">
           {BENEFITS.map((b) => (
             <li key={b} className="flex gap-2">

@@ -73,7 +73,7 @@ export default function MorningBriefPage() {
               <CardContent className="flex items-center justify-between p-4">
                 <div>
                   <p className="text-xs text-muted-foreground">Yesterday&apos;s Day Score</p>
-                  <p className="text-3xl font-bold tabular-nums">{data?.yesterdayScore ?? '—'}</p>
+                  <p className="text-heading-4 font-bold tabular-nums">{data?.yesterdayScore ?? '—'}</p>
                 </div>
                 {data?.yesterdayScore !== null && data?.yesterdayScore !== undefined && (
                   <p className="max-w-[55%] text-right text-xs text-muted-foreground">{data.insight}</p>

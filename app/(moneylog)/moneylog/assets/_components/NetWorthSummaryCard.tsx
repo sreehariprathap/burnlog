@@ -25,7 +25,7 @@ export function NetWorthSummaryCard({ netWorth, assetCount }: NetWorthSummaryCar
         <span className="text-xs font-medium uppercase tracking-wide text-white/70">Net Worth</span>
         <Wallet className="h-5 w-5 text-white/70" aria-hidden="true" />
       </div>
-      <p className="mt-6 font-mono text-3xl font-semibold tabular-nums" style={{ lineHeight: '100%' }}>
+      <p className="mt-6 font-mono text-heading-4 font-semibold tabular-nums">
         {formatCurrency(netWorth)}
       </p>
       <p className="mt-2 text-xs text-white/70">
