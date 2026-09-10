@@ -70,10 +70,12 @@ export async function ensureMyDaySourceBlocksMaterialized(
   // 2. Habits due today
   const { data: habits } = await supabase
     .from('habits')
-    .select('id, title')
+    .select('id, title, preferredStartTime')
     .eq('profileId', profileId)
     .eq('isActive', true);
-  const habitById = new Map(((habits as { id: string; title: string }[]) || []).map((h) => [h.id, h]));
+  const habitById = new Map(
+    ((habits as { id: string; title: string; preferredStartTime: string | null }[]) || []).map((h) => [h.id, h])
+  );
   if (habitById.size > 0) {
     const { data: occurrences } = await supabase
       .from('habit_occurrences')
@@ -85,12 +87,14 @@ export async function ensureMyDaySourceBlocksMaterialized(
       if (existingKeys.has(key)) continue;
       const habit = habitById.get(occurrence.habitId);
       if (!habit) continue;
+      const startTime = habit.preferredStartTime ?? HABIT_DEFAULT.start;
       candidates.push({
         key,
         source: 'habit',
         sourceId: occurrence.id,
         title: habit.title,
-        desiredStartTime: HABIT_DEFAULT.start,
+        fixedStartTime: habit.preferredStartTime ?? undefined,
+        desiredStartTime: startTime,
         durationMinutes: HABIT_DEFAULT.duration,
         stepMinutes: HABIT_DEFAULT.step,
       });

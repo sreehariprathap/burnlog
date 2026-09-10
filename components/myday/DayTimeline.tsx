@@ -32,6 +32,53 @@ function formatHourLabel(hour: number): string {
   return `${hour - 12}pm`;
 }
 
+interface LaidOutBlock {
+  block: MyDayBlock;
+  column: number;
+  columnCount: number;
+}
+
+// Assigns each block a column so blocks that overlap in time stack
+// side-by-side instead of on top of each other.
+function assignLanes(blocks: MyDayBlock[]): LaidOutBlock[] {
+  const sorted = [...blocks].sort((a, b) => timeToMinutes(a.startTime) - timeToMinutes(b.startTime));
+  const result: LaidOutBlock[] = [];
+
+  let cluster: LaidOutBlock[] = [];
+  let clusterEnd = -Infinity;
+
+  const flushCluster = () => {
+    if (cluster.length === 0) return;
+    const columnCount = Math.max(...cluster.map((item) => item.column)) + 1;
+    for (const item of cluster) {
+      item.columnCount = columnCount;
+      result.push(item);
+    }
+    cluster = [];
+  };
+
+  for (const block of sorted) {
+    const start = timeToMinutes(block.startTime);
+    const end = timeToMinutes(block.endTime);
+
+    if (start >= clusterEnd) {
+      flushCluster();
+      clusterEnd = -Infinity;
+    }
+
+    let column = 0;
+    while (cluster.some((item) => item.column === column && timeToMinutes(item.block.endTime) > start)) {
+      column += 1;
+    }
+
+    cluster.push({ block, column, columnCount: 1 });
+    clusterEnd = Math.max(clusterEnd, end);
+  }
+  flushCluster();
+
+  return result;
+}
+
 export function DayTimeline({ blocks, onBlockClick, onSlotClick, onToggleActual }: DayTimelineProps) {
   const { colorFor } = useAppThemeColors();
   const sourceColors: Record<MyDayBlock['source'], string> = {
@@ -60,7 +107,7 @@ export function DayTimeline({ blocks, onBlockClick, onSlotClick, onToggleActual 
       ))}
 
       <div className="pointer-events-none absolute inset-0 left-14">
-        {blocks.map((block) => {
+        {assignLanes(blocks).map(({ block, column, columnCount }) => {
           const top = ((timeToMinutes(block.startTime) - gridStartMinutes) / 60) * ROW_HEIGHT_PX;
           const height = Math.max(
             24,
@@ -71,16 +118,23 @@ export function DayTimeline({ blocks, onBlockClick, onSlotClick, onToggleActual 
             TOGGLEABLE_SOURCES.includes(block.source) &&
             block.actual !== null &&
             !(block.source === 'homelog' && block.actual);
+          const widthPct = 100 / columnCount;
 
           return (
             <button
               key={block.id}
               type="button"
               onClick={() => onBlockClick(block)}
-              className="pointer-events-auto absolute left-0 right-2 rounded-md border-l-4 bg-card p-2 text-left shadow-sm"
-              style={{ top, height, borderLeftColor: color }}
+              className="pointer-events-auto absolute rounded-sm border-l-4 bg-card p-1.5 text-left shadow-sm"
+              style={{
+                top,
+                height,
+                left: `${column * widthPct}%`,
+                width: `calc(${widthPct}% - 4px)`,
+                borderLeftColor: color,
+              }}
             >
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1">
                 {block.actual !== null && (
                   <span
                     role={canToggle ? 'button' : undefined}
@@ -92,17 +146,17 @@ export function DayTimeline({ blocks, onBlockClick, onSlotClick, onToggleActual 
                     }}
                   >
                     {block.actual ? (
-                      <CheckCircle2 className="h-3.5 w-3.5 text-success" />
+                      <CheckCircle2 className="h-3 w-3 text-success" />
                     ) : (
-                      <Circle className="h-3.5 w-3.5 text-muted-foreground" />
+                      <Circle className="h-3 w-3 text-muted-foreground" />
                     )}
                   </span>
                 )}
-                <p className={cn('truncate text-xs font-medium', block.completed && 'text-muted-foreground line-through')}>
+                <p className={cn('truncate text-[10px] font-medium', block.completed && 'text-muted-foreground line-through')}>
                   {block.title}
                 </p>
               </div>
-              <p className="text-[10px] text-muted-foreground">
+              <p className="truncate text-[9px] text-muted-foreground">
                 {block.startTime}–{block.endTime}
               </p>
             </button>

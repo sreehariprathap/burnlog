@@ -35,6 +35,7 @@ export function HabitCreateSheet({ date, onClose, onSaved }: HabitCreateSheetPro
   const [thinking, setThinking] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  const [startTime, setStartTime] = useState('');
   const [daysOfWeek, setDaysOfWeek] = useState<number[]>(WEEKDAY_PRESET);
   const [intervalWeeks, setIntervalWeeks] = useState(1);
   const [endType, setEndType] = useState<HabitEndType>('never');
@@ -79,6 +80,7 @@ export function HabitCreateSheet({ date, onClose, onSaved }: HabitCreateSheetPro
           endDate: recurrenceType === 'weekly' && endType === 'on_date' ? endDate : null,
           endCount: recurrenceType === 'weekly' && endType === 'after_n' ? endCount : null,
           startDate: date,
+          preferredStartTime: startTime || null,
         }),
       });
       if (!res.ok) throw new Error('Failed to create habit');
@@ -153,6 +155,16 @@ export function HabitCreateSheet({ date, onClose, onSaved }: HabitCreateSheetPro
                 General
               </button>
             </div>
+            <label className="flex items-center gap-2 text-sm">
+              Time slot
+              <input
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="rounded border p-1 text-sm"
+              />
+              <span className="text-xs text-muted-foreground">optional</span>
+            </label>
             <div className="flex gap-2">
               <Button variant="outline" onClick={() => handleCreate(state.result, 'once')} disabled={saving} className="flex-1">
                 One-time
