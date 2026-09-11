@@ -191,6 +191,13 @@
 
 :root {
   --radius: 0.625rem;
+  /* Actual rendered height of TopBar, kept in sync by TopBar itself via
+   * ResizeObserver (it varies with safe-area-inset-top on notched devices).
+   * This fallback (matches the old hardcoded top-14) only applies before
+   * that effect runs or if TopBar isn't mounted. Sticky bars beneath the
+   * header read this instead of a hardcoded offset so they can never
+   * overlap it. */
+  --app-header-height: 3.5rem;
   /* Defaults match Tailwind's own built-in shadow-xs/sm/md/lg values exactly,
    * so redirecting those tokens through these (see @theme inline above) is a
    * no-op until AdminLog > UI > Design Systems overrides one. */

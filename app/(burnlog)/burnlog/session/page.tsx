@@ -172,7 +172,10 @@ function SessionsPageContent() {
             <span className="hidden sm:inline">History</span>
           </Button>
         }/>
-      <div className="sticky top-14 z-10 border-b bg-background/80 px-4 py-2 backdrop-blur">
+      <div
+        className="sticky z-10 border-b bg-background/80 px-4 py-2 backdrop-blur"
+        style={{ top: 'var(--app-header-height, 3.5rem)' }}
+      >
         <PlanViewToggle view={view} onChange={(newView) => goTo({ view: newView })} />
       </div>
 

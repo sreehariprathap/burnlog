@@ -23,7 +23,24 @@ export function TopBar({ title, onClose, actions }: TopBarProps) {
   const [switcherOpen, setSwitcherOpen] = useState(false);
   const [activeApp, setActiveAppState] = useState<AppId>('logbook');
   const closeIconRef = useRef<XIconHandle>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
   useMountAnimation(closeIconRef);
+
+  // Publishes the header's real rendered height (which varies with
+  // env(safe-area-inset-top) across devices) as --app-header-height, so
+  // sticky bars below it (e.g. view/day tabs) can offset against the truth
+  // instead of a hardcoded top-14 guess that overlaps whenever they differ.
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+    const setHeight = () => {
+      document.documentElement.style.setProperty('--app-header-height', `${el.offsetHeight}px`);
+    };
+    setHeight();
+    const observer = new ResizeObserver(setHeight);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     setActiveAppState(getActiveApp());
@@ -67,7 +84,8 @@ export function TopBar({ title, onClose, actions }: TopBarProps) {
 
   return (
     <div
-      className="w-full bg-background text-foreground shadow p-4 sticky top-0 z-10 relative flex justify-between"
+      ref={headerRef}
+      className="w-full bg-background text-foreground shadow p-4 sticky top-0 z-20 relative flex justify-between"
       style={{ paddingTop: 'max(1rem, env(safe-area-inset-top))' }}
     >
       <div className='flex gap-3 items-center'>
