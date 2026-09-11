@@ -1018,14 +1018,24 @@ create policy "travellog_plans_member_read" on travellog_plans
 
 alter table travellog_plan_members enable row level security;
 
+-- A policy on travellog_plan_members can't query travellog_plan_members
+-- itself to check membership — Postgres re-evaluates the same policy for
+-- that inner query and recurses forever (42P17: "infinite recursion
+-- detected in policy for relation travellog_plan_members"). Route the
+-- membership check through a SECURITY DEFINER function instead: it runs
+-- as its owner, which bypasses RLS for the inner lookup, breaking the
+-- cycle while still gating access on the real membership row.
+create or replace function is_travellog_plan_member(_plan_id uuid) returns boolean
+  language sql stable security definer set search_path = public as $$
+    select exists (
+      select 1 from travellog_plan_members tpm
+      join profiles p on p.id = tpm."profileId"
+      where tpm."planId" = _plan_id and p."userId" = auth.uid()
+    );
+  $$;
+
 create policy "travellog_plan_members_member_read" on travellog_plan_members
-  for select using (
-    exists (
-      select 1 from travellog_plan_members tpm2
-      join profiles p on p.id = tpm2."profileId"
-      where tpm2."planId" = travellog_plan_members."planId" and p."userId" = auth.uid()
-    )
-  );
+  for select using (is_travellog_plan_member(travellog_plan_members."planId"));
 
 create policy "travellog_plan_members_insert_own" on travellog_plan_members
   for insert with check (
