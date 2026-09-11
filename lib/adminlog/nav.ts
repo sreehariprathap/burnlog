@@ -25,6 +25,7 @@ import {
   Paintbrush,
   Film,
   SwatchBook,
+  Droplets,
 } from 'lucide-react';
 
 export type AdminNavCategoryKey = 'general' | 'ai' | 'error' | 'ui-themes' | 'user';
@@ -87,6 +88,7 @@ export const ADMIN_NAV: AdminNavCategory[] = [
       { href: '/adminlog/typography', label: 'Typography', description: 'Pick the app\'s heading and body fonts.', icon: Type },
       { href: '/adminlog/app-theme', label: 'App Theme', description: 'Set primary and background colors, light & dark, globally or per app.', icon: Paintbrush },
       { href: '/adminlog/card-glow', label: 'Card Glow', description: 'Set how strong gradients and glow effects look on dashboard cards, globally or per app.', icon: Sparkle },
+      { href: '/adminlog/ui-version', label: 'UI v2 (Beta)', description: 'Switch Button/Card/Input/bottom-nav between the flat look and the glass look, app-wide.', icon: Droplets },
       { href: '/adminlog/design-system', label: 'Design Systems', description: 'Apply a curated color, shape, and typography bundle across the whole app.', icon: SwatchBook },
       { href: '/adminlog/color-combos', label: 'Color Combos', description: 'Create and manage custom color palettes, or browse template examples.', icon: Palette },
     ],
