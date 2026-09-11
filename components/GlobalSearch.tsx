@@ -91,7 +91,7 @@ export function GlobalSearch({ onNavigate, placeholder }: GlobalSearchProps) {
   }
 
   return (
-    <div className="flex flex-col gap-2">
+    <div className="relative flex flex-col gap-2">
       <div className="surface-search flex items-center gap-2 rounded-lg border px-3">
         <SearchIcon ref={searchIconRef} size={16} className="shrink-0 text-muted-foreground" />
         <Input
@@ -110,7 +110,7 @@ export function GlobalSearch({ onNavigate, placeholder }: GlobalSearchProps) {
       </div>
 
       {debouncedQuery.trim() !== '' && (
-        <div className="flex max-h-64 flex-col gap-1 overflow-y-auto">
+        <div className="surface-card absolute inset-x-0 top-full z-50 mt-2 flex max-h-64 flex-col gap-1 overflow-y-auto border p-1">
           {filtered.length === 0 && (
             <p className="p-3 text-center text-sm text-muted-foreground">No matching pages</p>
           )}
