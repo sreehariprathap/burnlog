@@ -1178,6 +1178,21 @@
   box-shadow: var(--surface-nav-shadow);
 }
 
+/* GlobalSearch's wrapper pill — deliberately opaque (--muted) in v1, so it
+ * isn't routed through .surface-input (whose v1 default is transparent,
+ * tuned for the bare <Input> component). v2 matches every other glass
+ * surface instead of staying an out-of-place solid block. */
+.surface-search {
+  background-color: var(--muted);
+  border-color: var(--border);
+}
+
+:root[data-ui-version="v2"] .surface-search {
+  background-color: var(--surface-input-bg);
+  border-color: var(--surface-input-border);
+  backdrop-filter: blur(var(--blur-glass));
+}
+
 .glowing-effect-glow {
   position: absolute;
   inset: 0;

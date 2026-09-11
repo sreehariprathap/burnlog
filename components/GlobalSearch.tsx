@@ -92,7 +92,7 @@ export function GlobalSearch({ onNavigate, placeholder }: GlobalSearchProps) {
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center gap-2 rounded-lg border bg-muted px-3">
+      <div className="surface-search flex items-center gap-2 rounded-lg border px-3">
         <SearchIcon ref={searchIconRef} size={16} className="shrink-0 text-muted-foreground" />
         <Input
           ref={inputRef}
