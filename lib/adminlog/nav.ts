@@ -22,6 +22,7 @@ import {
   Shapes,
   Type,
   Megaphone,
+  ClipboardList,
   Paintbrush,
   Film,
   SwatchBook,
@@ -56,6 +57,7 @@ export const ADMIN_NAV: AdminNavCategory[] = [
       { href: '/adminlog/tools', label: 'Admin Tools', description: 'Test push notifications, onboarding pages.', icon: Wrench },
       { href: '/adminlog/test-onboarding', label: 'Test Onboarding', description: 'Run the real onboarding flow as a disposable test account.', icon: Rocket },
       { href: '/adminlog/banners', label: 'Banners', description: 'Post site-wide announcement banners for every user.', icon: Megaphone },
+      { href: '/adminlog/future-scope', label: 'Future Scope', description: 'Open findings from the codebase review — security, money correctness, performance, and accessibility.', icon: ClipboardList },
     ],
   },
   {
