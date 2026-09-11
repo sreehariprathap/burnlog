@@ -46,7 +46,7 @@ export async function GET(request: Request) {
 
   const { data: profiles, error: profilesError } = await supabase
     .from('profiles')
-    .select('id, userId, country')
+    .select('id, userId, country, city')
     .eq('weeklyTripSuggestionsEnabled', true)
     .not('country', 'is', null);
   if (profilesError) {
@@ -95,6 +95,7 @@ export async function GET(request: Request) {
         freeWindows,
         holidays,
         country: profile.country as string,
+        city: profile.city as string | null,
       };
 
       const { suggestions } = await runAiJob(

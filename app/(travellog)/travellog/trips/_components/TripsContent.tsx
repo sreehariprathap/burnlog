@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { tripsQuery, type TripSummary } from '@/lib/travellog/queries';
+import { DestinationPhoto } from '@/components/travellog/DestinationPhoto';
 
 export function TripsContent() {
   const { data, isLoading } = useSWR<{ plans: TripSummary[] }>(tripsQuery().key, tripsQuery().fetcher);
@@ -28,13 +29,14 @@ export function TripsContent() {
             </CardContent>
           </Card>
         )}
-        {(data?.plans ?? []).map((trip) => (
+        {(data?.plans ?? []).map((trip, i) => (
           <Link
             key={trip.id}
             href={`/travellog/trips/${trip.id}`}
             className="block rounded-2xl transition-transform active:scale-[0.98] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
-            <Card className="transition-colors hover:bg-accent/50">
+            <Card className="overflow-hidden transition-colors hover:bg-accent/50">
+              <DestinationPhoto destination={trip.destination} gradientIndex={i} className="h-20" />
               <CardContent className="pt-4 flex items-center justify-between">
                 <div>
                   <p className="font-medium">{trip.destination}</p>

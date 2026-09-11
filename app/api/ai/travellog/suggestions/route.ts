@@ -72,6 +72,7 @@ export async function POST(request: Request) {
       averageMonthlySurplus: body.averageMonthlySurplus ?? 0,
       currency: body.currency,
       country: body.country,
+      city: body.city ?? null,
       holidays: body.holidays ?? [],
     };
 

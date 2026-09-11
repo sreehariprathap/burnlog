@@ -8,15 +8,15 @@ import { TopBar } from '@/components/TopBar';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Loader2, Plane, RefreshCw } from 'lucide-react';
+import { Loader2, RefreshCw } from 'lucide-react';
 import { useToast } from '@/components/ui/use-toast';
 import useSWR from 'swr';
-import { glowGradient } from '@/lib/theme/glowPalette';
 import { computeFreeWindows, type FreeWindow } from '@/lib/travellog/freeTime';
 import { computeAverageMonthlySurplus } from '@/lib/travellog/affordability';
 import { fetchUpcomingHolidays, type Holiday } from '@/lib/travellog/holidays';
 import type { TripSuggestion } from '@/lib/travellog/suggestions';
 import { WeeklyTripStack, type TripCardItem } from '@/components/travellog/WeeklyTripStack';
+import { DestinationPhoto } from '@/components/travellog/DestinationPhoto';
 import { weeklySuggestionsQuery } from '@/lib/travellog/queries';
 
 const HORIZON_DAYS = 60;
@@ -111,6 +111,7 @@ export function SuggestionsContent() {
           averageMonthlySurplus: surplus,
           currency: (profile.currency as string) || 'USD',
           country: profile.country,
+          city: profile.city,
           holidays,
         }),
       });
@@ -209,13 +210,9 @@ export function SuggestionsContent() {
             ) : (
               suggestions?.map((s, i) => (
                 <Card key={i} className="overflow-hidden">
-                  <div
-                    className="flex h-16 items-center gap-2 px-4 text-white"
-                    style={{ background: glowGradient(i) }}
-                  >
-                    <Plane className="h-5 w-5 shrink-0" aria-hidden="true" />
+                  <DestinationPhoto destination={s.destination} gradientIndex={i} className="h-32">
                     <p className="truncate text-lg font-semibold">{s.destination}</p>
-                  </div>
+                  </DestinationPhoto>
                   <CardContent className="pt-4 flex flex-col gap-2">
                     <p className="text-xs text-muted-foreground">{s.startDate} – {s.endDate}</p>
                     <p className="text-sm font-semibold text-primary">{formatCurrency(s.estimatedCost, s.currency)}</p>

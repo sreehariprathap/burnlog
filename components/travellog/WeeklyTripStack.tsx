@@ -2,9 +2,8 @@
 
 import { motion, useMotionValue, useReducedMotion } from 'motion/react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { MapPin } from 'lucide-react';
-import { glowGradient } from '@/lib/theme/glowPalette';
 import { cn } from '@/lib/utils';
+import { DestinationPhoto } from './DestinationPhoto';
 
 const SCROLL_TIMEOUT_OFFSET = 100;
 const MIN_SCROLL_INTERVAL = 300;
@@ -177,13 +176,9 @@ export function WeeklyTripStack({
             }
             type="button"
           >
-            <div
-              className="flex h-16 items-center gap-2 px-4 text-white"
-              style={{ background: glowGradient(i) }}
-            >
-              <MapPin className="h-5 w-5 shrink-0" aria-hidden="true" />
+            <DestinationPhoto destination={item.destination} gradientIndex={i} className="h-16">
               <div className="truncate text-lg font-semibold">{item.destination}</div>
-            </div>
+            </DestinationPhoto>
             <div className="flex flex-col gap-2 p-4">
               <span className="w-fit rounded-full bg-muted px-2 py-1 text-xs font-medium text-muted-foreground">
                 {item.windowLabel}

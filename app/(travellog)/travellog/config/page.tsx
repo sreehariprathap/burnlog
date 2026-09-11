@@ -1,7 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { AppConfigShell } from '@/components/AppConfigShell';
@@ -15,6 +17,8 @@ export default function TravelLogConfigPage() {
   const supabase = createClient();
   const { toast } = useToast();
   const { profile } = useCurrentProfile();
+  const [city, setCity] = useState<string | null>(null);
+  const cityValue = city ?? (profile?.city as string | undefined) ?? '';
 
   const handleCountryChange = async (code: string) => {
     if (!profile) return;
@@ -25,6 +29,18 @@ export default function TravelLogConfigPage() {
     }
     refreshCurrentProfile();
     toast({ description: 'Country updated' });
+  };
+
+  const handleCitySave = async () => {
+    if (!profile) return;
+    const trimmed = cityValue.trim();
+    const { error } = await supabase.from('profiles').update({ city: trimmed || null }).eq('id', profile.id);
+    if (error) {
+      toast({ title: 'Could not save city', description: error.message, variant: 'destructive' });
+      return;
+    }
+    refreshCurrentProfile();
+    toast({ description: trimmed ? 'City updated' : 'City cleared' });
   };
 
   const handleWeeklyToggle = async (checked: boolean) => {
@@ -57,6 +73,19 @@ export default function TravelLogConfigPage() {
               ))}
             </SelectContent>
           </Select>
+
+          <Label htmlFor="city" className="font-medium pt-2 block">Home city</Label>
+          <p className="text-xs text-muted-foreground">Narrows trip suggestions to places realistically reachable from here, instead of your whole country.</p>
+          <div className="flex gap-2">
+            <Input
+              id="city"
+              value={cityValue}
+              onChange={(e) => setCity(e.target.value)}
+              onBlur={handleCitySave}
+              placeholder="e.g. Vancouver"
+            />
+          </div>
+
           <div className="flex items-center justify-between pt-4">
             <div>
               <Label htmlFor="weekly-suggestions" className="font-medium">Weekly trip suggestions</Label>

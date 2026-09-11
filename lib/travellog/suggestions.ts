@@ -14,6 +14,9 @@ export interface SuggestionsRequest {
   averageMonthlySurplus: number;
   currency: string;
   country: string;
+  /** Home city, if the profile has one set — narrows suggestions to places
+   * realistically reachable from there instead of the whole country. */
+  city?: string | null;
   holidays: HolidayInput[];
 }
 
@@ -41,8 +44,9 @@ export function buildSuggestionsUserPrompt(req: SuggestionsRequest): string {
   const holidaysList = req.holidays.length > 0
     ? req.holidays.map((h) => `- ${h.date}: ${h.name}`).join('\n')
     : 'None in this period.';
+  const homeLabel = req.city ? `${req.city}, ${req.country}` : req.country;
 
-  return `Suggest 3 to 5 affordable trips for a traveller in ${req.country}.
+  return `Suggest 3 to 5 affordable trips for a traveller based in ${homeLabel}.
 
 Available free-time windows (the ONLY dates you may use):
 ${windowsList}
@@ -54,8 +58,8 @@ ${holidaysList}
 Requirements:
 - Each suggestion's startDate and endDate MUST fall entirely within one of the listed free-time windows (do not invent dates outside them).
 - Prefer windows that align with or extend a public holiday where one falls nearby.
-- estimatedCost is a realistic total trip cost in ${req.currency} and should not substantially exceed the average monthly surplus (${req.averageMonthlySurplus} ${req.currency}) unless no cheaper realistic option fits the window.
-- rationale is one sentence explaining why this trip fits (mention the window, budget fit, or a nearby holiday specifically).
+${req.city ? `- Weight destinations by realistic travel time and cost from ${homeLabel} — for a short window (a long weekend or under a week), favor places reachable by a short flight or drive from ${req.city}; reserve farther/international destinations for longer windows.\n` : ''}- estimatedCost is a realistic total trip cost in ${req.currency}, INCLUDING round-trip transportation from ${homeLabel}, and should not substantially exceed the average monthly surplus (${req.averageMonthlySurplus} ${req.currency}) unless no cheaper realistic option fits the window.
+- rationale is one sentence explaining why this trip fits (mention the window, budget fit, travel time from ${req.city ?? req.country}, or a nearby holiday specifically).
 - destination should be a real, specific place (city + country or region), not vague.
 
 Respond with ONLY valid JSON matching this schema exactly:

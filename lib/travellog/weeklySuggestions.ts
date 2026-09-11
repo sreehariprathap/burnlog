@@ -14,6 +14,9 @@ export interface WeeklySuggestionsRequest {
   freeWindows: FreeWindowInput[];
   holidays: HolidayInput[];
   country: string;
+  /** Home city, if the profile has one set — narrows suggestions to places
+   * realistically reachable from there instead of the whole country. */
+  city?: string | null;
 }
 
 export interface WeeklyTripSuggestion {
@@ -43,8 +46,9 @@ export function buildWeeklySuggestionsUserPrompt(req: WeeklySuggestionsRequest):
   const visitedList = req.visitedPlaces.length > 0
     ? req.visitedPlaces.join(', ')
     : 'None recorded yet.';
+  const homeLabel = req.city ? `${req.city}, ${req.country}` : req.country;
 
-  return `Suggest 5 to 8 trip ideas for a traveller based in ${req.country}.
+  return `Suggest 5 to 8 trip ideas for a traveller based in ${homeLabel}.
 
 Available free-time windows (the ONLY dates you may use):
 ${windowsList}
@@ -58,8 +62,8 @@ Requirements:
 - Each suggestion's startDate and endDate MUST fall entirely within one of the listed free-time windows (do not invent dates outside them).
 - Prefer destinations the traveller has NOT already visited, unless a long weekend or holiday genuinely makes revisiting one a standout idea.
 - Prefer windows that align with or extend a public holiday where one falls nearby.
-- windowLabel is a short human-friendly label for the window used, e.g. "Long weekend · Nov 14-16" or "3-day window · Dec 5-7" — mention the holiday name if the window includes one.
-- reason is one sentence explaining why this trip fits (the window, a nearby holiday, or novelty vs. their travel history).
+${req.city ? `- Weight destinations by realistic travel time from ${req.city} — for a short window (a long weekend or under a week), favor places reachable by a short flight or drive; reserve farther/international destinations for longer windows.\n` : ''}- windowLabel is a short human-friendly label for the window used, e.g. "Long weekend · Nov 14-16" or "3-day window · Dec 5-7" — mention the holiday name if the window includes one.
+- reason is one sentence explaining why this trip fits (the window, travel time from ${req.city ?? req.country}, a nearby holiday, or novelty vs. their travel history).
 - destination should be a real, specific place (city + country or region), not vague.
 
 Respond with ONLY valid JSON matching this schema exactly:

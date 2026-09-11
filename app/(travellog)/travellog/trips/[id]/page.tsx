@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ItineraryReview } from '../../plan/_components/ItineraryReview';
 import { InviteMemberForm } from './_components/InviteMemberForm';
+import { DestinationPhoto } from '@/components/travellog/DestinationPhoto';
 import { apiFetch } from '@/lib/apiFetch';
 import type { ItineraryRequest, Itinerary } from '@/lib/travellog/itinerary';
 
@@ -98,6 +99,9 @@ export default function TripDetailPage() {
   return (
     <div className="min-h-screen pb-24">
       <TopBar title={data.plan.destination} />
+      <DestinationPhoto destination={data.plan.destination} className="h-40 w-full">
+        <p className="truncate text-2xl font-semibold">{data.plan.destination}</p>
+      </DestinationPhoto>
       <div className="p-4 flex flex-col gap-4">
         <Card>
           <CardHeader><CardTitle>Trip members</CardTitle></CardHeader>
@@ -127,9 +131,12 @@ export default function TripDetailPage() {
           <CardContent className="flex flex-col gap-2">
             {data.visits.length === 0 && <p className="text-sm text-muted-foreground">No visits logged for this trip yet.</p>}
             {data.visits.map((v) => (
-              <div key={v.id} className="text-sm">
-                <p className="font-medium">{v.placeName}, {v.country}</p>
-                <p className="text-xs text-muted-foreground">{formatVisitDate(v.arrivalDate)}{v.departureDate ? ` – ${formatVisitDate(v.departureDate)}` : ''}</p>
+              <div key={v.id} className="flex items-center gap-3">
+                <DestinationPhoto destination={`${v.placeName}, ${v.country}`} className="h-12 w-12 shrink-0 rounded-lg" />
+                <div className="text-sm">
+                  <p className="font-medium">{v.placeName}, {v.country}</p>
+                  <p className="text-xs text-muted-foreground">{formatVisitDate(v.arrivalDate)}{v.departureDate ? ` – ${formatVisitDate(v.departureDate)}` : ''}</p>
+                </div>
               </div>
             ))}
           </CardContent>
