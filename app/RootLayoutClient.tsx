@@ -16,7 +16,7 @@ import { GlobalErrorListener } from "@/components/GlobalErrorListener";
 import { ThemeProvider } from "@/components/ThemeProvider";
 import PWAInstall from "@/components/PWAInstall";
 import PWAStatus from "@/components/PWAStatus";
-import PWAUpdateNotification from "@/components/PWAUpdateNotification";
+import PWAAutoUpdate from "@/components/PWAAutoUpdate";
 import SplashScreen from "@/components/SplashScreen";
 import { KeyboardFocusScroll } from "@/components/KeyboardFocusScroll";
 import { AppSwitchProvider } from "@/lib/appSwitchContext";
@@ -156,7 +156,7 @@ export default function RootLayoutClient({
                 />
                 <PWAInstall />
                 <PWAStatus />
-                <PWAUpdateNotification />
+                <PWAAutoUpdate />
                 <EnableNotificationsPrompt />
               </PaymentProvider>
             </AppSwitchProvider>
