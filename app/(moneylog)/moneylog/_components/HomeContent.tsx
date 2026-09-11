@@ -165,12 +165,6 @@ export function HomeContent() {
           </Button>
         }
       />
-      {profileId && (
-        <div className="px-4 pt-2 space-y-2">
-          <UnloggedOccurrencePrompts profileId={profileId} onLogged={() => setRefreshKey((k) => k + 1)} />
-          <SpendableCard profileId={profileId} refreshKey={refreshKey} />
-        </div>
-      )}
       <div
         className="sticky z-10 border-b bg-background/80 px-4 py-2 backdrop-blur"
         style={{ top: 'var(--app-header-height, 3.5rem)' }}
@@ -186,6 +180,12 @@ export function HomeContent() {
           ))}
         />
       </div>
+      {profileId && (
+        <div className="px-4 pb-2 space-y-2">
+          <UnloggedOccurrencePrompts profileId={profileId} onLogged={() => setRefreshKey((k) => k + 1)} />
+          <SpendableCard profileId={profileId} refreshKey={refreshKey} />
+        </div>
+      )}
       {profileId && (
         <MoneyLogFab
           profileId={profileId}
