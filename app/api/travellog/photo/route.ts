@@ -25,7 +25,7 @@ const UTM = 'utm_source=burnlog&utm_medium=referral';
 // is capped at 50 requests/hour, so re-fetching per page view would blow
 // through that almost immediately.
 export async function GET(request: Request) {
-  const accessKey = process.env.UNSPLASH_KEY;
+  const accessKey = process.env.UNSPLASH_ACCESS_KEY;
   if (!accessKey) {
     return NextResponse.json({ error: 'Unsplash not configured' }, { status: 501 });
   }
